@@ -1,0 +1,442 @@
+{
+  "name": "bezier-icons",
+  "displayName": "Bezier Icons",
+  "description": "Manage, preview, and transform SVG icons in your workspace. Convert SVGs to Icon components instantly.",
+  "version": "0.1.0",
+  "publisher": "adravilag",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Visualization",
+    "Snippets"
+  ],
+  "keywords": [
+    "icons",
+    "svg",
+    "bezier-icons",
+    "iconify",
+    "components"
+  ],
+  "activationEvents": [
+    "onLanguage:html",
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact",
+    "onLanguage:vue",
+    "onLanguage:svelte",
+    "onLanguage:astro"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "submenus": [
+      {
+        "id": "bezierIcons.svgMenu",
+        "label": "Bezier Icons"
+      }
+    ],
+    "languages": [
+      {
+        "id": "bezierignore",
+        "aliases": ["Bezier Ignore"],
+        "filenames": [".bezierignore"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "bezierignore",
+        "scopeName": "source.bezierignore",
+        "path": "./syntaxes/bezierignore.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "iconManager.openPanel",
+        "title": "Bezier: Open Panel",
+        "icon": "$(symbol-color)"
+      },
+      {
+        "command": "iconManager.scanWorkspace",
+        "title": "Bezier: Scan Workspace SVGs"
+      },
+      {
+        "command": "iconManager.scanUsages",
+        "title": "Bezier: Scan Icon Usages",
+        "icon": "$(references)"
+      },
+      {
+        "command": "iconManager.transformSvgToIcon",
+        "title": "Bezier: Transform SVG to Icon Component"
+      },
+      {
+        "command": "iconManager.optimizeSvg",
+        "title": "Bezier: Optimize SVG (SVGO)",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "iconManager.insertIcon",
+        "title": "Bezier: Insert Icon"
+      },
+      {
+        "command": "iconManager.previewIcon",
+        "title": "Bezier: Preview Icon at Cursor"
+      },
+      {
+        "command": "iconManager.goToInlineSvg",
+        "title": "Go to SVG",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "iconManager.goToUsage",
+        "title": "Go to Usage",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "iconManager.transformInlineSvg",
+        "title": "Transform SVG to Icon Component",
+        "icon": "$(replace)"
+      },
+      {
+        "command": "iconManager.configureProject",
+        "title": "Bezier: Configure Project",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "iconManager.editIgnoreFile",
+        "title": "Bezier: Edit Ignore File (.bezierignore)",
+        "icon": "$(list-filter)"
+      },
+      {
+        "command": "iconManager.refreshIcons",
+        "title": "Bezier: Refresh Icons",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "iconManager.buildIcons",
+        "title": "Bezier: Build Icons",
+        "icon": "$(package)"
+      },
+      {
+        "command": "iconManager.searchIcons",
+        "title": "Bezier: Search Icons (Iconify)",
+        "icon": "$(search)"
+      },
+      {
+        "command": "iconManager.deleteIcons",
+        "title": "Delete Icon(s)",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "iconManager.showDetails",
+        "title": "Show Details",
+        "icon": "$(info)"
+      },
+      {
+        "command": "iconManager.colorEditor",
+        "title": "Edit Icon",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "iconManager.openCatalog",
+        "title": "Bezier: Browse Icon Catalog",
+        "icon": "$(library)"
+      },
+      {
+        "command": "iconManager.generateLicenses",
+        "title": "Bezier: Generate License Files"
+      },
+      {
+        "command": "iconManager.exportComponent",
+        "title": "Bezier: Export as Component",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "iconManager.generateSprite",
+        "title": "Bezier: Generate SVG Sprite",
+        "icon": "$(layers)"
+      },
+      {
+        "command": "iconManager.addSvgToCollection",
+        "title": "Add to Icon Collection",
+        "icon": "$(add)"
+      },
+      {
+        "command": "iconManager.removeReference",
+        "title": "Remove Reference",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "iconManager.findAndReplace",
+        "title": "Find & Replace Path",
+        "icon": "$(search-replace)"
+      },
+      {
+        "command": "iconManager.renameIcon",
+        "title": "Rename Icon",
+        "icon": "$(edit)"
+      }
+    ],
+    "configuration": {
+      "title": "Bezier",
+      "properties": {
+        "iconManager.componentName": {
+          "type": "string",
+          "default": "icon",
+          "description": "Name of the Icon component to use in transformations"
+        },
+        "iconManager.componentImport": {
+          "type": "string",
+          "default": "@/components/ui/Icon",
+          "description": "Import path for the Icon component"
+        },
+        "iconManager.svgFolders": {
+          "type": "array",
+          "default": ["src/assets/icons", "src/icons", "public/icons", "assets/icons", "icons", "svg", "assets/svg"],
+          "description": "Folders to scan for SVG files"
+        },
+        "iconManager.outputFormat": {
+          "type": "string",
+          "enum": ["jsx", "vue", "svelte", "astro", "html"],
+          "default": "jsx",
+          "description": "Default output format for icon components"
+        },
+        "iconManager.iconNameAttribute": {
+          "type": "string",
+          "default": "name",
+          "description": "Attribute name for the icon identifier (name, icon, src, etc.)"
+        },
+        "iconManager.autoImport": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically add import statement when inserting icons"
+        },
+        "iconManager.libraryPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the Bezier library (icons.json)"
+        },
+        "iconManager.outputDirectory": {
+          "type": "string",
+          "default": "bezier-icons",
+          "description": "Directory where icons.ts or sprite.svg will be generated (relative to workspace root)"
+        },
+        "iconManager.buildFormat": {
+          "type": "string",
+          "enum": ["icons.ts", "sprite.svg", "both"],
+          "default": "icons.ts",
+          "description": "Output format for built icons"
+        },
+        "iconManager.webComponentName": {
+          "type": "string",
+          "default": "bezier-icon",
+          "description": "Name of the Web Component for icons (e.g. bezier-icon)"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "iconManager",
+          "title": "Bezier Icons",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "iconManager": [
+        {
+          "id": "iconManager.workspaceIcons",
+          "name": "Icons"
+        },
+        {
+          "id": "iconManager.preview",
+          "name": "Preview",
+          "type": "webview"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "iconManager.openCatalog",
+          "when": "view == iconManager.workspaceIcons",
+          "group": "navigation@0"
+        },
+        {
+          "command": "iconManager.searchIcons",
+          "when": "view == iconManager.workspaceIcons",
+          "group": "navigation@1"
+        },
+        {
+          "command": "iconManager.generateSprite",
+          "when": "view == iconManager.workspaceIcons",
+          "group": "navigation@2"
+        },
+        {
+          "command": "iconManager.scanUsages",
+          "when": "view == iconManager.workspaceIcons",
+          "group": "navigation@3"
+        },
+        {
+          "command": "iconManager.configureProject",
+          "when": "view == iconManager.workspaceIcons",
+          "group": "navigation@4"
+        },
+        {
+          "command": "iconManager.editIgnoreFile",
+          "when": "view == iconManager.workspaceIcons",
+          "group": "navigation@5"
+        },
+        {
+          "command": "iconManager.refreshIcons",
+          "when": "view == iconManager.workspaceIcons",
+          "group": "navigation@6"
+        },
+        {
+          "command": "iconManager.refreshIcons",
+          "when": "view == iconManager.workspaceIcons",
+          "group": "navigation@6"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "iconManager.transformSvgToIcon",
+          "when": "editorHasSelection",
+          "group": "iconManager"
+        },
+        {
+          "command": "iconManager.optimizeSvg",
+          "when": "editorHasSelection",
+          "group": "iconManager"
+        },
+        {
+          "command": "iconManager.previewIcon",
+          "when": "editorTextFocus",
+          "group": "iconManager"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "iconManager.scanWorkspace",
+          "when": "explorerResourceIsFolder",
+          "group": "iconManager"
+        },
+        {
+          "submenu": "bezierIcons.svgMenu",
+          "when": "resourceExtname == .svg",
+          "group": "iconManager"
+        }
+      ],
+      "bezierIcons.svgMenu": [
+        {
+          "command": "iconManager.colorEditor",
+          "group": "1_edit@1"
+        },
+        {
+          "command": "iconManager.showDetails",
+          "group": "1_edit@2"
+        },
+        {
+          "command": "iconManager.optimizeSvg",
+          "group": "2_optimize@1"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "iconManager.transformInlineSvg",
+          "when": "view == iconManager.workspaceIcons && viewItem == inlineSvg",
+          "group": "inline"
+        },
+        {
+          "command": "iconManager.goToInlineSvg",
+          "when": "view == iconManager.workspaceIcons && viewItem == inlineSvg",
+          "group": "navigation"
+        },
+        {
+          "command": "iconManager.addSvgToCollection",
+          "when": "view == iconManager.workspaceIcons && viewItem == svgIcon",
+          "group": "inline"
+        },
+        {
+          "command": "iconManager.showDetails",
+          "when": "view == iconManager.workspaceIcons && viewItem =~ /builtIcon|inlineSvg|svgIcon/",
+          "group": "navigation"
+        },
+        {
+          "command": "iconManager.colorEditor",
+          "when": "view == iconManager.workspaceIcons && viewItem =~ /builtIcon|inlineSvg|svgIcon/",
+          "group": "navigation"
+        },
+        {
+          "command": "iconManager.exportComponent",
+          "when": "view == iconManager.workspaceIcons && viewItem =~ /builtIcon|inlineSvg|svgIcon/",
+          "group": "1_export"
+        },
+        {
+          "command": "iconManager.renameIcon",
+          "when": "view == iconManager.workspaceIcons && viewItem =~ /builtIcon|svgIcon/",
+          "group": "7_modification"
+        },
+        {
+          "command": "iconManager.deleteIcons",
+          "when": "view == iconManager.workspaceIcons && viewItem =~ /builtIcon|inlineSvg/",
+          "group": "9_cutcopypaste"
+        },
+        {
+          "command": "iconManager.goToInlineSvg",
+          "when": "view == iconManager.workspaceIcons && viewItem == missingRef",
+          "group": "navigation"
+        },
+        {
+          "command": "iconManager.removeReference",
+          "when": "view == iconManager.workspaceIcons && viewItem == missingRef",
+          "group": "1_fix"
+        },
+        {
+          "command": "iconManager.findAndReplace",
+          "when": "view == iconManager.workspaceIcons && viewItem == missingRef",
+          "group": "1_fix"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "iconManager.openPanel",
+        "key": "ctrl+shift+i",
+        "mac": "cmd+shift+i"
+      },
+      {
+        "command": "iconManager.insertIcon",
+        "key": "ctrl+alt+i",
+        "mac": "cmd+alt+i",
+        "when": "editorTextFocus"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "jest --config jest.config.js",
+    "test:watch": "jest --config jest.config.js --watch",
+    "test:coverage": "jest --config jest.config.js --coverage",
+    "lint": "eslint src --ext ts",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.11",
+    "@types/node": "^20.10.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.22.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "svgo": "^3.2.0"
+  }
+}

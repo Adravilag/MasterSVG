@@ -1,0 +1,56 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Bezier Ignore",
+  "scopeName": "source.bezierignore",
+  "patterns": [
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#negation"
+    },
+    {
+      "include": "#directory"
+    },
+    {
+      "include": "#wildcard"
+    },
+    {
+      "include": "#pattern"
+    }
+  ],
+  "repository": {
+    "comment": {
+      "match": "^\\s*#.*$",
+      "name": "comment.line.number-sign.bezierignore"
+    },
+    "negation": {
+      "match": "^!",
+      "name": "keyword.operator.negation.bezierignore"
+    },
+    "directory": {
+      "match": "/$",
+      "name": "punctuation.definition.directory.bezierignore"
+    },
+    "wildcard": {
+      "patterns": [
+        {
+          "match": "\\*\\*",
+          "name": "constant.other.wildcard.asterisk.double.bezierignore"
+        },
+        {
+          "match": "\\*",
+          "name": "constant.other.wildcard.asterisk.bezierignore"
+        },
+        {
+          "match": "\\?",
+          "name": "constant.other.wildcard.questionmark.bezierignore"
+        }
+      ]
+    },
+    "pattern": {
+      "match": "[^#\\s*?/]+",
+      "name": "string.unquoted.path.bezierignore"
+    }
+  }
+}
