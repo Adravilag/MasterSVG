@@ -61,13 +61,77 @@ export const COLOR_PATTERNS = {
 };
 
 /**
- * Checks if a string contains valid SVG content
+ * Patterns that indicate content is NOT a valid SVG (e.g., HTML pages)
+ */
+export const INVALID_CONTENT_PATTERNS = {
+  // DOCTYPE declaration (HTML)
+  doctype: /<!DOCTYPE\s+html/i,
+  // HTML tag
+  htmlTag: /<html\b/i,
+  // Head tag
+  headTag: /<head\b/i,
+  // Body tag
+  bodyTag: /<body\b/i,
+  // Script tag (outside SVG context)
+  scriptTag: /<script\b[^>]*>[\s\S]*?<\/script>/i,
+  // Meta tag
+  metaTag: /<meta\b/i,
+  // Link tag (stylesheet)
+  linkTag: /<link\b[^>]*rel=["']stylesheet["']/i
+};
+
+/**
+ * Checks if content appears to be HTML instead of SVG
+ */
+export function isHtmlContent(content: string): boolean {
+  if (!content || typeof content !== 'string') {
+    return false;
+  }
+  return (
+    INVALID_CONTENT_PATTERNS.doctype.test(content) ||
+    INVALID_CONTENT_PATTERNS.htmlTag.test(content) ||
+    INVALID_CONTENT_PATTERNS.headTag.test(content) ||
+    INVALID_CONTENT_PATTERNS.bodyTag.test(content)
+  );
+}
+
+/**
+ * Checks if a string contains valid SVG content (not HTML)
  */
 export function isValidSvg(content: string): boolean {
   if (!content || typeof content !== 'string') {
     return false;
   }
+  
+  // First check if it's HTML - reject if so
+  if (isHtmlContent(content)) {
+    return false;
+  }
+  
   return SVG_PATTERNS.openingTag.test(content) && SVG_PATTERNS.closingTag.test(content);
+}
+
+/**
+ * Validates SVG content and returns detailed result
+ */
+export function validateSvgContent(content: string): { valid: boolean; error?: string } {
+  if (!content || typeof content !== 'string') {
+    return { valid: false, error: 'Content is empty or not a string' };
+  }
+  
+  if (isHtmlContent(content)) {
+    return { valid: false, error: 'Content appears to be HTML, not SVG' };
+  }
+  
+  if (!SVG_PATTERNS.openingTag.test(content)) {
+    return { valid: false, error: 'Missing <svg> opening tag' };
+  }
+  
+  if (!SVG_PATTERNS.closingTag.test(content)) {
+    return { valid: false, error: 'Missing </svg> closing tag' };
+  }
+  
+  return { valid: true };
 }
 
 /**

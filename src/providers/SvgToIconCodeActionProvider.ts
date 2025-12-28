@@ -1,160 +1,116 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
-import { getSvgConfig } from '../utils/config';
+import { getConfig } from '../utils/configHelper';
+import { WorkspaceSvgProvider } from './WorkspaceSvgProvider';
+
+/**
+ * Icon source options for transformation
+ */
+export type IconSourceOption = 'iconify' | 'workspace' | 'current' | 'manual';
+
+/**
+ * Transform options passed to the command
+ */
+export interface TransformOptions {
+  /** Original SVG path from the img tag */
+  originalPath: string;
+  /** Extracted icon name */
+  iconName: string;
+  /** Document URI */
+  documentUri: string;
+  /** Line number */
+  line: number;
+  /** Original HTML to replace */
+  originalHtml: string;
+}
 
 /**
  * Code Action Provider for transforming SVG references to Icon components
- * Detects: <img src="path/to/icon.svg"> and offers to convert to <Icon name="icon" />
+ * 
+ * Detects: <img src="path/to/icon.svg">
+ * Offers: Transform to Web Component with source selection
  */
 export class SvgToIconCodeActionProvider implements vscode.CodeActionProvider {
   public static readonly providedCodeActionKinds = [
-    vscode.CodeActionKind.QuickFix,
-    vscode.CodeActionKind.Refactor
+    vscode.CodeActionKind.QuickFix
   ];
 
   provideCodeActions(
     document: vscode.TextDocument,
     range: vscode.Range | vscode.Selection,
-    context: vscode.CodeActionContext,
-    token: vscode.CancellationToken
+    _context: vscode.CodeActionContext,
+    _token: vscode.CancellationToken
   ): vscode.CodeAction[] | undefined {
-    const actions: vscode.CodeAction[] = [];
-
-    // Get the line text
     const line = document.lineAt(range.start.line);
     const lineText = line.text;
 
-    // Pattern 1: <img src="...svg" />
+    // Pattern: <img src="...svg" />
     const imgSvgPattern = /<img\s+[^>]*src=["']([^"']*\.svg)["'][^>]*>/gi;
     
-    // Pattern 2: <img src={...svg} /> (JSX)
-    const imgSvgJsxPattern = /<img\s+[^>]*src=\{([^}]*\.svg[^}]*)\}[^>]*>/gi;
-
-    // Pattern 3: background: url(...svg)
-    const bgSvgPattern = /url\(["']?([^"')]*\.svg)["']?\)/gi;
-
-    // Pattern 4: import ... from '...svg'
-    const importSvgPattern = /import\s+(\w+)\s+from\s+["']([^"']*\.svg)["']/gi;
-
     let match;
-
-    // Check for <img src="...svg">
     while ((match = imgSvgPattern.exec(lineText)) !== null) {
       const svgPath = match[1];
       const iconName = this.extractIconName(svgPath);
       const fullMatch = match[0];
-      const startPos = line.text.indexOf(fullMatch);
-      const matchRange = new vscode.Range(
-        range.start.line, startPos,
-        range.start.line, startPos + fullMatch.length
-      );
-
-      // Quick fix action
-      const quickFix = this.createTransformAction(
-        document,
-        matchRange,
-        iconName,
-        svgPath,
-        fullMatch,
-        'quickfix'
-      );
-      actions.push(quickFix);
-
-      // Also offer to import the SVG to library
-      const importAction = this.createImportToLibraryAction(document, svgPath, iconName);
-      if (importAction) actions.push(importAction);
-    }
-
-    // Check for background: url(...svg)
-    while ((match = bgSvgPattern.exec(lineText)) !== null) {
-      const svgPath = match[1];
-      const iconName = this.extractIconName(svgPath);
+      const startPos = lineText.indexOf(fullMatch);
       
-      const diagnostic = new vscode.CodeAction(
-        `💡 SVG detected: "${iconName}" - Consider using Icon component`,
-        vscode.CodeActionKind.Empty
-      );
-      diagnostic.isPreferred = false;
-      actions.push(diagnostic);
+      // Check if cursor is within the match
+      if (range.start.character >= startPos && 
+          range.start.character <= startPos + fullMatch.length) {
+        
+        return [this.createTransformAction(document, svgPath, iconName, fullMatch, range.start.line)];
+      }
     }
 
-    return actions.length > 0 ? actions : undefined;
+    return undefined;
   }
 
+  /**
+   * Extract clean icon name from SVG path
+   */
   private extractIconName(svgPath: string): string {
-    // Extract filename without extension
     const filename = path.basename(svgPath, '.svg');
-    // Convert to kebab-case and clean
     return filename
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
   }
 
+  /**
+   * Create the single "Transform to Web Component" action
+   */
   private createTransformAction(
     document: vscode.TextDocument,
-    range: vscode.Range,
-    iconName: string,
     svgPath: string,
-    originalText: string,
-    kind: 'quickfix' | 'refactor'
+    iconName: string,
+    originalHtml: string,
+    line: number
   ): vscode.CodeAction {
-    const componentName = getSvgConfig<string>('componentName', 'Icon');
-    const nameAttr = getSvgConfig<string>('iconNameAttribute', 'name');
-
+    const config = getConfig();
+    const buildFormat = config.buildFormat || 'icons.ts';
+    const isSprite = buildFormat === 'sprite.svg';
+    const formatLabel = isSprite ? 'SVG Sprite' : 'Web Component';
+    
     const action = new vscode.CodeAction(
-      `🔄 Transform to <${componentName} ${nameAttr}="${iconName}" />`,
-      kind === 'quickfix' ? vscode.CodeActionKind.QuickFix : vscode.CodeActionKind.Refactor
+      `🔄 Transform to ${formatLabel}: "${iconName}"`,
+      vscode.CodeActionKind.QuickFix
     );
 
-    // Determine the replacement based on file type
-    const languageId = document.languageId;
-    let replacement: string;
+    const options: TransformOptions = {
+      originalPath: svgPath,
+      iconName,
+      documentUri: document.uri.fsPath,
+      line,
+      originalHtml
+    };
 
-    if (['javascriptreact', 'typescriptreact'].includes(languageId)) {
-      replacement = `<${componentName} ${nameAttr}="${iconName}" />`;
-    } else if (languageId === 'vue') {
-      replacement = `<${componentName} ${nameAttr}="${iconName}" />`;
-    } else if (languageId === 'svelte') {
-      replacement = `<${componentName} ${nameAttr}="${iconName}" />`;
-    } else if (languageId === 'astro') {
-      replacement = `<${componentName} ${nameAttr}="${iconName}" />`;
-    } else {
-      // HTML - use iconify-icon
-      replacement = `<iconify-icon icon="${iconName}"></iconify-icon>`;
-    }
-
-    action.edit = new vscode.WorkspaceEdit();
-    action.edit.replace(document.uri, range, replacement);
-    
-    // Store SVG path for potential import
     action.command = {
-      command: 'iconManager.checkAndImportSvg',
-      title: 'Check and Import SVG',
-      arguments: [svgPath, iconName, document.uri.fsPath]
+      command: 'iconManager.transformSvgReference',
+      title: 'Transform SVG Reference',
+      arguments: [options]
     };
 
     action.isPreferred = true;
-    return action;
-  }
-
-  private createImportToLibraryAction(
-    document: vscode.TextDocument,
-    svgPath: string,
-    iconName: string
-  ): vscode.CodeAction | undefined {
-    const action = new vscode.CodeAction(
-      `📥 Import "${iconName}.svg" to Icon Library`,
-      vscode.CodeActionKind.Refactor
-    );
-
-    action.command = {
-      command: 'iconManager.importSvgToLibrary',
-      title: 'Import SVG to Library',
-      arguments: [svgPath, iconName, document.uri.fsPath]
-    };
-
     return action;
   }
 }
@@ -178,7 +134,6 @@ export class SvgImgDiagnosticProvider {
     const diagnostics: vscode.Diagnostic[] = [];
     const text = document.getText();
     
-    // Pattern for <img src="...svg">
     const imgSvgPattern = /<img\s+[^>]*src=["']([^"']*\.svg)["'][^>]*>/gi;
     
     let match;
@@ -191,7 +146,7 @@ export class SvgImgDiagnosticProvider {
       
       const diagnostic = new vscode.Diagnostic(
         range,
-        `SVG image "${iconName}" can be converted to Icon component for better performance and consistency`,
+        `SVG "${iconName}" can be converted to Icon component`,
         vscode.DiagnosticSeverity.Hint
       );
       diagnostic.code = 'svg-to-icon';
@@ -214,5 +169,80 @@ export class SvgImgDiagnosticProvider {
 
   public dispose(): void {
     this.diagnosticCollection.dispose();
+  }
+}
+
+/**
+ * Code Action Provider for missing icons in web components
+ * 
+ * Detects: <bz-icon name="missing-icon"> where icon doesn't exist
+ * Offers: Import from Iconify or file
+ */
+export class MissingIconCodeActionProvider implements vscode.CodeActionProvider {
+  public static readonly providedCodeActionKinds = [
+    vscode.CodeActionKind.QuickFix
+  ];
+
+  constructor(private svgProvider: WorkspaceSvgProvider) {}
+
+  provideCodeActions(
+    document: vscode.TextDocument,
+    range: vscode.Range | vscode.Selection,
+    _context: vscode.CodeActionContext,
+    _token: vscode.CancellationToken
+  ): vscode.CodeAction[] | undefined {
+    const config = getConfig();
+    const componentName = config.webComponentName || 'bz-icon';
+
+    const line = document.lineAt(range.start.line);
+    const lineText = line.text;
+
+    // Patterns for icon references
+    const patterns = [
+      new RegExp(`<${componentName}[^>]*name=["']([^"']+)["']`, 'gi'),
+      /<iconify-icon[^>]*icon=["']([^"']+)["']/gi
+    ];
+
+    for (const pattern of patterns) {
+      let match;
+      while ((match = pattern.exec(lineText)) !== null) {
+        const iconName = match[1];
+        const icon = this.svgProvider.getIcon(iconName);
+        
+        if (!icon) {
+          const nameStart = match.index + match[0].indexOf(iconName);
+          const nameEnd = nameStart + iconName.length;
+          
+          if (range.start.character >= nameStart && range.start.character <= nameEnd) {
+            return [this.createImportAction(iconName, document, range.start.line)];
+          }
+        }
+      }
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Create action for importing missing icon
+   */
+  private createImportAction(
+    iconName: string,
+    document: vscode.TextDocument,
+    line: number
+  ): vscode.CodeAction {
+    const action = new vscode.CodeAction(
+      `📥 Import icon: "${iconName}"`,
+      vscode.CodeActionKind.QuickFix
+    );
+
+    action.command = {
+      command: 'iconManager.importIcon',
+      title: 'Import Icon',
+      arguments: [iconName, document.uri.fsPath, line]
+    };
+
+    action.isPreferred = true;
+    return action;
   }
 }

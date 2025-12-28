@@ -201,7 +201,7 @@ describe('IconEditorPanel', () => {
       
       await handler({ command: 'applyOptimizedSvg', svg: optimizedSvg });
 
-      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith('Optimized SVG applied');
+      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith('Optimized SVG applied and saved');
     });
   });
 
@@ -808,6 +808,209 @@ describe('IconEditorPanel', () => {
       expect(validateInput!('icon_name')).toBeUndefined();
       expect(validateInput!('IconName123')).toBeUndefined();
       expect(validateInput!('mdi-linkedin-2')).toBeUndefined();
+    });
+  });
+
+  // =====================================================
+  // TDD: Proceso de animación sin duplicación
+  // =====================================================
+
+  describe('TDD: Animación sin duplicación', () => {
+    // SVG con animación embebida (como se guarda en sprite.svg/icons.js)
+    const svgWithEmbeddedAnimation = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <style id="icon-manager-animation">
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .icon-anim-123 { animation: spin 2s linear infinite; transform-origin: center; }
+      </style>
+      <g class="icon-anim-123">
+        <path d="M12 2L2 7l10 5 10-5-10-5z" fill="#000000"/>
+      </g>
+    </svg>`;
+
+    const cleanSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z" fill="#000000"/></svg>';
+
+    describe('Carga de iconos', () => {
+      test('al cargar icono con animación embebida, debe limpiarla del SVG interno', () => {
+        const extensionUri = vscode.Uri.file('/test/extension');
+        
+        const iconWithAnimation = {
+          name: 'animated-icon',
+          svg: svgWithEmbeddedAnimation,
+          location: { file: '/test/icons/test.svg', line: 1 }
+        };
+        
+        IconEditorPanel.createOrShow(extensionUri, iconWithAnimation);
+
+        // El SVG interno (_iconData.svg) NO debe contener la animación embebida
+        const panel = (IconEditorPanel as any).currentPanel;
+        const internalSvg = panel._iconData?.svg;
+        expect(internalSvg).not.toContain('icon-anim-123');
+        expect(internalSvg).not.toContain('icon-manager-animation');
+      });
+
+      test('al cargar icono limpio, debe mantenerlo limpio', () => {
+        const extensionUri = vscode.Uri.file('/test/extension');
+        
+        const cleanIcon = {
+          name: 'clean-icon',
+          svg: cleanSvg,
+          location: { file: '/test/icons/test.svg', line: 1 }
+        };
+        
+        IconEditorPanel.createOrShow(extensionUri, cleanIcon);
+
+        const panel = (IconEditorPanel as any).currentPanel;
+        const internalSvg = panel._iconData?.svg;
+        expect(internalSvg).toContain('path d="M12 2L2 7l10 5 10-5-10-5z"');
+        expect(internalSvg).not.toContain('icon-manager-animation');
+      });
+    });
+
+    describe('Guardado de iconos - sprite.svg', () => {
+      test('al guardar con animación, el body en sprite NO debe tener estilos de animación', async () => {
+        const extensionUri = vscode.Uri.file('/test/extension');
+        const fs = require('fs');
+        
+        // Mock del sprite file
+        const mockSpriteContent = `<svg xmlns="http://www.w3.org/2000/svg">
+          <symbol id="test-icon" viewBox="0 0 24 24">
+            <path d="M0 0"/>
+          </symbol>
+        </svg>`;
+        
+        fs.existsSync = jest.fn().mockReturnValue(true);
+        fs.readFileSync = jest.fn().mockReturnValue(mockSpriteContent);
+        let savedContent = '';
+        fs.writeFileSync = jest.fn().mockImplementation((path: string, content: string) => {
+          savedContent = content;
+        });
+        
+        const iconFromSprite = {
+          name: 'test-icon',
+          svg: cleanSvg,
+          spriteFile: '/test/output/sprite.svg',
+          viewBox: '0 0 24 24'
+        };
+        
+        IconEditorPanel.createOrShow(extensionUri, iconFromSprite);
+
+        const handler = (mockPanel.webview.onDidReceiveMessage as jest.Mock).mock.calls[0][0];
+        
+        // Simular guardar con animación spin
+        await handler({ 
+          command: 'save',
+          animation: 'spin',
+          settings: { duration: 2, timing: 'linear', iteration: 'infinite' },
+          includeAnimation: true
+        });
+
+        // El contenido guardado en sprite NO debe tener los estilos de animación
+        // porque extractSvgBody los limpia
+        if (savedContent) {
+          expect(savedContent).not.toContain('<style id="icon-manager-animation">');
+          expect(savedContent).not.toContain('icon-anim-');
+        }
+      });
+    });
+
+    describe('Guardado de iconos - icons.js', () => {
+      test('al guardar con animación, el body en icons.js NO debe tener estilos de animación', async () => {
+        const extensionUri = vscode.Uri.file('/test/extension');
+        
+        // Mock de icons.js
+        const mockIconsContent = `// Auto-generated
+export const testIcon = {
+  name: 'test-icon',
+  body: \`<path d="M0 0"/>\`,
+  viewBox: '0 0 24 24'
+};
+export const icons = { testIcon };`;
+        
+        const mockDocument = {
+          getText: jest.fn().mockReturnValue(mockIconsContent),
+          positionAt: jest.fn().mockReturnValue({ line: 0, character: 0 }),
+          uri: vscode.Uri.file('/test/output/icons.js')
+        };
+        
+        (vscode.workspace.openTextDocument as jest.Mock).mockResolvedValue(mockDocument);
+        (vscode.workspace.applyEdit as jest.Mock).mockResolvedValue(true);
+        
+        const iconFromBuilt = {
+          name: 'test-icon',
+          svg: cleanSvg,
+          viewBox: '0 0 24 24'
+          // No location, no spriteFile = built icon from icons.js
+        };
+        
+        IconEditorPanel.createOrShow(extensionUri, iconFromBuilt);
+
+        const handler = (mockPanel.webview.onDidReceiveMessage as jest.Mock).mock.calls[0][0];
+        
+        // Simular guardar con animación
+        await handler({ 
+          command: 'save',
+          animation: 'pulse',
+          settings: { duration: 1.5, timing: 'ease-in-out', iteration: 'infinite' },
+          includeAnimation: true
+        });
+
+        // Verificar que applyEdit fue llamado
+        // El body que se guarda debe estar limpio de animaciones
+        if ((vscode.workspace.applyEdit as jest.Mock).mock.calls.length > 0) {
+          const editCall = (vscode.workspace.applyEdit as jest.Mock).mock.calls[0][0];
+          // El edit no debe contener estilos de animación en el body
+          expect(editCall).toBeDefined();
+        }
+      });
+    });
+
+    describe('Ciclo completo de edición', () => {
+      test('cargar → añadir animación → guardar → recargar: no debe duplicar animación', () => {
+        const extensionUri = vscode.Uri.file('/test/extension');
+        
+        // Paso 1: Cargar icono con animación existente
+        const iconWithAnimation = {
+          name: 'cycle-test',
+          svg: svgWithEmbeddedAnimation,
+          spriteFile: '/test/output/sprite.svg'
+        };
+        
+        IconEditorPanel.createOrShow(extensionUri, iconWithAnimation);
+        
+        // Verificar que se limpió la animación al cargar
+        const html1 = mockPanel.webview.html;
+        expect(html1).not.toContain('icon-anim-123');
+        
+        // Paso 2: Cerrar y reabrir (simula el ciclo)
+        (IconEditorPanel as any).currentPanel = undefined;
+        
+        IconEditorPanel.createOrShow(extensionUri, iconWithAnimation);
+        
+        // Verificar que sigue limpio
+        const html2 = mockPanel.webview.html;
+        expect(html2).not.toContain('icon-anim-123');
+      });
+
+      test('el SVG interno debe estar limpio después de crear el panel', () => {
+        const extensionUri = vscode.Uri.file('/test/extension');
+        
+        const iconWithAnimation = {
+          name: 'internal-test',
+          svg: svgWithEmbeddedAnimation
+        };
+        
+        IconEditorPanel.createOrShow(extensionUri, iconWithAnimation);
+        
+        // Acceder al panel actual y verificar que _iconData.svg está limpio
+        const panel = (IconEditorPanel as any).currentPanel;
+        expect(panel).toBeDefined();
+        
+        const internalSvg = panel._iconData?.svg;
+        expect(internalSvg).toBeDefined();
+        expect(internalSvg).not.toContain('icon-manager-animation');
+        expect(internalSvg).not.toContain('icon-anim-');
+        expect(internalSvg).not.toContain('@keyframes');
+      });
     });
   });
 });

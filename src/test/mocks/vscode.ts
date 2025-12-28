@@ -45,8 +45,11 @@ export const workspace = {
   openTextDocument: jest.fn().mockImplementation(() => Promise.resolve({
     getText: jest.fn().mockReturnValue(''),
     lineAt: jest.fn().mockReturnValue({ text: '' }),
-    positionAt: jest.fn().mockReturnValue({ line: 0, character: 0 })
+    positionAt: jest.fn().mockReturnValue({ line: 0, character: 0 }),
+    save: jest.fn().mockResolvedValue(true)
   })),
+  
+  applyEdit: jest.fn().mockResolvedValue(true),
   
   findFiles: jest.fn().mockResolvedValue([]),
   

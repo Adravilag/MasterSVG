@@ -522,4 +522,65 @@ export const arrowRight = { name: 'arrow-right', body: '' };`;
       expect(ids).toContain('home');
     });
   });
+
+  describe('renameIconInContent', () => {
+    it('should rename icon name property in icons.js format', () => {
+      const content = `export const materialSymbolsHouse = {
+  name: 'material-symbols-house',
+  body: \`<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>\`,
+  viewBox: '0 0 24 24'
+};
+
+export const icons = {
+  materialSymbolsHouse
+};`;
+
+      const oldName = 'material-symbols-house';
+      const newName = 'house';
+      
+      // Pattern to match name: 'iconName' or name: "iconName"
+      const escapedOldName = oldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const namePattern = new RegExp(`(name:\\s*['"])${escapedOldName}(['"])`, 'g');
+      
+      const newContent = content.replace(namePattern, `$1${newName}$2`);
+      
+      expect(newContent).toContain(`name: 'house'`);
+      expect(newContent).not.toContain(`name: 'material-symbols-house'`);
+    });
+
+    it('should find icon name with test pattern', () => {
+      const content = `export const materialSymbolsHouse = {
+  name: 'material-symbols-house',
+  body: \`<path/>\`,
+  viewBox: '0 0 24 24'
+};`;
+
+      const oldName = 'material-symbols-house';
+      const escapedOldName = oldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      
+      // Test pattern (non-global)
+      const testPattern = new RegExp(`name:\\s*['"]${escapedOldName}['"]`);
+      
+      expect(testPattern.test(content)).toBe(true);
+    });
+
+    it('should rename symbol id in sprite.svg', () => {
+      const content = `<svg>
+  <symbol id="material-symbols-house" viewBox="0 0 24 24">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+</svg>`;
+
+      const oldName = 'material-symbols-house';
+      const newName = 'house';
+      
+      const escapedOldName = oldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const symbolPattern = new RegExp(`(<symbol[^>]*id=["'])${escapedOldName}(["'])`, 'g');
+      
+      const newContent = content.replace(symbolPattern, `$1${newName}$2`);
+      
+      expect(newContent).toContain(`id="house"`);
+      expect(newContent).not.toContain(`id="material-symbols-house"`);
+    });
+  });
 });

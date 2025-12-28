@@ -1,4 +1,16 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
+import { getSvgConfig } from '../utils/config';
+
+export interface PreviewAnimation {
+  type: string;
+  duration: number;
+  timing: string;
+  iteration: string;
+  delay?: number;
+  direction?: string;
+}
 
 export class IconPreviewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'iconManager.preview';
@@ -8,8 +20,38 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
   private _currentName?: string;
   private _currentLocation?: { file: string; line: number };
   private _isBuilt?: boolean;
+  private _currentAnimation?: PreviewAnimation;
 
   constructor(private readonly _extensionUri: vscode.Uri) {}
+
+  // Read variants from variants.js file
+  private _getVariantsFilePath(): string | undefined {
+    const outputDir = getSvgConfig<string>('outputDirectory', '');
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders || !outputDir) return undefined;
+    return path.join(workspaceFolders[0].uri.fsPath, outputDir, 'variants.js');
+  }
+
+  private _readVariantsFromFile(): Record<string, Record<string, string[]>> {
+    try {
+      const filePath = this._getVariantsFilePath();
+      if (!filePath || !fs.existsSync(filePath)) return {};
+      const content = fs.readFileSync(filePath, 'utf-8');
+      const match = content.match(/export\s+const\s+Variants\s*=\s*(\{[\s\S]*\});/);
+      if (match) {
+        return new Function(`return ${match[1]}`)();
+      }
+      return {};
+    } catch {
+      return {};
+    }
+  }
+
+  private _getSavedVariants(iconName: string): Array<{ name: string; colors: string[] }> {
+    const allVariants = this._readVariantsFromFile();
+    const iconVariants = allVariants[iconName] || {};
+    return Object.entries(iconVariants).map(([name, colors]) => ({ name, colors }));
+  }
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -112,7 +154,8 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
               name: this._currentName,
               svg: this._currentSvg,
               location: this._currentLocation,
-              isBuilt: this._isBuilt
+              isBuilt: this._isBuilt,
+              animation: this._currentAnimation
             });
           }
           break;
@@ -204,14 +247,23 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  public updatePreview(name: string, svg: string, location?: { file: string; line: number }, isBuilt?: boolean) {
+  public updatePreview(name: string, svg: string, location?: { file: string; line: number }, isBuilt?: boolean, animation?: PreviewAnimation) {
     this._currentSvg = svg;
     this._currentName = name;
     this._currentLocation = location;
     this._isBuilt = isBuilt;
+    this._currentAnimation = animation;
+    
+    // Detect if SVG is rasterized (too many colors)
+    const MAX_COLORS_FOR_EDIT = 50;
+    const colorMatches = svg.match(/#[0-9a-fA-F]{3,8}\b|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\)/gi);
+    const isRasterized = colorMatches ? new Set(colorMatches.map(c => c.toLowerCase())).size > MAX_COLORS_FOR_EDIT : false;
+    
+    // Get saved variants for this icon
+    const variants = this._getSavedVariants(name);
     
     if (this._view) {
-      this._view.webview.html = this._getHtmlForWebview(name, svg, location, isBuilt);
+      this._view.webview.html = this._getHtmlForWebview(name, svg, location, isBuilt, animation, isRasterized, variants);
     }
   }
 
@@ -219,13 +271,14 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
     this._currentSvg = undefined;
     this._currentName = undefined;
     this._currentLocation = undefined;
+    this._currentAnimation = undefined;
     
     if (this._view) {
       this._view.webview.html = this._getHtmlForWebview('', '');
     }
   }
 
-  private _getHtmlForWebview(name: string, svg: string, location?: { file: string; line: number }, isBuilt?: boolean): string {
+  private _getHtmlForWebview(name: string, svg: string, location?: { file: string; line: number }, isBuilt?: boolean, animation?: PreviewAnimation, isRasterized?: boolean, variants?: Array<{ name: string; colors: string[] }>): string {
     if (!svg) {
       return `<!DOCTYPE html>
 <html lang="en">
@@ -267,6 +320,23 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
     let displaySvg = svg;
     if (!svg.includes('width=') && !svg.includes('style=')) {
       displaySvg = svg.replace('<svg', '<svg width="100%" height="100%"');
+    }
+    
+    // Apply animation style to SVG if present
+    let animationStyle = '';
+    if (animation && animation.type && animation.type !== 'none') {
+      const duration = animation.duration || 1;
+      const timing = animation.timing || 'ease';
+      const iteration = animation.iteration || 'infinite';
+      const delay = animation.delay || 0;
+      const direction = animation.direction || 'normal';
+      animationStyle = `animation: icon-${animation.type} ${duration}s ${timing} ${delay}s ${iteration} ${direction};`;
+      // Add animation to the SVG element
+      if (displaySvg.includes('style="')) {
+        displaySvg = displaySvg.replace(/style="([^"]*)"/, `style="$1 ${animationStyle}"`);
+      } else {
+        displaySvg = displaySvg.replace('<svg', `<svg style="${animationStyle}"`);
+      }
     }
 
     return `<!DOCTYPE html>
@@ -353,6 +423,12 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
       background: rgba(204, 166, 82, 0.1);
     }
     
+    .badge.rasterized {
+      color: #e57373;
+      border: 1px solid rgba(229, 115, 115, 0.4);
+      background: rgba(229, 115, 115, 0.1);
+    }
+    
     /* === PREVIEW SURFACE === */
     .preview-surface {
       --checker-size: 10px;
@@ -393,7 +469,7 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
     /* === SIZE SLIDER (inside preview) === */
     .size-bar {
       position: absolute;
-      bottom: 28px;
+      bottom: 8px;
       left: 0;
       right: 0;
       display: flex;
@@ -494,6 +570,64 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
       color: var(--vscode-foreground);
     }
     
+    /* === VARIANTS BAR (inside preview) === */
+    .variants-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 8px;
+      background: linear-gradient(to top, rgba(0,0,0,0.3), transparent);
+    }
+
+    .variant-swatch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 4px 8px;
+      background: var(--vscode-input-background);
+      border: 1px solid var(--vscode-input-border, rgba(128,128,128,0.3));
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .variant-swatch:hover {
+      background: var(--vscode-list-hoverBackground);
+      border-color: var(--vscode-focusBorder);
+    }
+
+    .variant-swatch.active {
+      border-color: var(--vscode-button-background);
+      box-shadow: 0 0 0 1px var(--vscode-button-background);
+    }
+
+    .variant-colors {
+      display: flex;
+      gap: 2px;
+    }
+
+    .variant-colors span {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2);
+    }
+
+    .variant-name {
+      font-size: 9px;
+      color: var(--vscode-descriptionForeground);
+      max-width: 50px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
     /* === TOOLBAR ROW === */
     .toolbar-row {
       display: flex;
@@ -533,6 +667,37 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
     .toolbar-btn .codicon {
       font-size: 14px;
     }
+    
+    /* === ANIMATION KEYFRAMES === */
+    @keyframes icon-spin { from { rotate: 0deg; } to { rotate: 360deg; } }
+    @keyframes icon-spin-reverse { from { rotate: 360deg; } to { rotate: 0deg; } }
+    @keyframes icon-pulse { 0%, 100% { scale: 1; opacity: 1; } 50% { scale: 1.1; opacity: 0.8; } }
+    @keyframes icon-pulse-grow { 0%, 100% { scale: 1; } 50% { scale: 1.3; } }
+    @keyframes icon-bounce { 0%, 100% { translate: 0 0; } 50% { translate: 0 -4px; } }
+    @keyframes icon-bounce-horizontal { 0%, 100% { translate: 0 0; } 50% { translate: 4px 0; } }
+    @keyframes icon-shake { 0%, 100% { translate: 0 0; } 25% { translate: -2px 0; } 75% { translate: 2px 0; } }
+    @keyframes icon-shake-vertical { 0%, 100% { translate: 0 0; } 25% { translate: 0 -2px; } 75% { translate: 0 2px; } }
+    @keyframes icon-fade { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    @keyframes icon-fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes icon-fade-out { from { opacity: 1; } to { opacity: 0; } }
+    @keyframes icon-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+    @keyframes icon-swing { 0%, 100% { rotate: 0deg; } 20% { rotate: 15deg; } 40% { rotate: -10deg; } 60% { rotate: 5deg; } 80% { rotate: -5deg; } }
+    @keyframes icon-flip { 0% { transform: perspective(400px) rotateY(0); } 100% { transform: perspective(400px) rotateY(360deg); } }
+    @keyframes icon-flip-x { 0% { transform: perspective(400px) rotateX(0); } 100% { transform: perspective(400px) rotateX(360deg); } }
+    @keyframes icon-heartbeat { 0%, 100% { scale: 1; } 14% { scale: 1.3; } 28% { scale: 1; } 42% { scale: 1.3; } 70% { scale: 1; } }
+    @keyframes icon-wiggle { 0%, 100% { rotate: 0deg; } 25% { rotate: -10deg; } 75% { rotate: 10deg; } }
+    @keyframes icon-wobble { 0% { transform: translateX(0%); } 15% { transform: translateX(-25%) rotate(-5deg); } 30% { transform: translateX(20%) rotate(3deg); } 45% { transform: translateX(-15%) rotate(-3deg); } 60% { transform: translateX(10%) rotate(2deg); } 75% { transform: translateX(-5%) rotate(-1deg); } 100% { transform: translateX(0%); } }
+    @keyframes icon-rubber-band { 0% { scale: 1 1; } 30% { scale: 1.25 0.75; } 40% { scale: 0.75 1.25; } 50% { scale: 1.15 0.85; } 65% { scale: 0.95 1.05; } 75% { scale: 1.05 0.95; } 100% { scale: 1 1; } }
+    @keyframes icon-jello { 0%, 100% { transform: skewX(0deg) skewY(0deg); } 22% { transform: skewX(-12.5deg) skewY(-12.5deg); } 33% { transform: skewX(6.25deg) skewY(6.25deg); } 44% { transform: skewX(-3.125deg) skewY(-3.125deg); } 55% { transform: skewX(1.5625deg) skewY(1.5625deg); } }
+    @keyframes icon-tada { 0% { scale: 1; rotate: 0deg; } 10%, 20% { scale: 0.9; rotate: -3deg; } 30%, 50%, 70%, 90% { scale: 1.1; rotate: 3deg; } 40%, 60%, 80% { scale: 1.1; rotate: -3deg; } 100% { scale: 1; rotate: 0deg; } }
+    @keyframes icon-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    @keyframes icon-glow { 0%, 100% { filter: drop-shadow(0 0 2px currentColor); } 50% { filter: drop-shadow(0 0 8px currentColor); } }
+    @keyframes icon-zoom-in { from { scale: 0; opacity: 0; } to { scale: 1; opacity: 1; } }
+    @keyframes icon-zoom-out { from { scale: 1; opacity: 1; } to { scale: 0; opacity: 0; } }
+    @keyframes icon-slide-in-up { from { translate: 0 100%; opacity: 0; } to { translate: 0 0; opacity: 1; } }
+    @keyframes icon-slide-in-down { from { translate: 0 -100%; opacity: 0; } to { translate: 0 0; opacity: 1; } }
+    @keyframes icon-slide-in-left { from { translate: -100% 0; opacity: 0; } to { translate: 0 0; opacity: 1; } }
+    @keyframes icon-slide-in-right { from { translate: 100% 0; opacity: 0; } to { translate: 0 0; opacity: 1; } }
   </style>
 </head>
 <body>
@@ -540,9 +705,10 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
   <header class="header">
     <span class="icon-name" title="${name}">${name}</span>
     ${isBuilt !== undefined ? `<span class="badge ${isBuilt ? 'built' : 'draft'}">${isBuilt ? 'Built' : 'Draft'}</span>` : ''}
+    ${isRasterized ? `<span class="badge rasterized" title="SVG has too many colors for editing">⚠</span>` : ''}
   </header>
   
-  <!-- Preview Surface with Size Slider and Colors -->
+  <!-- Preview Surface with Size Slider and Variants -->
   <div class="preview-surface" id="preview">
     <div class="icon-container">
       ${displaySvg}
@@ -551,26 +717,34 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
       <input type="range" class="size-slider" id="sizeSlider" min="16" max="128" value="64" />
       <span class="size-value" id="sizeValue">64</span>
     </div>
-    <div class="color-bar" id="colorPalette"></div>
+    ${!isRasterized && variants && variants.length > 0 ? `
+    <div class="variants-bar" id="variantsPalette">
+      ${variants.map((v, i) => `
+        <button class="variant-swatch ${i === 0 ? 'active' : ''}" data-index="${i}" title="${v.name}" onclick="applyVariant(${i})">
+          <span class="variant-colors">${v.colors.slice(0, 3).map(c => `<span style="background:${c}"></span>`).join('')}</span>
+          <span class="variant-name">${v.name}</span>
+        </button>
+      `).join('')}
+    </div>
+    ` : ''}
   </div>
   
   <!-- Toolbar (Actions) -->
   <div class="toolbar-row">
+    ${!isRasterized ? `
     <button class="toolbar-btn" onclick="resetColors()" title="Reset">
       <span class="codicon codicon-discard"></span>
     </button>
-    <button class="toolbar-btn" onclick="optimizeSvg()" title="Optimize">
-      <span class="codicon codicon-zap"></span>
-    </button>
+    ` : ''}
     <button class="toolbar-btn" onclick="copySvg()" title="Copy SVG">
       <span class="codicon codicon-copy"></span>
     </button>
     <button class="toolbar-btn" onclick="downloadSvg()" title="Download">
       <span class="codicon codicon-desktop-download"></span>
     </button>
-    ${isBuilt ? `
-    <button class="toolbar-btn" onclick="previewComponent()" title="Color Editor">
-      <span class="codicon codicon-symbol-color"></span>
+    ${!isRasterized ? `
+    <button class="toolbar-btn" onclick="previewComponent()" title="Open in Editor">
+      <span class="codicon codicon-edit"></span>
     </button>
     ` : ''}
     ${location ? `
@@ -578,7 +752,7 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
       <span class="codicon codicon-go-to-file"></span>
     </button>
     ` : ''}
-    <button class="toolbar-btn" onclick="openDetails()" title="Full Details">
+    <button class="toolbar-btn" onclick="openDetails()" title="Details">
       <span class="codicon codicon-info"></span>
     </button>
   </div>
@@ -587,6 +761,8 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
     const vscode = acquireVsCodeApi();
     const colorMap = new Map();
     const presets = ['#ffffff','#000000','#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899'];
+    const savedVariants = ${JSON.stringify(variants || [])};
+    const originalSvg = document.querySelector('.icon-container svg')?.outerHTML;
     
     // === SIZE CONTROL ===
     const sizeSlider = document.getElementById('sizeSlider');
@@ -680,6 +856,37 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
       });
       svg.style.fill = color;
       buildColorUI();
+    }
+    
+    // === VARIANTS ===
+    function applyVariant(index) {
+      const variant = savedVariants[index];
+      if (!variant || !variant.colors || variant.colors.length === 0) return;
+      
+      const svg = document.querySelector('.icon-container svg');
+      if (!svg) return;
+      
+      // Get detected colors from original SVG
+      const detected = detectColors();
+      
+      // Apply variant colors to detected colors (in order)
+      detected.forEach(([originalColor], i) => {
+        const newColor = variant.colors[i % variant.colors.length];
+        svg.querySelectorAll('*').forEach(el => {
+          ['fill', 'stroke'].forEach(attr => {
+            const current = colorMap.get(originalColor) || originalColor;
+            if (normalizeColor(el.getAttribute(attr)) === current) {
+              el.setAttribute(attr, newColor);
+            }
+          });
+        });
+        colorMap.set(originalColor, newColor);
+      });
+      
+      // Update active state
+      document.querySelectorAll('.variant-swatch').forEach((btn, i) => {
+        btn.classList.toggle('active', i === index);
+      });
     }
     
     // === ACTIONS ===

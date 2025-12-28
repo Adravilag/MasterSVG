@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { getSvgConfig, getFullSvgConfig } from '../utils/config';
+import { ErrorHandler } from '../utils/errorHandler';
 
 export class IconManagerPanel {
   public static currentPanel: IconManagerPanel | undefined;
@@ -204,26 +205,28 @@ export class IconManagerPanel {
   }
 
   private async _scanSvgFolder(folderPath: string, icons: any[], category: string) {
-    const entries = fs.readdirSync(folderPath, { withFileTypes: true });
+    await ErrorHandler.wrapAsync(async () => {
+      const entries = fs.readdirSync(folderPath, { withFileTypes: true });
 
-    for (const entry of entries) {
-      const fullPath = path.join(folderPath, entry.name);
+      for (const entry of entries) {
+        const fullPath = path.join(folderPath, entry.name);
 
-      if (entry.isDirectory()) {
-        await this._scanSvgFolder(fullPath, icons, `${category}/${entry.name}`);
-      } else if (entry.isFile() && entry.name.endsWith('.svg')) {
-        const name = path.basename(entry.name, '.svg');
-        const svg = fs.readFileSync(fullPath, 'utf-8');
-        
-        icons.push({
-          name,
-          svg,
-          path: fullPath,
-          category,
-          source: 'workspace'
-        });
+        if (entry.isDirectory()) {
+          await this._scanSvgFolder(fullPath, icons, `${category}/${entry.name}`);
+        } else if (entry.isFile() && entry.name.endsWith('.svg')) {
+          const name = path.basename(entry.name, '.svg');
+          const svg = fs.readFileSync(fullPath, 'utf-8');
+          
+          icons.push({
+            name,
+            svg,
+            path: fullPath,
+            category,
+            source: 'workspace'
+          });
+        }
       }
-    }
+    }, `scanning folder ${folderPath}`);
   }
 
   private async _sendLibraryIcons() {
@@ -240,11 +243,14 @@ export class IconManagerPanel {
       return;
     }
 
-    try {
+    const result = await ErrorHandler.wrapAsync(async () => {
       const content = fs.readFileSync(libraryPath, 'utf-8');
       const icons = JSON.parse(content);
       this.postMessage({ type: 'libraryIcons', icons });
-    } catch (error) {
+      return true;
+    }, 'loading library icons');
+
+    if (!result) {
       this.postMessage({ type: 'libraryIcons', icons: [] });
     }
   }

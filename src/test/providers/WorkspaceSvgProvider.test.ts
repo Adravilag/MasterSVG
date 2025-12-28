@@ -1312,3 +1312,365 @@ describe('WorkspaceSvgProvider additional features', () => {
     });
   });
 });
+
+/**
+ * Tests para la regex de parsing de icons.js
+ * 
+ * Estos tests verifican que la regex puede parsear correctamente
+ * iconos con diferentes tipos de contenido SVG, incluyendo
+ * aquellos que contienen caracteres especiales como }
+ */
+describe('BuiltIconsProvider parsing regex', () => {
+  // La regex usada en parseIconsFile
+  const iconPattern = /export\s+const\s+(\w+)\s*=\s*\{[\s\S]*?name:\s*['"]([^'"]+)['"][\s\S]*?body:\s*`([^`]*)`[\s\S]*?viewBox:\s*['"]([^'"]+)['"][\s\S]*?\};/g;
+
+  function parseIconsContent(content: string): Array<{varName: string, iconName: string, body: string, viewBox: string}> {
+    const results: Array<{varName: string, iconName: string, body: string, viewBox: string}> = [];
+    let match;
+    
+    // Reset regex lastIndex
+    iconPattern.lastIndex = 0;
+    
+    while ((match = iconPattern.exec(content)) !== null) {
+      results.push({
+        varName: match[1],
+        iconName: match[2],
+        body: match[3],
+        viewBox: match[4]
+      });
+    }
+    return results;
+  }
+
+  test('debe parsear un icono simple', () => {
+    const content = `export const arrowDown = {
+  name: 'arrow-down',
+  body: \`<path d="M7 10l5 5 5-5z"/>\`,
+  viewBox: '0 0 24 24'
+};`;
+
+    const results = parseIconsContent(content);
+    
+    expect(results).toHaveLength(1);
+    expect(results[0].varName).toBe('arrowDown');
+    expect(results[0].iconName).toBe('arrow-down');
+    expect(results[0].body).toBe('<path d="M7 10l5 5 5-5z"/>');
+    expect(results[0].viewBox).toBe('0 0 24 24');
+  });
+
+  test('debe parsear un icono con } en el body', () => {
+    const content = `export const complexIcon = {
+  name: 'complex-icon',
+  body: \`<style>.cls-1{fill:#333}</style><path class="cls-1" d="M10 10z"/>\`,
+  viewBox: '0 0 24 24'
+};`;
+
+    const results = parseIconsContent(content);
+    
+    expect(results).toHaveLength(1);
+    expect(results[0].iconName).toBe('complex-icon');
+    expect(results[0].body).toContain('{fill:#333}');
+  });
+
+  test('debe parsear un icono con múltiples } en estilos CSS', () => {
+    const content = `export const styledIcon = {
+  name: 'styled-icon',
+  body: \`<style>.a{fill:red}.b{stroke:blue}.c{opacity:0.5}</style><g><path/></g>\`,
+  viewBox: '0 0 100 100'
+};`;
+
+    const results = parseIconsContent(content);
+    
+    expect(results).toHaveLength(1);
+    expect(results[0].iconName).toBe('styled-icon');
+    expect(results[0].body).toContain('.a{fill:red}');
+    expect(results[0].body).toContain('.b{stroke:blue}');
+    expect(results[0].body).toContain('.c{opacity:0.5}');
+  });
+
+  test('debe parsear múltiples iconos en un archivo', () => {
+    const content = `export const icon1 = {
+  name: 'icon-1',
+  body: \`<circle cx="12" cy="12" r="10"/>\`,
+  viewBox: '0 0 24 24'
+};
+
+export const icon2 = {
+  name: 'icon-2',
+  body: \`<rect x="0" y="0" width="24" height="24"/>\`,
+  viewBox: '0 0 24 24'
+};
+
+export const icon3 = {
+  name: 'icon-3',
+  body: \`<style>.x{fill:#000}</style><path/>\`,
+  viewBox: '0 0 32 32'
+};`;
+
+    const results = parseIconsContent(content);
+    
+    expect(results).toHaveLength(3);
+    expect(results[0].iconName).toBe('icon-1');
+    expect(results[1].iconName).toBe('icon-2');
+    expect(results[2].iconName).toBe('icon-3');
+    expect(results[2].body).toContain('{fill:#000}');
+  });
+
+  test('debe manejar iconos con animaciones embebidas', () => {
+    const content = `export const animatedIcon = {
+  name: 'animated-icon',
+  body: \`<style>@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}.icon{animation:spin 2s linear infinite}</style><g class="icon"><path d="M12 2v4"/></g>\`,
+  viewBox: '0 0 24 24'
+};`;
+
+    const results = parseIconsContent(content);
+    
+    expect(results).toHaveLength(1);
+    expect(results[0].iconName).toBe('animated-icon');
+    expect(results[0].body).toContain('@keyframes spin');
+    expect(results[0].body).toContain('{transform:rotate(0)}');
+    expect(results[0].body).toContain('{transform:rotate(360deg)}');
+  });
+
+  test('debe manejar iconos con múltiples keyframes', () => {
+    const content = `export const multiAnimIcon = {
+  name: 'multi-anim',
+  body: \`<style>@keyframes a{0%{opacity:0}100%{opacity:1}}@keyframes b{0%{scale:0}100%{scale:1}}.x{animation:a 1s}.y{animation:b 2s}</style><path/>\`,
+  viewBox: '0 0 24 24'
+};`;
+
+    const results = parseIconsContent(content);
+    
+    expect(results).toHaveLength(1);
+    expect(results[0].body).toContain('@keyframes a{0%{opacity:0}100%{opacity:1}}');
+    expect(results[0].body).toContain('@keyframes b{0%{scale:0}100%{scale:1}}');
+  });
+
+  test('debe manejar orden diferente de propiedades', () => {
+    const content = `export const reorderedIcon = {
+  body: \`<path d="M0 0h24v24H0z"/>\`,
+  name: 'reordered-icon',
+  viewBox: '0 0 24 24'
+};`;
+
+    const results = parseIconsContent(content);
+    
+    // La regex actual asume orden name -> body -> viewBox
+    // Si el orden es diferente, no debería matchear
+    // Este test documenta el comportamiento actual
+    expect(results).toHaveLength(0);
+  });
+
+  test('debe manejar espacios y saltos de línea variados', () => {
+    const content = `export const   spacedIcon   =   {
+    name:   'spaced-icon',
+    body:   \`<path
+      d="M0 0
+         h24
+         v24"
+    />\`,
+    viewBox:   '0 0 24 24'
+};`;
+
+    const results = parseIconsContent(content);
+    
+    expect(results).toHaveLength(1);
+    expect(results[0].iconName).toBe('spaced-icon');
+  });
+
+  test('debe ignorar contenido que no es un icono válido', () => {
+    const content = `// Este es un comentario
+const notAnExport = { name: 'not-exported', body: \`<path/>\`, viewBox: '0 0 24 24' };
+export const icons = { icon1, icon2 };
+export function helper() { return 'hello'; }`;
+
+    const results = parseIconsContent(content);
+    
+    expect(results).toHaveLength(0);
+  });
+
+  test('debe parsear iconos con comillas simples y dobles', () => {
+    const content1 = `export const iconA = {
+  name: 'icon-a',
+  body: \`<path/>\`,
+  viewBox: '0 0 24 24'
+};`;
+
+    const content2 = `export const iconB = {
+  name: "icon-b",
+  body: \`<path/>\`,
+  viewBox: "0 0 24 24"
+};`;
+
+    const results1 = parseIconsContent(content1);
+    const results2 = parseIconsContent(content2);
+    
+    expect(results1).toHaveLength(1);
+    expect(results1[0].iconName).toBe('icon-a');
+    
+    expect(results2).toHaveLength(1);
+    expect(results2[0].iconName).toBe('icon-b');
+  });
+});
+
+describe('WorkspaceSvgProvider partial refresh', () => {
+  let provider: WorkspaceSvgProvider;
+  let fireEventSpy: jest.SpyInstance;
+  let mockContext: vscode.ExtensionContext;
+
+  beforeEach(() => {
+    mockContext = {
+      subscriptions: [],
+      extensionPath: '/test/extension',
+      extensionUri: { fsPath: '/test/extension' } as vscode.Uri,
+      globalState: {
+        get: jest.fn(),
+        update: jest.fn()
+      },
+      workspaceState: {
+        get: jest.fn(),
+        update: jest.fn()
+      }
+    } as unknown as vscode.ExtensionContext;
+
+    provider = new WorkspaceSvgProvider(mockContext);
+    // Spy on the fire method to track partial refresh calls
+    fireEventSpy = jest.spyOn((provider as any)._onDidChangeTreeData, 'fire');
+  });
+
+  afterEach(() => {
+    fireEventSpy.mockRestore();
+  });
+
+  describe('renameBuiltIcon', () => {
+    test('debe renombrar icono en libraryIcons', () => {
+      const icon: WorkspaceIcon = {
+        name: 'old-name',
+        path: '/icons/old-name.svg',
+        source: 'library',
+        svg: '<svg><path/></svg>'
+      };
+
+      // Add icon to internal maps
+      (provider as any).libraryIcons.set('old-name', icon);
+      (provider as any).builtIcons.add('old-name');
+
+      // Rename
+      provider.renameBuiltIcon('old-name', 'new-name');
+
+      // Verify old name removed
+      expect((provider as any).libraryIcons.has('old-name')).toBe(false);
+      expect((provider as any).builtIcons.has('old-name')).toBe(false);
+
+      // Verify new name added
+      expect((provider as any).libraryIcons.has('new-name')).toBe(true);
+      expect((provider as any).builtIcons.has('new-name')).toBe(true);
+
+      // Verify icon name property updated
+      const renamedIcon = (provider as any).libraryIcons.get('new-name');
+      expect(renamedIcon.name).toBe('new-name');
+
+      // Verify fire was called (partial refresh)
+      expect(fireEventSpy).toHaveBeenCalled();
+    });
+
+    test('debe limpiar cache de items con nombre antiguo', () => {
+      const icon: WorkspaceIcon = {
+        name: 'test-icon',
+        path: '/icons/test.svg',
+        source: 'library'
+      };
+
+      (provider as any).libraryIcons.set('test-icon', icon);
+      (provider as any).builtIcons.add('test-icon');
+      
+      // Add cached items
+      (provider as any).itemCache.set('icon:test-icon:library:/icons/test.svg', {} as SvgItem);
+      (provider as any).itemCache.set('other-item', {} as SvgItem);
+
+      provider.renameBuiltIcon('test-icon', 'renamed-icon');
+
+      // Old cached item should be removed
+      expect((provider as any).itemCache.has('icon:test-icon:library:/icons/test.svg')).toBe(false);
+      // Other items should remain
+      expect((provider as any).itemCache.has('other-item')).toBe(true);
+    });
+
+    test('no debe hacer nada si icono no existe', () => {
+      provider.renameBuiltIcon('non-existent', 'new-name');
+
+      expect((provider as any).libraryIcons.has('new-name')).toBe(false);
+      expect(fireEventSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('renameSvgFile', () => {
+    test('debe renombrar archivo SVG en svgFiles', () => {
+      const icon: WorkspaceIcon = {
+        name: 'old-file',
+        path: '/icons/old-file.svg',
+        source: 'workspace',
+        svg: '<svg><circle/></svg>'
+      };
+
+      (provider as any).svgFiles.set('old-file', icon);
+
+      provider.renameSvgFile('old-file', 'new-file', '/icons/new-file.svg');
+
+      // Verify old name removed
+      expect((provider as any).svgFiles.has('old-file')).toBe(false);
+
+      // Verify new name added with updated properties
+      expect((provider as any).svgFiles.has('new-file')).toBe(true);
+      const renamedIcon = (provider as any).svgFiles.get('new-file');
+      expect(renamedIcon.name).toBe('new-file');
+      expect(renamedIcon.path).toBe('/icons/new-file.svg');
+
+      // Verify fire was called
+      expect(fireEventSpy).toHaveBeenCalled();
+    });
+
+    test('no debe hacer nada si archivo no existe en cache', () => {
+      provider.renameSvgFile('non-existent', 'new-name', '/new/path.svg');
+
+      expect((provider as any).svgFiles.has('new-name')).toBe(false);
+      expect(fireEventSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('refresh vs partial refresh', () => {
+    test('refresh completo debe limpiar todos los caches', () => {
+      // Add data to all caches
+      (provider as any).svgFiles.set('file1', { name: 'file1' });
+      (provider as any).libraryIcons.set('lib1', { name: 'lib1' });
+      (provider as any).builtIcons.add('lib1');
+      (provider as any).itemCache.set('item1', {});
+
+      provider.refresh();
+
+      expect((provider as any).svgFiles.size).toBe(0);
+      expect((provider as any).libraryIcons.size).toBe(0);
+      expect((provider as any).builtIcons.size).toBe(0);
+      expect((provider as any).itemCache.size).toBe(0);
+    });
+
+    test('renameBuiltIcon no debe limpiar otros caches', () => {
+      const icon: WorkspaceIcon = { name: 'built1', path: '/p', source: 'library' };
+      
+      // Add data to multiple caches
+      (provider as any).svgFiles.set('file1', { name: 'file1' });
+      (provider as any).libraryIcons.set('built1', icon);
+      (provider as any).builtIcons.add('built1');
+
+      provider.renameBuiltIcon('built1', 'built1-renamed');
+
+      // svgFiles should not be affected
+      expect((provider as any).svgFiles.size).toBe(1);
+      expect((provider as any).svgFiles.has('file1')).toBe(true);
+      
+      // Only the renamed icon should change
+      expect((provider as any).libraryIcons.size).toBe(1);
+      expect((provider as any).libraryIcons.has('built1-renamed')).toBe(true);
+    });
+  });
+});

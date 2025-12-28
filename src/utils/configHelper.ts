@@ -9,6 +9,7 @@ export interface IconManagerConfig {
   defaultSize: number;
   defaultColor: string;
   webComponentName: string;
+  buildFormat: 'icons.ts' | 'sprite.svg';
 }
 
 /**
@@ -22,7 +23,8 @@ export function getConfig(): IconManagerConfig {
     nameAttribute: config.get<string>('nameAttribute', 'name'),
     defaultSize: config.get<number>('defaultSize', 24),
     defaultColor: config.get<string>('defaultColor', 'currentColor'),
-    webComponentName: config.get<string>('webComponentName', 'bezier-icon')
+    webComponentName: config.get<string>('webComponentName', 'bezier-icon'),
+    buildFormat: config.get<'icons.ts' | 'sprite.svg'>('buildFormat', 'icons.ts')
   };
 }
 

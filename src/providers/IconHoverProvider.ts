@@ -62,8 +62,11 @@ export class IconHoverProvider implements vscode.HoverProvider {
           } else {
             // Icon not found in workspace
             const markdown = new vscode.MarkdownString();
+            markdown.isTrusted = true;
+            markdown.supportHtml = true;
             markdown.appendMarkdown(`⚠️ **Icon not found**: \`${iconName}\`\n\n`);
-            markdown.appendMarkdown(`This icon is not in your workspace or library.`);
+            markdown.appendMarkdown(`This icon is not in your workspace or library.\n\n`);
+            markdown.appendMarkdown(`[� Import "${iconName}"](command:iconManager.importIcon?${encodeURIComponent(JSON.stringify([iconName, document.uri.fsPath, position.line]))})`);
             
             return new vscode.Hover(markdown);
           }

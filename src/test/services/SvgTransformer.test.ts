@@ -199,6 +199,34 @@ describe('SvgTransformer', () => {
       expect(result).not.toContain('<svg');
       expect(result).not.toContain('</svg>');
     });
+
+    test('debe eliminar estilos de animación icon-manager-animation', () => {
+      const input = '<svg viewBox="0 0 24 24"><style id="icon-manager-animation">@keyframes glow { ... }</style><path d="M0 0"/></svg>';
+      const result = transformer.extractSvgBody(input);
+
+      expect(result).toContain('<path');
+      expect(result).not.toContain('icon-manager-animation');
+      expect(result).not.toContain('@keyframes');
+    });
+
+    test('debe eliminar grupos wrapper de animación', () => {
+      const input = '<svg viewBox="0 0 24 24"><g class="icon-anim-1234567890"><path d="M0 0"/></g></svg>';
+      const result = transformer.extractSvgBody(input);
+
+      expect(result).toContain('<path');
+      expect(result).not.toContain('icon-anim-');
+      expect(result).not.toContain('<g class=');
+    });
+
+    test('debe limpiar SVG con animación completa', () => {
+      const input = `<svg viewBox="0 0 24 24"><style id="icon-manager-animation">@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } .icon-anim-123 { animation: spin 1s ease infinite normal; }</style><g class="icon-anim-123"><path d="M0 0"/></g></svg>`;
+      const result = transformer.extractSvgBody(input);
+
+      expect(result).toContain('<path d="M0 0"/>');
+      expect(result).not.toContain('icon-manager-animation');
+      expect(result).not.toContain('icon-anim-');
+      expect(result).not.toContain('@keyframes');
+    });
   });
 
   describe('extractSvgAttributes', () => {

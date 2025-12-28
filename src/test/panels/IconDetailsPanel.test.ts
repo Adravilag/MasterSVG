@@ -343,37 +343,6 @@ describe('IconDetailsPanel', () => {
   });
 
   // =====================================================
-  // Guardar SVG
-  // =====================================================
-
-  describe('saveSvg', () => {
-    test('comando saveSvg debe guardar SVG', async () => {
-      const extensionUri = vscode.Uri.file('/test/extension');
-      
-      IconDetailsPanel.createOrShow(extensionUri, testIconDetails);
-
-      const handler = (mockPanel.webview.onDidReceiveMessage as jest.Mock).mock.calls[0][0];
-      
-      await handler({ command: 'saveSvg' });
-
-      // Debe intentar guardar (no falla)
-      expect(true).toBe(true);
-    });
-
-    test('comando saveSvg con svg personalizado debe usarlo', async () => {
-      const extensionUri = vscode.Uri.file('/test/extension');
-      
-      IconDetailsPanel.createOrShow(extensionUri, testIconDetails);
-
-      const handler = (mockPanel.webview.onDidReceiveMessage as jest.Mock).mock.calls[0][0];
-      
-      await handler({ command: 'saveSvg', svg: '<svg><custom/></svg>' });
-
-      expect(true).toBe(true);
-    });
-  });
-
-  // =====================================================
   // Variants
   // =====================================================
 

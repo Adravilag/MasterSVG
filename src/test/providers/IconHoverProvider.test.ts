@@ -37,7 +37,8 @@ describe('IconHoverProvider', () => {
   const createMockDocument = (lineText: string): Partial<vscode.TextDocument> => ({
     lineAt: jest.fn().mockReturnValue({
       text: lineText
-    })
+    }),
+    uri: { fsPath: '/mock/path/test.tsx' } as vscode.Uri
   });
 
   // =====================================================

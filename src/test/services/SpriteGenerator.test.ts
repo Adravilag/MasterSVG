@@ -192,7 +192,7 @@ describe('SpriteGenerator', () => {
       });
 
       expect(result.helperComponent).toBeDefined();
-      expect(result.helperComponent).toContain('function');
+      expect(result.helperComponent).toContain('class IconComponent extends HTMLElement');
     });
 
     // CA-6.3.5: Incluye props para size, className, etc.
@@ -472,7 +472,7 @@ describe('SpriteGenerator', () => {
         helperFormat: 'vanilla'
       });
 
-      expect(result.helperComponent).toContain('initIcons');
+      expect(result.helperComponent).toContain('connectedCallback');
     });
 
     test('Vanilla helper debe incluir createIcon', () => {
@@ -482,7 +482,19 @@ describe('SpriteGenerator', () => {
         helperFormat: 'vanilla'
       });
 
-      expect(result.helperComponent).toContain('createIcon');
+      expect(result.helperComponent).toContain('customElements.define');
+    });
+
+    test('Vanilla helper debe respetar webComponentName', () => {
+      const customName = 'custom-icon-component';
+      const result = generator.generate(testIcons, {
+        ...baseOptions,
+        generateHelper: true,
+        helperFormat: 'vanilla',
+        webComponentName: customName
+      });
+
+      expect(result.helperComponent).toContain(`customElements.define('${customName}'`);
     });
   });
 

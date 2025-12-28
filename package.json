@@ -40,8 +40,12 @@
     "languages": [
       {
         "id": "bezierignore",
-        "aliases": ["Bezier Ignore"],
-        "filenames": [".bezierignore"],
+        "aliases": [
+          "Bezier Ignore"
+        ],
+        "filenames": [
+          ".bezierignore"
+        ],
         "configuration": "./language-configuration.json"
       }
     ],
@@ -57,6 +61,11 @@
         "command": "iconManager.openPanel",
         "title": "Bezier: Open Panel",
         "icon": "$(symbol-color)"
+      },
+      {
+        "command": "iconManager.openWelcome",
+        "title": "Bezier: Setup / Welcome",
+        "icon": "$(home)"
       },
       {
         "command": "iconManager.scanWorkspace",
@@ -111,7 +120,22 @@
       },
       {
         "command": "iconManager.refreshIcons",
-        "title": "Bezier: Refresh Icons",
+        "title": "Bezier: Refresh All Views",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "iconManager.refreshFiles",
+        "title": "Bezier: Refresh Files",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "iconManager.refreshCode",
+        "title": "Bezier: Refresh Code",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "iconManager.refreshBuilt",
+        "title": "Bezier: Refresh Built Icons",
         "icon": "$(refresh)"
       },
       {
@@ -130,27 +154,63 @@
         "icon": "$(trash)"
       },
       {
+        "command": "iconManager.removeFromBuilt",
+        "title": "Remove from Built",
+        "icon": "$(remove)"
+      },
+      {
         "command": "iconManager.showDetails",
         "title": "Show Details",
         "icon": "$(info)"
       },
       {
+        "command": "iconManager.goToCode",
+        "title": "Go to Code",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "iconManager.copyIconName",
+        "title": "Copy Icon Name",
+        "icon": "$(copy)"
+      },
+      {
         "command": "iconManager.colorEditor",
-        "title": "Edit Icon",
+        "title": "Open in Editor",
         "icon": "$(edit)"
       },
       {
-        "command": "iconManager.openCatalog",
-        "title": "Bezier: Browse Icon Catalog",
-        "icon": "$(library)"
+        "command": "iconManager.expandAll",
+        "title": "Expand All",
+        "icon": "$(expand-all)"
       },
       {
-        "command": "iconManager.generateLicenses",
-        "title": "Bezier: Generate License Files"
+        "command": "iconManager.collapseAll",
+        "title": "Collapse All",
+        "icon": "$(collapse-all)"
+      },
+      {
+        "command": "iconManager.expandBuiltIcons",
+        "title": "Expand All",
+        "icon": "$(expand-all)"
+      },
+      {
+        "command": "iconManager.collapseBuiltIcons",
+        "title": "Collapse All",
+        "icon": "$(collapse-all)"
+      },
+      {
+        "command": "iconManager.expandSvgFiles",
+        "title": "Expand All",
+        "icon": "$(expand-all)"
+      },
+      {
+        "command": "iconManager.collapseSvgFiles",
+        "title": "Collapse All",
+        "icon": "$(collapse-all)"
       },
       {
         "command": "iconManager.exportComponent",
-        "title": "Bezier: Export as Component",
+        "title": "Export as Component",
         "icon": "$(file-code)"
       },
       {
@@ -177,6 +237,36 @@
         "command": "iconManager.renameIcon",
         "title": "Rename Icon",
         "icon": "$(edit)"
+      },
+      {
+        "command": "iconManager.viewSprite",
+        "title": "View SVG Sprite",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "iconManager.viewIconsFile",
+        "title": "View Icons File",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "iconManager.deleteBuiltFile",
+        "title": "Delete File",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "iconManager.buildAllReferences",
+        "title": "Build All References",
+        "icon": "$(package)"
+      },
+      {
+        "command": "iconManager.buildAllFiles",
+        "title": "Build All SVG Files",
+        "icon": "$(package)"
+      },
+      {
+        "command": "iconManager.cleanSprite",
+        "title": "Bezier: Clean Sprite (Remove Invalid Entries)",
+        "icon": "$(trash)"
       }
     ],
     "configuration": {
@@ -184,7 +274,7 @@
       "properties": {
         "iconManager.componentName": {
           "type": "string",
-          "default": "icon",
+          "default": "bz-icon",
           "description": "Name of the Icon component to use in transformations"
         },
         "iconManager.componentImport": {
@@ -194,12 +284,26 @@
         },
         "iconManager.svgFolders": {
           "type": "array",
-          "default": ["src/assets/icons", "src/icons", "public/icons", "assets/icons", "icons", "svg", "assets/svg"],
+          "default": [
+            "src/assets/icons",
+            "src/icons",
+            "public/icons",
+            "assets/icons",
+            "icons",
+            "svg",
+            "assets/svg"
+          ],
           "description": "Folders to scan for SVG files"
         },
         "iconManager.outputFormat": {
           "type": "string",
-          "enum": ["jsx", "vue", "svelte", "astro", "html"],
+          "enum": [
+            "jsx",
+            "vue",
+            "svelte",
+            "astro",
+            "html"
+          ],
           "default": "jsx",
           "description": "Default output format for icon components"
         },
@@ -220,19 +324,27 @@
         },
         "iconManager.outputDirectory": {
           "type": "string",
-          "default": "bezier-icons",
+          "default": "",
           "description": "Directory where icons.ts or sprite.svg will be generated (relative to workspace root)"
         },
         "iconManager.buildFormat": {
           "type": "string",
-          "enum": ["icons.ts", "sprite.svg", "both"],
+          "enum": [
+            "icons.ts",
+            "sprite.svg"
+          ],
           "default": "icons.ts",
           "description": "Output format for built icons"
         },
         "iconManager.webComponentName": {
           "type": "string",
-          "default": "bezier-icon",
-          "description": "Name of the Web Component for icons (e.g. bezier-icon)"
+          "default": "bz-icon",
+          "description": "Name of the Web Component for icons (e.g. bz-icon)"
+        },
+        "iconManager.deleteAfterBuild": {
+          "type": "boolean",
+          "default": false,
+          "description": "Delete original SVG file after building to sprite/component"
         }
       }
     },
@@ -248,8 +360,16 @@
     "views": {
       "iconManager": [
         {
+          "id": "iconManager.svgFiles",
+          "name": "Files"
+        },
+        {
           "id": "iconManager.workspaceIcons",
-          "name": "Icons"
+          "name": "Code"
+        },
+        {
+          "id": "iconManager.builtIcons",
+          "name": "Built"
         },
         {
           "id": "iconManager.preview",
@@ -261,44 +381,74 @@
     "menus": {
       "view/title": [
         {
-          "command": "iconManager.openCatalog",
-          "when": "view == iconManager.workspaceIcons",
+          "command": "iconManager.expandSvgFiles",
+          "when": "view == iconManager.svgFiles && !iconManager.svgFilesExpanded",
           "group": "navigation@0"
         },
         {
-          "command": "iconManager.searchIcons",
+          "command": "iconManager.collapseSvgFiles",
+          "when": "view == iconManager.svgFiles && iconManager.svgFilesExpanded",
+          "group": "navigation@0"
+        },
+        {
+          "command": "iconManager.editIgnoreFile",
+          "when": "view == iconManager.svgFiles",
+          "group": "navigation@1"
+        },
+        {
+          "command": "iconManager.buildAllFiles",
+          "when": "view == iconManager.svgFiles",
+          "group": "navigation@2"
+        },
+        {
+          "command": "iconManager.refreshIcons",
+          "when": "view == iconManager.svgFiles",
+          "group": "navigation@2"
+        },
+        {
+          "command": "iconManager.expandAll",
+          "when": "view == iconManager.workspaceIcons && !iconManager.workspaceExpanded",
+          "group": "navigation@0"
+        },
+        {
+          "command": "iconManager.collapseAll",
+          "when": "view == iconManager.workspaceIcons && iconManager.workspaceExpanded",
+          "group": "navigation@0"
+        },
+        {
+          "command": "iconManager.refreshIcons",
           "when": "view == iconManager.workspaceIcons",
           "group": "navigation@1"
         },
         {
-          "command": "iconManager.generateSprite",
+          "command": "iconManager.buildAllReferences",
           "when": "view == iconManager.workspaceIcons",
           "group": "navigation@2"
         },
         {
-          "command": "iconManager.scanUsages",
-          "when": "view == iconManager.workspaceIcons",
-          "group": "navigation@3"
+          "command": "iconManager.expandBuiltIcons",
+          "when": "view == iconManager.builtIcons && !iconManager.builtExpanded",
+          "group": "navigation@0"
+        },
+        {
+          "command": "iconManager.collapseBuiltIcons",
+          "when": "view == iconManager.builtIcons && iconManager.builtExpanded",
+          "group": "navigation@0"
+        },
+        {
+          "command": "iconManager.refreshBuilt",
+          "when": "view == iconManager.builtIcons",
+          "group": "navigation@1"
+        },
+        {
+          "command": "iconManager.searchIcons",
+          "when": "view == iconManager.builtIcons",
+          "group": "navigation@2"
         },
         {
           "command": "iconManager.configureProject",
-          "when": "view == iconManager.workspaceIcons",
-          "group": "navigation@4"
-        },
-        {
-          "command": "iconManager.editIgnoreFile",
-          "when": "view == iconManager.workspaceIcons",
-          "group": "navigation@5"
-        },
-        {
-          "command": "iconManager.refreshIcons",
-          "when": "view == iconManager.workspaceIcons",
-          "group": "navigation@6"
-        },
-        {
-          "command": "iconManager.refreshIcons",
-          "when": "view == iconManager.workspaceIcons",
-          "group": "navigation@6"
+          "when": "view == iconManager.builtIcons",
+          "group": "navigation@3"
         }
       ],
       "editor/context": [
@@ -342,9 +492,59 @@
         {
           "command": "iconManager.optimizeSvg",
           "group": "2_optimize@1"
+        },
+        {
+          "command": "iconManager.viewSprite",
+          "when": "resourceFilename == sprite.svg",
+          "group": "3_view@1"
         }
       ],
       "view/item/context": [
+        {
+          "command": "iconManager.addSvgToCollection",
+          "when": "view == iconManager.svgFiles && viewItem == svgIcon",
+          "group": "inline"
+        },
+        {
+          "command": "iconManager.removeFromBuilt",
+          "when": "view == iconManager.svgFiles && viewItem =~ /svgIconBuilt|svgIconRasterizedBuilt/",
+          "group": "inline"
+        },
+        {
+          "command": "iconManager.showDetails",
+          "when": "view == iconManager.svgFiles && viewItem =~ /svgIcon|svgIconBuilt|svgIconRasterized|svgIconRasterizedBuilt/",
+          "group": "navigation"
+        },
+        {
+          "command": "iconManager.copyIconName",
+          "when": "view == iconManager.svgFiles && viewItem =~ /svgIcon|svgIconBuilt|svgIconRasterized|svgIconRasterizedBuilt/",
+          "group": "navigation"
+        },
+        {
+          "command": "iconManager.colorEditor",
+          "when": "view == iconManager.svgFiles && viewItem =~ /svgIcon|svgIconBuilt/",
+          "group": "navigation"
+        },
+        {
+          "command": "iconManager.exportComponent",
+          "when": "view == iconManager.svgFiles && viewItem =~ /svgIcon|svgIconBuilt/",
+          "group": "1_export"
+        },
+        {
+          "command": "iconManager.renameIcon",
+          "when": "view == iconManager.svgFiles && viewItem =~ /svgIcon|svgIconBuilt|svgIconRasterized|svgIconRasterizedBuilt/",
+          "group": "7_modification"
+        },
+        {
+          "command": "iconManager.deleteIcons",
+          "when": "view == iconManager.svgFiles && viewItem =~ /svgIcon|svgIconBuilt|svgIconRasterized|svgIconRasterizedBuilt/",
+          "group": "9_cutcopypaste"
+        },
+        {
+          "command": "iconManager.removeFromBuilt",
+          "when": "view == iconManager.svgFiles && viewItem =~ /svgIconBuilt|svgIconRasterizedBuilt/",
+          "group": "9_cutcopypaste"
+        },
         {
           "command": "iconManager.transformInlineSvg",
           "when": "view == iconManager.workspaceIcons && viewItem == inlineSvg",
@@ -352,37 +552,42 @@
         },
         {
           "command": "iconManager.goToInlineSvg",
-          "when": "view == iconManager.workspaceIcons && viewItem == inlineSvg",
+          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvg|inlineSvgRasterized|inlineSvgRasterizedBuilt|inlineSvgBuilt/",
           "group": "navigation"
         },
         {
-          "command": "iconManager.addSvgToCollection",
-          "when": "view == iconManager.workspaceIcons && viewItem == svgIcon",
-          "group": "inline"
+          "command": "iconManager.showDetails",
+          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvg|imgRef|inlineSvgRasterized|imgRefRasterized|inlineSvgBuilt|inlineSvgRasterizedBuilt/",
+          "group": "navigation"
         },
         {
-          "command": "iconManager.showDetails",
-          "when": "view == iconManager.workspaceIcons && viewItem =~ /builtIcon|inlineSvg|svgIcon/",
+          "command": "iconManager.goToCode",
+          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvg|imgRef|builtIcon|inlineSvgRasterized|imgRefRasterized|inlineSvgBuilt|inlineSvgRasterizedBuilt/",
+          "group": "navigation"
+        },
+        {
+          "command": "iconManager.copyIconName",
+          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvg|imgRef|builtIcon|inlineSvgRasterized|imgRefRasterized|inlineSvgBuilt|inlineSvgRasterizedBuilt/",
           "group": "navigation"
         },
         {
           "command": "iconManager.colorEditor",
-          "when": "view == iconManager.workspaceIcons && viewItem =~ /builtIcon|inlineSvg|svgIcon/",
+          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvg|imgRef|inlineSvgBuilt/",
           "group": "navigation"
         },
         {
           "command": "iconManager.exportComponent",
-          "when": "view == iconManager.workspaceIcons && viewItem =~ /builtIcon|inlineSvg|svgIcon/",
+          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvg|imgRef|inlineSvgBuilt/",
           "group": "1_export"
         },
         {
-          "command": "iconManager.renameIcon",
-          "when": "view == iconManager.workspaceIcons && viewItem =~ /builtIcon|svgIcon/",
-          "group": "7_modification"
+          "command": "iconManager.deleteIcons",
+          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvg|imgRef|inlineSvgRasterized|imgRefRasterized|inlineSvgBuilt|inlineSvgRasterizedBuilt/",
+          "group": "9_cutcopypaste"
         },
         {
-          "command": "iconManager.deleteIcons",
-          "when": "view == iconManager.workspaceIcons && viewItem =~ /builtIcon|inlineSvg/",
+          "command": "iconManager.removeFromBuilt",
+          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvgBuilt|inlineSvgRasterizedBuilt/",
           "group": "9_cutcopypaste"
         },
         {
@@ -399,6 +604,56 @@
           "command": "iconManager.findAndReplace",
           "when": "view == iconManager.workspaceIcons && viewItem == missingRef",
           "group": "1_fix"
+        },
+        {
+          "command": "iconManager.showDetails",
+          "when": "view == iconManager.builtIcons && viewItem =~ /builtIcon|builtIconRasterized/",
+          "group": "navigation"
+        },
+        {
+          "command": "iconManager.copyIconName",
+          "when": "view == iconManager.builtIcons && viewItem =~ /builtIcon|builtIconRasterized/",
+          "group": "navigation"
+        },
+        {
+          "command": "iconManager.colorEditor",
+          "when": "view == iconManager.builtIcons && viewItem == builtIcon",
+          "group": "navigation"
+        },
+        {
+          "command": "iconManager.exportComponent",
+          "when": "view == iconManager.builtIcons && viewItem == builtIcon",
+          "group": "1_export"
+        },
+        {
+          "command": "iconManager.renameIcon",
+          "when": "view == iconManager.builtIcons && viewItem =~ /builtIcon|builtIconRasterized/",
+          "group": "7_modification"
+        },
+        {
+          "command": "iconManager.removeFromBuilt",
+          "when": "view == iconManager.builtIcons && viewItem =~ /builtIcon|builtIconRasterized/",
+          "group": "9_cutcopypaste"
+        },
+        {
+          "command": "iconManager.viewSprite",
+          "when": "view == iconManager.builtIcons && viewItem == builtSpriteFile",
+          "group": "navigation"
+        },
+        {
+          "command": "iconManager.deleteBuiltFile",
+          "when": "view == iconManager.builtIcons && viewItem == builtSpriteFile",
+          "group": "9_cutcopypaste"
+        },
+        {
+          "command": "iconManager.viewIconsFile",
+          "when": "view == iconManager.builtIcons && viewItem == builtIconsFile",
+          "group": "navigation"
+        },
+        {
+          "command": "iconManager.deleteBuiltFile",
+          "when": "view == iconManager.builtIcons && viewItem == builtIconsFile",
+          "group": "9_cutcopypaste"
         }
       ]
     },
@@ -437,6 +692,7 @@
     "typescript": "^5.3.0"
   },
   "dependencies": {
+    "@xmldom/xmldom": "^0.8.11",
     "svgo": "^3.2.0"
   }
 }

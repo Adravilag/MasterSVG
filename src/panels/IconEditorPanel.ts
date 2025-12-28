@@ -1,12 +1,34 @@
 import * as vscode from 'vscode';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { SvgOptimizer } from '../services/SvgOptimizer';
+import { SvgManipulationService } from '../services/SvgManipulationService';
+import { SvgTransformer } from '../services/SvgTransformer';
+import { AnimationSettings } from '../services/AnimationService';
 import { getSvgConfig } from '../utils/config';
 import { clearTempIcons } from '../providers/WorkspaceSvgProvider';
+import { ErrorHandler } from '../utils/errorHandler';
+import { updateIconAnimation, AnimationConfig, addToIconsJs, addToSpriteSvg } from '../utils/iconsFileManager';
+import { getConfig, getOutputPathOrWarn, getFullOutputPath } from '../utils/configHelper';
+
+interface IconAnimation {
+  type: string;
+  duration: number;
+  timing: string;
+  iteration: string;
+  delay?: number;
+  direction?: string;
+}
 
 interface IconData {
   name: string;
   svg: string;
   location?: { file: string; line: number };
+  spriteFile?: string; // Path to sprite.svg if icon comes from sprite
+  iconsFile?: string; // Path to icons.js if icon comes from icons file
+  viewBox?: string; // ViewBox for sprite icons
+  isBuilt?: boolean; // Whether icon comes from built icons
+  animation?: IconAnimation; // Animation settings from built icon
 }
 
 const svgOptimizer = new SvgOptimizer();
@@ -19,6 +41,10 @@ export class IconEditorPanel {
   private _iconData?: IconData;
   private _originalColors: string[] = [];
   private _selectedVariantIndex: number = -1;
+  // Cache for variants - changes are stored here until explicitly saved
+  private _variantsCache: Record<string, Record<string, string[]>> | null = null;
+  private _defaultsCache: Record<string, string> | null = null;
+  private _hasUnsavedChanges: boolean = false;
 
   public static createOrShow(extensionUri: vscode.Uri, data?: IconData) {
     const column = vscode.window.activeTextEditor
@@ -28,9 +54,14 @@ export class IconEditorPanel {
     if (IconEditorPanel.currentPanel) {
       IconEditorPanel.currentPanel._panel.reveal(column);
       if (data) {
+        // Reset cache when switching icons (keeps unsaved changes for same icon)
+        IconEditorPanel.currentPanel._variantsCache = null;
+        IconEditorPanel.currentPanel._defaultsCache = null;
+        IconEditorPanel.currentPanel._hasUnsavedChanges = false;
         IconEditorPanel.currentPanel._iconData = data;
         IconEditorPanel.currentPanel._originalColors = IconEditorPanel.currentPanel._extractColorsFromSvg(data.svg).colors;
         IconEditorPanel.currentPanel._selectedVariantIndex = -1;
+        IconEditorPanel.currentPanel._ensureCustomVariant();
         IconEditorPanel.currentPanel._update();
       }
       return;
@@ -54,8 +85,14 @@ export class IconEditorPanel {
     this._panel = panel;
     this._extensionUri = extensionUri;
     this._iconData = data;
-    if (data) {
-      this._originalColors = this._extractColorsFromSvg(data.svg).colors;
+    
+    // Clean embedded animations from the loaded SVG to prevent double animations in preview
+    if (this._iconData?.svg) {
+      this._iconData.svg = SvgManipulationService.cleanAnimationFromSvg(this._iconData.svg);
+      this._originalColors = this._extractColorsFromSvg(this._iconData.svg).colors;
+      
+      // Ensure "custom" variant exists for every icon
+      this._ensureCustomVariant();
     }
 
     this._update();
@@ -87,14 +124,61 @@ export class IconEditorPanel {
             if (this._iconData?.svg && message.oldColor && message.newColor) {
               const updatedSvg = this._replaceColorInSvg(this._iconData.svg, message.oldColor, message.newColor);
               this._iconData.svg = updatedSvg;
+              // Use filtered extraction - only save editable colors (excludes SMIL secondary)
               const { colors } = this._extractColorsFromSvg(updatedSvg);
 
-              // If a custom variant is selected (not original), update it with new colors
-              if (this._selectedVariantIndex >= 0) {
+              // If in "original" (read-only), switch to "custom" automatically
+              if (this._selectedVariantIndex === -1) {
+                // Find custom variant index
+                const variants = this._getSavedVariants(this._iconData.name);
+                const customIndex = variants.findIndex(v => v.name === 'custom');
+                if (customIndex >= 0) {
+                  this._selectedVariantIndex = customIndex;
+                  this._updateVariantColors(this._iconData.name, customIndex, colors);
+                }
+              } else {
+                // Update the currently selected variant
                 this._updateVariantColors(this._iconData.name, this._selectedVariantIndex, colors);
               }
 
               // Full refresh to update Variants display
+              this._update();
+            }
+            break;
+          case 'replaceCurrentColor':
+            // Replace all 'currentColor' values with a specific color
+            if (this._iconData?.svg && message.newColor) {
+              const updatedSvg = this._replaceColorInSvg(this._iconData.svg, 'currentColor', message.newColor);
+              this._iconData.svg = updatedSvg;
+              // Use filtered extraction - only save editable colors (excludes SMIL secondary)
+              const { colors } = this._extractColorsFromSvg(updatedSvg);
+
+              // If in "original" (read-only), switch to "custom" automatically
+              if (this._selectedVariantIndex === -1) {
+                const variants = this._getSavedVariants(this._iconData.name);
+                const customIndex = variants.findIndex(v => v.name === 'custom');
+                if (customIndex >= 0) {
+                  this._selectedVariantIndex = customIndex;
+                  this._updateVariantColors(this._iconData.name, customIndex, colors);
+                }
+              } else {
+                this._updateVariantColors(this._iconData.name, this._selectedVariantIndex, colors);
+              }
+
+              this._update();
+            }
+            break;
+          case 'addFillColor':
+            // Add fill attribute to SVG elements that don't have one
+            if (this._iconData?.svg && message.color) {
+              let updatedSvg = this._iconData.svg;
+              // Add fill to paths that don't have fill attribute
+              updatedSvg = updatedSvg.replace(/<path(?![^>]*fill=)([^>]*)\/?>/gi, 
+                `<path fill="${message.color}"$1/>`);
+              // Also add to circles, rects, etc. that don't have fill
+              updatedSvg = updatedSvg.replace(/<(circle|rect|ellipse|polygon|polyline)(?![^>]*fill=)([^>]*)\/?>/gi, 
+                `<$1 fill="${message.color}"$2/>`);
+              this._iconData.svg = updatedSvg;
               this._update();
             }
             break;
@@ -126,59 +210,21 @@ export class IconEditorPanel {
             break;
           case 'applyOptimizedSvg':
             if (this._iconData && message.svg) {
-              this._iconData.svg = message.svg;
-              
-              // Save automatically
-              if (this._iconData.location) {
-                await this._saveSvgToFile(this._iconData.svg);
-              } else {
-                await this._updateBuiltIconsFile(this._iconData.svg);
-              }
+              await this._processAndSaveIcon({
+                svg: message.svg,
+                includeAnimationInFile: false,
+                updateAnimationMetadata: false,
+                triggerFullRebuild: false,
+                skipPanelUpdate: true,
+                successMessage: 'Optimized SVG applied and saved'
+              });
 
-              // Instead of full update, just notify webview
+              // Notify webview specifically for optimization
               this._panel.webview.postMessage({
                 command: 'optimizedSvgApplied',
                 svg: this._iconData.svg,
                 code: this._highlightSvgCode(this._iconData.svg)
               });
-              
-              // Refresh tree view
-              vscode.commands.executeCommand('iconManager.refreshIcons');
-
-              vscode.window.showInformationMessage('Optimized SVG applied and saved');
-            }
-            break;
-          case 'save':
-            if (this._iconData?.svg) {
-              let svgToSave = this._iconData.svg;
-
-              // Always clean up old animations first (to avoid duplicates or stale code)
-              svgToSave = this._cleanAnimationFromSvg(svgToSave);
-              
-              // Always ensure namespace is correct (fixes "Error loading image" in VS Code)
-              svgToSave = this._ensureSvgNamespace(svgToSave);
-
-              // If animation is included in the view, embed it into the file
-              if (message.includeAnimation && message.animation && message.animation !== 'none') {
-                svgToSave = this._embedAnimationInSvg(
-                  svgToSave,
-                  message.animation,
-                  message.settings
-                );
-              }
-              
-              // Update internal state to match the saved file
-              this._iconData.svg = svgToSave;
-
-              await this._saveSvgToFile(svgToSave);
-              // Update original colors to current colors after save
-              this._originalColors = this._extractColorsFromSvg(svgToSave).colors;
-              // Refresh the panel to show updated "original" in variants
-              this._update();
-              // Clear temp icons cache to force regeneration with new content
-              clearTempIcons();
-              // Refresh the tree view to show updated icons
-              await vscode.commands.executeCommand('iconManager.refreshIcons');
             }
             break;
           case 'copySvg':
@@ -190,27 +236,13 @@ export class IconEditorPanel {
             break;
           case 'copyWithAnimation':
             if (this._iconData?.svg && message.animation && message.animation !== 'none') {
-              const animatedSvg = this._embedAnimationInSvg(
+              const animatedSvg = SvgManipulationService.embedAnimationInSvg(
                 this._iconData.svg,
                 message.animation,
                 message.settings
               );
               vscode.env.clipboard.writeText(animatedSvg);
               vscode.window.showInformationMessage('Animated SVG copied to clipboard');
-            }
-            break;
-          case 'goToSource':
-            if (this._iconData?.location) {
-              const uri = vscode.Uri.file(this._iconData.location.file);
-              const position = new vscode.Position(this._iconData.location.line - 1, 0);
-              vscode.window.showTextDocument(uri, {
-                selection: new vscode.Range(position, position),
-                preview: false
-              });
-              // Also reveal in tree view
-              if (this._iconData.name) {
-                vscode.commands.executeCommand('iconManager.revealInTree', this._iconData.name, this._iconData.location.file, this._iconData.location.line);
-              }
             }
             break;
           case 'requestRename':
@@ -303,35 +335,12 @@ export class IconEditorPanel {
             }
             break;
           case 'rebuild':
-            // Save current changes
+            // Build = Add to Icon Collection (icons.js)
             if (this._iconData?.svg) {
-              // Save animation to animations.js if provided
-              if (message.animation && message.animation !== 'none') {
-                await this._saveAnimation(this._iconData.name, message.animation, message.animationSettings);
-              } else {
-                await this._removeAnimation(this._iconData.name);
-              }
-
-              if (this._iconData.location) {
-                // Has source file - save to it first, then rebuild all
-                await this._saveSvgToFile(this._iconData.svg);
-                vscode.commands.executeCommand('iconManager.buildIcons');
-              } else {
-                // No source file (built icon) - only update icons.js directly
-                // Don't call buildIcons as it would overwrite with stale data
-                const updated = await this._updateBuiltIconsFile(this._iconData.svg);
-                if (updated) {
-                  vscode.window.showInformationMessage('Icon updated in icons.js' + (message.animation ? ' with animation' : ''));
-                  // Force full refresh to reload from disk
-                  await vscode.commands.executeCommand('iconManager.refreshIcons');
-                  // Small delay to let refresh complete, then fire tree update
-                  setTimeout(() => {
-                    vscode.commands.executeCommand('iconManager.refreshIcons');
-                  }, 200);
-                } else {
-                  vscode.window.showWarningMessage('Could not find icons.js to update');
-                }
-              }
+              await this._addToIconCollection(
+                message.animation,
+                message.animationSettings
+              );
             }
             break;
           case 'refresh':
@@ -344,10 +353,10 @@ export class IconEditorPanel {
                 placeHolder: 'e.g. Dark theme, Primary colors...'
               });
               if (variantName) {
+                // Use filtered extraction - only save editable colors (excludes SMIL secondary)
                 const { colors } = this._extractColorsFromSvg(this._iconData.svg);
                 this._saveVariant(this._iconData.name, variantName, colors);
                 this._update();
-                vscode.window.showInformationMessage(`Variant "${variantName}" saved`);
               }
             }
             break;
@@ -356,10 +365,11 @@ export class IconEditorPanel {
               const Variants = this._getSavedVariants(this._iconData.name);
               const variant = Variants[message.index];
               if (variant) {
+                // Get current colors from SVG
                 const currentColors = this._extractColorsFromSvg(this._iconData.svg).colors;
                 let newSvg = this._iconData.svg;
 
-                // Replace colors in order
+                // Replace current colors with variant colors
                 for (let i = 0; i < Math.min(currentColors.length, variant.colors.length); i++) {
                   newSvg = this._replaceColorInSvg(newSvg, currentColors[i], variant.colors[i]);
                 }
@@ -371,16 +381,18 @@ export class IconEditorPanel {
             }
             break;
           case 'applyDefaultVariant':
-            if (this._iconData && this._originalColors.length > 0) {
-              const currentColors = this._extractColorsFromSvg(this._iconData.svg).colors;
-              let newSvg = this._iconData.svg;
+            if (this._iconData) {
+              // Reset to original colors
+              if (this._originalColors.length > 0) {
+                const currentColors = this._extractColorsFromSvg(this._iconData.svg).colors;
+                let newSvg = this._iconData.svg;
 
-              // Replace colors back to original
-              for (let i = 0; i < Math.min(currentColors.length, this._originalColors.length); i++) {
-                newSvg = this._replaceColorInSvg(newSvg, currentColors[i], this._originalColors[i]);
+                // Replace colors back to original
+                for (let i = 0; i < Math.min(currentColors.length, this._originalColors.length); i++) {
+                  newSvg = this._replaceColorInSvg(newSvg, currentColors[i], this._originalColors[i]);
+                }
+                this._iconData.svg = newSvg;
               }
-
-              this._iconData.svg = newSvg;
               this._selectedVariantIndex = -1;
               this._update();
             }
@@ -431,7 +443,7 @@ export class IconEditorPanel {
                   placeHolder: 'e.g. Dark theme, Primary colors...'
                 });
                 if (newName !== undefined) {
-                  // Update variant with current colors
+                  // Use filtered extraction - only save editable colors (excludes SMIL secondary)
                   const { colors } = this._extractColorsFromSvg(this._iconData.svg);
                   this._updateVariant(this._iconData.name, message.index, newName, colors);
                   this._update();
@@ -445,6 +457,25 @@ export class IconEditorPanel {
               vscode.window.showInformationMessage(message.message);
             }
             break;
+          case 'insertCodeAtCursor':
+            // Insert code at the active editor cursor
+            if (message.code) {
+              const editor = vscode.window.activeTextEditor;
+              if (editor) {
+                editor.edit(editBuilder => {
+                  editBuilder.insert(editor.selection.active, message.code);
+                }).then(success => {
+                  if (success) {
+                    vscode.window.showInformationMessage('Code inserted at cursor');
+                  }
+                });
+              } else {
+                // No active editor, copy to clipboard instead
+                vscode.env.clipboard.writeText(message.code);
+                vscode.window.showInformationMessage('No active editor. Code copied to clipboard.');
+              }
+            }
+            break;
           case 'formatSvgCode':
             if (this._iconData?.svg) {
               this._panel.webview.postMessage({
@@ -455,24 +486,22 @@ export class IconEditorPanel {
             break;
           case 'updateCodeWithAnimation':
             if (this._iconData?.svg) {
-              let svgToShow = this._iconData.svg;
-              let hasAnimation = false;
-
-              // If animation should be included, embed it
-              if (message.includeAnimation && message.animation && message.animation !== 'none') {
-                svgToShow = this._embedAnimationInSvg(
-                  this._iconData.svg,
-                  message.animation,
-                  message.settings
-                );
-                hasAnimation = true;
-              }
-
+              // Always show clean SVG (no embedded animation)
               this._panel.webview.postMessage({
                 command: 'updateCodeTab',
-                code: this._highlightSvgCode(svgToShow),
-                size: Buffer.byteLength(svgToShow, 'utf8'),
-                hasAnimation: hasAnimation
+                code: this._highlightSvgCode(this._iconData.svg),
+                size: Buffer.byteLength(this._iconData.svg, 'utf8'),
+                hasAnimation: message.animation && message.animation !== 'none'
+              });
+            }
+            break;
+          case 'updateAnimationCode':
+            // Update the animation CSS code section
+            if (message.animation) {
+              this._panel.webview.postMessage({
+                command: 'animationCodeUpdated',
+                code: this._generateAnimationCodeHtml(message.animation, message.settings),
+                animationType: message.animation
               });
             }
             break;
@@ -485,7 +514,7 @@ export class IconEditorPanel {
 
   // Variants storage methods - use variants.js in output directory
   private _getVariantsFilePath(): string | undefined {
-    const outputDir = getSvgConfig<string>('outputDirectory', '');
+    const outputDir = getSvgConfig<string>('outputDirectory', 'bezier-icons');
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders || !outputDir) return undefined;
 
@@ -494,27 +523,56 @@ export class IconEditorPanel {
   }
 
   private _readVariantsFromFile(): Record<string, Record<string, string[]>> {
+    // Return cached variants if available
+    if (this._variantsCache !== null) {
+      return { ...this._variantsCache };
+    }
+
     try {
       const filePath = this._getVariantsFilePath();
-      if (!filePath) return {};
+      if (!filePath) {
+        this._variantsCache = {};
+        return {};
+      }
 
       const fs = require('fs');
-      if (!fs.existsSync(filePath)) return {};
+      if (!fs.existsSync(filePath)) {
+        this._variantsCache = {};
+        return {};
+      }
 
       const content = fs.readFileSync(filePath, 'utf-8');
       // Parse: export const Variants = { ... };
       const match = content.match(/export\s+const\s+Variants\s*=\s*(\{[\s\S]*\});/);
       if (match) {
         // Use Function to safely parse the object literal
-        return new Function(`return ${match[1]}`)();
+        this._variantsCache = new Function(`return ${match[1]}`)();
+        return { ...this._variantsCache };
       }
+      this._variantsCache = {};
       return {};
     } catch {
+      this._variantsCache = {};
       return {};
     }
   }
 
+  // Update cache without writing to file
+  private _updateVariantsCache(allVariants: Record<string, Record<string, string[]>>): void {
+    this._variantsCache = allVariants;
+    this._hasUnsavedChanges = true;
+  }
+
+  // Only update cache - don't write to file
   private _writeVariantsToFile(allVariants: Record<string, Record<string, string[]>>): void {
+    this._updateVariantsCache(allVariants);
+  }
+
+  // Persist cached variants to disk
+  private _persistVariantsToFile(): void {
+    const allVariants = this._variantsCache;
+    if (!allVariants) return;
+
     try {
       const filePath = this._getVariantsFilePath();
       if (!filePath) return;
@@ -528,8 +586,8 @@ export class IconEditorPanel {
         fs.mkdirSync(dir, { recursive: true });
       }
 
-      // Read existing defaults
-      const defaults = this._readDefaultVariants();
+      // Read existing defaults (from cache or file)
+      const defaults = this._defaultsCache || this._readDefaultVariants();
 
       // Generate variants.js content
       let content = '// Auto-generated by Icon Manager\n';
@@ -563,33 +621,59 @@ export class IconEditorPanel {
       content += '};\n';
 
       fs.writeFileSync(filePath, content);
+      this._hasUnsavedChanges = false;
     } catch (error) {
       console.error('Error writing Variants:', error);
     }
   }
 
-  private _getSavedVariants(iconName: string): Array<{ name: string; colors: string[] }> {
+  // Get all variants including internal ones (for _original lookup)
+  private _getAllVariants(iconName: string): Array<{ name: string; colors: string[] }> {
     const allVariants = this._readVariantsFromFile();
     const iconVariants = allVariants[iconName] || {};
     return Object.entries(iconVariants).map(([name, colors]) => ({ name, colors }));
   }
 
+  // Get visible variants (excluding internal ones starting with _)
+  private _getSavedVariants(iconName: string): Array<{ name: string; colors: string[] }> {
+    const allVariants = this._readVariantsFromFile();
+    const iconVariants = allVariants[iconName] || {};
+    // Filter out internal variants (starting with _)
+    return Object.entries(iconVariants)
+      .filter(([name]) => !name.startsWith('_'))
+      .map(([name, colors]) => ({ name, colors }));
+  }
+
   private _readDefaultVariants(): Record<string, string> {
+    // Return cached defaults if available
+    if (this._defaultsCache !== null) {
+      return { ...this._defaultsCache };
+    }
+
     try {
       const filePath = this._getVariantsFilePath();
-      if (!filePath) return {};
+      if (!filePath) {
+        this._defaultsCache = {};
+        return {};
+      }
 
       const fs = require('fs');
-      if (!fs.existsSync(filePath)) return {};
+      if (!fs.existsSync(filePath)) {
+        this._defaultsCache = {};
+        return {};
+      }
 
       const content = fs.readFileSync(filePath, 'utf-8');
       // Parse: export const defaultVariants = { ... };
       const match = content.match(/export\s+const\s+defaultVariants\s*=\s*(\{[\s\S]*?\});/);
       if (match) {
-        return new Function(`return ${match[1]}`)();
+        this._defaultsCache = new Function(`return ${match[1]}`)();
+        return { ...this._defaultsCache };
       }
+      this._defaultsCache = {};
       return {};
     } catch {
+      this._defaultsCache = {};
       return {};
     }
   }
@@ -606,60 +690,9 @@ export class IconEditorPanel {
     } else {
       delete defaults[iconName];
     }
-    // Rewrite the Variants file with updated defaults
-    const allVariants = this._readVariantsFromFile();
-    this._writeVariantsToFileWithDefaults(allVariants, defaults);
-  }
-
-  private _writeVariantsToFileWithDefaults(allVariants: Record<string, Record<string, string[]>>, defaults: Record<string, string>): void {
-    try {
-      const filePath = this._getVariantsFilePath();
-      if (!filePath) return;
-
-      const fs = require('fs');
-      const path = require('path');
-
-      // Ensure output directory exists
-      const dir = path.dirname(filePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-
-      // Generate variants.js content
-      let content = '// Auto-generated by Icon Manager\n';
-      content += '// Variants for icons - edit freely or use the Icon Editor\n\n';
-
-      // Export default Variants mapping
-      content += '// Default Variant for each icon (used when no variant attribute is specified)\n';
-      content += 'export const defaultVariants = {\n';
-      const defaultEntries = Object.entries(defaults);
-      defaultEntries.forEach(([iconName, variantName], idx) => {
-        content += `  '${iconName}': '${variantName}'`;
-        content += idx < defaultEntries.length - 1 ? ',\n' : '\n';
-      });
-      content += '};\n\n';
-
-      content += 'export const Variants = {\n';
-
-      const iconEntries = Object.entries(allVariants);
-      iconEntries.forEach(([iconName, iconVariants], iconIdx) => {
-        content += `  '${iconName}': {\n`;
-        const variantEntries = Object.entries(iconVariants);
-        variantEntries.forEach(([variantName, colors], variantIdx) => {
-          const colorsStr = colors.map(c => `'${c}'`).join(', ');
-          content += `    '${variantName}': [${colorsStr}]`;
-          content += variantIdx < variantEntries.length - 1 ? ',\n' : '\n';
-        });
-        content += `  }`;
-        content += iconIdx < iconEntries.length - 1 ? ',\n' : '\n';
-      });
-
-      content += '};\n';
-
-      fs.writeFileSync(filePath, content);
-    } catch (error) {
-      console.error('Error writing Variants:', error);
-    }
+    // Update defaults cache
+    this._defaultsCache = defaults;
+    this._hasUnsavedChanges = true;
   }
 
   private _saveVariant(iconName: string, variantName: string, colors: string[]): void {
@@ -669,6 +702,28 @@ export class IconEditorPanel {
     }
     allVariants[iconName][variantName] = colors;
     this._writeVariantsToFile(allVariants);
+  }
+
+  // Ensure icon has stored original colors and a "custom" variant for editing
+  private _ensureCustomVariant(): void {
+    if (!this._iconData) return;
+    
+    const allVariants = this._getAllVariants(this._iconData.name);
+    const hasCustom = allVariants.some(v => v.name === 'custom');
+    const savedOriginal = allVariants.find(v => v.name === '_original');
+    
+    // If we have saved original colors, use those instead of current SVG colors
+    if (savedOriginal) {
+      this._originalColors = [...savedOriginal.colors];
+    } else if (this._originalColors.length > 0) {
+      // Save original colors for the first time (hidden variant)
+      this._saveVariant(this._iconData.name, '_original', [...this._originalColors]);
+    }
+    
+    if (!hasCustom && this._originalColors.length > 0) {
+      // Create "custom" variant with the original colors
+      this._saveVariant(this._iconData.name, 'custom', [...this._originalColors]);
+    }
   }
 
   private _deleteVariant(iconName: string, index: number): void {
@@ -827,153 +882,316 @@ export class IconEditorPanel {
   }
 
   // Animation storage methods - use animations.js in output directory
-  private _getAnimationsFilePath(): string | undefined {
-    const outputDir = getSvgConfig<string>('outputDirectory', '');
+  private _getOutputPath(): string | undefined {
     const workspaceFolders = vscode.workspace.workspaceFolders;
+    const outputDir = getSvgConfig<string>('outputDirectory', 'bezier-icons');
     if (!workspaceFolders || !outputDir) return undefined;
-
-    const path = require('path');
-    return path.join(workspaceFolders[0].uri.fsPath, outputDir, 'animations.js');
+    return path.join(workspaceFolders[0].uri.fsPath, outputDir);
   }
 
-  private _readAnimationsFromFile(): Record<string, { type: string; duration: number; timing: string; iteration: string; delay?: number; direction?: string }> {
-    try {
-      const filePath = this._getAnimationsFilePath();
-      if (!filePath) return {};
+  private _getIconsFilePath(): string | undefined {
+    const outputPath = this._getOutputPath();
+    if (!outputPath) return undefined;
+    return path.join(outputPath, 'icons.js');
+  }
 
-      const fs = require('fs');
-      if (!fs.existsSync(filePath)) return {};
+  private _readIconAnimation(iconName: string): AnimationConfig | undefined {
+    try {
+      const filePath = this._getIconsFilePath();
+      if (!filePath || !fs.existsSync(filePath)) return undefined;
 
       const content = fs.readFileSync(filePath, 'utf-8');
-      const match = content.match(/export\s+const\s+animations\s*=\s*(\{[\s\S]*\});/);
-      if (match) {
-        return new Function(`return ${match[1]}`)();
-      }
-      return {};
+      const varName = iconName.replace(/-([a-z0-9])/gi, (_, c) => c.toUpperCase());
+      
+      // Pattern to find the specific icon export and extract its animation property
+      // We need to be careful not to match animations from other icons
+      // First, find the specific icon's definition
+      const iconStartPattern = new RegExp(
+        String.raw`export\s+const\s+${varName}\s*=\s*\{`,
+        'g'
+      );
+      
+      const startMatch = iconStartPattern.exec(content);
+      if (!startMatch) return undefined;
+      
+      // Find the end of this icon definition (next export or end of file)
+      const startIndex = startMatch.index;
+      const nextExportMatch = content.slice(startIndex + 1).match(/\nexport\s+const\s+/);
+      const endIndex = nextExportMatch 
+        ? startIndex + 1 + nextExportMatch.index! 
+        : content.length;
+      
+      // Extract just this icon's definition
+      const iconDefinition = content.slice(startIndex, endIndex);
+      
+      // Now look for animation within this specific icon only
+      const animationMatch = iconDefinition.match(/animation:\s*(\{[^}]+\})/);
+      if (!animationMatch) return undefined;
+      
+      // Parse animation object
+      return new Function(`return ${animationMatch[1]}`)() as AnimationConfig;
     } catch {
-      return {};
-    }
-  }
-
-  private _writeAnimationsToFile(animations: Record<string, { type: string; duration: number; timing: string; iteration: string; delay?: number; direction?: string }>): void {
-    try {
-      const filePath = this._getAnimationsFilePath();
-      if (!filePath) return;
-
-      const fs = require('fs');
-      const path = require('path');
-
-      const dir = path.dirname(filePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-
-      let content = '// Auto-generated by Icon Manager\n';
-      content += '// Animations for icons - defines default animation per icon\n';
-      content += '// Use: <sg-icon name="icon-name" animation="spin"></sg-icon>\n\n';
-      content += 'export const animations = {\n';
-
-      const entries = Object.entries(animations);
-      entries.forEach(([iconName, anim], idx) => {
-        const delay = anim.delay || 0;
-        const direction = anim.direction || 'normal';
-        content += `  '${iconName}': { type: '${anim.type}', duration: ${anim.duration}, timing: '${anim.timing}', iteration: '${anim.iteration}', delay: ${delay}, direction: '${direction}' }`;
-        content += idx < entries.length - 1 ? ',\n' : '\n';
-      });
-
-      content += '};\n';
-
-      fs.writeFileSync(filePath, content);
-    } catch (error) {
-      console.error('Error writing animations:', error);
+      return undefined;
     }
   }
 
   private async _saveAnimation(iconName: string, type: string, settings: { duration: number; timing: string; iteration: string; delay?: number; direction?: string }): Promise<void> {
-    const animations = this._readAnimationsFromFile();
-    animations[iconName] = { type, ...settings };
-    this._writeAnimationsToFile(animations);
+    const outputPath = this._getOutputPath();
+    if (!outputPath) return;
+
+    const animation: AnimationConfig = {
+      type,
+      duration: settings.duration,
+      timing: settings.timing,
+      iteration: settings.iteration,
+      delay: settings.delay,
+      direction: settings.direction
+    };
+
+    await updateIconAnimation(outputPath, iconName, animation);
   }
 
   private async _removeAnimation(iconName: string): Promise<void> {
-    const animations = this._readAnimationsFromFile();
-    if (animations[iconName]) {
-      delete animations[iconName];
-      this._writeAnimationsToFile(animations);
-    }
+    const outputPath = this._getOutputPath();
+    if (!outputPath) return;
+    
+    await updateIconAnimation(outputPath, iconName, null);
   }
 
   private _getIconAnimation(iconName: string): { type: string; duration: number; timing: string; iteration: string; delay?: number; direction?: string } | undefined {
-    const animations = this._readAnimationsFromFile();
-    return animations[iconName];
+    return this._readIconAnimation(iconName);
   }
 
-  private async _saveSvgToFile(svg: string): Promise<void> {
-    if (!this._iconData?.location) {
-      vscode.window.showWarningMessage('No source file location available');
+  private async _processAndSaveIcon(options: {
+    svg: string;
+    animation?: string;
+    animationSettings?: AnimationSettings;
+    includeAnimationInFile?: boolean;
+    updateAnimationMetadata?: boolean;
+    triggerFullRebuild?: boolean;
+    successMessage?: string;
+    skipPanelUpdate?: boolean;
+  }): Promise<void> {
+    if (!this._iconData) {
+        return;
+    }
+
+    let svgToSave = options.svg;
+
+    // 1. Clean up old animations
+    svgToSave = SvgManipulationService.cleanAnimationFromSvg(svgToSave);
+    
+    // 2. Ensure namespace
+    svgToSave = SvgManipulationService.ensureSvgNamespace(svgToSave);
+
+    // 3. Embed animation in SVG content if requested
+    if (options.includeAnimationInFile && options.animation && options.animation !== 'none') {
+      const settings = options.animationSettings || { duration: 2, timing: 'linear', iteration: 'infinite' };
+      svgToSave = SvgManipulationService.embedAnimationInSvg(
+        svgToSave,
+        options.animation,
+        settings
+      );
+    }
+    
+    // 4. Update internal state
+    this._iconData.svg = svgToSave;
+
+    // 5. Update animation metadata (animations.js) if requested
+    if (options.updateAnimationMetadata) {
+      if (options.animation && options.animation !== 'none') {
+        const settings = options.animationSettings || { duration: 2, timing: 'linear', iteration: 'infinite' };
+        await this._saveAnimation(this._iconData.name, options.animation, settings);
+      } else {
+        await this._removeAnimation(this._iconData.name);
+      }
+    }
+
+    // 6. Save to disk
+    if (this._iconData.spriteFile) {
+      // Icon from sprite.svg - update the sprite file
+      const updated = await this._updateSpriteFile(svgToSave);
+      if (!updated) {
+        vscode.window.showWarningMessage('Could not update sprite.svg');
+        return;
+      }
+      // Trigger rebuild after updating sprite
+      if (options.triggerFullRebuild) {
+        vscode.commands.executeCommand('iconManager.buildIcons');
+      }
+    } else {
+      // Update icons.js directly
+      const updated = await this._updateBuiltIconsFile(svgToSave);
+      if (!updated) {
+        vscode.window.showWarningMessage('Could not find icons.js to update');
+        return;
+      }
+    }
+
+    // 7. Post-save updates
+    this._originalColors = this._extractColorsFromSvg(svgToSave).colors;
+    
+    if (!options.skipPanelUpdate) {
+      this._update();
+    }
+    
+    // 8. Refresh tree view (this also clears temp icons internally)
+    await vscode.commands.executeCommand('iconManager.refreshIcons');
+    
+    // 9. Notify
+    if (options.successMessage) {
+      vscode.window.showInformationMessage(options.successMessage);
+    }
+  }
+
+  /**
+   * Add icon to the icon collection
+   * Uses buildFormat from config: sprite.svg OR icons.js (not both)
+   */
+  private async _addToIconCollection(
+    animation?: string,
+    animationSettings?: AnimationSettings
+  ): Promise<void> {
+    if (!this._iconData) {
+      vscode.window.showWarningMessage('No icon data available');
       return;
     }
 
-    const { file, line } = this._iconData.location;
+    const outputPath = getOutputPathOrWarn();
+    if (!outputPath) return;
 
     try {
-      const uri = vscode.Uri.file(file);
-      const document = await vscode.workspace.openTextDocument(uri);
-      const text = document.getText();
+      // Get build format from config
+      const config = getConfig();
+      const isSprite = config.buildFormat === 'sprite.svg';
 
-      if (file.endsWith('.svg')) {
-        // Replace entire file content
-        const edit = new vscode.WorkspaceEdit();
-        const fullRange = new vscode.Range(
-          document.positionAt(0),
-          document.positionAt(text.length)
-        );
-        edit.replace(uri, fullRange, svg);
-        await vscode.workspace.applyEdit(edit);
-        await document.save();
-        vscode.window.showInformationMessage('SVG file saved');
+      // 1. Clean the SVG and ensure namespace
+      let svgToAdd = SvgManipulationService.cleanAnimationFromSvg(this._iconData.svg);
+      svgToAdd = SvgManipulationService.ensureSvgNamespace(svgToAdd);
+
+      // 2. Ensure SVG has an ID for animation/variation reference
+      svgToAdd = this._ensureSvgId(svgToAdd, this._iconData.name);
+
+      const transformer = new SvgTransformer();
+      
+      if (isSprite) {
+        // Add to sprite.svg (no animation config for sprites)
+        await addToSpriteSvg(outputPath, this._iconData.name, svgToAdd, transformer);
+        
+        // Update internal state
+        this._iconData.svg = svgToAdd;
+        this._iconData.spriteFile = path.join(outputPath, 'sprite.svg');
+        
+        vscode.window.showInformationMessage(`✓ "${this._iconData.name}" added to sprite.svg`);
       } else {
-        // Find and replace inline SVG
-        const lines = text.split('\n');
-        let svgStart = -1;
-        let svgEnd = -1;
-        let depth = 0;
-
-        for (let i = line - 1; i < lines.length && i >= 0; i++) {
-          const lineText = lines[i];
-
-          if (svgStart === -1 && lineText.includes('<svg')) {
-            svgStart = i;
-          }
-
-          if (svgStart !== -1) {
-            depth += (lineText.match(/<svg/g) || []).length;
-            depth -= (lineText.match(/<\/svg>/g) || []).length;
-
-            if (depth === 0 || lineText.includes('</svg>')) {
-              svgEnd = i;
-              break;
-            }
-          }
+        // Add to icons.js with optional animation
+        let animConfig: AnimationConfig | undefined;
+        if (animation && animation !== 'none') {
+          const settings = animationSettings || { duration: 1, timing: 'ease', iteration: 'infinite' };
+          animConfig = {
+            type: animation,
+            duration: settings.duration,
+            timing: settings.timing,
+            iteration: settings.iteration,
+            delay: settings.delay,
+            direction: settings.direction
+          };
         }
 
-        if (svgStart !== -1 && svgEnd !== -1) {
-          const edit = new vscode.WorkspaceEdit();
-          const startPos = new vscode.Position(svgStart, lines[svgStart].indexOf('<svg'));
-          const endLine = lines[svgEnd];
-          const endPos = new vscode.Position(svgEnd, endLine.indexOf('</svg>') + 6);
+        await addToIconsJs(outputPath, this._iconData.name, svgToAdd, transformer, animConfig);
 
-          edit.replace(uri, new vscode.Range(startPos, endPos), svg);
-          await vscode.workspace.applyEdit(edit);
-          await document.save();
-          vscode.window.showInformationMessage('SVG saved in source file');
-        }
+        // Update internal state
+        this._iconData.svg = svgToAdd;
+        this._iconData.iconsFile = path.join(outputPath, 'icons.js');
+
+        const animText = animConfig ? ' with animation' : '';
+        vscode.window.showInformationMessage(`✓ "${this._iconData.name}" added to icons.js${animText}`);
       }
 
-      // Also update the built icons.js file if it exists
-      await this._updateBuiltIconsFile(svg);
+      // Refresh tree views
+      await vscode.commands.executeCommand('iconManager.refreshIcons');
+
+      // Persist cached variants to file on build
+      if (this._hasUnsavedChanges) {
+        this._persistVariantsToFile();
+      }
+
+      // Update panel
+      this._update();
+
+    } catch (error: any) {
+      vscode.window.showErrorMessage(`Failed to add icon: ${error.message}`);
+    }
+  }
+
+  /**
+   * Ensure SVG has an ID attribute for animation/variation reference
+   */
+  private _ensureSvgId(svg: string, iconName: string): string {
+    // Check if SVG already has an id
+    const hasId = /<svg[^>]*\sid=["'][^"']+["']/i.test(svg);
+    if (hasId) {
+      return svg;
+    }
+
+    // Generate ID from icon name (kebab-case to valid ID)
+    const id = `bz-${iconName.replace(/[^a-zA-Z0-9-]/g, '-')}`;
+
+    // Add id attribute to SVG tag
+    return svg.replace(/<svg/, `<svg id="${id}"`);
+  }
+
+  /**
+   * Update icon in sprite.svg file
+   */
+  private async _updateSpriteFile(svg: string): Promise<boolean> {
+    if (!this._iconData?.name || !this._iconData.spriteFile) {
+      return false;
+    }
+
+    const fs = await import('fs');
+    const spritePath = this._iconData.spriteFile;
+
+    if (!fs.existsSync(spritePath)) {
+      return false;
+    }
+
+    try {
+      let spriteContent = fs.readFileSync(spritePath, 'utf-8');
+
+      // Use extractSvgBody to properly clean animation styles/wrappers
+      const transformer = new SvgTransformer();
+      const newContent = transformer.extractSvgBody(svg);
+
+      // Extract viewBox from the SVG
+      const viewBoxMatch = svg.match(/viewBox=["']([^"']+)["']/i);
+      const newViewBox = viewBoxMatch ? viewBoxMatch[1] : (this._iconData.viewBox || '0 0 24 24');
+
+      // Find and replace the symbol in the sprite
+      const symbolPattern = new RegExp(
+        `(<symbol[^>]*id=["']${this._iconData.name}["'][^>]*viewBox=["'])([^"']+)(["'][^>]*>)[\\s\\S]*?(<\\/symbol>)`,
+        'i'
+      );
+
+      const symbolMatch = spriteContent.match(symbolPattern);
+      
+      if (symbolMatch) {
+        // Replace viewBox and content
+        const newSymbol = `${symbolMatch[1]}${newViewBox}${symbolMatch[3]}${newContent}${symbolMatch[4]}`;
+        spriteContent = spriteContent.replace(symbolPattern, newSymbol);
+        
+        fs.writeFileSync(spritePath, spriteContent, 'utf-8');
+        
+        // Regenerate .d.ts with icon names from sprite
+        await this._regenerateTypesFromSprite(spritePath, spriteContent);
+        
+        return true;
+      }
+
+      return false;
     } catch (error) {
-      vscode.window.showErrorMessage(`Failed to save: ${error}`);
+      console.error('Error updating sprite file:', error);
+      return false;
     }
   }
 
@@ -988,12 +1206,12 @@ export class IconEditorPanel {
     }
 
     // Get output directory from config
-    const outputDir = getSvgConfig<string>('outputDirectory', '');
+    const outputDir = getSvgConfig<string>('outputDirectory', 'bezier-icons');
 
-    // Look for icons.js in configured output and common locations
+    // Look for icons.js in configured output and common locations (with legacy fallbacks)
     const possiblePaths = outputDir
-      ? [`${outputDir}/icons.js`, 'svg/icons.js', 'icons.js']
-      : ['svg/icons.js', 'dist/icons.js', 'build/icons.js', 'public/icons.js', 'src/icons.js', 'icons.js'];
+      ? [`${outputDir}/icons.js`, `${outputDir}/icons.js`, 'svg/icons.js', 'svg/icons.js', 'icons.js', 'icons.js']
+      : ['bezier-icons/icons.js', 'svg/icons.js', 'dist/icons.js', 'build/icons.js', 'public/icons.js', 'src/icons.js', 'icons.js'];
 
     for (const folder of workspaceFolders) {
       for (const relativePath of possiblePaths) {
@@ -1001,63 +1219,76 @@ export class IconEditorPanel {
 
         try {
           const document = await vscode.workspace.openTextDocument(iconsUri);
-          const text = document.getText();
+          
+          // File found, attempt update with error handling
+          const result = await ErrorHandler.wrapAsync(async () => {
+            const text = document.getText();
 
-          // Convert icon name to variable name format (matching extension.ts)
-          const varName = this._toVariableName(this._iconData.name);
+            // Convert icon name to variable name format (matching extension.ts)
+            const varName = this._toVariableName(this._iconData!.name);
 
-          // Extract body from SVG (remove <svg> wrapper)
-          const bodyMatch = svg.match(/<svg[^>]*>([\s\S]*)<\/svg>/i);
-          const body = bodyMatch ? bodyMatch[1].trim() : svg;
+            // Use extractSvgBody to properly clean animation styles/wrappers
+            const transformer = new SvgTransformer();
+            const body = transformer.extractSvgBody(svg);
 
-          // Find the icon export and replace the body content
-          // Pattern: export const varName = { ... body: `...`, ... }
-          const iconStartPattern = new RegExp(`export\\s+const\\s+${varName}\\s*=\\s*\\{`);
-          const match = iconStartPattern.exec(text);
+            // Find the icon export and replace the body content
+            // Pattern: export const varName = { ... body: `...`, ... }
+            const iconStartPattern = new RegExp(`export\\s+const\\s+${varName}\\s*=\\s*\\{`);
+            const match = iconStartPattern.exec(text);
 
-          if (match) {
-            const startIdx = match.index;
-            // Find the body: ` part
-            const afterStart = text.substring(startIdx);
-            const bodyStartMatch = afterStart.match(/body:\s*`/);
+            if (match) {
+              const startIdx = match.index;
+              // Find the body: ` part
+              const afterStart = text.substring(startIdx);
+              const bodyStartMatch = afterStart.match(/body:\s*`/);
 
-            if (bodyStartMatch && bodyStartMatch.index !== undefined) {
-              const bodyContentStart = startIdx + bodyStartMatch.index + bodyStartMatch[0].length;
+              if (bodyStartMatch && bodyStartMatch.index !== undefined) {
+                const bodyContentStart = startIdx + bodyStartMatch.index + bodyStartMatch[0].length;
 
-              // Find closing backtick (handle escaped backticks)
-              let bodyContentEnd = bodyContentStart;
-              let i = bodyContentStart;
-              while (i < text.length) {
-                if (text[i] === '\\' && text[i + 1] === '`') {
-                  i += 2; // Skip escaped backtick
-                } else if (text[i] === '`') {
-                  bodyContentEnd = i;
-                  break;
-                } else {
-                  i++;
+                // Find closing backtick (handle escaped backticks)
+                let bodyContentEnd = bodyContentStart;
+                let i = bodyContentStart;
+                while (i < text.length) {
+                  if (text[i] === '\\' && text[i + 1] === '`') {
+                    i += 2; // Skip escaped backtick
+                  } else if (text[i] === '`') {
+                    bodyContentEnd = i;
+                    break;
+                  } else {
+                    i++;
+                  }
+                }
+
+                if (bodyContentEnd > bodyContentStart) {
+                  // Escape backticks and dollar signs in body
+                  const escapedBody = body.replace(/`/g, '\\`').replace(/\$/g, '\\$');
+
+                  const newText = text.substring(0, bodyContentStart) + escapedBody + text.substring(bodyContentEnd);
+
+                  const edit = new vscode.WorkspaceEdit();
+                  const fullRange = new vscode.Range(
+                    document.positionAt(0),
+                    document.positionAt(text.length)
+                  );
+                  edit.replace(iconsUri, fullRange, newText);
+                  await vscode.workspace.applyEdit(edit);
+                  await document.save();
+
+                  vscode.window.showInformationMessage(`Updated ${relativePath}`);
+                  // Return data needed to regenerate .d.ts
+                  return { success: true, path: iconsUri.fsPath, content: newText };
                 }
               }
-
-              if (bodyContentEnd > bodyContentStart) {
-                // Escape backticks and dollar signs in body
-                const escapedBody = body.replace(/`/g, '\\`').replace(/\$/g, '\\$');
-
-                const newText = text.substring(0, bodyContentStart) + escapedBody + text.substring(bodyContentEnd);
-
-                const edit = new vscode.WorkspaceEdit();
-                const fullRange = new vscode.Range(
-                  document.positionAt(0),
-                  document.positionAt(text.length)
-                );
-                edit.replace(iconsUri, fullRange, newText);
-                await vscode.workspace.applyEdit(edit);
-                await document.save();
-
-                vscode.window.showInformationMessage(`Updated ${relativePath}`);
-                return true;
-              }
             }
+            return { success: false, path: '', content: '' };
+          }, `updating icons.js at ${relativePath}`);
+
+          if (result && result.success && result.path && result.content) {
+            // Regenerate .d.ts with icon names from icons.js (outside wrapAsync)
+            await this._regenerateTypesFromIconsFile(result.path, result.content);
+            return true;
           }
+
         } catch {
           // File doesn't exist at this path, continue searching
           continue;
@@ -1065,6 +1296,89 @@ export class IconEditorPanel {
       }
     }
     return false;
+  }
+
+  /**
+   * Regenerate icons.d.ts based on icons in sprite.svg
+   */
+  private async _regenerateTypesFromSprite(spritePath: string, content: string): Promise<void> {
+    // Extract all symbol IDs from sprite
+    const symbolPattern = /<symbol[^>]*id=["']([^"']+)["']/gi;
+    const iconNames: string[] = [];
+    let match;
+    while ((match = symbolPattern.exec(content)) !== null) {
+      iconNames.push(match[1]);
+    }
+
+    if (iconNames.length === 0) return;
+
+    // Generate .d.ts in same directory as sprite
+    const outputDir = path.dirname(spritePath);
+    await this._writeTypesFile(outputDir, iconNames);
+  }
+
+  /**
+   * Regenerate icons.d.ts based on icons in icons.js
+   */
+  private async _regenerateTypesFromIconsFile(iconsPath: string, content: string): Promise<void> {
+    console.log('[IconEditorPanel] _regenerateTypesFromIconsFile called for:', iconsPath);
+    
+    // Extract all exported icon names (export const iconName = { ...)
+    const exportPattern = /export\s+const\s+([a-zA-Z][a-zA-Z0-9]*)\s*=\s*\{/g;
+    const iconNames: string[] = [];
+    let match;
+    while ((match = exportPattern.exec(content)) !== null) {
+      // Convert camelCase back to kebab-case for .d.ts
+      const varName = match[1];
+      const kebabName = varName.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+      iconNames.push(kebabName);
+    }
+
+    console.log('[IconEditorPanel] Found icon names:', iconNames);
+
+    if (iconNames.length === 0) {
+      console.log('[IconEditorPanel] No icons found, skipping .d.ts generation');
+      return;
+    }
+
+    // Generate .d.ts in same directory as icons.js
+    const outputDir = path.dirname(iconsPath);
+    await this._writeTypesFile(outputDir, iconNames);
+  }
+
+  /**
+   * Write icons.d.ts file with given icon names
+   */
+  private async _writeTypesFile(outputDir: string, iconNames: string[]): Promise<void> {
+    const typesPath = path.join(outputDir, 'icons.d.ts');
+    const sortedNames = [...iconNames].sort();
+    
+    console.log('[IconEditorPanel] Writing icons.d.ts to:', typesPath);
+    console.log('[IconEditorPanel] Icon names:', sortedNames);
+    
+    const content = `// Auto-generated by Icon Manager
+// Do not edit manually
+
+export type IconName = ${sortedNames.map(n => `'${n}'`).join(' | ')};
+
+export const iconNames = [
+${sortedNames.map(n => `  '${n}'`).join(',\n')}
+] as const;
+
+export type IconNameTuple = typeof iconNames;
+
+/**
+ * Check if a string is a valid icon name
+ */
+export function isValidIconName(name: string): name is IconName {
+  return iconNames.includes(name as IconName);
+}
+`;
+
+    // Use VS Code API to write file
+    const uri = vscode.Uri.file(typesPath);
+    const encoder = new TextEncoder();
+    await vscode.workspace.fs.writeFile(uri, encoder.encode(content));
   }
 
   private _toVariableName(name: string): string {
@@ -1081,17 +1395,49 @@ export class IconEditorPanel {
       .join('');
   }
 
-  private _extractColorsFromSvg(svg: string): { colors: string[], hasCurrentColor: boolean } {
+  // Extract colors from SVG, filtering out SMIL secondary colors for UI display
+  private _extractColorsFromSvg(svg: string): { colors: string[], hasCurrentColor: boolean, hasSmil: boolean } {
+    const { colors, hasCurrentColor, hasSmil } = this._extractAllColorsFromSvg(svg);
+    
+    let filteredColors = colors;
+    
+    // For SMIL SVGs, only show the primary color (currentColor or first non-black color)
+    // Secondary colors like #000000 are typically used for animation effects
+    if (hasSmil && colors.length > 1) {
+      // Filter out black/near-black colors used for SMIL effects
+      const primaryColors = colors.filter(c => {
+        if (c === 'currentColor') return true;
+        const normalized = c.toLowerCase();
+        // Exclude common SMIL secondary colors
+        return normalized !== '#000000' && normalized !== '#000' && 
+               normalized !== 'black' && normalized !== '#333333' &&
+               normalized !== '#333' && normalized !== '#111111' && normalized !== '#111';
+      });
+      // If we filtered everything, keep at least one
+      if (primaryColors.length > 0) {
+        filteredColors = primaryColors;
+      }
+    }
+
+    return { colors: filteredColors, hasCurrentColor, hasSmil };
+  }
+
+  // Extract ALL colors from SVG without filtering (for saving variants)
+  private _extractAllColorsFromSvg(svg: string): { colors: string[], hasCurrentColor: boolean, hasSmil: boolean } {
     const colorRegex = /(fill|stroke|stop-color)=["']([^"']+)["']/gi;
     const styleColorRegex = /(fill|stroke|stop-color)\s*:\s*([^;"'\s]+)/gi;
     const colorsSet = new Set<string>();
     let hasCurrentColor = false;
+    
+    // Detect SMIL animations
+    const hasSmil = /<animate[^>]*>/i.test(svg) || /<animateTransform[^>]*>/i.test(svg) || /<animateMotion[^>]*>/i.test(svg);
 
     let colorMatch;
     while ((colorMatch = colorRegex.exec(svg)) !== null) {
       const color = colorMatch[2].toLowerCase();
       if (color === 'currentcolor') {
         hasCurrentColor = true;
+        colorsSet.add('currentColor');
       } else if (color !== 'none' && color !== 'transparent' && !color.startsWith('url(')) {
         colorsSet.add(color);
       }
@@ -1100,12 +1446,15 @@ export class IconEditorPanel {
       const color = colorMatch[2].toLowerCase();
       if (color === 'currentcolor') {
         hasCurrentColor = true;
+        if (!colorsSet.has('currentColor')) {
+          colorsSet.add('currentColor');
+        }
       } else if (color !== 'none' && color !== 'transparent' && !color.startsWith('url(')) {
         colorsSet.add(color);
       }
     }
 
-    return { colors: Array.from(colorsSet), hasCurrentColor };
+    return { colors: Array.from(colorsSet), hasCurrentColor, hasSmil };
   }
 
   private _replaceColorInSvg(svg: string, oldColor: string, newColor: string): string {
@@ -1255,35 +1604,93 @@ export class IconEditorPanel {
   private _formatSvgPretty(svg: string): string {
     if (!svg) return '';
 
+    // Clean animation styles from preview
     let result = svg.trim()
-      .replace(/\s*style="[^"]*animation[^"]*"/gi, '') // Limpia estilos de preview
-      .replace(/\s+/g, ' ')                            // Normaliza
-      .replace(/>\s*</g, '>\n<');                      // Forzar líneas por tag
+      .replace(/\s*style="[^"]*animation[^"]*"/gi, '');
 
-    const lines = result.split('\n');
+    // Format SVG with proper indentation and line breaks
     const formatted: string[] = [];
     let indent = 0;
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed) continue;
-
-      if (trimmed.startsWith('</')) indent = Math.max(0, indent - 1);
-
-      formatted.push('  '.repeat(indent) + trimmed);
-
-      // Regla de indentación: Abrir tag, que no sea auto-conclusivo ni de una sola línea
-      const isOpening = trimmed.startsWith('<') && !trimmed.startsWith('</') && !trimmed.startsWith('<!') && !trimmed.startsWith('<?');
-      const isSingleLine = trimmed.endsWith('/>') || (trimmed.includes('<') && trimmed.includes('</'));
-
-      if (isOpening && !isSingleLine) {
-        indent++;
+    let pos = 0;
+    
+    while (pos < result.length) {
+      // Skip whitespace
+      while (pos < result.length && /\s/.test(result[pos])) pos++;
+      if (pos >= result.length) break;
+      
+      if (result[pos] === '<') {
+        // Find end of tag
+        let tagEnd = result.indexOf('>', pos);
+        if (tagEnd === -1) tagEnd = result.length;
+        
+        let tag = result.substring(pos, tagEnd + 1).trim();
+        
+        // Check if closing tag
+        const isClosing = tag.startsWith('</');
+        const isSelfClosing = tag.endsWith('/>');
+        const isComment = tag.startsWith('<!--');
+        
+        if (isClosing) indent = Math.max(0, indent - 1);
+        
+        // Format tag with attributes on separate lines if it's long
+        if (!isComment && tag.length > 80) {
+          // Extract tag name and attributes
+          const tagMatch = tag.match(/^<(\/?[\w:-]+)([\s\S]*?)(\/?>)$/);
+          if (tagMatch) {
+            const [, tagName, attrsStr, closing] = tagMatch;
+            
+            // Parse attributes
+            const attrs: string[] = [];
+            const attrRegex = /([\w:-]+)(?:=("[^"]*"|'[^']*'|[^\s>]*))?/g;
+            let attrMatch;
+            while ((attrMatch = attrRegex.exec(attrsStr)) !== null) {
+              if (attrMatch[2]) {
+                attrs.push(`${attrMatch[1]}=${attrMatch[2]}`);
+              } else if (attrMatch[1]) {
+                attrs.push(attrMatch[1]);
+              }
+            }
+            
+            if (attrs.length > 0) {
+              // First line with tag name and first attribute
+              formatted.push('  '.repeat(indent) + `<${tagName}`);
+              // Each attribute on its own line
+              attrs.forEach((attr, i) => {
+                const isLast = i === attrs.length - 1;
+                formatted.push('  '.repeat(indent + 1) + attr + (isLast ? closing : ''));
+              });
+            } else {
+              formatted.push('  '.repeat(indent) + tag);
+            }
+          } else {
+            formatted.push('  '.repeat(indent) + tag);
+          }
+        } else {
+          formatted.push('  '.repeat(indent) + tag);
+        }
+        
+        // Increase indent for opening non-self-closing tags
+        if (!isClosing && !isSelfClosing && !isComment) {
+          indent++;
+        }
+        
+        pos = tagEnd + 1;
+      } else {
+        // Text content
+        let textEnd = result.indexOf('<', pos);
+        if (textEnd === -1) textEnd = result.length;
+        
+        const text = result.substring(pos, textEnd).trim();
+        if (text) {
+          formatted.push('  '.repeat(indent) + text);
+        }
+        pos = textEnd;
       }
     }
 
     let finalResult = formatted.join('\n');
 
-    // Formatear el CSS interno de las etiquetas <style>
+    // Format CSS inside <style> tags
     finalResult = finalResult.replace(/<style>([\s\S]*?)<\/style>/gi, (match, cssContent) => {
       return `<style>\n${this._formatCss(cssContent)}</style>`;
     });
@@ -1411,285 +1818,156 @@ export class IconEditorPanel {
     return namedColors[color.toLowerCase()] || '#000000';
   }
 
-  private _ensureSvgNamespace(svg: string): string {
-    // Robust check for namespace (single or double quotes)
-    const nsPattern = /xmlns\s*=\s*["']http:\/\/www\.w3\.org\/2000\/svg["']/gi;
-    const matches = svg.match(nsPattern);
-    
-    // If multiple namespaces found (corruption), remove all and add one back
-    if (matches && matches.length > 1) {
-      svg = svg.replace(nsPattern, '');
-      return svg.replace(/<svg/i, '<svg xmlns="http://www.w3.org/2000/svg"');
-    } 
-    
-    // If no namespace found, add it
-    if (!matches || matches.length === 0) {
-      return svg.replace(/<svg/i, '<svg xmlns="http://www.w3.org/2000/svg"');
+  /**
+   * Generate HTML for animation CSS code section
+   */
+  private _generateAnimationCodeHtml(animationType: string, settings?: { duration?: number; timing?: string; iteration?: string; delay?: number; direction?: string }): string {
+    if (!animationType || animationType === 'none') {
+      return '<div class="code-editor"><div class="code-row"><div class="ln">1</div><div class="cl" style="color: var(--vscode-descriptionForeground); font-style: italic;">No animation selected</div></div></div>';
     }
-    
-    return svg;
+
+    const duration = settings?.duration || 1;
+    const timing = settings?.timing || 'ease';
+    const iteration = settings?.iteration || 'infinite';
+    const delay = settings?.delay || 0;
+    const direction = settings?.direction || 'normal';
+
+    // Generate the CSS keyframes and animation rule
+    const keyframes = this._getKeyframesForAnimation(animationType);
+    const animationRule = `.bz-anim-${animationType} {
+  animation: ${animationType} ${duration}s ${timing} ${delay}s ${iteration} ${direction};
+}`;
+
+    const fullCss = `/* Animation: ${animationType} */
+${keyframes}
+
+${animationRule}`;
+
+    // Highlight CSS
+    const lines = fullCss.split('\n').filter(line => line.trim() !== '');
+    const codeRows = lines.map((line, i) => {
+      let highlighted = this._escapeHtml(line);
+      
+      // CSS highlighting
+      if (line.includes('/*')) {
+        highlighted = `<cite>${highlighted}</cite>`;
+      } else if (line.includes('@keyframes')) {
+        highlighted = highlighted.replace(/@keyframes\s+(\w+)/, '<kbd>@keyframes</kbd> <var>$1</var>');
+      } else if (line.includes('{') || line.includes('}')) {
+        highlighted = highlighted.replace(/([{}])/g, '<s>$1</s>');
+        // Highlight percentages or from/to
+        highlighted = highlighted.replace(/(from|to|\d+%)/g, '<var>$1</var>');
+      } else if (line.includes(':')) {
+        highlighted = highlighted.replace(/([\w-]+)(\s*:)/, '<u>$1</u>$2');
+        highlighted = highlighted.replace(/:\s*([^;]+)(;?)/, ': <samp>$1</samp>$2');
+      }
+
+      return `<div class="code-row"><div class="ln">${i + 1}</div><div class="cl">${highlighted}</div></div>`;
+    }).join('');
+
+    return `<div class="code-editor">${codeRows}</div>`;
   }
 
-  private _cleanAnimationFromSvg(svg: string): string {
-    // Remove styles with our specific ID
-    svg = svg.replace(/<style id="icon-manager-animation">[\s\S]*?<\/style>/gi, '');
-    // Remove scripts with our specific ID
-    svg = svg.replace(/<script id="icon-manager-script">[\s\S]*?<\/script>/gi, '');
-    
-    // Legacy cleanup: Remove styles that look like ours (containing keyframes and svg animation)
-    svg = svg.replace(/<style>@keyframes[\s\S]*?svg\s*\{\s*animation:[\s\S]*?\}[\s\S]*?<\/style>/gi, '');
-    
-    // Legacy cleanup for draw animations (script tag)
-    svg = svg.replace(/<script>\s*\(function\(\)\s*\{\s*var svg = document\.currentScript\.parentElement;[\s\S]*?\}\)\(\);\s*<\/script>/gi, '');
-
-    return svg;
-  }
-
-  private _embedAnimationInSvg(
-    svg: string,
-    animation: string,
-    settings: { duration: number; timing: string; iteration: string; direction?: string; delay?: number }
-  ): string {
-    // Clean up previous animations first
-    svg = this._cleanAnimationFromSvg(svg);
-    svg = this._ensureSvgNamespace(svg);
-
-    // Handle draw animation specially - it needs path length calculation
-    if (animation === 'draw') {
-      return this._embedDrawAnimation(svg, settings);
-    }
-    if (animation === 'draw-reverse') {
-      return this._embedDrawAnimation(svg, settings, true);
-    }
-    if (animation === 'draw-loop') {
-      return this._embedDrawLoopAnimation(svg, settings);
-    }
-
-    const keyframes: Record<string, string> = {
-      spin: `@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`,
-      'spin-reverse': `@keyframes spin-reverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }`,
-      pulse: `@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.8; } }`,
-      'pulse-grow': `@keyframes pulse-grow { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }`,
-      bounce: `@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }`,
-      'bounce-horizontal': `@keyframes bounce-horizontal { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(8px); } }`,
-      shake: `@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }`,
-      'shake-vertical': `@keyframes shake-vertical { 0%, 100% { transform: translateY(0); } 25% { transform: translateY(-4px); } 75% { transform: translateY(4px); } }`,
-      fade: `@keyframes fade { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }`,
-      'fade-in': `@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }`,
-      'fade-out': `@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }`,
-      float: `@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }`,
-      swing: `@keyframes swing { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(15deg); } 75% { transform: rotate(-15deg); } }`,
-      flip: `@keyframes flip { 0% { transform: perspective(400px) rotateY(0); } 100% { transform: perspective(400px) rotateY(360deg); } }`,
-      'flip-x': `@keyframes flip-x { 0% { transform: perspective(400px) rotateX(0); } 100% { transform: perspective(400px) rotateX(360deg); } }`,
-      heartbeat: `@keyframes heartbeat { 0%, 100% { transform: scale(1); } 14% { transform: scale(1.15); } 28% { transform: scale(1); } 42% { transform: scale(1.15); } 70% { transform: scale(1); } }`,
-      wobble: `@keyframes wobble { 0%, 100% { transform: translateX(0) rotate(0); } 15% { transform: translateX(-6px) rotate(-5deg); } 30% { transform: translateX(5px) rotate(3deg); } 45% { transform: translateX(-4px) rotate(-3deg); } 60% { transform: translateX(3px) rotate(2deg); } 75% { transform: translateX(-2px) rotate(-1deg); } }`,
-      'rubber-band': `@keyframes rubber-band { 0%, 100% { transform: scaleX(1); } 30% { transform: scaleX(1.25) scaleY(0.75); } 40% { transform: scaleX(0.75) scaleY(1.25); } 50% { transform: scaleX(1.15) scaleY(0.85); } 65% { transform: scaleX(0.95) scaleY(1.05); } 75% { transform: scaleX(1.05) scaleY(0.95); } }`,
-      jello: `@keyframes jello { 0%, 11.1%, 100% { transform: skewX(0) skewY(0); } 22.2% { transform: skewX(-12.5deg) skewY(-12.5deg); } 33.3% { transform: skewX(6.25deg) skewY(6.25deg); } 44.4% { transform: skewX(-3.125deg) skewY(-3.125deg); } 55.5% { transform: skewX(1.5625deg) skewY(1.5625deg); } 66.6% { transform: skewX(-0.78125deg) skewY(-0.78125deg); } 77.7% { transform: skewX(0.390625deg) skewY(0.390625deg); } 88.8% { transform: skewX(-0.1953125deg) skewY(-0.1953125deg); } }`,
-      tada: `@keyframes tada { 0%, 100% { transform: scale(1) rotate(0); } 10%, 20% { transform: scale(0.9) rotate(-3deg); } 30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); } 40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); } }`,
-      'zoom-in': `@keyframes zoom-in { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }`,
-      'zoom-out': `@keyframes zoom-out { from { transform: scale(1); opacity: 1; } to { transform: scale(0); opacity: 0; } }`,
-      'slide-in-up': `@keyframes slide-in-up { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }`,
-      'slide-in-down': `@keyframes slide-in-down { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }`,
-      'slide-in-left': `@keyframes slide-in-left { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }`,
-      'slide-in-right': `@keyframes slide-in-right { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }`,
-      morph: `@keyframes morph { 0%, 100% { border-radius: 0; } 50% { border-radius: 50%; } }`,
-      blink: `@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }`,
-      glow: `@keyframes glow { 0%, 100% { filter: drop-shadow(0 0 2px currentColor); } 50% { filter: drop-shadow(0 0 10px currentColor) drop-shadow(0 0 20px currentColor); } }`
+  /**
+   * Get keyframes CSS for a specific animation type
+   */
+  private _getKeyframesForAnimation(animationType: string): string {
+    const keyframesMap: Record<string, string> = {
+      'spin': '@keyframes spin {\n  from { transform: rotate(0deg); }\n  to { transform: rotate(360deg); }\n}',
+      'spin-reverse': '@keyframes spin-reverse {\n  from { transform: rotate(360deg); }\n  to { transform: rotate(0deg); }\n}',
+      'pulse': '@keyframes pulse {\n  0%, 100% { transform: scale(1); opacity: 1; }\n  50% { transform: scale(1.1); opacity: 0.8; }\n}',
+      'pulse-grow': '@keyframes pulse-grow {\n  0%, 100% { transform: scale(1); }\n  50% { transform: scale(1.2); }\n}',
+      'bounce': '@keyframes bounce {\n  0%, 100% { transform: translateY(0); }\n  50% { transform: translateY(-8px); }\n}',
+      'bounce-horizontal': '@keyframes bounce-horizontal {\n  0%, 100% { transform: translateX(0); }\n  50% { transform: translateX(8px); }\n}',
+      'shake': '@keyframes shake {\n  0%, 100% { transform: translateX(0); }\n  25% { transform: translateX(-4px); }\n  75% { transform: translateX(4px); }\n}',
+      'shake-vertical': '@keyframes shake-vertical {\n  0%, 100% { transform: translateY(0); }\n  25% { transform: translateY(-4px); }\n  75% { transform: translateY(4px); }\n}',
+      'fade': '@keyframes fade {\n  0%, 100% { opacity: 1; }\n  50% { opacity: 0.3; }\n}',
+      'fade-in': '@keyframes fade-in {\n  from { opacity: 0; }\n  to { opacity: 1; }\n}',
+      'fade-out': '@keyframes fade-out {\n  from { opacity: 1; }\n  to { opacity: 0; }\n}',
+      'float': '@keyframes float {\n  0%, 100% { transform: translateY(0); }\n  50% { transform: translateY(-6px); }\n}',
+      'swing': '@keyframes swing {\n  0%, 100% { transform: rotate(0deg); transform-origin: top center; }\n  25% { transform: rotate(15deg); }\n  75% { transform: rotate(-15deg); }\n}',
+      'flip': '@keyframes flip {\n  0% { transform: perspective(400px) rotateY(0); }\n  100% { transform: perspective(400px) rotateY(360deg); }\n}',
+      'flip-x': '@keyframes flip-x {\n  0% { transform: perspective(400px) rotateX(0); }\n  100% { transform: perspective(400px) rotateX(360deg); }\n}',
+      'heartbeat': '@keyframes heartbeat {\n  0%, 100% { transform: scale(1); }\n  14% { transform: scale(1.15); }\n  28% { transform: scale(1); }\n  42% { transform: scale(1.15); }\n  70% { transform: scale(1); }\n}',
+      'wobble': '@keyframes wobble {\n  0%, 100% { transform: translateX(0) rotate(0); }\n  15% { transform: translateX(-6px) rotate(-5deg); }\n  30% { transform: translateX(5px) rotate(3deg); }\n  45% { transform: translateX(-4px) rotate(-3deg); }\n  60% { transform: translateX(3px) rotate(2deg); }\n  75% { transform: translateX(-2px) rotate(-1deg); }\n}',
+      'rubber-band': '@keyframes rubber-band {\n  0%, 100% { transform: scaleX(1); }\n  30% { transform: scaleX(1.25) scaleY(0.75); }\n  40% { transform: scaleX(0.75) scaleY(1.25); }\n  50% { transform: scaleX(1.15) scaleY(0.85); }\n  65% { transform: scaleX(0.95) scaleY(1.05); }\n  75% { transform: scaleX(1.05) scaleY(0.95); }\n}',
+      'jello': '@keyframes jello {\n  0%, 11.1%, 100% { transform: skewX(0) skewY(0); }\n  22.2% { transform: skewX(-12.5deg) skewY(-12.5deg); }\n  33.3% { transform: skewX(6.25deg) skewY(6.25deg); }\n  44.4% { transform: skewX(-3.125deg) skewY(-3.125deg); }\n  55.5% { transform: skewX(1.5625deg) skewY(1.5625deg); }\n}',
+      'tada': '@keyframes tada {\n  0%, 100% { transform: scale(1) rotate(0); }\n  10%, 20% { transform: scale(0.9) rotate(-3deg); }\n  30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); }\n  40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); }\n}',
+      'zoom-in': '@keyframes zoom-in {\n  from { transform: scale(0); opacity: 0; }\n  to { transform: scale(1); opacity: 1; }\n}',
+      'zoom-out': '@keyframes zoom-out {\n  from { transform: scale(1); opacity: 1; }\n  to { transform: scale(0); opacity: 0; }\n}',
+      'slide-in-up': '@keyframes slide-in-up {\n  from { transform: translateY(100%); opacity: 0; }\n  to { transform: translateY(0); opacity: 1; }\n}',
+      'slide-in-down': '@keyframes slide-in-down {\n  from { transform: translateY(-100%); opacity: 0; }\n  to { transform: translateY(0); opacity: 1; }\n}',
+      'slide-in-left': '@keyframes slide-in-left {\n  from { transform: translateX(-100%); opacity: 0; }\n  to { transform: translateX(0); opacity: 1; }\n}',
+      'slide-in-right': '@keyframes slide-in-right {\n  from { transform: translateX(100%); opacity: 0; }\n  to { transform: translateX(0); opacity: 1; }\n}',
+      'blink': '@keyframes blink {\n  0%, 100% { opacity: 1; }\n  50% { opacity: 0; }\n}',
+      'glow': '@keyframes glow {\n  0%, 100% { filter: drop-shadow(0 0 2px currentColor); }\n  50% { filter: drop-shadow(0 0 10px currentColor) drop-shadow(0 0 20px currentColor); }\n}',
+      'draw': '@keyframes draw {\n  from { stroke-dashoffset: var(--path-length, 1000); }\n  to { stroke-dashoffset: 0; }\n}',
+      'draw-reverse': '@keyframes draw-reverse {\n  from { stroke-dashoffset: 0; }\n  to { stroke-dashoffset: var(--path-length, 1000); }\n}',
+      'draw-loop': '@keyframes draw-loop {\n  0% { stroke-dashoffset: var(--path-length, 1000); }\n  45% { stroke-dashoffset: 0; }\n  55% { stroke-dashoffset: 0; }\n  100% { stroke-dashoffset: var(--path-length, 1000); }\n}'
     };
 
-    const keyframe = keyframes[animation];
-    if (!keyframe) return svg;
-
-    const duration = settings.duration || 1;
-    const timing = settings.timing || 'ease';
-    const iteration = settings.iteration || 'infinite';
-    const direction = settings.direction || 'normal';
-    const delay = settings.delay || 0;
-
-    const delayStr = delay > 0 ? ` ${delay}s` : '';
-    const cssStyle = `<style id="icon-manager-animation">${keyframe} svg { animation: ${animation} ${duration}s ${timing}${delayStr} ${iteration} ${direction}; transform-origin: center center; }</style>`;
-
-    // Insert style after the opening <svg> tag
-    const svgTagMatch = svg.match(/<svg[^>]*>/i);
-    if (svgTagMatch) {
-      const insertPos = svgTagMatch.index! + svgTagMatch[0].length;
-      return svg.slice(0, insertPos) + cssStyle + svg.slice(insertPos);
-    }
-
-    return svg;
+    return keyframesMap[animationType] || `@keyframes ${animationType} {\n  /* Custom animation */\n}`;
   }
 
-  // Special animation: Draw paths as if being drawn
-  private _embedDrawAnimation(
-    svg: string,
-    settings: { duration: number; timing: string; iteration: string; delay?: number },
-    reverse: boolean = false
-  ): string {
-    const duration = settings.duration || 2;
-    const timing = settings.timing || 'ease-in-out';
-    const delay = settings.delay || 0;
+  /**
+   * Generate HTML for usage code section
+   */
+  private _generateUsageCodeHtml(iconName: string, animationType?: string): string {
+    const config = getConfig();
+    const tagName = config.webComponentName || 'bz-icon';
+    
+    const lines: string[] = [
+      `<!-- Web Component -->`,
+      `<${tagName} name="${iconName}"${animationType && animationType !== 'none' ? ` animation="${animationType}"` : ''}></${tagName}>`,
+      ``,
+      `<!-- SVG Use (Sprite) -->`,
+      `<svg><use href="sprite.svg#${iconName}"></use></svg>`,
+      ``,
+      `<!-- JavaScript Import -->`,
+      `import { ${this._toVariableName(iconName)} } from './icons.js';`
+    ];
 
-    // Create CSS for stroke animation on all path/line/polyline/polygon/circle/ellipse/rect elements
-    const animName = reverse ? 'undraw' : 'draw';
-    const drawKeyframes = reverse
-      ? `@keyframes undraw { from { stroke-dashoffset: 0; } to { stroke-dashoffset: var(--path-length); } }`
-      : `@keyframes draw { from { stroke-dashoffset: var(--path-length); } to { stroke-dashoffset: 0; } }`;
-
-    const fillKeyframes = reverse
-      ? `@keyframes fill-out { 0%, 80% { fill-opacity: 1; } 100% { fill-opacity: 0; } }`
-      : `@keyframes fill-in { 0%, 80% { fill-opacity: 0; } 100% { fill-opacity: 1; } }`;
-
-    const fillAnimName = reverse ? 'fill-out' : 'fill-in';
-
-    const delayStr = delay > 0 ? ` ${delay}s` : '';
-    const cssStyle = `<style id="icon-manager-animation">
-      ${drawKeyframes}
-      ${fillKeyframes}
-      svg path, svg line, svg polyline, svg polygon, svg circle, svg ellipse, svg rect {
-        stroke-dasharray: var(--path-length, 100);
-        stroke-dashoffset: ${reverse ? '0' : 'var(--path-length, 100)'};
-        animation: ${animName} ${duration}s ${timing}${delayStr} forwards;
-        fill-opacity: ${reverse ? '1' : '0'};
+    const codeRows = lines.map((line, i) => {
+      let highlighted = this._escapeHtml(line);
+      
+      if (line.startsWith('<!--')) {
+        highlighted = `<cite>${highlighted}</cite>`;
+      } else if (line.includes('<')) {
+        // HTML/XML highlighting
+        highlighted = highlighted.replace(/&lt;(\/?)([\w-]+)/g, '<b>&lt;$1</b><i>$2</i>');
+        highlighted = highlighted.replace(/([\w-]+)=/g, '<u>$1</u>=');
+        highlighted = highlighted.replace(/"([^"]*)"/g, '<em>"$1"</em>');
+        highlighted = highlighted.replace(/&gt;/g, '<b>&gt;</b>');
+      } else if (line.includes('import')) {
+        // JS highlighting
+        highlighted = highlighted.replace(/(import|from)/g, '<kbd>$1</kbd>');
+        highlighted = highlighted.replace(/\{ ([^}]+) \}/, '{ <var>$1</var> }');
+        highlighted = highlighted.replace(/'([^']+)'/g, '<em>\'$1\'</em>');
       }
-      svg path[fill], svg circle[fill], svg ellipse[fill], svg rect[fill], svg polygon[fill] {
-        animation: ${animName} ${duration}s ${timing}${delayStr} forwards, ${fillAnimName} ${duration * 1.2}s ${timing}${delayStr} forwards;
-      }
-    </style>
-    <script id="icon-manager-script">
-      (function() {
-        var svg = document.currentScript.parentElement;
-        var elements = svg.querySelectorAll('path, line, polyline, polygon, circle, ellipse, rect');
-        elements.forEach(function(el) {
-          try {
-            var len = el.getTotalLength ? el.getTotalLength() : 100;
-            el.style.setProperty('--path-length', len);
-          } catch(e) { el.style.setProperty('--path-length', '100'); }
-        });
-      })();
-    </script>`;
 
-    // Insert style after the opening <svg> tag
-    const svgTagMatch = svg.match(/<svg[^>]*>/i);
-    if (svgTagMatch) {
-      const insertPos = svgTagMatch.index! + svgTagMatch[0].length;
-      return svg.slice(0, insertPos) + cssStyle + svg.slice(insertPos);
-    }
+      return `<div class="code-row"><div class="ln">${i + 1}</div><div class="cl">${highlighted}</div></div>`;
+    }).join('');
 
-    return svg;
+    return `<div class="code-editor">${codeRows}</div>`;
   }
 
-  // Special animation: Draw loop (draw then undraw)
-  private _embedDrawLoopAnimation(
-    svg: string,
-    settings: { duration: number; timing: string; iteration: string; delay?: number }
-  ): string {
-    const duration = settings.duration || 2;
-    const timing = settings.timing || 'ease-in-out';
-    const iteration = settings.iteration || 'infinite';
-    const delay = settings.delay || 0;
-
-    const drawKeyframes = `@keyframes draw-loop {
-      0% { stroke-dashoffset: var(--path-length, 100); fill-opacity: 0; }
-      45% { stroke-dashoffset: 0; fill-opacity: 1; }
-      55% { stroke-dashoffset: 0; fill-opacity: 1; }
-      100% { stroke-dashoffset: var(--path-length, 100); fill-opacity: 0; }
-    }`;
-
-    const delayStr = delay > 0 ? ` ${delay}s` : '';
-    const cssStyle = `<style id="icon-manager-animation">
-      ${drawKeyframes}
-      svg path, svg line, svg polyline, svg polygon, svg circle, svg ellipse, svg rect {
-        stroke-dasharray: var(--path-length, 100);
-        stroke-dashoffset: var(--path-length, 100);
-        fill-opacity: 0;
-        animation: draw-loop ${duration}s ${timing}${delayStr} ${iteration};
-      }
-    </style>
-    <script id="icon-manager-script">
-      (function() {
-        var svg = document.currentScript.parentElement;
-        var elements = svg.querySelectorAll('path, line, polyline, polygon, circle, ellipse, rect');
-        elements.forEach(function(el) {
-          try {
-            var len = el.getTotalLength ? el.getTotalLength() : 100;
-            el.style.setProperty('--path-length', len);
-          } catch(e) { el.style.setProperty('--path-length', '100'); }
-        });
-      })();
-    </script>`;
-
-    // Insert style after the opening <svg> tag
-    const svgTagMatch = svg.match(/<svg[^>]*>/i);
-    if (svgTagMatch) {
-      const insertPos = svgTagMatch.index! + svgTagMatch[0].length;
-      return svg.slice(0, insertPos) + cssStyle + svg.slice(insertPos);
-    }
-
-    return svg;
-  }
-
-  private _detectAnimationFromSvg(svg: string): { type: string; settings: any } | null {
-    // Check for draw animations first (they are special)
-    if (svg.includes('@keyframes draw-loop')) {
-       return { type: 'draw-loop', settings: { duration: 2, timing: 'ease-in-out', iteration: 'infinite', delay: 0, direction: 'normal' } };
-    }
-    if (svg.includes('@keyframes draw-reverse') || svg.includes('@keyframes undraw')) {
-       return { type: 'draw-reverse', settings: { duration: 2, timing: 'ease-in-out', iteration: '1', delay: 0, direction: 'normal' } };
-    }
-    if (svg.includes('@keyframes draw')) {
-       return { type: 'draw', settings: { duration: 2, timing: 'ease-in-out', iteration: '1', delay: 0, direction: 'normal' } };
-    }
-
-    // Check for standard animations
-    // Try to find animation name first
-    const nameMatch = svg.match(/animation:\s*([\w-]+)/);
-    if (!nameMatch) return null;
-    
-    const type = nameMatch[1];
-    
-    // Try to parse full settings: name duration timing [delay] iteration direction
-    const fullMatch = svg.match(/animation:\s*([\w-]+)\s+([\d.]+)s\s+([^\s]+)(?:\s+([\d.]+)s)?\s+([^\s]+)\s+([^\s;}]+)/);
-    
-    if (fullMatch && fullMatch[1] === type) {
-      return {
-        type: type,
-        settings: {
-          duration: parseFloat(fullMatch[2]),
-          timing: fullMatch[3],
-          delay: fullMatch[4] ? parseFloat(fullMatch[4]) : 0,
-          iteration: fullMatch[5],
-          direction: fullMatch[6]
-        }
-      };
-    }
-    
-    // Fallback: try to find duration at least, use defaults for others
-    const durationMatch = svg.match(/animation:.*?([\d.]+)s/);
-    
-    return {
-      type: type,
-      settings: {
-        duration: durationMatch ? parseFloat(durationMatch[1]) : 1,
-        timing: 'ease',
-        delay: 0,
-        iteration: 'infinite',
-        direction: 'normal'
-      }
-    };
-  }
 
   private _getHtmlForWebview(): string {
     if (!this._iconData) {
       return '<html><body><p>No icon selected</p></body></html>';
     }
 
-    const { name, svg, location } = this._iconData;
+    const { name, svg, location, isBuilt, animation } = this._iconData;
     const defaultVariant = this._getDefaultVariant(name);
     const savedAnimation = this._getIconAnimation(name);
     
     // Detect embedded animation in SVG
-    let detectedAnimation = this._detectAnimationFromSvg(svg);
-    // If no embedded animation, check the external config
+    let detectedAnimation = SvgManipulationService.detectAnimationFromSvg(svg);
+    // If animation was passed (from built icon), use it
+    if (!detectedAnimation && animation) {
+        detectedAnimation = { type: animation.type, settings: animation };
+    }
+    // If no embedded animation and no passed animation, check the external config
     if (!detectedAnimation && savedAnimation) {
         detectedAnimation = { type: savedAnimation.type, settings: savedAnimation };
     }
@@ -1717,7 +1995,11 @@ export class IconEditorPanel {
         colorsSet.add(color);
       }
     }
-    const svgColors = Array.from(colorsSet);
+    const allColors = Array.from(colorsSet);
+    const totalColorCount = allColors.length;
+    const MAX_COLORS_TO_SHOW = 50;
+    const svgColors = allColors.slice(0, MAX_COLORS_TO_SHOW);
+    const hasMoreColors = totalColorCount > MAX_COLORS_TO_SHOW;
     const hasCurrentColor = specialColors.has('currentColor');
 
     let displaySvg = svg;
@@ -1747,16 +2029,16 @@ export class IconEditorPanel {
       color: var(--vscode-foreground);
       background: var(--vscode-editor-background);
       padding: 16px;
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
+      overflow-y: auto;
     }
     
     .container {
       max-width: 900px;
       margin: 0 auto;
-      height: 100%;
       display: flex;
       flex-direction: column;
+      height: 100%;
     }
     
     .header {
@@ -1764,11 +2046,15 @@ export class IconEditorPanel {
       align-items: center;
       justify-content: space-between;
       padding: 10px 16px;
-      background: linear-gradient(135deg, var(--vscode-sideBar-background), transparent);
+      background: linear-gradient(135deg, var(--vscode-sideBar-background), var(--vscode-editor-background));
       border: 1px solid var(--vscode-panel-border);
       border-radius: 10px;
       margin-bottom: 12px;
       flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
     }
     
     .header-left {
@@ -1812,6 +2098,11 @@ export class IconEditorPanel {
       color: var(--vscode-button-foreground);
     }
     
+    .badge-built {
+      background: var(--vscode-charts-green, #4caf50);
+      color: #fff;
+    }
+    
     .file-size {
       font-size: 11px;
       color: var(--vscode-descriptionForeground);
@@ -1825,16 +2116,19 @@ export class IconEditorPanel {
       gap: 16px;
       flex: 1;
       min-height: 0;
+      overflow: hidden;
     }
     
-    /* Left Column - Preview */
+    /* Left Column - Preview (Sticky) */
     .left-column {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 10px;
-      flex: 1;
-      min-width: 0;
+      position: sticky;
+      top: 0;
+      align-self: flex-start;
+      max-height: calc(100vh - 100px);
     }
     
     .preview-code-container {
@@ -1971,16 +2265,55 @@ export class IconEditorPanel {
       font-size: 14px;
     }
     
+    .code-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      background: rgba(79, 193, 255, 0.15);
+      color: #4fc1ff;
+      border-radius: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .animation-code-section {
+      border: 1px solid rgba(79, 193, 255, 0.2);
+    }
+    
+    #tab-code.active {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 8px;
+    }
+    
+    .code-tab-container.collapsed .code-content {
+      display: none;
+    }
+    
+    .code-tab-container.collapsed .toggle-icon {
+      transform: rotate(-90deg);
+    }
+    
+    .toggle-icon {
+      transition: transform 0.2s;
+      cursor: pointer;
+      opacity: 0.7;
+    }
+    
+    .toggle-icon:hover {
+      opacity: 1;
+    }
+    
     .code-content {
-      flex: 1;
       overflow: auto;
       background: #1a1a1a;
+      max-height: 300px;
     }
     
     .code-editor {
       display: flex;
       flex-direction: column;
-      min-height: 100%;
       font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
       font-size: 12px;
       line-height: 1.65;
@@ -2144,12 +2477,31 @@ export class IconEditorPanel {
       opacity: 0.8;
     }
     
-    /* Right Column */
+    /* Right Column - Scrollable */
     .right-column {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      overflow: hidden;
+      overflow-y: auto;
+      max-height: calc(100vh - 80px);
+      padding-right: 4px;
+    }
+    
+    .right-column::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .right-column::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    .right-column::-webkit-scrollbar-thumb {
+      background: var(--vscode-scrollbarSlider-background);
+      border-radius: 3px;
+    }
+    
+    .right-column::-webkit-scrollbar-thumb:hover {
+      background: var(--vscode-scrollbarSlider-hoverBackground);
     }
     
     /* Tabs */
@@ -2238,25 +2590,49 @@ export class IconEditorPanel {
     .color-swatches {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 8px;
+      align-items: flex-start;
+      transition: opacity 0.2s ease;
+    }
+    
+    .color-swatches.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    
+    .colors-hint {
+      font-size: 10px;
+      color: var(--vscode-descriptionForeground);
+      font-weight: 400;
+      margin-left: 8px;
+    }
+    
+    .colors-disabled .section-title {
+      opacity: 0.7;
+    }
+    
+    .color-item {
+      display: flex;
+      flex-direction: column;
       align-items: center;
+      gap: 4px;
     }
     
     .color-swatch {
       position: relative;
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-      border: 2px solid rgba(255,255,255,0.1);
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: 2px solid rgba(255,255,255,0.15);
       cursor: pointer;
       transition: all 0.2s ease;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
     }
     
     .color-swatch:hover {
-      transform: scale(1.15);
+      transform: scale(1.1);
       border-color: var(--vscode-focusBorder);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.35);
     }
     
     .color-swatch input[type="color"] {
@@ -2265,6 +2641,16 @@ export class IconEditorPanel {
       height: 100%;
       opacity: 0;
       cursor: pointer;
+    }
+    
+    .color-label {
+      font-size: 9px;
+      color: var(--vscode-descriptionForeground);
+      font-family: var(--vscode-editor-font-family);
+      max-width: 45px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     
     /* Variants Section */
@@ -2334,14 +2720,23 @@ export class IconEditorPanel {
     
     .variant-colors {
       display: flex;
-      gap: 2px;
+      gap: 3px;
+      flex-shrink: 0;
     }
     
     .variant-color-dot {
-      width: 16px;
-      height: 16px;
+      width: 20px;
+      height: 20px;
       border-radius: 4px;
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    
+    .variant-color-dot:hover {
+      transform: scale(1.2);
+      z-index: 1;
     }
     
     .variant-name {
@@ -2352,6 +2747,20 @@ export class IconEditorPanel {
       text-overflow: ellipsis;
       white-space: nowrap;
       flex: 1;
+    }
+    
+    .variant-badge {
+      font-size: 8px;
+      padding: 2px 5px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    
+    .variant-badge.readonly {
+      background: rgba(255, 193, 7, 0.15);
+      color: #ffc107;
+      border: 1px solid rgba(255, 193, 7, 0.3);
     }
     
     .variant-actions {
@@ -2396,6 +2805,41 @@ export class IconEditorPanel {
     .variant-set-default.active {
       color: #73c991;
     }
+
+    .variants-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: auto;
+    }
+
+    .unsaved-indicator {
+      color: var(--vscode-editorWarning-foreground, #cca700);
+      font-size: 10px;
+      margin-left: 6px;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .variant-persist-btn {
+      background: var(--vscode-button-background);
+      border: none;
+      color: var(--vscode-button-foreground);
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 3px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+    }
+
+    .variant-persist-btn:hover {
+      background: var(--vscode-button-hoverBackground);
+    }
     
     .variant-save-btn {
       background: none;
@@ -2403,7 +2847,6 @@ export class IconEditorPanel {
       color: var(--vscode-descriptionForeground);
       cursor: pointer;
       padding: 2px;
-      margin-left: auto;
       transition: all 0.2s;
     }
     
@@ -2460,26 +2903,107 @@ export class IconEditorPanel {
       font-style: italic;
     }
     
-    .add-color-btn {
-      display: none;
+    .more-colors-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-width: 50px;
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 6px;
+      background: var(--vscode-badge-background);
+      color: var(--vscode-badge-foreground);
+      font-size: 11px;
+      font-weight: 600;
     }
     
-    .current-color-badge {
-      display: inline-flex;
+    .colors-warning {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: var(--vscode-inputValidation-warningBackground);
+      border: 1px solid var(--vscode-inputValidation-warningBorder);
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--vscode-inputValidation-warningForeground, var(--vscode-foreground));
+    }
+    
+    .colors-warning .codicon {
+      color: var(--vscode-editorWarning-foreground);
+    }
+    
+    .add-color-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 2px dashed var(--vscode-panel-border);
+      background: transparent;
+      color: var(--vscode-descriptionForeground);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .add-color-btn:hover {
+      border-color: var(--vscode-focusBorder);
+      color: var(--vscode-foreground);
+      background: var(--vscode-list-hoverBackground);
+    }
+    
+    .current-color-item {
+      display: flex;
+      flex-direction: column;
       align-items: center;
       gap: 4px;
-      padding: 4px 8px;
-      background: var(--vscode-inputValidation-infoBackground);
-      border: 1px solid var(--vscode-inputValidation-infoBorder);
-      border-radius: 4px;
-      font-size: 10px;
     }
     
-    .current-color-badge code {
-      background: var(--vscode-textCodeBlock-background);
-      padding: 1px 4px;
-      border-radius: 2px;
-      font-family: var(--font-mono);
+    .current-color-swatch {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: 2px solid var(--vscode-inputValidation-infoBorder);
+      background: linear-gradient(135deg, #000 50%, #fff 50%);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+    
+    .current-color-swatch:hover {
+      transform: scale(1.1);
+      border-color: var(--vscode-focusBorder);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+    }
+    
+    .current-color-swatch input[type="color"] {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+    
+    .current-color-icon {
+      font-size: 16px;
+      color: var(--vscode-foreground);
+      mix-blend-mode: difference;
+    }
+    
+    .current-color-label {
+      font-size: 9px;
+      color: var(--vscode-descriptionForeground);
+      max-width: 45px;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
     .no-colors {
@@ -3071,6 +3595,7 @@ export class IconEditorPanel {
           <span class="codicon codicon-edit"></span>
         </button>
         <span class="badge">Editor</span>
+        ${isBuilt ? '<span class="badge badge-built">BUILT</span>' : ''}
       </div>
       <span class="file-size" id="fileSize">${fileSizeStr}</span>
     </header>
@@ -3106,15 +3631,6 @@ export class IconEditorPanel {
         
         <!-- Actions Toolbar -->
         <div class="actions-section">
-          ${location ? `
-          <button class="action-btn primary" onclick="save()" title="Save to File">
-            <span class="codicon codicon-save"></span>
-          </button>
-          <button class="action-btn" onclick="goToSource()" title="Go to Source">
-            <span class="codicon codicon-go-to-file"></span>
-          </button>
-          <span class="action-separator"></span>
-          ` : ''}
           <button class="action-btn warning" onclick="rebuild()" title="Build Icons">
             <span class="codicon codicon-sync"></span>
           </button>
@@ -3171,15 +3687,26 @@ export class IconEditorPanel {
             <!-- Colors & Variants Row -->
             <div class="colors-Variants-row">
               <!-- Colors Section -->
-              <div class="section">
+              <div class="section${hasMoreColors ? ' disabled-section' : ''}${this._selectedVariantIndex === -1 ? ' colors-disabled' : ''}">
                 <div class="section-title">
                   <span class="codicon codicon-paintcan"></span> Colors
+                  ${this._selectedVariantIndex === -1 ? '<span class="colors-hint">(select custom to edit)</span>' : ''}
                 </div>
-          <div class="color-swatches">
+          ${hasMoreColors ? `
+          <div class="colors-warning">
+            <span class="codicon codicon-warning"></span>
+            This SVG has ${totalColorCount} unique colors. Color editing is disabled for rasterized SVGs.
+          </div>
+          ` : `
+          <div class="color-swatches${this._selectedVariantIndex === -1 ? ' disabled' : ''}">
             ${hasCurrentColor ? `
-              <div class="current-color-badge">
-                <span class="codicon codicon-paintcan"></span>
-                Uses <code>currentColor</code>
+              <div class="current-color-item">
+                <div class="current-color-swatch" title="currentColor - Click to replace with a specific color">
+                  <input type="color" value="#000000" 
+                    onchange="replaceCurrentColor(this.value)" ${this._selectedVariantIndex === -1 ? 'disabled' : ''} />
+                  <span class="current-color-icon codicon codicon-symbol-color"></span>
+                </div>
+                <span class="current-color-label">currentColor</span>
               </div>
             ` : ''}
             ${svgColors.length > 0 ? svgColors.map(color => `
@@ -3188,56 +3715,44 @@ export class IconEditorPanel {
                   <input type="color" value="${this._toHexColor(color)}" 
                     oninput="previewColor('${color}', this.value)" 
                     onchange="applyColor('${color}', this.value)" 
-                    data-original="${color}" />
+                    data-original="${color}" ${this._selectedVariantIndex === -1 ? 'disabled' : ''} />
                 </div>
+                <span class="color-label">${this._toHexColor(color)}</span>
               </div>
-            `).join('') : (!hasCurrentColor ? '<span class="no-colors">No colors</span>' : '')}
+            `).join('') : (!hasCurrentColor ? '<span class="no-colors">No colors detected</span>' : '')}
           </div>
+          `}
         </div>
     
               <!-- Variants Section -->
-              <div class="section${svgColors.length === 0 ? ' disabled-section' : ''}">
+              <div class="section${(svgColors.length === 0 && !hasCurrentColor) || hasMoreColors ? ' disabled-section' : ''}">
                 <div class="section-title">
                   <span class="codicon codicon-color-mode"></span> Variants
-                  ${svgColors.length > 0 ? `
-                  <button class="variant-save-btn" onclick="saveVariant()" title="Save current colors as variant">
+                  ${this._hasUnsavedChanges ? '<span class="unsaved-indicator" title="Unsaved changes - will be saved on Build">●</span>' : ''}
+                  ${(svgColors.length > 0 || hasCurrentColor) && !hasMoreColors ? `
+                  <button class="variant-save-btn" onclick="saveVariant()" title="Create new variant">
                     <span class="codicon codicon-add"></span>
                   </button>
-                  ` : ''}
+                  ` : ''}}
                 </div>
-                ${svgColors.length === 0 ? `
+                ${hasMoreColors ? `
+                <div class="Variants-disabled-message">
+                  <span class="codicon codicon-info"></span>
+                  Variants disabled for SVGs with too many colors
+                </div>
+                ` : (svgColors.length === 0 && !hasCurrentColor ? `
                 <div class="Variants-disabled-message">
                   <span class="codicon codicon-info"></span>
                   Variants not available for currentColor icons
                 </div>
                 ` : `
-                <!-- Auto-generate Variants -->
-                <div class="auto-variants">
-                  <span class="auto-variants-label">Auto-generate:</span>
-                  <div class="auto-variants-buttons">
-                    <button class="auto-variant-btn" onclick="generateAutoVariant('invert')" title="Invert all colors">
-                      <span class="codicon codicon-arrow-swap"></span> Invert
-                    </button>
-                    <button class="auto-variant-btn" onclick="generateAutoVariant('darken')" title="Darken all colors by 30%">
-                      <span class="codicon codicon-circle-filled"></span> Dark
-                    </button>
-                    <button class="auto-variant-btn" onclick="generateAutoVariant('lighten')" title="Lighten all colors by 30%">
-                      <span class="codicon codicon-circle-outline"></span> Light
-                    </button>
-                    <button class="auto-variant-btn" onclick="generateAutoVariant('muted')" title="Reduce saturation by 50%">
-                      <span class="codicon codicon-color-mode"></span> Muted
-                    </button>
-                    <button class="auto-variant-btn" onclick="generateAutoVariant('grayscale')" title="Convert to grayscale">
-                      <span class="codicon codicon-symbol-color"></span> Gray
-                    </button>
-                  </div>
-                </div>
                 <div class="Variants-container" id="VariantsContainer">
-                  <div class="variant-item default${this._selectedVariantIndex === -1 ? ' selected' : ''}${!defaultVariant ? ' is-default' : ''}" onclick="applyDefaultVariant()" title="Original colors${!defaultVariant ? ' (active default)' : ''}">
+                  <div class="variant-item default${this._selectedVariantIndex === -1 ? ' selected' : ''}${!defaultVariant ? ' is-default' : ''}" onclick="applyDefaultVariant()" title="Original colors (read-only)${!defaultVariant ? ' - active default' : ''}">
                     <div class="variant-colors">
-                      ${this._originalColors.slice(0, 4).map(c => `<div class="variant-color-dot" style="background:${c}"></div>`).join('')}
+                      ${this._originalColors.slice(0, 4).map(c => `<div class="variant-color-dot" style="background:${c}" title="${c}"></div>`).join('')}
                     </div>
                     <span class="variant-name">original</span>
+                    <span class="variant-badge readonly">read-only</span>
                     <div class="variant-actions">
                       <button class="variant-set-default${!defaultVariant ? ' active' : ''}" onclick="event.stopPropagation(); setDefaultVariant(null)" title="${!defaultVariant ? 'Currently default' : 'Set as default'}">
                         <span class="codicon codicon-star${!defaultVariant ? '-full' : '-empty'}"></span>
@@ -3245,17 +3760,14 @@ export class IconEditorPanel {
                     </div>
                   </div>
                   ${this._getSavedVariants(name).map((variant, index) => `
-                    <div class="variant-item${this._selectedVariantIndex === index ? ' selected' : ''}${defaultVariant === variant.name ? ' is-default' : ''}" onclick="applyVariant(${index})" title="${variant.name} - Click to apply${defaultVariant === variant.name ? ' (active default)' : ''}">
+                    <div class="variant-item${this._selectedVariantIndex === index ? ' selected' : ''}${defaultVariant === variant.name ? ' is-default' : ''}" onclick="applyVariant(${index})" title="${variant.name} - Click to edit${defaultVariant === variant.name ? ' (active default)' : ''}">
                       <div class="variant-colors">
-                        ${variant.colors.slice(0, 4).map(c => `<div class="variant-color-dot" style="background:${c}"></div>`).join('')}
+                        ${variant.colors.slice(0, 4).map(c => `<div class="variant-color-dot" style="background:${c}" title="${c}"></div>`).join('')}
                       </div>
                       <span class="variant-name">${variant.name}</span>
                       <div class="variant-actions">
                         <button class="variant-set-default${defaultVariant === variant.name ? ' active' : ''}" onclick="event.stopPropagation(); setDefaultVariant('${variant.name}')" title="${defaultVariant === variant.name ? 'Currently default' : 'Set as default'}">
                           <span class="codicon codicon-star${defaultVariant === variant.name ? '-full' : '-empty'}"></span>
-                        </button>
-                        <button class="variant-edit" onclick="event.stopPropagation(); editVariant(${index})" title="Update with current colors">
-                          <span class="codicon codicon-edit"></span>
                         </button>
                         <button class="variant-delete" onclick="event.stopPropagation(); deleteVariant(${index})" title="Delete">
                           <span class="codicon codicon-trash"></span>
@@ -3264,7 +3776,7 @@ export class IconEditorPanel {
                     </div>
                   `).join('')}
                 </div>
-                `}
+                `)}
               </div>
             </div>
           </div>
@@ -3499,21 +4011,17 @@ export class IconEditorPanel {
         
         <!-- Code Tab -->
         <div class="tab-content" id="tab-code">
-          <div class="code-tab-container">
-            <div class="code-tab-header">
+          <!-- SVG Code Section -->
+          <div class="code-tab-container" id="svgCodeContainer">
+            <div class="code-tab-header" onclick="toggleCodeSection('svgCodeContainer')">
               <div class="code-header-left">
+                <span class="codicon codicon-chevron-down toggle-icon"></span>
                 <span class="code-title">
-                  <span class="codicon codicon-code"></span> SVG Source
+                  <span class="codicon codicon-file-code"></span> SVG (Clean)
                 </span>
-                <label class="code-toggle" id="animationToggle" style="display: none;">
-                  <input type="checkbox" id="includeAnimationCheck" onchange="toggleAnimationInCode(this.checked)">
-                  <span class="toggle-label">
-                    <span class="codicon codicon-play"></span> Include Animation
-                  </span>
-                </label>
               </div>
-              <div class="code-actions">
-                <button class="code-action-btn" onclick="copySvgCode()" title="Copy to clipboard">
+              <div class="code-actions" onclick="event.stopPropagation()">
+                <button class="code-action-btn" onclick="copySvgCode()" title="Copy SVG to clipboard">
                   <span class="codicon codicon-copy"></span>
                 </button>
               </div>
@@ -3521,6 +4029,50 @@ export class IconEditorPanel {
             <div class="code-content" id="svgCodeTab">
               ${this._highlightSvgCode(svg)}
             </div>
+          </div>
+          
+          <!-- Animation Code Section -->
+          <div class="code-tab-container animation-code-section" id="animationCodeSection" style="${detectedAnimation?.type && detectedAnimation.type !== 'none' ? '' : 'display: none;'}">
+            <div class="code-tab-header" onclick="toggleCodeSection('animationCodeSection')">
+              <div class="code-header-left">
+                <span class="codicon codicon-chevron-down toggle-icon"></span>
+                <span class="code-title">
+                  <span class="codicon codicon-play"></span> Animation CSS
+                </span>
+                <span class="code-badge" id="animationTypeBadge">${detectedAnimation?.type || 'none'}</span>
+              </div>
+              <div class="code-actions" onclick="event.stopPropagation()">
+                <button class="code-action-btn" onclick="copyAnimationCode()" title="Copy animation CSS">
+                  <span class="codicon codicon-copy"></span>
+                </button>
+              </div>
+            </div>
+            <div class="code-content" id="animationCodeTab">
+              ${this._generateAnimationCodeHtml(detectedAnimation?.type || 'none', detectedAnimation?.settings)}
+            </div>
+          </div>
+          
+          <!-- Usage Example Section -->
+          <div class="code-tab-container" id="usageCodeContainer">
+            <div class="code-tab-header" onclick="toggleCodeSection('usageCodeContainer')">
+              <div class="code-header-left">
+                <span class="codicon codicon-chevron-down toggle-icon"></span>
+                <span class="code-title">
+                  <span class="codicon codicon-symbol-method"></span> Usage
+                </span>
+                <span class="code-badge" id="buildFormatBadge">${getConfig().buildFormat === 'sprite.svg' ? 'Sprite' : 'WebComponent'}</span>
+              </div>
+              <div class="code-actions" onclick="event.stopPropagation()">
+                <button class="code-action-btn" onclick="copyUsageCode()" title="Copy usage code">
+                  <span class="codicon codicon-copy"></span>
+                </button>
+                <button class="code-action-btn" onclick="insertUsageCode()" title="Insert code at cursor">
+                  <span class="codicon codicon-insert"></span>
+                </button>
+              </div>
+            </div>
+            <div class="code-content" id="usageCodeTab">
+              ${this._generateUsageCodeHtml(name, detectedAnimation?.type)}
             </div>
           </div>
         </div>
@@ -3543,10 +4095,18 @@ export class IconEditorPanel {
     };
     const zoomLevels = [50, 75, 100, 150, 200];
     
-    // Initialize saved animation UI on load (but don't apply to preview)
+    // Toggle code sections
+    function toggleCodeSection(containerId) {
+      const container = document.getElementById(containerId);
+      if (container) {
+        container.classList.toggle('collapsed');
+      }
+    }
+    
+    // Initialize saved animation UI on load and apply to preview
     document.addEventListener('DOMContentLoaded', () => {
       if (currentAnimation !== 'none') {
-        // Only update UI elements, not the preview animation
+        // Update UI elements
         document.querySelectorAll('.animation-type-btn').forEach(btn => {
           btn.classList.remove('active');
           if (btn.getAttribute('data-type') === currentAnimation) {
@@ -3590,6 +4150,13 @@ export class IconEditorPanel {
         if (timingEl) timingEl.value = animationSettings.timing;
         if (iterationEl) iterationEl.value = animationSettings.iteration;
         if (directionEl) directionEl.value = animationSettings.direction;
+        
+        // Show restart animation button
+        const restartBtn = document.getElementById('restartAnimBtn');
+        if (restartBtn) restartBtn.style.display = 'flex';
+        
+        // Apply the saved animation to the preview
+        updateAnimationPreview();
       }
     });
     
@@ -3617,10 +4184,61 @@ export class IconEditorPanel {
     let includeAnimationInCode = false;
     
     function copySvgCode() {
-      const codeEl = document.querySelector('#svgCodeTab .code-block code');
-      const code = codeEl ? codeEl.textContent : '';
+      // Get text from code editor rows
+      const rows = document.querySelectorAll('#svgCodeTab .code-row .cl');
+      const code = Array.from(rows).map(row => row.textContent).join('\\n');
       navigator.clipboard.writeText(code).then(() => {
         vscode.postMessage({ command: 'showMessage', message: 'SVG code copied to clipboard' });
+      });
+    }
+    
+    function copyAnimationCode() {
+      const rows = document.querySelectorAll('#animationCodeTab .code-row .cl');
+      const code = Array.from(rows).map(row => row.textContent).join('\\n');
+      navigator.clipboard.writeText(code).then(() => {
+        vscode.postMessage({ command: 'showMessage', message: 'Animation CSS copied to clipboard' });
+      });
+    }
+    
+    function copyUsageCode() {
+      const rows = document.querySelectorAll('#usageCodeTab .code-row .cl');
+      const code = Array.from(rows).map(row => row.textContent).join('\\n');
+      navigator.clipboard.writeText(code).then(() => {
+        vscode.postMessage({ command: 'showMessage', message: 'Usage code copied to clipboard' });
+      });
+    }
+    
+    // Insert usage code at the active editor cursor
+    function insertUsageCode() {
+      const rows = document.querySelectorAll('#usageCodeTab .code-row .cl');
+      // Get first non-comment line (the actual usage code)
+      let code = '';
+      for (const row of rows) {
+        const text = row.textContent?.trim() || '';
+        if (text && !text.startsWith('<!--') && !text.startsWith('//')) {
+          code = text;
+          break;
+        }
+      }
+      if (code) {
+        vscode.postMessage({ command: 'insertCodeAtCursor', code });
+      }
+    }
+    
+    function updateAnimationCodeSection() {
+      const section = document.getElementById('animationCodeSection');
+      const badge = document.getElementById('animationTypeBadge');
+      if (section) {
+        section.style.display = currentAnimation !== 'none' ? '' : 'none';
+      }
+      if (badge) {
+        badge.textContent = currentAnimation;
+      }
+      // Request updated animation code from backend
+      vscode.postMessage({
+        command: 'updateAnimationCode',
+        animation: currentAnimation,
+        settings: animationSettings
       });
     }
     
@@ -3635,23 +4253,8 @@ export class IconEditorPanel {
     }
     
     function updateAnimationToggleVisibility() {
-      const toggle = document.getElementById('animationToggle');
-      if (toggle) {
-        toggle.style.display = currentAnimation !== 'none' ? 'flex' : 'none';
-        
-        const checkbox = document.getElementById('includeAnimationCheck');
-        if (currentAnimation === 'none') {
-          // Reset checkbox when no animation
-          if (checkbox) checkbox.checked = false;
-          includeAnimationInCode = false;
-        } else {
-          // Auto-enable when animation is selected
-          if (checkbox && !includeAnimationInCode) {
-            checkbox.checked = true;
-            includeAnimationInCode = true;
-          }
-        }
-      }
+      // Update animation code section visibility
+      updateAnimationCodeSection();
     }
     
     function updateCodeView(newSvg) {
@@ -3712,6 +4315,37 @@ export class IconEditorPanel {
       vscode.postMessage({ command: 'changeColor', oldColor, newColor });
     }
     
+    // Replace currentColor with a specific color
+    function replaceCurrentColor(newColor) {
+      vscode.postMessage({ command: 'replaceCurrentColor', newColor });
+    }
+    
+    // Show color picker to add a new fill color
+    function showAddColorPicker() {
+      // Create temporary color picker input
+      const picker = document.createElement('input');
+      picker.type = 'color';
+      picker.value = '#4fc1ff';
+      picker.style.position = 'absolute';
+      picker.style.opacity = '0';
+      document.body.appendChild(picker);
+      
+      picker.addEventListener('change', () => {
+        vscode.postMessage({ command: 'addFillColor', color: picker.value });
+        document.body.removeChild(picker);
+      });
+      
+      picker.addEventListener('blur', () => {
+        setTimeout(() => {
+          if (document.body.contains(picker)) {
+            document.body.removeChild(picker);
+          }
+        }, 100);
+      });
+      
+      picker.click();
+    }
+    
     // Variant functions
     function saveVariant() {
       vscode.postMessage({ command: 'saveVariant' });
@@ -3739,6 +4373,10 @@ export class IconEditorPanel {
     
     function editVariant(index) {
       vscode.postMessage({ command: 'editVariant', index });
+    }
+
+    function persistVariants() {
+      vscode.postMessage({ command: 'persistVariants' });
     }
     
     function optimizeSvg(preset) {
@@ -3772,15 +4410,6 @@ export class IconEditorPanel {
       }
     }
     
-    function save() {
-      vscode.postMessage({ 
-        command: 'save',
-        includeAnimation: includeAnimationInCode,
-        animation: currentAnimation,
-        settings: animationSettings
-      });
-    }
-    
     function rebuild() {
       vscode.postMessage({ 
         command: 'rebuild',
@@ -3797,10 +4426,6 @@ export class IconEditorPanel {
         animation: currentAnimation !== 'none' ? currentAnimation : null,
         animationSettings: currentAnimation !== 'none' ? animationSettings : null
       });
-    }
-    
-    function goToSource() {
-      vscode.postMessage({ command: 'goToSource' });
     }
     
     function renameIcon() {
@@ -3980,19 +4605,7 @@ export class IconEditorPanel {
       }
       
       if (message.command === 'updateCodeTab') {
-        // If code changed (e.g. animation added), reset optimization buttons
-        // But only if it's not just a highlight update
-        // We can assume any code update might change optimization status
-        // EXCEPT if it came from optimization itself (handled above)
-        // But updateCodeTab is called by optimizedSvgApplied too...
-        // Wait, optimizedSvgApplied calls updateCodeTab? No, it sends 'optimizedSvgApplied' which updates code tab manually in frontend.
-        // But 'updateCodeWithAnimation' sends 'updateCodeTab'.
-        
-        // If message.hasAnimation is true, we added animation, so SVG changed -> reset buttons
-        if (message.hasAnimation) {
-           resetOptimizationButtons();
-        }
-        
+        // Update SVG code tab
         const codeEl = document.getElementById('svgCodeTab');
         if (codeEl) {
           codeEl.innerHTML = message.code;
@@ -4004,8 +4617,25 @@ export class IconEditorPanel {
           if (fileSizeEl) {
             const newSize = message.size;
             const newSizeStr = newSize < 1024 ? newSize + ' B' : (newSize / 1024).toFixed(1) + ' KB';
-            fileSizeEl.innerHTML = newSizeStr + (message.hasAnimation ? ' <span style="opacity:0.7; font-size:0.9em">(anim)</span>' : '');
+            fileSizeEl.textContent = newSizeStr;
           }
+        }
+      }
+      
+      if (message.command === 'animationCodeUpdated') {
+        // Update animation code section
+        const animCodeEl = document.getElementById('animationCodeTab');
+        const animSection = document.getElementById('animationCodeSection');
+        const badge = document.getElementById('animationTypeBadge');
+        
+        if (animCodeEl) {
+          animCodeEl.innerHTML = message.code;
+        }
+        if (animSection) {
+          animSection.style.display = message.animationType && message.animationType !== 'none' ? '' : 'none';
+        }
+        if (badge) {
+          badge.textContent = message.animationType || 'none';
         }
       }
     });

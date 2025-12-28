@@ -80,14 +80,14 @@ describe('SvgToIconCodeActionProvider', () => {
       );
 
       const transformAction = actions!.find(a => 
-        a.title.includes('Transform') && a.title.includes('Icon')
+        a.title.includes('Transform') && (a.title.includes('Web Component') || a.title.includes('SVG Sprite'))
       );
       expect(transformAction).toBeDefined();
       expect(transformAction!.kind).toEqual(vscode.CodeActionKind.QuickFix);
     });
 
-    // CA-4.5.3: Ofrece importar SVG a librería
-    test('CA-4.5.3: debe ofrecer acción para importar a librería', () => {
+    // CA-4.5.3: Transform action uses command (no longer edit)
+    test('CA-4.5.3: debe usar comando para transformar', () => {
       const lineText = '<img src="./icons/arrow.svg" alt="arrow" />';
       mockDocument = createMockDocument(lineText);
       mockRange = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0));
@@ -99,11 +99,10 @@ describe('SvgToIconCodeActionProvider', () => {
         mockToken
       );
 
-      const importAction = actions!.find(a => 
-        a.title.includes('Import') && a.title.includes('Library')
-      );
-      expect(importAction).toBeDefined();
-      expect(importAction!.kind).toEqual(vscode.CodeActionKind.Refactor);
+      const transformAction = actions!.find(a => a.title.includes('Transform'));
+      expect(transformAction).toBeDefined();
+      expect(transformAction!.command).toBeDefined();
+      expect(transformAction!.command!.command).toBe('iconManager.transformSvgReference');
     });
 
     // CA-4.5.4: Extrae nombre de icono correctamente
@@ -123,8 +122,8 @@ describe('SvgToIconCodeActionProvider', () => {
       expect(transformAction!.title).toContain('my-custom-icon');
     });
 
-    // CA-4.5.5: Genera reemplazo correcto para JSX
-    test('CA-4.5.5: debe generar reemplazo JSX correcto', () => {
+    // CA-4.5.5: Transform action includes original info in command args
+    test('CA-4.5.5: debe incluir información del SVG original en el comando', () => {
       const lineText = '<img src="./icons/arrow.svg" />';
       mockDocument = createMockDocument(lineText, 'typescriptreact');
       mockRange = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0));
@@ -137,7 +136,10 @@ describe('SvgToIconCodeActionProvider', () => {
       );
 
       const transformAction = actions!.find(a => a.title.includes('Transform'));
-      expect(transformAction!.edit).toBeDefined();
+      expect(transformAction!.command).toBeDefined();
+      expect(transformAction!.command!.arguments).toBeDefined();
+      expect(transformAction!.command!.arguments![0]).toHaveProperty('originalPath');
+      expect(transformAction!.command!.arguments![0]).toHaveProperty('iconName');
     });
 
     // CA-4.5.6: Genera reemplazo correcto para HTML
@@ -159,11 +161,12 @@ describe('SvgToIconCodeActionProvider', () => {
   });
 
   // =====================================================
-  // Detectar background: url(...)
+  // Simplified provider only handles <img src="...svg">
+  // Background URLs are informational only in diagnostics
   // =====================================================
 
-  describe('background SVG detection', () => {
-    test('debe detectar background: url(...svg)', () => {
+  describe('non-img patterns', () => {
+    test('debe devolver undefined para background: url(...svg)', () => {
       const lineText = 'background: url("./icons/pattern.svg");';
       mockDocument = createMockDocument(lineText, 'css');
       mockRange = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0));
@@ -175,8 +178,8 @@ describe('SvgToIconCodeActionProvider', () => {
         mockToken
       );
 
-      expect(actions).toBeDefined();
-      expect(actions!.some(a => a.title.includes('SVG detected'))).toBeTruthy();
+      // Simplified provider only handles <img> tags
+      expect(actions).toBeUndefined();
     });
   });
 
@@ -200,10 +203,11 @@ describe('SvgToIconCodeActionProvider', () => {
       expect(actions).toBeUndefined();
     });
 
-    test('debe manejar múltiples SVGs en una línea', () => {
+    test('debe retornar una sola acción cuando el cursor está sobre el primer SVG', () => {
       const lineText = '<img src="a.svg" /><img src="b.svg" />';
       mockDocument = createMockDocument(lineText);
-      mockRange = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0));
+      // Cursor on first img (position 0-17)
+      mockRange = new vscode.Range(new vscode.Position(0, 5), new vscode.Position(0, 5));
 
       const actions = provider.provideCodeActions(
         mockDocument as vscode.TextDocument,
@@ -212,9 +216,10 @@ describe('SvgToIconCodeActionProvider', () => {
         mockToken
       );
 
-      // Debe haber al menos 2 acciones de transformación
-      const transformActions = actions!.filter(a => a.title.includes('Transform'));
-      expect(transformActions.length).toBeGreaterThanOrEqual(2);
+      // Simplified provider returns only the action for the SVG under cursor
+      expect(actions).toBeDefined();
+      expect(actions!.length).toBe(1);
+      expect(actions![0].title).toContain('Transform');
     });
 
     test('debe sanitizar nombres de iconos con caracteres especiales', () => {

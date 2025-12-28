@@ -2,11 +2,21 @@ import * as vscode from 'vscode';
 import { SvgOptimizer } from '../services/SvgOptimizer';
 import { getSvgConfig } from '../utils/config';
 
+interface IconAnimation {
+  type: string;
+  duration: number;
+  timing: string;
+  iteration: string;
+  delay?: number;
+  direction?: string;
+}
+
 interface IconDetails {
   name: string;
   svg: string;
   location?: { file: string; line: number };
   isBuilt?: boolean;
+  animation?: IconAnimation;
 }
 
 const svgOptimizer = new SvgOptimizer();
@@ -95,6 +105,19 @@ export class IconDetailsPanel {
               vscode.window.showInformationMessage('SVG copied to clipboard');
             }
             break;
+          case 'openEditor':
+            if (this._iconDetails) {
+              vscode.commands.executeCommand('iconManager.colorEditor', {
+                icon: {
+                  name: this._iconDetails.name,
+                  svg: this._iconDetails.svg,
+                  path: this._iconDetails.location?.file,
+                  line: this._iconDetails.location?.line,
+                  isBuilt: this._iconDetails.isBuilt
+                }
+              });
+            }
+            break;
           case 'optimizeSvg':
             if (this._iconDetails?.svg) {
               const preset = message.preset || 'safe';
@@ -120,12 +143,7 @@ export class IconDetailsPanel {
           case 'applyOptimizedSvg':
             if (this._iconDetails && message.svg) {
               this._iconDetails.svg = message.svg;
-              // Save to file if location is available
-              if (this._iconDetails.location) {
-                await this._saveSvgToFile(message.svg);
-              } else {
-                vscode.window.showInformationMessage('Optimized SVG applied (in memory only - no source file)');
-              }
+              vscode.window.showInformationMessage('Optimized SVG applied');
             }
             break;
           case 'changeColor':
@@ -136,10 +154,6 @@ export class IconDetailsPanel {
                 command: 'colorChanged',
                 svg: updatedSvg
               });
-              // Save to file if location is available
-              if (this._iconDetails.location) {
-                await this._saveSvgToFile(updatedSvg);
-              }
             }
             break;
           case 'addColorToSvg':
@@ -158,15 +172,6 @@ export class IconDetailsPanel {
               // Refresh panel with updated SVG
               this._update();
               vscode.window.showInformationMessage(`Added fill color: ${message.color}`);
-              // Save to file if location is available
-              if (this._iconDetails.location) {
-                await this._saveSvgToFile(updatedSvg);
-              }
-            }
-            break;
-          case 'saveSvg':
-            if (this._iconDetails?.svg) {
-              await this._saveSvgToFile(message.svg || this._iconDetails.svg);
             }
             break;
           case 'findUsages':
@@ -200,10 +205,6 @@ export class IconDetailsPanel {
                 this._iconDetails.svg = newSvg;
                 this._selectedVariantIndex = message.index;
                 this._update();
-                // Save to file if location is available
-                if (this._iconDetails.location) {
-                  await this._saveSvgToFile(newSvg);
-                }
               }
             }
             break;
@@ -220,10 +221,6 @@ export class IconDetailsPanel {
               this._iconDetails.svg = newSvg;
               this._selectedVariantIndex = -1;
               this._update();
-              // Save to file if location is available
-              if (this._iconDetails.location) {
-                await this._saveSvgToFile(newSvg);
-              }
             }
             break;
           case 'saveVariant':
@@ -545,92 +542,6 @@ export class IconDetailsPanel {
     return { colors: Array.from(colorsSet), hasCurrentColor };
   }
 
-  private async _saveSvgToFile(svg: string): Promise<boolean> {
-    if (!this._iconDetails?.location) {
-      vscode.window.showWarningMessage('No source file location available');
-      return false;
-    }
-
-    const { file, line } = this._iconDetails.location;
-
-    try {
-      const uri = vscode.Uri.file(file);
-      const document = await vscode.workspace.openTextDocument(uri);
-      const text = document.getText();
-
-      // Check if it's a standalone SVG file
-      if (file.endsWith('.svg')) {
-        // Replace entire file content
-        const edit = new vscode.WorkspaceEdit();
-        const fullRange = new vscode.Range(
-          document.positionAt(0),
-          document.positionAt(text.length)
-        );
-        edit.replace(uri, fullRange, svg);
-        await vscode.workspace.applyEdit(edit);
-        await document.save();
-        
-        // Trigger refresh of the icon tree
-        vscode.commands.executeCommand('iconManager.refreshIcons');
-        
-        vscode.window.showInformationMessage(`Saved changes to ${file.split(/[/\\]/).pop()}`);
-        return true;
-      }
-
-      // For inline SVGs, find and replace the SVG at the specified line
-      const lineOffset = document.offsetAt(new vscode.Position(line - 1, 0));
-      const svgStartIndex = text.indexOf('<svg', lineOffset);
-      
-      if (svgStartIndex === -1) {
-        vscode.window.showErrorMessage('Could not find SVG in the source file');
-        return false;
-      }
-
-      // Find the closing </svg> tag
-      let depth = 0;
-      let svgEndIndex = -1;
-      let i = svgStartIndex;
-      
-      while (i < text.length) {
-        if (text.substring(i, i + 4) === '<svg') {
-          depth++;
-          i += 4;
-        } else if (text.substring(i, i + 6) === '</svg>') {
-          depth--;
-          if (depth === 0) {
-            svgEndIndex = i + 6;
-            break;
-          }
-          i += 6;
-        } else {
-          i++;
-        }
-      }
-
-      if (svgEndIndex === -1) {
-        vscode.window.showErrorMessage('Could not find closing </svg> tag');
-        return false;
-      }
-
-      const startPos = document.positionAt(svgStartIndex);
-      const endPos = document.positionAt(svgEndIndex);
-
-      const edit = new vscode.WorkspaceEdit();
-      edit.replace(uri, new vscode.Range(startPos, endPos), svg);
-      await vscode.workspace.applyEdit(edit);
-      await document.save();
-
-      // Trigger refresh of the icon tree
-      vscode.commands.executeCommand('iconManager.refreshIcons');
-
-      vscode.window.showInformationMessage(`Saved changes to ${file.split(/[/\\]/).pop()}`);
-      return true;
-    } catch (error) {
-      vscode.window.showErrorMessage(`Failed to save: ${error}`);
-      return false;
-    }
-  }
-
   private async _findIconUsages(iconName: string) {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) {
@@ -721,7 +632,9 @@ export class IconDetailsPanel {
 <html><body><p>No icon selected</p></body></html>`;
     }
 
-    const { name, svg, location, isBuilt } = this._iconDetails;
+    const { name, svg, location, isBuilt, animation } = this._iconDetails;
+    
+    console.log('[Bezier] IconDetailsPanel animation:', animation);
 
     // Extract data from SVG
     const viewBoxMatch = svg.match(/viewBox=["']([^"']+)["']/);
@@ -763,6 +676,21 @@ export class IconDetailsPanel {
     if (!svg.includes('width=') && !svg.includes('style=')) {
       displaySvg = svg.replace('<svg', '<svg width="100%" height="100%"');
     }
+    
+    // Apply animation style to SVG if present
+    if (animation && animation.type && animation.type !== 'none') {
+      const duration = animation.duration || 1;
+      const timing = animation.timing || 'ease';
+      const iteration = animation.iteration || 'infinite';
+      const delay = animation.delay || 0;
+      const direction = animation.direction || 'normal';
+      const animationStyle = `animation: icon-${animation.type} ${duration}s ${timing} ${delay}s ${iteration} ${direction};`;
+      if (displaySvg.includes('style="')) {
+        displaySvg = displaySvg.replace(/style="([^"]*)"/, `style="$1 ${animationStyle}"`);
+      } else {
+        displaySvg = displaySvg.replace('<svg', `<svg style="${animationStyle}"`);
+      }
+    }
 
     // Extract colors from SVG for color picker
     const colorRegex = /(fill|stroke|stop-color)=["']([^"']+)["']/gi;
@@ -787,7 +715,11 @@ export class IconDetailsPanel {
         colorsSet.add(color);
       }
     }
-    const svgColors = Array.from(colorsSet);
+    const allColors = Array.from(colorsSet);
+    const totalColorCount = allColors.length;
+    const MAX_COLORS_TO_SHOW = 50;
+    const svgColors = allColors.slice(0, MAX_COLORS_TO_SHOW);
+    const hasMoreColors = totalColorCount > MAX_COLORS_TO_SHOW;
     const hasCurrentColor = specialColors.has('currentColor');
 
     return `<!DOCTYPE html>
@@ -904,15 +836,14 @@ export class IconDetailsPanel {
     .preview-box svg {
       width: 140px;
       height: 140px;
-      transition: transform 0.2s ease;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
     }
     
-    .preview-box.zoom-1 svg { transform: scale(0.5); }
-    .preview-box.zoom-2 svg { transform: scale(0.75); }
-    .preview-box.zoom-3 svg { transform: scale(1); }
-    .preview-box.zoom-4 svg { transform: scale(1.5); }
-    .preview-box.zoom-5 svg { transform: scale(2); }
+    .preview-box.zoom-1 svg { scale: 0.5; }
+    .preview-box.zoom-2 svg { scale: 0.75; }
+    .preview-box.zoom-3 svg { scale: 1; }
+    .preview-box.zoom-4 svg { scale: 1.5; }
+    .preview-box.zoom-5 svg { scale: 2; }
     
     /* Zoom Controls */
     .zoom-controls {
@@ -1025,6 +956,37 @@ export class IconDetailsPanel {
     
     .color-swatch-view:hover {
       transform: scale(1.1);
+    }
+    
+    .more-colors-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 40px;
+      height: 32px;
+      padding: 0 8px;
+      border-radius: 6px;
+      background: var(--vscode-badge-background);
+      color: var(--vscode-badge-foreground);
+      font-size: 11px;
+      font-weight: 600;
+    }
+    
+    .colors-warning {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: var(--vscode-inputValidation-warningBackground);
+      border: 1px solid var(--vscode-inputValidation-warningBorder);
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--vscode-inputValidation-warningForeground, var(--vscode-foreground));
+    }
+    
+    .colors-warning .codicon {
+      color: var(--vscode-editorWarning-foreground);
     }
     
     .no-colors {
@@ -1321,6 +1283,22 @@ export class IconDetailsPanel {
       border-top: 1px solid var(--vscode-panel-border);
     }
     
+    .Variants-section.disabled-section {
+      opacity: 0.6;
+    }
+    
+    .Variants-disabled-message {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--vscode-inputValidation-infoBackground);
+      border: 1px solid var(--vscode-inputValidation-infoBorder);
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--vscode-foreground);
+    }
+    
     .Variants-header {
       display: flex;
       align-items: center;
@@ -1461,6 +1439,37 @@ export class IconDetailsPanel {
     .variant-add-btn:hover {
       color: var(--vscode-button-background);
     }
+    
+    /* === ANIMATION KEYFRAMES === */
+    @keyframes icon-spin { from { rotate: 0deg; } to { rotate: 360deg; } }
+    @keyframes icon-spin-reverse { from { rotate: 360deg; } to { rotate: 0deg; } }
+    @keyframes icon-pulse { 0%, 100% { scale: 1; opacity: 1; } 50% { scale: 1.1; opacity: 0.8; } }
+    @keyframes icon-pulse-grow { 0%, 100% { scale: 1; } 50% { scale: 1.3; } }
+    @keyframes icon-bounce { 0%, 100% { translate: 0 0; } 50% { translate: 0 -4px; } }
+    @keyframes icon-bounce-horizontal { 0%, 100% { translate: 0 0; } 50% { translate: 4px 0; } }
+    @keyframes icon-shake { 0%, 100% { translate: 0 0; } 25% { translate: -2px 0; } 75% { translate: 2px 0; } }
+    @keyframes icon-shake-vertical { 0%, 100% { translate: 0 0; } 25% { translate: 0 -2px; } 75% { translate: 0 2px; } }
+    @keyframes icon-fade { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    @keyframes icon-fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes icon-fade-out { from { opacity: 1; } to { opacity: 0; } }
+    @keyframes icon-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+    @keyframes icon-swing { 0%, 100% { rotate: 0deg; } 20% { rotate: 15deg; } 40% { rotate: -10deg; } 60% { rotate: 5deg; } 80% { rotate: -5deg; } }
+    @keyframes icon-flip { 0% { transform: perspective(400px) rotateY(0); } 100% { transform: perspective(400px) rotateY(360deg); } }
+    @keyframes icon-flip-x { 0% { transform: perspective(400px) rotateX(0); } 100% { transform: perspective(400px) rotateX(360deg); } }
+    @keyframes icon-heartbeat { 0%, 100% { scale: 1; } 14% { scale: 1.3; } 28% { scale: 1; } 42% { scale: 1.3; } 70% { scale: 1; } }
+    @keyframes icon-wiggle { 0%, 100% { rotate: 0deg; } 25% { rotate: -10deg; } 75% { rotate: 10deg; } }
+    @keyframes icon-wobble { 0% { transform: translateX(0%); } 15% { transform: translateX(-25%) rotate(-5deg); } 30% { transform: translateX(20%) rotate(3deg); } 45% { transform: translateX(-15%) rotate(-3deg); } 60% { transform: translateX(10%) rotate(2deg); } 75% { transform: translateX(-5%) rotate(-1deg); } 100% { transform: translateX(0%); } }
+    @keyframes icon-rubber-band { 0% { scale: 1 1; } 30% { scale: 1.25 0.75; } 40% { scale: 0.75 1.25; } 50% { scale: 1.15 0.85; } 65% { scale: 0.95 1.05; } 75% { scale: 1.05 0.95; } 100% { scale: 1 1; } }
+    @keyframes icon-jello { 0%, 100% { transform: skewX(0deg) skewY(0deg); } 22% { transform: skewX(-12.5deg) skewY(-12.5deg); } 33% { transform: skewX(6.25deg) skewY(6.25deg); } 44% { transform: skewX(-3.125deg) skewY(-3.125deg); } 55% { transform: skewX(1.5625deg) skewY(1.5625deg); } }
+    @keyframes icon-tada { 0% { scale: 1; rotate: 0deg; } 10%, 20% { scale: 0.9; rotate: -3deg; } 30%, 50%, 70%, 90% { scale: 1.1; rotate: 3deg; } 40%, 60%, 80% { scale: 1.1; rotate: -3deg; } 100% { scale: 1; rotate: 0deg; } }
+    @keyframes icon-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    @keyframes icon-glow { 0%, 100% { filter: drop-shadow(0 0 2px currentColor); } 50% { filter: drop-shadow(0 0 8px currentColor); } }
+    @keyframes icon-zoom-in { from { scale: 0; opacity: 0; } to { scale: 1; opacity: 1; } }
+    @keyframes icon-zoom-out { from { scale: 1; opacity: 1; } to { scale: 0; opacity: 0; } }
+    @keyframes icon-slide-in-up { from { translate: 0 100%; opacity: 0; } to { translate: 0 0; opacity: 1; } }
+    @keyframes icon-slide-in-down { from { translate: 0 -100%; opacity: 0; } to { translate: 0 0; opacity: 1; } }
+    @keyframes icon-slide-in-left { from { translate: -100% 0; opacity: 0; } to { translate: 0 0; opacity: 1; } }
+    @keyframes icon-slide-in-right { from { translate: 100% 0; opacity: 0; } to { translate: 0 0; opacity: 1; } }
   </style>
 </head>
 <body>
@@ -1499,6 +1508,9 @@ export class IconDetailsPanel {
           <button class="action-btn" onclick="copySvg()" title="Copy SVG code">
             <span class="codicon codicon-code"></span>
           </button>
+          <button class="action-btn primary" onclick="openEditor()" title="Open in Editor">
+            <span class="codicon codicon-edit"></span>
+          </button>
           ${location ? `
           <button class="action-btn" onclick="goToLocation()" title="Go to source">
             <span class="codicon codicon-go-to-file"></span>
@@ -1511,6 +1523,12 @@ export class IconDetailsPanel {
           <div class="color-picker-title">
             <span class="codicon codicon-symbol-color"></span> Colors
           </div>
+          ${hasMoreColors ? `
+          <div class="colors-warning">
+            <span class="codicon codicon-warning"></span>
+            <span>This SVG has <strong>${totalColorCount}</strong> unique colors. Color preview disabled for rasterized SVGs.</span>
+          </div>
+          ` : `
           <div class="color-swatches" id="colorSwatches">
             ${hasCurrentColor ? `
               <div class="current-color-info">
@@ -1523,6 +1541,7 @@ export class IconDetailsPanel {
               <div class="color-swatch-view" style="background-color: ${color}" title="${color}"></div>
             `).join('') : (!hasCurrentColor ? '<span class="no-colors">No colors detected</span>' : '')}
           </div>
+          `}
         </div>
       </div>
       
@@ -1583,16 +1602,25 @@ export class IconDetailsPanel {
         </div>
         
         <!-- Variants Section -->
-        <div class="Variants-section">
+        <div class="Variants-section${hasMoreColors ? ' disabled-section' : ''}">
           <div class="Variants-header">
             <h2><span class="codicon codicon-color-mode"></span> Variants</h2>
+            ${!hasMoreColors ? `
             <button class="variant-add-btn" onclick="saveVariant()" title="Save current colors as variant">
               <span class="codicon codicon-add"></span>
             </button>
+            ` : ''}
           </div>
+          ${hasMoreColors ? `
+          <div class="Variants-disabled-message">
+            <span class="codicon codicon-info"></span>
+            Variants disabled for SVGs with too many colors
+          </div>
+          ` : `
           <div class="Variants-container" id="VariantsContainer">
             ${this._generateVariantsHtml(name)}
           </div>
+          `}
         </div>
         
         <div class="usages-section">
@@ -1656,12 +1684,8 @@ export class IconDetailsPanel {
       vscode.postMessage({ command: 'copySvg', svg: svg?.outerHTML });
     }
     
-    // Save function
-    function saveSvg() {
-      const svg = document.querySelector('.preview-box svg');
-      if (svg) {
-        vscode.postMessage({ command: 'saveSvg', svg: svg.outerHTML });
-      }
+    function openEditor() {
+      vscode.postMessage({ command: 'openEditor' });
     }
     
     // Color picker

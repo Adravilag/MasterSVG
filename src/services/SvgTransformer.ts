@@ -102,10 +102,20 @@ export class SvgTransformer {
 
   /**
    * Extract SVG body (content inside <svg> tags)
+   * Also removes existing animation styles to prevent duplicates when rebuilding
    */
   extractSvgBody(svg: string): string {
     const match = svg.match(/<svg[^>]*>([\s\S]*)<\/svg>/i);
-    return match ? match[1].trim() : svg;
+    let body = match ? match[1].trim() : svg;
+    
+    // Remove existing icon-manager-animation styles to prevent duplicates
+    body = body.replace(/<style[^>]*id=["']icon-manager-animation["'][^>]*>[\s\S]*?<\/style>/gi, '');
+    
+    // Remove animation wrapper groups (class="icon-anim-...")
+    // First unwrap the content, then remove empty wrappers
+    body = body.replace(/<g[^>]*class=["']icon-anim-\d+["'][^>]*>([\s\S]*?)<\/g>/gi, '$1');
+    
+    return body.trim();
   }
 
   /**
