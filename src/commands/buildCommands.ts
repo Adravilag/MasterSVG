@@ -11,6 +11,7 @@ import { getSpriteGenerator, SpriteIcon } from '../services/SpriteGenerator';
 import { addToIconsJs, addToSpriteSvg, generateWebComponent } from '../utils/iconsFileManager';
 import { getConfig, getFullOutputPath, getOutputPathOrWarn, updateIconsJsContext } from '../utils/configHelper';
 import { buildIconsFileContent } from '../utils/outputFileManager';
+import { t } from '../i18n';
 
 // Interfaces for providers
 export interface WorkspaceSvgProviderLike {
@@ -113,27 +114,27 @@ export function registerBuildCommands(
       const imgRefs = providers.workspaceSvgProvider.getImgReferences();
       
       if (!imgRefs || imgRefs.length === 0) {
-        vscode.window.showInformationMessage('No IMG references found to transform');
+        vscode.window.showInformationMessage(t('messages.noImgReferencesFound'));
         return;
       }
       
       const validRefs = imgRefs.filter(ref => ref.exists !== false);
       
       if (validRefs.length === 0) {
-        vscode.window.showWarningMessage('All IMG references point to missing files');
+        vscode.window.showWarningMessage(t('messages.allImgReferencesMissing'));
         return;
       }
       
       const confirm = await vscode.window.showInformationMessage(
-        `Transform ${validRefs.length} IMG reference${validRefs.length > 1 ? 's' : ''} to <${componentName}>?`,
-        'Yes', 'No'
+        t('messages.confirmTransformReferences', { count: validRefs.length, component: componentName }),
+        t('messages.yesButton'), t('messages.noButton')
       );
       
-      if (confirm !== 'Yes') return;
+      if (confirm !== t('messages.yesButton')) return;
       
       await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
-        title: 'Building references...',
+        title: t('ui.progress.buildingReferences'),
         cancellable: false
       }, async (progress) => {
         let transformed = 0;
@@ -148,7 +149,7 @@ export function registerBuildCommands(
         }
         
         for (const [filePath, refs] of Array.from(refsByFile.entries())) {
-          progress.report({ message: `Processing ${path.basename(filePath)}...` });
+          progress.report({ message: t('ui.progress.processing', { name: path.basename(filePath) }) });
           
           try {
             const document = await vscode.workspace.openTextDocument(vscode.Uri.file(filePath));
@@ -200,9 +201,9 @@ export function registerBuildCommands(
         providers.builtIconsProvider.refresh();
         
         if (failed > 0) {
-          vscode.window.showWarningMessage(`Transformed ${transformed} references. ${failed} file(s) had errors.`);
+          vscode.window.showWarningMessage(t('messages.transformedWithErrors', { transformed, failed }));
         } else {
-          vscode.window.showInformationMessage(`Successfully transformed ${transformed} IMG reference${transformed > 1 ? 's' : ''} to <${componentName}>`);
+          vscode.window.showInformationMessage(t('messages.transformedSuccessfully', { count: transformed, component: componentName }));
         }
       });
     })
@@ -220,20 +221,20 @@ export function registerBuildCommands(
       const allSvgFiles = Array.from(svgFilesMap.values()).filter(icon => icon.path);
       
       if (allSvgFiles.length === 0) {
-        vscode.window.showInformationMessage('No SVG files found in workspace');
+        vscode.window.showInformationMessage(t('messages.noSvgFilesFound'));
         return;
       }
       
       const confirm = await vscode.window.showInformationMessage(
-        `Build ${allSvgFiles.length} SVG file${allSvgFiles.length > 1 ? 's' : ''} to ${buildFormat}?`,
-        'Yes', 'No'
+        t('messages.confirmBuildSvgFiles', { count: allSvgFiles.length, format: buildFormat }),
+        t('messages.yesButton'), t('messages.noButton')
       );
       
-      if (confirm !== 'Yes') return;
+      if (confirm !== t('messages.yesButton')) return;
       
       await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
-        title: 'Building SVG files...',
+        title: t('ui.progress.buildingSvgFiles'),
         cancellable: false
       }, async (progress) => {
         let built = 0;
@@ -241,7 +242,7 @@ export function registerBuildCommands(
         const outputPath = getFullOutputPath();
         
         if (!outputPath) {
-          vscode.window.showErrorMessage('Output path not configured');
+          vscode.window.showErrorMessage(t('messages.outputPathNotConfigured'));
           return;
         }
         
@@ -249,7 +250,7 @@ export function registerBuildCommands(
         const isIconsJs = buildFormat !== 'sprite.svg';
         
         for (const icon of allSvgFiles) {
-          progress.report({ message: `Building ${icon.name}...` });
+          progress.report({ message: t('ui.progress.building', { name: icon.name }) });
           
           try {
             let svgContent = icon.svg;
@@ -275,16 +276,16 @@ export function registerBuildCommands(
         }
         
         if (isIconsJs && built > 0) {
-          progress.report({ message: 'Generating web component...' });
+          progress.report({ message: t('ui.progress.generatingWebComponent') });
           await generateWebComponent(outputPath);
         }
         
         const deleteOption = await vscode.window.showInformationMessage(
-          `Built ${built} icon${built > 1 ? 's' : ''}. Delete original SVG files?`,
-          'Delete All', 'Keep All'
+          t('messages.confirmDeleteOriginals', { count: built }),
+          t('messages.deleteAll'), t('messages.keepAll')
         );
         
-        if (deleteOption === 'Delete All') {
+        if (deleteOption === t('messages.deleteAll')) {
           let deleted = 0;
           for (const icon of allSvgFiles) {
             if (icon.path) {
@@ -296,14 +297,14 @@ export function registerBuildCommands(
               }
             }
           }
-          vscode.window.showInformationMessage(`Deleted ${deleted} original SVG file${deleted > 1 ? 's' : ''}`);
+          vscode.window.showInformationMessage(t('messages.deletedOriginals', { count: deleted }));
         }
         
         providers.svgFilesProvider.refresh();
         providers.builtIconsProvider.refresh();
         
-        if (failed > 0 && deleteOption !== 'Delete All') {
-          vscode.window.showWarningMessage(`Built ${built} icons. ${failed} file(s) had errors.`);
+        if (failed > 0 && deleteOption !== t('messages.deleteAll')) {
+          vscode.window.showWarningMessage(t('messages.builtWithErrors', { built, failed }));
         }
       });
     })
@@ -317,19 +318,19 @@ export function registerBuildCommands(
 
       await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
-        title: 'Building icons library...',
+        title: t('ui.progress.buildingIconsLibrary'),
         cancellable: false
       }, async (progress) => {
-        progress.report({ message: 'Scanning icons...' });
+        progress.report({ message: t('ui.progress.scanningIcons') });
         await providers.workspaceSvgProvider.scanInlineSvgs();
         const icons = await providers.workspaceSvgProvider.getAllIcons();
         
         if (icons.length === 0) {
-          vscode.window.showWarningMessage('No icons found to build');
+          vscode.window.showWarningMessage(t('messages.noIconsFoundToBuild'));
           return;
         }
 
-        progress.report({ message: 'Generating output...' });
+        progress.report({ message: t('ui.progress.generatingOutput') });
         const config = getConfig();
         const webComponentName = config.webComponentName;
         const buildFormat = config.buildFormat || 'icons.ts';
@@ -409,7 +410,7 @@ export function registerBuildCommands(
 
         if (skippedIcons.length > 0) {
           vscode.window.showWarningMessage(
-            `Skipped ${skippedIcons.length} rasterized SVG(s) with too many colors: ${skippedIcons.slice(0, 3).join(', ')}${skippedIcons.length > 3 ? '...' : ''}`
+            t('messages.skippedRasterizedIcons', { count: skippedIcons.length, names: skippedIcons.slice(0, 3).join(', ') + (skippedIcons.length > 3 ? '...' : '') })
           );
         }
 
@@ -421,7 +422,7 @@ export function registerBuildCommands(
       
       const config = getConfig();
       const formatName = config.buildFormat === 'sprite.svg' ? 'sprite.svg' : 'icons.js';
-      vscode.window.showInformationMessage(`Icons library built as ${formatName} in ${outputPath}`);
+      vscode.window.showInformationMessage(t('messages.iconsLibraryBuilt', { format: formatName, path: outputPath }));
     })
   );
 

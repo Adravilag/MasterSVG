@@ -1,6 +1,9 @@
 (function() {
     const vscode = acquireVsCodeApi();
     
+    // i18n translations injected from TypeScript
+    const i18n = __I18N__;
+    
     let currentZoom = 3;
     let optimizedSvg = null;
     let currentAnimation = __ANIMATION_TYPE__;
@@ -81,7 +84,7 @@
             // Update label
             label.textContent = filteredColor;
             label.style.color = 'var(--vscode-charts-yellow)';
-            label.title = `Original: ${originalColor}`;
+            label.title = i18n.originalColor.replace('{color}', originalColor);
             // Update swatch background directly (no CSS filter)
             swatch.style.backgroundColor = filteredColor;
             swatch.style.filter = 'none';
@@ -409,7 +412,7 @@
         const hint = document.querySelector('.export-hint');
         if (copyBtn) {
           copyBtn.disabled = false;
-          hint.textContent = 'SVG will include CSS animation';
+          hint.textContent = i18n.svgWillIncludeAnimation;
         }
         
         // Update settings UI
@@ -468,7 +471,7 @@
       const rows = document.querySelectorAll('#svgCodeTab .code-row .cl');
       const code = Array.from(rows).map(row => row.textContent).join('\n');
       navigator.clipboard.writeText(code).then(() => {
-        vscode.postMessage({ command: 'showMessage', message: 'SVG code copied to clipboard' });
+        vscode.postMessage({ command: 'showMessage', message: i18n.svgCodeCopied });
       });
     }
     
@@ -476,7 +479,7 @@
       const rows = document.querySelectorAll('#animationCodeTab .code-row .cl');
       const code = Array.from(rows).map(row => row.textContent).join('\n');
       navigator.clipboard.writeText(code).then(() => {
-        vscode.postMessage({ command: 'showMessage', message: 'Animation CSS copied to clipboard' });
+        vscode.postMessage({ command: 'showMessage', message: i18n.animationCssCopied });
       });
     }
     
@@ -484,7 +487,7 @@
       const rows = document.querySelectorAll('#usageCodeTab .code-row .cl');
       const code = Array.from(rows).map(row => row.textContent).join('\n');
       navigator.clipboard.writeText(code).then(() => {
-        vscode.postMessage({ command: 'showMessage', message: 'Usage code copied to clipboard' });
+        vscode.postMessage({ command: 'showMessage', message: i18n.usageCodeCopied });
       });
     }
     
@@ -677,7 +680,7 @@
       const btn = document.getElementById('optimizeBtn');
       if (btn) {
         btn.classList.remove('optimized');
-        btn.title = 'Optimize SVG (SVGO)';
+        btn.title = i18n.optimizeSvgo;
       }
       const resultBar = document.getElementById('optimizeResultBar');
       if (resultBar) resultBar.style.display = 'none';
@@ -807,11 +810,11 @@
                 `;
               });
             } else if (!message.hasCurrentColor) {
-              swatchesHtml += '<span class="no-colors">No colors detected</span>';
+              swatchesHtml += '<span class="no-colors">' + i18n.noColorsDetected + '</span>';
             }
             
             swatchesHtml += `
-              <button class="add-color-btn" onclick="addColor()" title="Add fill color">
+              <button class="add-color-btn" onclick="addColor()" title="${i18n.addFillColor}">
                 <span class="codicon codicon-add"></span>
               </button>
             `;
@@ -837,7 +840,7 @@
             savingsText.textContent = '-' + message.savingsPercent.toFixed(1) + '%';
             savingsText.classList.remove('no-savings');
           } else {
-            savingsText.textContent = 'Optimal';
+            savingsText.textContent = i18n.optimal;
             savingsText.classList.add('no-savings');
           }
         }
@@ -859,7 +862,7 @@
           const optimizeBtn = document.getElementById('optimizeBtn');
           if (optimizeBtn) {
             optimizeBtn.classList.add('optimized');
-            optimizeBtn.title = 'Already optimized';
+            optimizeBtn.title = i18n.alreadyOptimized;
           }
         }
       }
@@ -896,7 +899,7 @@
         const optimizeBtn = document.getElementById('optimizeBtn');
         if (optimizeBtn) {
           optimizeBtn.classList.add('optimized');
-          optimizeBtn.title = 'Already optimized';
+          optimizeBtn.title = i18n.alreadyOptimized;
         }
 
         // Hide build hint, show revert button
@@ -1035,10 +1038,10 @@
       const hint = document.querySelector('.export-hint');
       if (type === 'none') {
         copyBtn.disabled = true;
-        hint.textContent = 'Select an animation to enable';
+        hint.textContent = i18n.selectAnimationToEnable;
       } else {
         copyBtn.disabled = false;
-        hint.textContent = 'SVG will include CSS animation';
+        hint.textContent = i18n.svgWillIncludeAnimation;
       }
       
       // Show/hide restart animation button and indicator

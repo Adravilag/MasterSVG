@@ -1,13 +1,13 @@
 <!-- Animation Categories -->
 <div class="section">
   <div class="section-title">
-    <span class="codicon codicon-play"></span> Animation Type
+    <span class="codicon codicon-play"></span> ${i18n_animationType}
   </div>
   <div class="animation-categories">
-    <button class="anim-category-btn active" data-category="basic" onclick="showAnimCategory('basic')">Basic</button>
-    <button class="anim-category-btn" data-category="attention" onclick="showAnimCategory('attention')">Attention</button>
-    <button class="anim-category-btn" data-category="entrance" onclick="showAnimCategory('entrance')">Entrance</button>
-    <button class="anim-category-btn" data-category="draw" onclick="showAnimCategory('draw')">Draw</button>
+    <button class="anim-category-btn active" data-category="basic" onclick="showAnimCategory('basic')">${i18n_categoryBasic}</button>
+    <button class="anim-category-btn" data-category="attention" onclick="showAnimCategory('attention')">${i18n_categoryAttention}</button>
+    <button class="anim-category-btn" data-category="entrance" onclick="showAnimCategory('entrance')">${i18n_categoryEntrance}</button>
+    <button class="anim-category-btn" data-category="draw" onclick="showAnimCategory('draw')">${i18n_categoryDraw}</button>
   </div>
   
   <!-- Basic Animations -->
@@ -38,7 +38,7 @@
     </div>
     <div class="draw-hint">
       <span class="codicon codicon-info"></span>
-      <span>Draw animations work best with stroke-based SVGs. The icon should have visible strokes.</span>
+      <span>${i18n_drawHint}</span>
     </div>
   </div>
 </div>
@@ -46,11 +46,11 @@
 <!-- Animation Settings -->
 <div class="section">
   <div class="section-title">
-    <span class="codicon codicon-settings-gear"></span> Settings
+    <span class="codicon codicon-settings-gear"></span> ${i18n_settings}
   </div>
   <div class="animation-settings">
     <div class="setting-row">
-      <label>Duration</label>
+      <label>${i18n_duration}</label>
       <div class="setting-control">
         <input type="range" id="animDuration" min="0.1" max="5" step="0.1" value="${duration}" 
           oninput="updateAnimationSetting('duration', this.value)" />
@@ -58,7 +58,7 @@
       </div>
     </div>
     <div class="setting-row">
-      <label>Delay</label>
+      <label>${i18n_delay}</label>
       <div class="setting-control">
         <input type="range" id="animDelay" min="0" max="2" step="0.1" value="${delay}" 
           oninput="updateAnimationSetting('delay', this.value)" />
@@ -66,31 +66,31 @@
       </div>
     </div>
     <div class="setting-row">
-      <label>Timing</label>
+      <label>${i18n_timing}</label>
       <select id="animTiming" onchange="updateAnimationSetting('timing', this.value)">
-        <option value="linear" ${timingLinearSelected}>Linear</option>
-        <option value="ease" ${timingEaseSelected}>Ease</option>
-        <option value="ease-in" ${timingEaseInSelected}>Ease In</option>
-        <option value="ease-out" ${timingEaseOutSelected}>Ease Out</option>
-        <option value="ease-in-out" ${timingEaseInOutSelected}>Ease In-Out</option>
+        <option value="linear" ${timingLinearSelected}>${i18n_timingLinear}</option>
+        <option value="ease" ${timingEaseSelected}>${i18n_timingEase}</option>
+        <option value="ease-in" ${timingEaseInSelected}>${i18n_timingEaseIn}</option>
+        <option value="ease-out" ${timingEaseOutSelected}>${i18n_timingEaseOut}</option>
+        <option value="ease-in-out" ${timingEaseInOutSelected}>${i18n_timingEaseInOut}</option>
       </select>
     </div>
     <div class="setting-row">
-      <label>Iteration</label>
+      <label>${i18n_iteration}</label>
       <select id="animIteration" onchange="updateAnimationSetting('iteration', this.value)">
-        <option value="1" ${iteration1Selected}>Once</option>
-        <option value="2" ${iteration2Selected}>Twice</option>
-        <option value="3" ${iteration3Selected}>3 Times</option>
-        <option value="infinite" ${iterationInfiniteSelected}>Infinite</option>
+        <option value="1" ${iteration1Selected}>${i18n_iterationOnce}</option>
+        <option value="2" ${iteration2Selected}>${i18n_iterationTwice}</option>
+        <option value="3" ${iteration3Selected}>${i18n_iteration3Times}</option>
+        <option value="infinite" ${iterationInfiniteSelected}>${i18n_iterationInfinite}</option>
       </select>
     </div>
     <div class="setting-row">
-      <label>Direction</label>
+      <label>${i18n_direction}</label>
       <select id="animDirection" onchange="updateAnimationSetting('direction', this.value)">
-        <option value="normal" ${directionNormalSelected}>Normal</option>
-        <option value="reverse" ${directionReverseSelected}>Reverse</option>
-        <option value="alternate" ${directionAlternateSelected}>Alternate</option>
-        <option value="alternate-reverse" ${directionAltReverseSelected}>Alt Reverse</option>
+        <option value="normal" ${directionNormalSelected}>${i18n_directionNormal}</option>
+        <option value="reverse" ${directionReverseSelected}>${i18n_directionReverse}</option>
+        <option value="alternate" ${directionAlternateSelected}>${i18n_directionAlternate}</option>
+        <option value="alternate-reverse" ${directionAltReverseSelected}>${i18n_directionAltReverse}</option>
       </select>
     </div>
   </div>
@@ -99,12 +99,12 @@
 <!-- Export -->
 <div class="section">
   <div class="section-title">
-    <span class="codicon codicon-export"></span> Export
+    <span class="codicon codicon-export"></span> ${i18n_export}
   </div>
   <div class="animation-export">
     <button class="btn btn-primary" onclick="copyWithAnimation()" id="copyAnimBtn" ${copyAnimBtnDisabled}>
-      <span class="codicon codicon-copy"></span> Copy with Animation
+      <span class="codicon codicon-copy"></span> ${i18n_copyWithAnimation}
     </button>
-    <span class="export-hint">SVG will include CSS animation</span>
+    <span class="export-hint">${i18n_exportHint}</span>
   </div>
 </div>

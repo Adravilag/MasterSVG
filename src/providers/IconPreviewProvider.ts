@@ -4,6 +4,7 @@ import * as path from 'path';
 import { getSvgConfig } from '../utils/config';
 import { IconUsageSearchService } from '../services/IconUsageSearchService';
 import { PreviewTemplateService } from '../services/PreviewTemplateService';
+import { t } from '../i18n';
 
 export interface PreviewAnimation {
   type: string;
@@ -129,7 +130,7 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
         case 'copyName':
           if (this._currentName) {
             vscode.env.clipboard.writeText(this._currentName);
-            vscode.window.showInformationMessage(`Copied "${this._currentName}" to clipboard`);
+            vscode.window.showInformationMessage(t('messages.copiedNameToClipboard', { name: this._currentName }));
           }
           break;
         case 'copySvg':
@@ -137,7 +138,7 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
           const svgToCopy = message.svg || this._currentSvg;
           if (svgToCopy) {
             vscode.env.clipboard.writeText(svgToCopy);
-            vscode.window.showInformationMessage('SVG copied to clipboard');
+            vscode.window.showInformationMessage(t('messages.svgCopiedToClipboard'));
           }
           break;
         case 'refreshPreview':
@@ -178,7 +179,7 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
                 optimizedSize: result.data.length
               });
             } catch (error) {
-              vscode.window.showErrorMessage(`Failed to optimize SVG: ${error}`);
+              vscode.window.showErrorMessage(t('messages.failedToOptimize', { error: String(error) }));
             }
           }
           break;
@@ -268,14 +269,16 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
   /**
    * Update only the SVG content without regenerating the entire HTML.
    * Used when Editor changes colors and needs to sync with TreeView preview.
+   * @param currentColors - Optional colors from Editor to show as "custom" variant in real-time
    */
-  public updateSvgContent(name: string, svg: string) {
+  public updateSvgContent(name: string, svg: string, currentColors?: string[]) {
     // Only update if we're showing the same icon
     if (this._currentName === name && this._view) {
       this._currentSvg = svg;
       this._view.webview.postMessage({
         command: 'updateSvgContent',
-        svg: svg
+        svg: svg,
+        customColors: currentColors
       });
     }
   }

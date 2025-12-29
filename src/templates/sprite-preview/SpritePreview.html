@@ -1,23 +1,23 @@
 <div class="header">
   <h1>📦 ${fileName}</h1>
-  <span class="stats" id="stats">${iconCount} icons</span>
+  <span class="stats" id="stats">${iconCount} ${i18n_icons}</span>
 </div>
 
 <div class="toolbar">
-  <button onclick="openFile()">📄 Open File</button>
-  <button onclick="refresh()">🔄 Refresh</button>
+  <button onclick="openFile()">📄 ${i18n_openFile}</button>
+  <button onclick="refresh()">🔄 ${i18n_refresh}</button>
 </div>
 
 <div class="grid" id="grid">${iconCards}</div>
 
 <div class="context-menu" id="contextMenu">
-  <div class="context-menu-item" data-action="copyName">📋 Copy Name</div>
-  <div class="context-menu-item" data-action="copySvg">📋 Copy SVG</div>
+  <div class="context-menu-item" data-action="copyName">📋 ${i18n_copyName}</div>
+  <div class="context-menu-item" data-action="copySvg">📋 ${i18n_copySvg}</div>
   <div class="context-menu-separator"></div>
-  <div class="context-menu-item" data-action="editIcon">✏️ Edit Icon</div>
-  <div class="context-menu-item" data-action="showDetails">🔍 Show Details</div>
-  <div class="context-menu-item" data-action="exportComponent">⚛️ Export Component</div>
+  <div class="context-menu-item" data-action="editIcon">✏️ ${i18n_editIcon}</div>
+  <div class="context-menu-item" data-action="showDetails">🔍 ${i18n_showDetails}</div>
+  <div class="context-menu-item" data-action="exportComponent">⚛️ ${i18n_exportComponent}</div>
   <div class="context-menu-separator"></div>
-  <div class="context-menu-item" data-action="renameIcon">✍️ Rename</div>
-  <div class="context-menu-item" data-action="deleteIcon" style="color: var(--vscode-errorForeground)">🗑️ Delete</div>
+  <div class="context-menu-item" data-action="renameIcon">✍️ ${i18n_rename}</div>
+  <div class="context-menu-item" data-action="deleteIcon" style="color: var(--vscode-errorForeground)">🗑️ ${i18n_delete}</div>
 </div>

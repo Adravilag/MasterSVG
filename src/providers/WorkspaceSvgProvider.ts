@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { getSvgConfig } from '../utils/config';
 import { WorkspaceIcon, IconUsage, IconAnimation } from '../types/icons';
+import { removeIconExportFromContent } from '../utils/outputFileManager';
 
 // Re-export types for backward compatibility
 export { WorkspaceIcon, IconUsage, IconAnimation };
@@ -66,6 +67,14 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
     SvgContentCache.getInstance().clear();
     // Clear temp icon files to force VS Code to reload new versions
     clearTempIcons();
+    this._onDidChangeTreeData.fire();
+  }
+
+  /**
+   * Soft refresh - re-renders tree without clearing cache
+   * This preserves expansion state better than full refresh
+   */
+  softRefresh(): void {
     this._onDidChangeTreeData.fire();
   }
 
@@ -673,18 +682,12 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
       let content = fs.readFileSync(iconsJs, 'utf-8');
       
       for (const iconName of iconNames) {
-        // Build regex to match the entire export statement for this icon
-        // Match: export const varName = { name: 'iconName', body: `...`, viewBox: '...' };
-        const escapedName = iconName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const iconRegex = new RegExp(
-          `export\\s+const\\s+\\w+\\s*=\\s*\\{\\s*name:\\s*['"]${escapedName}['"]\\s*,\\s*body:\\s*\`[\\s\\S]*?\`\\s*,\\s*viewBox:\\s*['"][^'"]+['"]\\s*\\};?\\n?`,
-          'g'
-        );
+        const originalContent = content;
         
-        const newContent = content.replace(iconRegex, '');
+        // Use the proper removal function that handles both export and icons object
+        content = removeIconExportFromContent(content, iconName);
         
-        if (newContent !== content) {
-          content = newContent;
+        if (content !== originalContent) {
           removed.push(iconName);
           this.builtIcons.delete(iconName);
           this.libraryIcons.delete(iconName);

@@ -3,6 +3,7 @@ import { ColorService } from '../services/ColorService';
 import { getVariantsService } from '../services/VariantsService';
 import { getUsageFinderService } from '../services/UsageFinderService';
 import { handleMessage, PanelContext, IconDetails, IconAnimation } from './handlers/iconDetailHandlers';
+import { t } from '../i18n';
 
 export { IconDetails, IconAnimation };
 
@@ -35,7 +36,7 @@ export class IconDetailsPanel {
 
     const panel = vscode.window.createWebviewPanel(
       'iconDetails',
-      'Icon Details',
+      t('details.title'),
       column || vscode.ViewColumn.One,
       {
         enableScripts: true,
@@ -214,42 +215,52 @@ export class IconDetailsPanel {
     const templatesDir = path.join(this._extensionUri.fsPath, 'src', 'templates', 'icon-details');
     
     const cssContent = fs.readFileSync(path.join(templatesDir, 'iconDetails.css'), 'utf-8');
-    const jsContent = fs.readFileSync(path.join(templatesDir, 'iconDetails.js'), 'utf-8');
+    const jsTemplate = fs.readFileSync(path.join(templatesDir, 'iconDetails.js'), 'utf-8');
+    
+    // Inject i18n translations into JS
+    const i18nObject = {
+      noUsagesFound: t('webview.js.noUsagesFound'),
+      original: t('webview.js.original'),
+      optimized: t('webview.js.optimized'),
+      saved: t('webview.js.saved'),
+      alreadyOptimal: t('webview.js.alreadyOptimal')
+    };
+    const jsContent = jsTemplate.replace(/__I18N__/g, JSON.stringify(i18nObject));
 
     // Generate dynamic HTML parts
     const badgeHtml = isBuilt !== undefined 
-      ? `<span class="badge ${isBuilt ? 'built' : 'draft'}">${isBuilt ? 'Built' : 'Draft'}</span>` 
+      ? `<span class="badge ${isBuilt ? 'built' : 'draft'}">${isBuilt ? t('webview.details.built') : t('webview.details.draft')}</span>` 
       : '';
 
     const locationButtonHtml = location 
-      ? `<button class="action-btn" onclick="goToLocation()" title="Go to source"><span class="codicon codicon-go-to-file"></span></button>` 
+      ? `<button class="action-btn" onclick="goToLocation()" title="${t('webview.details.goToSource')}"><span class="codicon codicon-go-to-file"></span></button>` 
       : '';
 
     const colorsHtml = hasMoreColors 
-      ? `<div class="colors-warning"><span class="codicon codicon-warning"></span><span>This SVG has <strong>${totalColorCount}</strong> unique colors. Color preview disabled for rasterized SVGs.</span></div>`
+      ? `<div class="colors-warning"><span class="codicon codicon-warning"></span><span>${t('webview.details.colorsWarning').replace('{count}', String(totalColorCount))}</span></div>`
       : `<div class="color-swatches" id="colorSwatches">
-          ${hasCurrentColor ? `<div class="current-color-info"><span class="codicon codicon-paintcan"></span><span>Uses <code>currentColor</code></span><span class="color-hint">(inherits from CSS)</span></div>` : ''}
-          ${svgColors.length > 0 ? svgColors.map(color => `<div class="color-swatch-view" style="background-color: ${color}" title="${color}"></div>`).join('') : (!hasCurrentColor ? '<span class="no-colors">No colors detected</span>' : '')}
+          ${hasCurrentColor ? `<div class="current-color-info"><span class="codicon codicon-paintcan"></span><span>${t('webview.details.usesCurrentColor')}</span><span class="color-hint">(${t('webview.details.inheritsFromCss')})</span></div>` : ''}
+          ${svgColors.length > 0 ? svgColors.map(color => `<div class="color-swatch-view" style="background-color: ${color}" title="${color}"></div>`).join('') : (!hasCurrentColor ? `<span class="no-colors">${t('webview.details.noColorsDetected')}</span>` : '')}
         </div>`;
 
     const dimensionsHtml = dimensions 
-      ? `<div class="detail-card"><div class="detail-label"><span class="codicon codicon-screen-full"></span> Dimensions</div><div class="detail-value">${dimensions}</div></div>` 
+      ? `<div class="detail-card"><div class="detail-label"><span class="codicon codicon-screen-full"></span> ${t('webview.details.dimensions')}</div><div class="detail-value">${dimensions}</div></div>` 
       : '';
 
     const featuresHtml = features.length > 0 
-      ? `<div class="detail-card" style="grid-column: span 2"><div class="detail-label"><span class="codicon codicon-extensions"></span> Features</div><div class="features">${features.map(f => `<span class="feature-tag">${f}</span>`).join('')}</div></div>` 
+      ? `<div class="detail-card" style="grid-column: span 2"><div class="detail-label"><span class="codicon codicon-extensions"></span> ${t('webview.details.features')}</div><div class="features">${features.map(f => `<span class="feature-tag">${f}</span>`).join('')}</div></div>` 
       : '';
 
     const locationCardHtml = location 
-      ? `<div class="detail-card clickable" style="grid-column: span 2" onclick="goToLocation()"><div class="detail-label"><span class="codicon codicon-go-to-file"></span> Source Location</div><div class="detail-value">${fileName}:${location.line}</div><div class="detail-sub">${location.file}</div></div>` 
+      ? `<div class="detail-card clickable" style="grid-column: span 2" onclick="goToLocation()"><div class="detail-label"><span class="codicon codicon-go-to-file"></span> ${t('webview.details.sourceLocation')}</div><div class="detail-value">${fileName}:${location.line}</div><div class="detail-sub">${location.file}</div></div>` 
       : '';
 
     const variantsContentHtml = hasMoreColors 
-      ? `<div class="Variants-disabled-message"><span class="codicon codicon-info"></span> Variants disabled for SVGs with too many colors</div>`
+      ? `<div class="Variants-disabled-message"><span class="codicon codicon-info"></span> ${t('webview.details.variantsDisabled')}</div>`
       : `<div class="Variants-container" id="VariantsContainer">${this._generateVariantsHtml(name)}</div>`;
 
     const variantsAddButtonHtml = !hasMoreColors 
-      ? `<button class="variant-add-btn" onclick="saveVariant()" title="Save current colors as variant"><span class="codicon codicon-add"></span></button>` 
+      ? `<button class="variant-add-btn" onclick="saveVariant()" title="${t('webview.details.saveVariant')}"><span class="codicon codicon-add"></span></button>` 
       : '';
 
     return `<!DOCTYPE html>
@@ -274,39 +285,39 @@ export class IconDetailsPanel {
         </div>
         
         <div class="zoom-controls">
-          <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out"><span class="codicon codicon-zoom-out"></span></button>
+          <button class="zoom-btn" onclick="zoomOut()" title="${t('webview.details.zoomOut')}"><span class="codicon codicon-zoom-out"></span></button>
           <span class="zoom-level" id="zoomLevel">100%</span>
-          <button class="zoom-btn" onclick="zoomIn()" title="Zoom In"><span class="codicon codicon-zoom-in"></span></button>
-          <button class="zoom-btn" onclick="resetZoom()" title="Reset Zoom"><span class="codicon codicon-screen-normal"></span></button>
+          <button class="zoom-btn" onclick="zoomIn()" title="${t('webview.details.zoomIn')}"><span class="codicon codicon-zoom-in"></span></button>
+          <button class="zoom-btn" onclick="resetZoom()" title="${t('webview.details.resetZoom')}"><span class="codicon codicon-screen-normal"></span></button>
         </div>
         
         <div class="quick-actions">
-          <button class="action-btn" onclick="copyName()" title="Copy icon name"><span class="codicon codicon-copy"></span></button>
-          <button class="action-btn" onclick="copySvg()" title="Copy SVG code"><span class="codicon codicon-code"></span></button>
-          <button class="action-btn primary" onclick="openEditor()" title="Open in Editor"><span class="codicon codicon-edit"></span></button>
+          <button class="action-btn" onclick="copyName()" title="${t('webview.details.copyIconName')}"><span class="codicon codicon-copy"></span></button>
+          <button class="action-btn" onclick="copySvg()" title="${t('webview.details.copySvgCode')}"><span class="codicon codicon-code"></span></button>
+          <button class="action-btn primary" onclick="openEditor()" title="${t('webview.details.openInEditor')}"><span class="codicon codicon-edit"></span></button>
           ${locationButtonHtml}
         </div>
         
         <div class="color-picker-section">
-          <div class="color-picker-title"><span class="codicon codicon-symbol-color"></span> Colors</div>
+          <div class="color-picker-title"><span class="codicon codicon-symbol-color"></span> ${t('webview.details.colors')}</div>
           ${colorsHtml}
         </div>
       </div>
       
       <div class="details-section">
-        <h2>Properties</h2>
+        <h2>${t('webview.details.properties')}</h2>
         <div class="details-grid">
           <div class="detail-card">
-            <div class="detail-label"><span class="codicon codicon-symbol-ruler"></span> viewBox</div>
+            <div class="detail-label"><span class="codicon codicon-symbol-ruler"></span> ${t('webview.details.viewBox')}</div>
             <div class="detail-value">${viewBox}</div>
           </div>
           ${dimensionsHtml}
           <div class="detail-card">
-            <div class="detail-label"><span class="codicon codicon-file-code"></span> File Size</div>
+            <div class="detail-label"><span class="codicon codicon-file-code"></span> ${t('webview.details.fileSize')}</div>
             <div class="detail-value" id="fileSize">${fileSizeStr}</div>
           </div>
           <div class="detail-card">
-            <div class="detail-label"><span class="codicon codicon-symbol-class"></span> Elements</div>
+            <div class="detail-label"><span class="codicon codicon-symbol-class"></span> ${t('webview.details.elements')}</div>
             <div class="detail-value">${totalElements}</div>
             <div class="detail-sub">${elementsStr}</div>
           </div>
@@ -316,7 +327,7 @@ export class IconDetailsPanel {
         
         <div class="Variants-section${hasMoreColors ? ' disabled-section' : ''}">
           <div class="Variants-header">
-            <h2><span class="codicon codicon-color-mode"></span> Variants</h2>
+            <h2><span class="codicon codicon-color-mode"></span> ${t('webview.details.variants')}</h2>
             ${variantsAddButtonHtml}
           </div>
           ${variantsContentHtml}
@@ -324,11 +335,11 @@ export class IconDetailsPanel {
         
         <div class="usages-section">
           <div class="usages-header">
-            <h2><span class="codicon codicon-references"></span> Usages</h2>
+            <h2><span class="codicon codicon-references"></span> ${t('webview.details.usages')}</h2>
             <span class="usages-count" id="usagesCount"></span>
           </div>
           <div class="usages-list" id="usagesList">
-            <div class="loading"><span class="codicon codicon-sync"></span> Searching for usages...</div>
+            <div class="loading"><span class="codicon codicon-sync"></span> ${t('webview.details.searchingUsages')}</div>
           </div>
         </div>
       </div>

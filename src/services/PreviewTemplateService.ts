@@ -355,8 +355,26 @@ export class PreviewTemplateService {
             svgEl.style.width = 'var(--avatar-size)';
             svgEl.style.height = 'var(--avatar-size)';
           }
-        }
-      }
+        }        
+        // Update variants bar with custom colors if provided
+        if (message.customColors && message.customColors.length > 0) {
+          const variantsBar = document.querySelector('.variants-bar');
+          if (variantsBar) {
+            // Create custom variant swatches (max 3)
+            const displayColors = message.customColors.slice(0, 3);
+            const extraCount = message.customColors.length - 3;
+            
+            let swatchesHtml = displayColors.map(color => 
+              \`<span class="variant-color-dot" style="background-color: \${color};" title="\${color}"></span>\`
+            ).join('');
+            
+            if (extraCount > 0) {
+              swatchesHtml += \`<span class="variant-more-indicator">+\${extraCount}</span>\`;
+            }
+            
+            variantsBar.innerHTML = \`<div class="variant-item" title="custom (unsaved)">\${swatchesHtml}</div>\`;
+          }
+        }      }
     });
   </script>`;
   }

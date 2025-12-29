@@ -3,6 +3,7 @@ import * as path from 'path';
 import { WorkspaceIcon, IconAnimation } from '../types/icons';
 import { saveTempSvgIcon } from './TempIconManager';
 import { SvgContentCache } from './SvgContentCache';
+import { t } from '../i18n';
 
 /**
  * TreeItem for SVG icons in the tree view
@@ -83,7 +84,7 @@ export class SvgItem extends vscode.TreeItem {
       this.contextValue = 'svgAction';
       this.command = {
         command: 'iconManager.scanWorkspace',
-        title: 'Scan Workspace'
+        title: t('commands.scanWorkspace')
       };
     } else if (type === 'usage' && usage) {
       // Usage item - clicking navigates to the file/line
@@ -92,7 +93,7 @@ export class SvgItem extends vscode.TreeItem {
       this.tooltip = usage.preview;
       this.command = {
         command: 'iconManager.goToUsage',
-        title: 'Go to Usage',
+        title: t('commands.goToUsage'),
         arguments: [usage.file, usage.line]
       };
     } else if (icon) {
@@ -241,7 +242,7 @@ export class SvgItem extends vscode.TreeItem {
       if (icon.filePath && icon.line !== undefined) {
         this.command = {
           command: 'iconManager.goToInlineSvg',
-          title: 'Go to Reference',
+          title: t('commands.goToReference'),
           arguments: [icon]
         };
       }
@@ -250,7 +251,7 @@ export class SvgItem extends vscode.TreeItem {
       this.tooltip = tooltipLines.join('\n');
       this.command = {
         command: 'iconManager.showDetails',
-        title: 'Show Details',
+        title: t('commands.showDetails'),
         arguments: [icon]
       };
     } else if (icon.source === 'inline' && icon.filePath && icon.line !== undefined) {
@@ -259,7 +260,7 @@ export class SvgItem extends vscode.TreeItem {
       this.tooltip = `${icon.name}\n${fileName}:${icon.line + 1}`;
       this.command = {
         command: 'iconManager.goToInlineSvg',
-        title: 'Go to SVG',
+        title: t('commands.goToSvg'),
         arguments: [icon]
       };
     } else {
@@ -267,7 +268,7 @@ export class SvgItem extends vscode.TreeItem {
       this.tooltip = `${icon.name}\n${icon.path}`;
       this.command = {
         command: 'iconManager.showDetails',
-        title: 'Show Details',
+        title: t('commands.showDetails'),
         arguments: [icon]
       };
     }

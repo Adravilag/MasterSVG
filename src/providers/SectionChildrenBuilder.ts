@@ -3,6 +3,7 @@ import * as path from 'path';
 import { WorkspaceIcon, IconUsage } from '../types/icons';
 import { SvgItem } from './SvgItem';
 import { FolderTreeBuilder } from './FolderTreeBuilder';
+import { t } from '../i18n';
 
 /**
  * Builds section children for different tree view sections
@@ -372,7 +373,7 @@ export class SectionChildrenBuilder {
       item.contextValue = 'iconUsage';
       item.command = {
         command: 'iconManager.goToInlineSvg',
-        title: 'Go to Usage',
+        title: t('commands.goToUsage'),
         arguments: [{ icon: { filePath, line: usage.line } }]
       };
       items.push(item);

@@ -34,9 +34,35 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
   refresh(): void {
     // Clear and rescan
     this.svgFiles.clear();
+    this.folderCache.clear();
     this.isInitialized = false;
     this.scanPromise = null;
     this._onDidChangeTreeData.fire();
+  }
+
+  /**
+   * Soft refresh - re-renders tree without clearing cache
+   * This preserves expansion state better than full refresh
+   * Use for updates that don't change the file list (e.g., build status updates)
+   */
+  softRefresh(): void {
+    // Don't clear caches - just re-render using cached data
+    // This preserves tree expansion state
+    this._onDidChangeTreeData.fire();
+  }
+
+  /**
+   * Refresh a specific folder without collapsing other folders
+   */
+  refreshFolder(folderPath: string): void {
+    const folderKey = `folder:${folderPath}`;
+    const cachedFolder = this.folderCache.get(folderKey);
+    if (cachedFolder) {
+      this._onDidChangeTreeData.fire(cachedFolder);
+    } else {
+      // Fallback to soft refresh if folder not in cache
+      this.softRefresh();
+    }
   }
 
   /**
@@ -45,9 +71,8 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
    * but triggers re-render to update build status labels
    */
   refreshFile(_iconPath: string): void {
-    // Just fire event to refresh display - svgFiles cache is still valid
-    // but build status labels need to be re-read from BuiltIconsProvider
-    this._onDidChangeTreeData.fire();
+    // Use soft refresh to preserve expansion state
+    this.softRefresh();
   }
 
   /**
@@ -57,6 +82,25 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
     const iconName = path.basename(iconPath, '.svg');
     this.svgFiles.delete(iconName);
     this._onDidChangeTreeData.fire();
+  }
+
+  /**
+   * Refresh a specific item by icon name without collapsing tree branches
+   * This triggers a partial refresh that preserves expanded state
+   */
+  refreshItemByName(iconName: string): void {
+    const icon = this.svgFiles.get(iconName);
+    if (icon) {
+      // Create a SvgItem for this icon and fire partial refresh
+      const item = new SvgItem(
+        icon.name,
+        0,
+        vscode.TreeItemCollapsibleState.None,
+        'icon',
+        icon
+      );
+      this._onDidChangeTreeData.fire(item);
+    }
   }
 
   /**

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { ColorService } from '../services/ColorService';
 import { VariantsService } from '../services/VariantsService';
 import { SvgManipulationService } from '../services/SvgManipulationService';
+import { t } from '../i18n';
 
 /**
  * Context passed to color handlers
@@ -39,8 +40,11 @@ export function handlePreviewColor(
     svg: updatedSvg
   });
   
-  // Update TreeView preview in real-time
-  vscode.commands.executeCommand('iconManager.updateTreeViewPreview', ctx.iconData.name, updatedSvg);
+  // Extract colors from updated SVG for custom variant display
+  const { colors } = ctx.colorService.extractColorsFromSvg(updatedSvg);
+  
+  // Update TreeView preview in real-time with current colors
+  vscode.commands.executeCommand('iconManager.updateTreeViewPreview', ctx.iconData.name, updatedSvg, colors);
 }
 
 /**
@@ -67,12 +71,12 @@ export function handleChangeColor(
     message.newColor
   );
   ctx.updateSvg(updatedSvg);
-  
-  // Update TreeView preview
-  vscode.commands.executeCommand('iconManager.updateTreeViewPreview', ctx.iconData.name, updatedSvg);
 
   // Use filtered extraction - only save editable colors (excludes SMIL secondary)
   const { colors } = ctx.colorService.extractColorsFromSvg(updatedSvg);
+  
+  // Update TreeView preview with current colors for real-time custom variant display
+  vscode.commands.executeCommand('iconManager.updateTreeViewPreview', ctx.iconData.name, updatedSvg, colors);
 
   // If in "original" (read-only), switch to "custom" automatically
   let targetVariantIndex = ctx.selectedVariantIndex;
@@ -202,7 +206,7 @@ export function handleApplyFilters(
 
   // If no filters applied, nothing to do
   if (hue === 0 && saturation === 100 && brightness === 100) {
-    vscode.window.showInformationMessage('No filters to apply');
+    vscode.window.showInformationMessage(t('messages.noFiltersToApply'));
     return;
   }
 
@@ -223,6 +227,9 @@ export function handleApplyFilters(
   updatedSvg = updatedSvg.replace(/filter:\s*hue-rotate\([^)]+\)\s*saturate\([^)]+\)\s*brightness\([^)]+\);?\s*/gi, '');
   
   ctx.updateSvg(updatedSvg);
+  
+  // Update TreeView preview with current colors
+  vscode.commands.executeCommand('iconManager.updateTreeViewPreview', ctx.iconData.name, updatedSvg, newColors);
 
   // Update the selected variant with new colors
   let targetVariantIndex = ctx.selectedVariantIndex;
@@ -247,7 +254,7 @@ export function handleApplyFilters(
   });
 
   ctx.refresh();
-  vscode.window.showInformationMessage('Filters applied to colors');
+  vscode.window.showInformationMessage(t('messages.filtersApplied'));
 }
 
 /**

@@ -3,6 +3,7 @@ import { getKeyframesForAnimation } from './AnimationKeyframes';
 import { getConfig } from '../utils/configHelper';
 import { toVariableName } from '../utils/extensionHelpers';
 import { AnimationSettings } from './AnimationService';
+import { t } from '../i18n';
 
 /**
  * Animation button configuration
@@ -173,7 +174,23 @@ ${animationRule}`;
       .replace('<span id="animName"></span>', `<span id="animName">${data.animationName}</span>`)
       .replace(/\$\{colorTabContent\}/g, data.colorTabContent)
       .replace(/\$\{animationTabContent\}/g, data.animationTabContent)
-      .replace(/\$\{codeTabContent\}/g, data.codeTabContent);
+      .replace(/\$\{codeTabContent\}/g, data.codeTabContent)
+      // i18n translations for editor body
+      .replace(/\$\{i18n_editorBadge\}/g, t('webview.editor.editorBadge'))
+      .replace(/\$\{i18n_optimizedBadge\}/g, t('webview.editor.optimizedBadge'))
+      .replace(/\$\{i18n_renameIcon\}/g, t('webview.editor.renameIcon'))
+      .replace(/\$\{i18n_zoomOut\}/g, t('webview.editor.zoomOut'))
+      .replace(/\$\{i18n_zoomIn\}/g, t('webview.editor.zoomIn'))
+      .replace(/\$\{i18n_resetZoom\}/g, t('webview.editor.resetZoom'))
+      .replace(/\$\{i18n_restartAnimation\}/g, t('webview.editor.restartAnimation'))
+      .replace(/\$\{i18n_buildIcons\}/g, t('webview.editor.buildIcons'))
+      .replace(/\$\{i18n_copySvg\}/g, t('webview.editor.copySvg'))
+      .replace(/\$\{i18n_optimizeSvg\}/g, t('webview.editor.optimizeSvg'))
+      .replace(/\$\{i18n_applyOnBuild\}/g, t('webview.editor.applyOnBuild'))
+      .replace(/\$\{i18n_discardOptimization\}/g, t('webview.editor.discardOptimization'))
+      .replace(/\$\{i18n_tabColor\}/g, t('webview.editor.tabColor'))
+      .replace(/\$\{i18n_tabAnimation\}/g, t('webview.editor.tabAnimation'))
+      .replace(/\$\{i18n_tabCode\}/g, t('webview.editor.tabCode'));
   }
 
   /**
@@ -217,7 +234,36 @@ ${animationRule}`;
       .replace(/\$\{directionReverseSelected\}/g, settings.direction === 'reverse' ? 'selected' : '')
       .replace(/\$\{directionAlternateSelected\}/g, settings.direction === 'alternate' ? 'selected' : '')
       .replace(/\$\{directionAltReverseSelected\}/g, settings.direction === 'alternate-reverse' ? 'selected' : '')
-      .replace(/\$\{copyAnimBtnDisabled\}/g, currentType === 'none' ? 'disabled' : '');
+      .replace(/\$\{copyAnimBtnDisabled\}/g, currentType === 'none' ? 'disabled' : '')
+      // i18n translations for animation tab
+      .replace(/\$\{i18n_animationType\}/g, t('webview.animation.animationType'))
+      .replace(/\$\{i18n_categoryBasic\}/g, t('webview.animation.categoryBasic'))
+      .replace(/\$\{i18n_categoryAttention\}/g, t('webview.animation.categoryAttention'))
+      .replace(/\$\{i18n_categoryEntrance\}/g, t('webview.animation.categoryEntrance'))
+      .replace(/\$\{i18n_categoryDraw\}/g, t('webview.animation.categoryDraw'))
+      .replace(/\$\{i18n_drawHint\}/g, t('webview.animation.drawHint'))
+      .replace(/\$\{i18n_settings\}/g, t('webview.animation.settings'))
+      .replace(/\$\{i18n_duration\}/g, t('webview.animation.duration'))
+      .replace(/\$\{i18n_delay\}/g, t('webview.animation.delay'))
+      .replace(/\$\{i18n_timing\}/g, t('webview.animation.timing'))
+      .replace(/\$\{i18n_iteration\}/g, t('webview.animation.iteration'))
+      .replace(/\$\{i18n_direction\}/g, t('webview.animation.direction'))
+      .replace(/\$\{i18n_timingLinear\}/g, t('webview.animation.timingLinear'))
+      .replace(/\$\{i18n_timingEase\}/g, t('webview.animation.timingEase'))
+      .replace(/\$\{i18n_timingEaseIn\}/g, t('webview.animation.timingEaseIn'))
+      .replace(/\$\{i18n_timingEaseOut\}/g, t('webview.animation.timingEaseOut'))
+      .replace(/\$\{i18n_timingEaseInOut\}/g, t('webview.animation.timingEaseInOut'))
+      .replace(/\$\{i18n_iterationOnce\}/g, t('webview.animation.iterationOnce'))
+      .replace(/\$\{i18n_iterationTwice\}/g, t('webview.animation.iterationTwice'))
+      .replace(/\$\{i18n_iteration3Times\}/g, t('webview.animation.iteration3Times'))
+      .replace(/\$\{i18n_iterationInfinite\}/g, t('webview.animation.iterationInfinite'))
+      .replace(/\$\{i18n_directionNormal\}/g, t('webview.animation.directionNormal'))
+      .replace(/\$\{i18n_directionReverse\}/g, t('webview.animation.directionReverse'))
+      .replace(/\$\{i18n_directionAlternate\}/g, t('webview.animation.directionAlternate'))
+      .replace(/\$\{i18n_directionAltReverse\}/g, t('webview.animation.directionAltReverse'))
+      .replace(/\$\{i18n_export\}/g, t('webview.animation.export'))
+      .replace(/\$\{i18n_copyWithAnimation\}/g, t('webview.animation.copyWithAnimation'))
+      .replace(/\$\{i18n_exportHint\}/g, t('webview.animation.exportHint'));
   }
 
   /**
@@ -238,7 +284,15 @@ ${animationRule}`;
       .replace(/\$\{animationType\}/g, animType)
       .replace(/\$\{animationCodeHtml\}/g, this.generateAnimationCodeHtml(animType, detectedAnimation?.settings))
       .replace(/\$\{buildFormatBadge\}/g, getConfig().buildFormat === 'sprite.svg' ? 'Sprite' : 'WebComponent')
-      .replace(/\$\{usageCodeHtml\}/g, this.generateUsageCodeHtml(name, animType));
+      .replace(/\$\{usageCodeHtml\}/g, this.generateUsageCodeHtml(name, animType))
+      // i18n translations for code tab
+      .replace(/\$\{i18n_svgSource\}/g, t('webview.code.svgSource'))
+      .replace(/\$\{i18n_animationCss\}/g, t('webview.code.animationCss'))
+      .replace(/\$\{i18n_usageExample\}/g, t('webview.code.usageExample'))
+      .replace(/\$\{i18n_copy\}/g, t('webview.code.copy'))
+      .replace(/\$\{i18n_copySvg\}/g, t('webview.code.copySvg'))
+      .replace(/\$\{i18n_copyAnimation\}/g, t('webview.code.copyAnimation'))
+      .replace(/\$\{i18n_copyUsage\}/g, t('webview.code.copyUsage'));
   }
 
   /**

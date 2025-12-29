@@ -5,6 +5,7 @@ import { toVariableName, loadTemplate } from './extensionHelpers';
 import { getConfig } from './configHelper';
 import { ErrorHandler } from './errorHandler';
 import { validateSvgContent } from './svgValidation';
+import { extractIconsObjectContent } from './outputFileManager';
 
 /**
  * Animation settings interface
@@ -57,11 +58,13 @@ function addNewIconToContent(content: string, varName: string, iconEntry: string
   }
 
   let updatedContent = content.slice(0, iconsObjMatch.index) + iconEntry + '\n\n' + content.slice(iconsObjMatch.index);
-  const objContent = /export const icons = \{([^}]*)\}/.exec(updatedContent);
-  if (objContent) {
-    const existingIcons = objContent[1].trim();
-    const newIcons = existingIcons ? `${existingIcons},\n  ${varName}` : `\n  ${varName}\n`;
-    updatedContent = updatedContent.replace(/export const icons = \{([^}]*)\}/, `export const icons = {${newIcons}}`);
+  
+  // Use proper brace matching to find icons object content
+  const objData = extractIconsObjectContent(updatedContent);
+  if (objData) {
+    const existingIcons = objData.inner.trim();
+    const newInner = existingIcons ? `${existingIcons},\n  ${varName}` : `\n  ${varName}\n`;
+    updatedContent = updatedContent.substring(0, objData.startIndex) + newInner + updatedContent.substring(objData.endIndex);
   }
   return updatedContent;
 }

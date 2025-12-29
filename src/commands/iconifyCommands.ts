@@ -7,6 +7,7 @@ import { searchIconify, fetchIconSvg, IconifySearchResult } from '../utils/iconi
 import { addToIconsJs, addToSpriteSvg } from '../utils/iconsFileManager';
 import { getConfig, getOutputPathOrWarn } from '../utils/configHelper';
 import { getIconPickerHtml } from '../utils/iconPickerHtml';
+import { t } from '../i18n';
 
 /**
  * Interface for providers needed by Iconify commands
@@ -57,7 +58,7 @@ export function showIconifyReplacementPicker(
             const svg = await fetchIconSvg(prefix, name, color !== '#ffffff' ? color : undefined);
 
             if (!svg) {
-              vscode.window.showErrorMessage('Failed to fetch icon SVG');
+              vscode.window.showErrorMessage(t('messages.failedToFetchIcon'));
               return;
             }
 
@@ -65,7 +66,7 @@ export function showIconifyReplacementPicker(
             panel.dispose();
             resolve({ prefix, name, svg });
           } catch (error) {
-            vscode.window.showErrorMessage(`Failed to fetch icon: ${error}`);
+            vscode.window.showErrorMessage(t('messages.failedToFetchIconError', { error: String(error) }));
           }
         } else if (message.command === 'cancel') {
           resolved = true;
@@ -110,7 +111,7 @@ export function showIconPickerPanel(
           const svg = await fetchIconSvg(prefix, name, color !== '#ffffff' ? color : undefined);
           
           if (!svg) {
-            vscode.window.showErrorMessage('Failed to fetch icon SVG');
+            vscode.window.showErrorMessage(t('messages.failedToFetchIcon'));
             return;
           }
 
@@ -131,9 +132,9 @@ export function showIconPickerPanel(
 
           workspaceSvgProvider.refresh();
           const formatName = isSprite ? 'sprite' : 'icons library';
-          vscode.window.showInformationMessage(`✅ Icon "${iconName}" added to ${formatName}!`);
+          vscode.window.showInformationMessage(t('messages.iconAddedToFormat', { name: iconName, format: formatName }));
         } catch (error) {
-          vscode.window.showErrorMessage(`Failed to add icon: ${error}`);
+          vscode.window.showErrorMessage(t('messages.failedToAddIcon', { error: String(error) }));
         }
       } else if (message.command === 'search') {
         // Handle search from within the picker
@@ -403,8 +404,8 @@ export function registerIconifyCommands(
   // Command: Search icons (Iconify)
   const searchIconsCmd = vscode.commands.registerCommand('iconManager.searchIcons', async () => {
     const query = await vscode.window.showInputBox({
-      prompt: 'Search for icons (e.g., "arrow", "home", "user")',
-      placeHolder: 'Enter search term'
+      prompt: t('ui.prompts.searchIconifyFull'),
+      placeHolder: t('ui.placeholders.enterSearchTerm')
     });
 
     if (!query) return;
@@ -412,7 +413,7 @@ export function registerIconifyCommands(
     const results = await searchIconify(query);
 
     if (results.length === 0) {
-      vscode.window.showInformationMessage(`No icons found for "${query}"`);
+      vscode.window.showInformationMessage(t('messages.noIconsFoundForQuery', { query }));
       return;
     }
 
@@ -423,8 +424,8 @@ export function registerIconifyCommands(
   const searchIconifyCmd = vscode.commands.registerCommand('iconManager.searchIconify', async (query?: string) => {
     // If no query provided, show input box
     const searchTerm = query || await vscode.window.showInputBox({
-      prompt: 'Search for icons in Iconify',
-      placeHolder: 'Enter search term (e.g., "arrow", "home", "user")'
+      prompt: t('ui.prompts.searchIconify'),
+      placeHolder: t('ui.placeholders.enterSearchTerm')
     });
 
     if (!searchTerm) return;
@@ -437,7 +438,7 @@ export function registerIconifyCommands(
       const results = await searchIconify(searchTerm);
 
       if (results.length === 0) {
-        vscode.window.showInformationMessage(`No icons found for "${searchTerm}" in Iconify`);
+        vscode.window.showInformationMessage(t('messages.noIconsFoundForQuery', { query: searchTerm }));
         return;
       }
 
@@ -453,13 +454,13 @@ export function registerIconifyCommands(
     // Show source selection menu
     const sourceChoice = await vscode.window.showQuickPick([
       { 
-        label: '$(cloud-download) Search in Iconify', 
-        description: 'Find and build an icon from Iconify library',
+        label: `$(cloud-download) ${t('ui.labels.searchInIconify')}`, 
+        description: t('ui.labels.findBuildIconify'),
         value: 'iconify' 
       },
       { 
-        label: '$(folder-opened) Browse for SVG file', 
-        description: 'Select an existing SVG file',
+        label: `$(folder-opened) ${t('ui.labels.browseForSvgFile')}`, 
+        description: t('ui.labels.selectExistingSvg'),
         value: 'file' 
       }
     ], {
@@ -475,9 +476,9 @@ export function registerIconifyCommands(
     if (sourceChoice.value === 'iconify') {
       // Search Iconify
       const query = await vscode.window.showInputBox({
-        prompt: 'Search Iconify for an icon',
+        prompt: t('ui.prompts.searchIconify'),
         value: iconName,
-        placeHolder: 'Enter search term (e.g., arrow, home, user)'
+        placeHolder: t('ui.placeholders.enterSearchTerm')
       });
 
       if (!query) return;
@@ -485,7 +486,7 @@ export function registerIconifyCommands(
       const results = await searchIconify(query);
 
       if (results.length === 0) {
-        vscode.window.showInformationMessage(`No icons found for "${query}"`);
+        vscode.window.showInformationMessage(t('messages.noIconsFoundForQuery', { query }));
         return;
       }
 
@@ -548,7 +549,7 @@ export function registerIconifyCommands(
     builtIconsProvider.refresh();
     
     const formatName = isSprite ? 'sprite' : 'icons library';
-    vscode.window.showInformationMessage(`✅ Icon "${finalIconName}" imported to ${formatName}!`);
+    vscode.window.showInformationMessage(t('messages.iconImportedToFormat', { name: finalIconName, format: formatName }));
   });
 
   context.subscriptions.push(

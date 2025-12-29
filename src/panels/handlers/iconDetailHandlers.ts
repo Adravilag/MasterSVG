@@ -6,6 +6,7 @@ import * as vscode from 'vscode';
 import { SvgOptimizer } from '../../services/SvgOptimizer';
 import { ColorService } from '../../services/ColorService';
 import { getVariantsService } from '../../services/VariantsService';
+import { t } from '../../i18n';
 
 const svgOptimizer = new SvgOptimizer();
 const colorService = new ColorService();
@@ -70,7 +71,7 @@ export async function handleGoToUsage(message: { file: string; line: number }): 
 export async function handleCopyName(ctx: PanelContext): Promise<void> {
   if (ctx.iconDetails?.name) {
     await vscode.env.clipboard.writeText(ctx.iconDetails.name);
-    vscode.window.showInformationMessage(`Copied "${ctx.iconDetails.name}" to clipboard`);
+    vscode.window.showInformationMessage(t('messages.copiedNameToClipboard', { name: ctx.iconDetails.name }));
   }
 }
 
@@ -78,7 +79,7 @@ export async function handleCopySvg(ctx: PanelContext, message: { svg?: string }
   const svgToCopy = message.svg || ctx.iconDetails?.svg;
   if (svgToCopy) {
     await vscode.env.clipboard.writeText(svgToCopy);
-    vscode.window.showInformationMessage('SVG copied to clipboard');
+    vscode.window.showInformationMessage(t('messages.svgCopiedToClipboard'));
   }
 }
 
@@ -122,7 +123,7 @@ export async function handleOptimizeSvg(ctx: PanelContext, message: { preset?: s
         `SVG optimized! Saved ${svgOptimizer.formatSize(result.savings)} (${result.savingsPercent.toFixed(1)}%)`
       );
     } else {
-      vscode.window.showInformationMessage('SVG is already optimized');
+      vscode.window.showInformationMessage(t('messages.svgAlreadyOptimized'));
     }
   }
 }
@@ -130,7 +131,7 @@ export async function handleOptimizeSvg(ctx: PanelContext, message: { preset?: s
 export function handleApplyOptimizedSvg(ctx: PanelContext, message: { svg: string }): void {
   if (ctx.iconDetails && message.svg) {
     ctx.setIconDetails({ ...ctx.iconDetails, svg: message.svg });
-    vscode.window.showInformationMessage('Optimized SVG applied');
+    vscode.window.showInformationMessage(t('messages.optimizedSvgApplied'));
   }
 }
 
@@ -159,7 +160,7 @@ export function handleAddColorToSvg(ctx: PanelContext, message: { color: string 
     }
     ctx.setIconDetails({ ...ctx.iconDetails, svg: updatedSvg });
     ctx.update();
-    vscode.window.showInformationMessage(`Added fill color: ${message.color}`);
+    vscode.window.showInformationMessage(t('messages.addedFillColor', { color: message.color }));
   }
 }
 
@@ -206,8 +207,8 @@ export function handleApplyDefaultVariant(ctx: PanelContext): void {
 export async function handleSaveVariant(ctx: PanelContext): Promise<void> {
   if (ctx.iconDetails) {
     const variantName = await vscode.window.showInputBox({
-      prompt: 'Enter variant name',
-      placeHolder: 'e.g. Dark theme, Primary colors...'
+      prompt: t('editor.enterVariantName'),
+      placeHolder: t('editor.variantPlaceholder')
     });
     
     if (variantName) {
@@ -216,7 +217,7 @@ export async function handleSaveVariant(ctx: PanelContext): Promise<void> {
       variantsService.saveVariant(ctx.iconDetails.name, variantName, colors);
       variantsService.persistToFile();
       ctx.update();
-      vscode.window.showInformationMessage(`Variant "${variantName}" saved`);
+      vscode.window.showInformationMessage(t('messages.variantSaved', { name: variantName }));
     }
   }
 }
@@ -255,9 +256,9 @@ export function handleSetDefaultVariant(ctx: PanelContext, message: { variantNam
     ctx.update();
     
     if (message.variantName) {
-      vscode.window.showInformationMessage(`"${message.variantName}" is now the default Variant for ${ctx.iconDetails.name}`);
+      vscode.window.showInformationMessage(t('messages.variantSetAsDefault', { name: message.variantName, iconName: ctx.iconDetails.name }));
     } else {
-      vscode.window.showInformationMessage(`default variant cleared for ${ctx.iconDetails.name}`);
+      vscode.window.showInformationMessage(t('messages.defaultVariantCleared', { iconName: ctx.iconDetails.name }));
     }
   }
 }

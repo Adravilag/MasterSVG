@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { IconManagerPanel } from '../panels/IconManagerPanel';
 import { WelcomePanel } from '../panels/WelcomePanel';
+import { t } from '../i18n';
 
 /**
  * Interface for provider that can scan SVGs
@@ -42,7 +43,7 @@ export function registerPanelCommands(
         await workspaceSvgProvider.scanFolder(folder);
         await workspaceSvgProvider.scanInlineSvgs();
         await workspaceSvgProvider.scanIconUsages();
-        vscode.window.showInformationMessage('SVG scan complete!');
+        vscode.window.showInformationMessage(t('messages.svgScanComplete'));
       }
     })
   );
@@ -51,7 +52,7 @@ export function registerPanelCommands(
   commands.push(
     vscode.commands.registerCommand('iconManager.scanUsages', async () => {
       await workspaceSvgProvider.scanIconUsages();
-      vscode.window.showInformationMessage('Usage scan complete!');
+      vscode.window.showInformationMessage(t('messages.usageScanComplete'));
     })
   );
 

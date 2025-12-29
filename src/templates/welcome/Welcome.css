@@ -90,6 +90,45 @@ body {
   opacity: 0.8;
 }
 
+/* Language Selector in Header */
+.header-language {
+  margin-left: 8px;
+  padding-left: 16px;
+  border-left: 1px solid var(--card-border);
+}
+
+.header-language select {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  color: var(--vscode-foreground);
+  font-size: 12px;
+  padding: 4px 24px 4px 8px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%23888'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  min-width: 90px;
+}
+
+.header-language select:hover {
+  background-color: rgba(255,255,255,0.1);
+  border-color: var(--accent);
+}
+
+.header-language select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.header-language select option {
+  background: var(--vscode-dropdown-background);
+  color: var(--vscode-dropdown-foreground);
+  padding: 8px;
+}
+
 /* SVG Icons */
 .svg-icon {
   width: 16px;

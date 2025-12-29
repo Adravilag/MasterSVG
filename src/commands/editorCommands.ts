@@ -6,6 +6,7 @@ import { IconDetailsPanel } from '../panels/IconDetailsPanel';
 import { WorkspaceSvgProvider, SvgItem, WorkspaceIcon } from '../providers/WorkspaceSvgProvider';
 import { IconPreviewProvider } from '../providers/IconPreviewProvider';
 import { getComponentExporter } from '../services/ComponentExporter';
+import { t } from '../i18n';
 
 /**
  * Interface for providers needed by editor commands
@@ -60,7 +61,7 @@ export function registerEditorCommands(
         iconName = path.basename(filePath, path.extname(filePath));
         lineNumber = 1;
       } else {
-        vscode.window.showWarningMessage('Please select a valid SVG file');
+        vscode.window.showWarningMessage(t('messages.pleaseSelectValidSvgFile'));
         return;
       }
     } else if (typeof iconNameOrItem === 'string') {
@@ -97,7 +98,7 @@ export function registerEditorCommands(
     }
 
     if (!iconName) {
-      vscode.window.showWarningMessage('Select an icon from the tree view or select SVG code in the editor');
+      vscode.window.showWarningMessage(t('messages.selectIconFromTreeOrEditor'));
       return;
     }
 
@@ -112,7 +113,7 @@ export function registerEditorCommands(
     }
 
     if (!svg) {
-      vscode.window.showWarningMessage(`Could not find SVG data for ${iconName}`);
+      vscode.window.showWarningMessage(t('messages.couldNotFindSvgData', { name: iconName }));
       return;
     }
     
@@ -121,7 +122,7 @@ export function registerEditorCommands(
     const colorMatches = svg.match(/#[0-9a-fA-F]{3,8}\b|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\)/gi);
     const uniqueColors = colorMatches ? new Set(colorMatches.map(c => c.toLowerCase())).size : 0;
     if (uniqueColors > MAX_COLORS_FOR_EDIT) {
-      vscode.window.showWarningMessage(`Cannot edit "${iconName}": This SVG has ${uniqueColors} unique colors (likely a rasterized image). Color editing is disabled for SVGs with more than ${MAX_COLORS_FOR_EDIT} colors.`);
+      vscode.window.showWarningMessage(t('messages.cannotEditRasterized', { name: iconName, colors: uniqueColors, maxColors: MAX_COLORS_FOR_EDIT }));
       return;
     }
     
@@ -201,7 +202,7 @@ export function registerEditorCommands(
   // Command: Export as component
   const exportComponentCmd = vscode.commands.registerCommand('iconManager.exportComponent', async (item?: any) => {
     if (!item?.icon?.svg) {
-      vscode.window.showWarningMessage('Select an icon to export');
+      vscode.window.showWarningMessage(t('messages.selectIconToExport'));
       return;
     }
 
@@ -213,7 +214,7 @@ export function registerEditorCommands(
         { label: 'Angular', value: 'angular' },
         { label: 'Web Component', value: 'webcomponent' }
       ],
-      { placeHolder: 'Select component format' }
+      { placeHolder: t('ui.placeholders.selectComponentFormat') }
     );
 
     if (!format) return;
@@ -235,8 +236,8 @@ export function registerEditorCommands(
   // Command: Update TreeView preview from Editor color changes
   const updateTreeViewPreviewCmd = vscode.commands.registerCommand(
     'iconManager.updateTreeViewPreview',
-    (name: string, svg: string) => {
-      iconPreviewProvider.updateSvgContent(name, svg);
+    (name: string, svg: string, currentColors?: string[]) => {
+      iconPreviewProvider.updateSvgContent(name, svg, currentColors);
     }
   );
   disposables.push(updateTreeViewPreviewCmd);

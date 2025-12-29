@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { t } from '../i18n';
 
 /**
  * Icon location data
@@ -35,18 +36,18 @@ export async function handleRequestRename(
   if (!ctx.iconData || !message.currentName) return;
 
   const newName = await vscode.window.showInputBox({
-    prompt: 'Enter new name for the icon',
+    prompt: t('editor.renamePrompt'),
     value: message.currentName,
     placeHolder: 'icon-name',
     validateInput: (value) => {
       if (!value || value.trim() === '') {
-        return 'Name cannot be empty';
+        return t('editor.nameCannotBeEmpty');
       }
       if (value === message.currentName) {
-        return 'Enter a different name';
+        return t('editor.enterDifferentName');
       }
       if (!/^[a-zA-Z0-9_-]+$/.test(value)) {
-        return 'Name can only contain letters, numbers, dashes and underscores';
+        return t('editor.nameValidation');
       }
       return undefined;
     }
@@ -74,9 +75,9 @@ export async function handleRequestRename(
           ctx.updateIconLocation(result.newPath);
         }
 
-        ctx.panel.title = `Edit: ${result.newName}`;
+        ctx.panel.title = `${t('editor.edit')}: ${result.newName}`;
         ctx.postMessage({ command: 'nameUpdated', newName: result.newName });
-        vscode.window.showInformationMessage(`Renamed to "${result.newName}"`);
+        vscode.window.showInformationMessage(t('messages.renamedTo', { name: result.newName }));
 
         vscode.commands.executeCommand(
           'iconManager.revealInTree',
@@ -86,7 +87,7 @@ export async function handleRequestRename(
         );
       }
     } catch (error) {
-      vscode.window.showErrorMessage(`Error renaming: ${error}`);
+      vscode.window.showErrorMessage(t('messages.errorRenaming', { error: String(error) }));
     }
   }
 }
@@ -121,9 +122,9 @@ export async function handleRenameIcon(
         ctx.updateIconLocation(result.newPath);
       }
 
-      ctx.panel.title = `Edit: ${result.newName}`;
+      ctx.panel.title = `${t('editor.edit')}: ${result.newName}`;
       ctx.refresh();
-      vscode.window.showInformationMessage(`Renamed to "${result.newName}"`);
+      vscode.window.showInformationMessage(t('messages.renamedTo', { name: result.newName }));
 
       vscode.commands.executeCommand(
         'iconManager.revealInTree',
@@ -133,7 +134,7 @@ export async function handleRenameIcon(
       );
     }
   } catch (error) {
-    vscode.window.showErrorMessage(`Error renaming icon: ${error}`);
+    vscode.window.showErrorMessage(t('messages.errorRenaming', { error: String(error) }));
   }
 }
 

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { t } from '../i18n';
 
 export interface IconManagerConfig {
   outputDirectory: string;
@@ -113,7 +114,7 @@ export function getIconSnippet(iconName: string): string {
 export function getWorkspaceFolderOrWarn(): vscode.WorkspaceFolder | undefined {
   const folder = vscode.workspace.workspaceFolders?.[0];
   if (!folder) {
-    vscode.window.showWarningMessage('No workspace folder open');
+    vscode.window.showWarningMessage(t('messages.noWorkspace'));
   }
   return folder;
 }
@@ -123,7 +124,7 @@ export function getWorkspaceFolderOrWarn(): vscode.WorkspaceFolder | undefined {
  */
 export function checkConfigOrWarn(): boolean {
   if (!isOutputConfigured()) {
-    vscode.window.showWarningMessage('Configure output directory first');
+    vscode.window.showWarningMessage(t('messages.configureOutputFirst'));
     return false;
   }
   return true;
@@ -139,7 +140,7 @@ export function getOutputPathOrWarn(): string | undefined {
   
   const fullPath = getFullOutputPath();
   if (!fullPath) {
-    vscode.window.showWarningMessage('No workspace folder open');
+    vscode.window.showWarningMessage(t('messages.noWorkspace'));
     return undefined;
   }
   

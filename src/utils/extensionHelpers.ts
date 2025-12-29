@@ -4,6 +4,7 @@
  * Funciones utilitarias extraídas de extension.ts para facilitar testing
  */
 import * as path from 'node:path';
+import { extractIconsObjectContent } from './outputFileManager';
 
 // Cache for loaded templates
 const templateCache: Map<string, string> = new Map();
@@ -294,12 +295,12 @@ export function addIconToFile(content: string, varName: string, newEntry: string
   if (iconsObjMatch && iconsObjMatch.index !== undefined) {
     content = content.slice(0, iconsObjMatch.index) + newEntry + '\n\n' + content.slice(iconsObjMatch.index);
     
-    // Also add to the icons object
-    const objContent = content.match(/export const icons = \{([^}]*)\}/);
-    if (objContent) {
-      const existingIcons = objContent[1].trim();
-      const newIcons = existingIcons ? `${existingIcons},\n  ${varName}` : `\n  ${varName}\n`;
-      content = content.replace(/export const icons = \{([^}]*)\}/, `export const icons = {${newIcons}}`);
+    // Also add to the icons object using proper brace matching
+    const objData = extractIconsObjectContent(content);
+    if (objData) {
+      const existingIcons = objData.inner.trim();
+      const newInner = existingIcons ? `${existingIcons},\n  ${varName}` : `\n  ${varName}\n`;
+      content = content.substring(0, objData.startIndex) + newInner + content.substring(objData.endIndex);
     }
   } else {
     // Just append at the end

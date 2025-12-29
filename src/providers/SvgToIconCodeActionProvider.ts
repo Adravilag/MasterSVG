@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { getConfig } from '../utils/configHelper';
 import { WorkspaceSvgProvider } from './WorkspaceSvgProvider';
+import { t } from '../i18n';
 
 /**
  * Icon source options for transformation
@@ -89,10 +90,10 @@ export class SvgToIconCodeActionProvider implements vscode.CodeActionProvider {
     const config = getConfig();
     const buildFormat = config.buildFormat || 'icons.ts';
     const isSprite = buildFormat === 'sprite.svg';
-    const formatLabel = isSprite ? 'SVG Sprite' : 'Web Component';
+    const formatLabel = isSprite ? t('ui.labels.svgSprite') : t('ui.labels.webComponentJs');
     
     const action = new vscode.CodeAction(
-      `🔄 Transform to ${formatLabel}: "${iconName}"`,
+      t('messages.transformToFormat', { format: formatLabel, name: iconName }),
       vscode.CodeActionKind.QuickFix
     );
 
@@ -106,7 +107,7 @@ export class SvgToIconCodeActionProvider implements vscode.CodeActionProvider {
 
     action.command = {
       command: 'iconManager.transformSvgReference',
-      title: 'Transform SVG Reference',
+      title: t('commands.transformSvg'),
       arguments: [options]
     };
 
@@ -146,11 +147,11 @@ export class SvgImgDiagnosticProvider {
       
       const diagnostic = new vscode.Diagnostic(
         range,
-        `SVG "${iconName}" can be converted to Icon component`,
+        t('messages.svgCanBeConverted', { name: iconName }),
         vscode.DiagnosticSeverity.Hint
       );
       diagnostic.code = 'svg-to-icon';
-      diagnostic.source = 'Icon Manager';
+      diagnostic.source = 'IconWrap';
       
       diagnostics.push(diagnostic);
     }
@@ -232,13 +233,13 @@ export class MissingIconCodeActionProvider implements vscode.CodeActionProvider 
     line: number
   ): vscode.CodeAction {
     const action = new vscode.CodeAction(
-      `📥 Import icon: "${iconName}"`,
+      t('messages.importIconName', { name: iconName }),
       vscode.CodeActionKind.QuickFix
     );
 
     action.command = {
       command: 'iconManager.importIcon',
-      title: 'Import Icon',
+      title: t('commands.importIcon'),
       arguments: [iconName, document.uri.fsPath, line]
     };
 

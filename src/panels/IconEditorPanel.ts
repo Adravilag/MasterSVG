@@ -13,6 +13,7 @@ import { AnimationSettings } from '../services/AnimationService';
 import { getSvgConfig } from '../utils/config';
 import { updateIconAnimation, AnimationConfig, addToIconsJs, addToSpriteSvg } from '../utils/iconsFileManager';
 import { getConfig, getOutputPathOrWarn } from '../utils/configHelper';
+import { t } from '../i18n';
 
 // Import handlers
 import {
@@ -114,7 +115,7 @@ export class IconEditorPanel {
 
     const panel = vscode.window.createWebviewPanel(
       'iconEditor',
-      'Icon Editor',
+      t('editor.title'),
       column || vscode.ViewColumn.One,
       {
         enableScripts: true,
@@ -457,7 +458,7 @@ export class IconEditorPanel {
     this._selectedVariantIndex = this._variantsService.getSavedVariants(this._iconData.name).length - 1;
 
     this._update();
-    vscode.window.showInformationMessage(`Variant "${finalName}" generated`);
+    vscode.window.showInformationMessage(t('messages.variantGenerated', { name: finalName }));
   }
 
   // Animation storage methods - use animations.js in output directory
@@ -591,7 +592,7 @@ export class IconEditorPanel {
       // Icon from sprite.svg - update the sprite file
       const updated = await this._updateSpriteFile(svgToSave);
       if (!updated) {
-        vscode.window.showWarningMessage('Could not update sprite.svg');
+        vscode.window.showWarningMessage(t('messages.couldNotUpdateSprite'));
         return;
       }
       // Trigger rebuild after updating sprite
@@ -602,7 +603,7 @@ export class IconEditorPanel {
       // Update icons.js directly
       const updated = await this._updateBuiltIconsFile(svgToSave);
       if (!updated) {
-        vscode.window.showWarningMessage('Could not find icons.js to update');
+        vscode.window.showWarningMessage(t('messages.couldNotFindIconsJs'));
         return;
       }
     }
@@ -614,8 +615,9 @@ export class IconEditorPanel {
       this._update();
     }
     
-    // 8. Refresh tree view (this also clears temp icons internally)
-    await vscode.commands.executeCommand('iconManager.refreshIcons');
+    // 8. Refresh tree view partially (preserves expansion state)
+    // Use partial refresh by icon name to avoid collapsing tree branches
+    await vscode.commands.executeCommand('iconManager.refreshIconByName', this._iconData.name);
     
     // 9. Notify
     if (options.successMessage) {
@@ -634,7 +636,7 @@ export class IconEditorPanel {
     animationSettings?: AnimationSettings
   ): Promise<void> {
     if (!this._iconData) {
-      vscode.window.showWarningMessage('No icon data available');
+      vscode.window.showWarningMessage(t('messages.noIconData'));
       return;
     }
 
@@ -667,7 +669,7 @@ export class IconEditorPanel {
         this._iconData.svg = svgToAdd;
         this._iconData.spriteFile = path.join(outputPath, 'sprite.svg');
         
-        vscode.window.showInformationMessage(`✓ "${this._iconData.name}" added to sprite.svg`);
+        vscode.window.showInformationMessage(t('messages.iconAddedToSprite', { name: this._iconData.name }));
       } else {
         // Add to icons.js with optional animation
         let animConfig: AnimationConfig | undefined;
@@ -689,12 +691,18 @@ export class IconEditorPanel {
         this._iconData.svg = svgToAdd;
         this._iconData.iconsFile = path.join(outputPath, 'icons.js');
 
-        const animText = animConfig ? ' with animation' : '';
-        vscode.window.showInformationMessage(`✓ "${this._iconData.name}" added to icons.js${animText}`);
+        if (animConfig) {
+          vscode.window.showInformationMessage(t('messages.iconAddedWithAnimation', { name: this._iconData.name }));
+        } else {
+          vscode.window.showInformationMessage(t('messages.iconAddedToIconsJs', { name: this._iconData.name }));
+        }
+        
+        // Refresh tree views without collapsing:
+        // - FILES: partial refresh to update "(built)" label
+        // - BUILT: add icon to cache and refresh only icons.js container
+        await vscode.commands.executeCommand('iconManager.refreshFilesItemByName', this._iconData.name);
+        await vscode.commands.executeCommand('iconManager.addIconToBuiltAndRefresh', this._iconData.name, svgToAdd, this._iconData.iconsFile);
       }
-
-      // Refresh tree views
-      await vscode.commands.executeCommand('iconManager.refreshIcons');
 
       // Persist cached variants to file on build
       if (this._variantsService.hasUnsavedChanges) {
@@ -705,7 +713,7 @@ export class IconEditorPanel {
       this._update();
 
     } catch (error: any) {
-      vscode.window.showErrorMessage(`Failed to add icon: ${error.message}`);
+      vscode.window.showErrorMessage(t('messages.failedToAddIcon', { error: error.message }));
     }
   }
 
@@ -846,7 +854,22 @@ export class IconEditorPanel {
     }
     
     // Replace template variables in JS
+    const i18nObject = {
+      svgWillIncludeAnimation: t('webview.js.svgWillIncludeAnimation'),
+      svgCodeCopied: t('webview.js.svgCodeCopied'),
+      animationCssCopied: t('webview.js.animationCssCopied'),
+      usageCodeCopied: t('webview.js.usageCodeCopied'),
+      optimizeSvgo: t('webview.js.optimizeSvgo'),
+      optimal: t('webview.js.optimal'),
+      alreadyOptimized: t('webview.js.alreadyOptimized'),
+      selectAnimationToEnable: t('webview.js.selectAnimationToEnable'),
+      originalColor: t('webview.js.originalColor'),
+      addFillColor: t('webview.js.addFillColor'),
+      noColorsDetected: t('webview.js.noColorsDetected')
+    };
+    
     const jsContent = jsTemplate
+      .replace(/__I18N__/g, JSON.stringify(i18nObject))
       .replace(/__ANIMATION_TYPE__/g, JSON.stringify(detectedAnimation?.type || 'none'))
       .replace(/__ANIMATION_DURATION__/g, JSON.stringify(detectedAnimation?.settings?.duration || 1))
       .replace(/__ANIMATION_TIMING__/g, JSON.stringify(detectedAnimation?.settings?.timing || 'ease'))
@@ -963,6 +986,16 @@ ${jsContent}
       .replace(/\$\{filtersDisabled\}/g, isOriginalSelected ? ' disabled' : '')
       .replace(/\$\{currentColorHtml\}/g, currentColorHtml)
       .replace(/\$\{colorSwatches\}/g, colorSwatches)
-      .replace(/\$\{variantsHtml\}/g, this._generateVariantsHtml(this._iconData?.name || ''));
+      .replace(/\$\{variantsHtml\}/g, this._generateVariantsHtml(this._iconData?.name || ''))
+      // i18n translations for color tab
+      .replace(/\$\{i18n_colors\}/g, t('webview.color.colors'))
+      .replace(/\$\{i18n_globalFilters\}/g, t('webview.color.globalFilters'))
+      .replace(/\$\{i18n_hueRotate\}/g, t('webview.color.hueRotate'))
+      .replace(/\$\{i18n_saturation\}/g, t('webview.color.saturation'))
+      .replace(/\$\{i18n_brightness\}/g, t('webview.color.brightness'))
+      .replace(/\$\{i18n_reset\}/g, t('webview.color.reset'))
+      .replace(/\$\{i18n_resetFilters\}/g, t('webview.color.resetFilters'))
+      .replace(/\$\{i18n_variants\}/g, t('webview.color.variants'))
+      .replace(/\$\{i18n_saveVariant\}/g, t('webview.color.saveVariant'));
   }
 }

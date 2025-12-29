@@ -8,6 +8,7 @@ import { getComponentExporter } from '../services/ComponentExporter';
 import { getSpriteGenerator, SpriteIcon } from '../services/SpriteGenerator';
 import { cleanSpriteSvg } from '../utils/iconsFileManager';
 import { getConfig, getOutputPathOrWarn } from '../utils/configHelper';
+import { t } from '../i18n';
 
 // Template cache for lazy loading
 let spritePreviewCss: string | null = null;
@@ -59,7 +60,18 @@ export function getSpritePreviewHtml(icons: { id: string; viewBox: string; conte
   const htmlContent = templates.html
     .replace(/\$\{fileName\}/g, fileName)
     .replace(/\$\{iconCount\}/g, String(icons.length))
-    .replace(/\$\{iconCards\}/g, iconCards);
+    .replace(/\$\{iconCards\}/g, iconCards)
+    // i18n translations
+    .replace(/\$\{i18n_icons\}/g, t('webview.spritePreview.icons'))
+    .replace(/\$\{i18n_openFile\}/g, t('webview.spritePreview.openFile'))
+    .replace(/\$\{i18n_refresh\}/g, t('webview.spritePreview.refresh'))
+    .replace(/\$\{i18n_copyName\}/g, t('webview.spritePreview.copyName'))
+    .replace(/\$\{i18n_copySvg\}/g, t('webview.spritePreview.copySvg'))
+    .replace(/\$\{i18n_editIcon\}/g, t('webview.spritePreview.editIcon'))
+    .replace(/\$\{i18n_showDetails\}/g, t('webview.spritePreview.showDetails'))
+    .replace(/\$\{i18n_exportComponent\}/g, t('webview.spritePreview.exportComponent'))
+    .replace(/\$\{i18n_rename\}/g, t('webview.spritePreview.rename'))
+    .replace(/\$\{i18n_delete\}/g, t('webview.spritePreview.delete'));
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -90,17 +102,17 @@ export function registerSpriteCommands(
   const generateSpriteCmd = vscode.commands.registerCommand('iconManager.generateSprite', async () => {
     const icons = await workspaceSvgProvider.getAllIcons();
     if (icons.length === 0) {
-      vscode.window.showWarningMessage('No icons found in library');
+      vscode.window.showWarningMessage(t('messages.noIconsInLibrary'));
       return;
     }
 
     const formatChoice = await vscode.window.showQuickPick(
       [
-        { label: 'SVG Sprite', value: 'svg' as const },
-        { label: 'Web Component (JS)', value: 'css' as const },
-        { label: 'Both', value: 'both' as const }
+        { label: t('ui.labels.svgSprite'), value: 'svg' as const },
+        { label: t('ui.labels.webComponentJs'), value: 'css' as const },
+        { label: t('ui.labels.both'), value: 'both' as const }
       ],
-      { placeHolder: 'Select sprite format' }
+      { placeHolder: t('ui.placeholders.selectSpriteFormat') }
     );
 
     if (!formatChoice) return;
@@ -153,7 +165,7 @@ export function registerSpriteCommands(
       }
     }
 
-    vscode.window.showInformationMessage(`Sprite generated in ${outputPath}`);
+    vscode.window.showInformationMessage(t('messages.spriteGenerated', { path: outputPath }));
   });
   disposables.push(generateSpriteCmd);
 
@@ -175,7 +187,7 @@ export function registerSpriteCommands(
     }
     
     if (!fs.existsSync(spritePath)) {
-      vscode.window.showWarningMessage('sprite.svg not found.');
+      vscode.window.showWarningMessage(t('messages.spriteNotFound'));
       return;
     }
 
@@ -189,7 +201,7 @@ export function registerSpriteCommands(
     }
 
     if (icons.length === 0) {
-      vscode.window.showWarningMessage('No icons found in sprite.svg');
+      vscode.window.showWarningMessage(t('messages.noIconsInSprite'));
       return;
     }
 
@@ -209,13 +221,13 @@ export function registerSpriteCommands(
       switch (message.command) {
         case 'copyName':
           await vscode.env.clipboard.writeText(message.iconId);
-          vscode.window.showInformationMessage(`Copied: ${message.iconId}`);
+          vscode.window.showInformationMessage(t('messages.iconCopied', { name: message.iconId }));
           break;
 
         case 'copySvg':
           const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${iconData!.viewBox}" fill="currentColor">${iconData!.content}</svg>`;
           await vscode.env.clipboard.writeText(svg);
-          vscode.window.showInformationMessage('SVG copied to clipboard');
+          vscode.window.showInformationMessage(t('messages.svgCopiedToClipboard'));
           break;
 
         case 'editIcon':
@@ -250,17 +262,17 @@ export function registerSpriteCommands(
             const doc = await vscode.workspace.openTextDocument({ content: result.code, language: 'typescriptreact' });
             await vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside);
           } catch (err) {
-            vscode.window.showErrorMessage(`Failed to export component: ${err}`);
+            vscode.window.showErrorMessage(t('messages.failedToExportComponent', { error: String(err) }));
           }
           break;
 
         case 'renameIcon':
           const newName = await vscode.window.showInputBox({
-            prompt: 'Enter new icon name',
+            prompt: t('ui.prompts.enterNewIconName'),
             value: message.iconId,
             validateInput: (value) => {
-              if (!value || value.trim() === '') return 'Name cannot be empty';
-              if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(value)) return 'Invalid name format';
+              if (!value || value.trim() === '') return t('ui.validation.nameCannotBeEmpty');
+              if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(value)) return t('ui.validation.invalidNameFormat');
               return null;
             }
           });
@@ -273,7 +285,7 @@ export function registerSpriteCommands(
             iconData!.id = newName;
             panel.webview.html = getSpritePreviewHtml(icons, path.basename(spritePath));
             builtIconsProvider.refresh();
-            vscode.window.showInformationMessage(`Icon renamed to: ${newName}`);
+            vscode.window.showInformationMessage(t('messages.iconRenamedTo', { name: newName }));
           }
           break;
 
@@ -284,7 +296,7 @@ export function registerSpriteCommands(
 
         case 'deleteIcon':
           const confirm = await vscode.window.showWarningMessage(
-            `Delete "${message.iconId}" from sprite?`,
+            t('messages.confirmDeleteIcon', { name: message.iconId }),
             { modal: true },
             'Delete'
           );
@@ -298,7 +310,7 @@ export function registerSpriteCommands(
             if (index > -1) icons.splice(index, 1);
             panel.webview.html = getSpritePreviewHtml(icons, path.basename(spritePath));
             builtIconsProvider.refresh();
-            vscode.window.showInformationMessage(`Icon deleted: ${message.iconId}`);
+            vscode.window.showInformationMessage(t('messages.iconDeleted', { name: message.iconId }));
           }
           break;
 
@@ -339,10 +351,10 @@ export function registerSpriteCommands(
     const result = cleanSpriteSvg(outputPath);
     
     if (result.removed.length === 0) {
-      vscode.window.showInformationMessage('Sprite is clean - no invalid content found.');
+      vscode.window.showInformationMessage(t('messages.spriteClean'));
     } else {
       vscode.window.showInformationMessage(
-        `Cleaned sprite: removed ${result.removed.length} invalid entries. ${result.kept} icons remaining.`
+        t('messages.spriteCleanedCount', { removed: result.removed.length, kept: result.kept })
       );
       builtIconsProvider.refresh();
     }
@@ -371,13 +383,13 @@ export function registerSpriteCommands(
       }
       
       if (!iconsFilePath) {
-        vscode.window.showWarningMessage('No icons file found.');
+        vscode.window.showWarningMessage(t('messages.noIconsFile'));
         return;
       }
     }
     
     if (!fs.existsSync(iconsFilePath)) {
-      vscode.window.showWarningMessage('Icons file not found.');
+      vscode.window.showWarningMessage(t('messages.iconsFileNotFound'));
       return;
     }
 
@@ -391,7 +403,7 @@ export function registerSpriteCommands(
     }
 
     if (icons.length === 0) {
-      vscode.window.showWarningMessage('No icons found in the file');
+      vscode.window.showWarningMessage(t('messages.noIconsInFile'));
       return;
     }
 
@@ -411,13 +423,13 @@ export function registerSpriteCommands(
       switch (message.command) {
         case 'copyName':
           await vscode.env.clipboard.writeText(message.iconId);
-          vscode.window.showInformationMessage(`Copied: ${message.iconId}`);
+          vscode.window.showInformationMessage(t('messages.iconCopied', { name: message.iconId }));
           break;
 
         case 'copySvg':
           const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${iconData!.viewBox}" fill="currentColor">${iconData!.content}</svg>`;
           await vscode.env.clipboard.writeText(svg);
-          vscode.window.showInformationMessage('SVG copied to clipboard');
+          vscode.window.showInformationMessage(t('messages.svgCopiedToClipboard'));
           break;
 
         case 'editIcon':
@@ -452,17 +464,17 @@ export function registerSpriteCommands(
             const doc = await vscode.workspace.openTextDocument({ content: result.code, language: 'typescriptreact' });
             await vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside);
           } catch (err) {
-            vscode.window.showErrorMessage(`Failed to export component: ${err}`);
+            vscode.window.showErrorMessage(t('messages.failedToExportComponent', { error: String(err) }));
           }
           break;
 
         case 'renameIcon':
           const newName = await vscode.window.showInputBox({
-            prompt: 'Enter new icon name',
+            prompt: t('ui.prompts.enterNewIconName'),
             value: message.iconId,
             validateInput: (value) => {
-              if (!value || value.trim() === '') return 'Name cannot be empty';
-              if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(value)) return 'Invalid name format';
+              if (!value || value.trim() === '') return t('ui.validation.nameCannotBeEmpty');
+              if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(value)) return t('ui.validation.invalidNameFormat');
               return null;
             }
           });
@@ -479,7 +491,7 @@ export function registerSpriteCommands(
             iconData!.id = newName;
             panel.webview.html = getSpritePreviewHtml(icons, path.basename(iconsFilePath!));
             builtIconsProvider.refresh();
-            vscode.window.showInformationMessage(`Icon renamed to: ${newName}`);
+            vscode.window.showInformationMessage(t('messages.iconRenamedTo', { name: newName }));
           }
           break;
 
@@ -490,7 +502,7 @@ export function registerSpriteCommands(
 
         case 'deleteIcon':
           const confirm = await vscode.window.showWarningMessage(
-            `Delete "${message.iconId}" from icons file?`,
+            t('messages.confirmDeleteIconFromFile', { name: message.iconId }),
             { modal: true },
             'Delete'
           );
@@ -505,7 +517,7 @@ export function registerSpriteCommands(
             if (index > -1) icons.splice(index, 1);
             panel.webview.html = getSpritePreviewHtml(icons, path.basename(iconsFilePath!));
             builtIconsProvider.refresh();
-            vscode.window.showInformationMessage(`Icon deleted: ${message.iconId}`);
+            vscode.window.showInformationMessage(t('messages.iconDeleted', { name: message.iconId }));
           }
           break;
 
@@ -535,7 +547,7 @@ export function registerSpriteCommands(
   // Command: Delete built file
   const deleteBuiltFileCmd = vscode.commands.registerCommand('iconManager.deleteBuiltFile', async (item?: SvgItem) => {
     if (!item?.category?.startsWith('built:')) {
-      vscode.window.showWarningMessage('No file selected');
+      vscode.window.showWarningMessage(t('messages.noFileSelected'));
       return;
     }
 
@@ -546,12 +558,12 @@ export function registerSpriteCommands(
     const filePath = path.join(outputPath, fileName);
     
     if (!fs.existsSync(filePath)) {
-      vscode.window.showWarningMessage(`File not found: ${fileName}`);
+      vscode.window.showWarningMessage(t('messages.fileNotFound', { name: fileName }));
       return;
     }
 
     const confirm = await vscode.window.showWarningMessage(
-      `Delete "${fileName}"? This action cannot be undone.`,
+      t('messages.confirmDeleteFile', { name: fileName }),
       { modal: true },
       'Delete'
     );
@@ -560,9 +572,9 @@ export function registerSpriteCommands(
       try {
         fs.unlinkSync(filePath);
         builtIconsProvider.refresh();
-        vscode.window.showInformationMessage(`Deleted: ${fileName}`);
+        vscode.window.showInformationMessage(t('messages.fileDeleted', { name: fileName }));
       } catch (error) {
-        vscode.window.showErrorMessage(`Failed to delete file: ${error}`);
+        vscode.window.showErrorMessage(t('messages.failedToDeleteFile', { error: String(error) }));
       }
     }
   });

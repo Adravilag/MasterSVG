@@ -14,6 +14,7 @@ import {
   checkScriptImport,
   showBuildSuccess
 } from '../utils/iconBuildHelpers';
+import { t } from '../i18n';
 
 /**
  * Providers interface for misc commands
@@ -77,7 +78,7 @@ export function registerMiscCommands(
       builtIconsProvider.refresh();
       showBuildSuccess(result);
     } else {
-      vscode.window.showErrorMessage(`Failed to import icon: ${result.error}`);
+      vscode.window.showErrorMessage(t('messages.failedToImportIcon', { error: result.error || '' }));
     }
   });
 
@@ -91,7 +92,7 @@ export function registerMiscCommands(
     const matches = [...text.matchAll(svgRegex)];
 
     if (matches.length === 0) {
-      vscode.window.showInformationMessage('No inline SVGs found in this file');
+      vscode.window.showInformationMessage(t('messages.noInlineSvgsFound'));
       return;
     }
 
@@ -103,14 +104,14 @@ export function registerMiscCommands(
     }));
 
     const selected = await vscode.window.showQuickPick(items, {
-      placeHolder: 'Select an SVG to import'
+      placeHolder: t('editor.selectSvgToImport')
     });
 
     if (!selected) return;
 
     const iconName = await vscode.window.showInputBox({
-      prompt: 'Enter icon name',
-      placeHolder: 'e.g., arrow-right, home-icon'
+      prompt: t('editor.enterIconName'),
+      placeHolder: t('ui.placeholders.iconName')
     });
 
     if (!iconName) return;
@@ -126,7 +127,7 @@ export function registerMiscCommands(
       builtIconsProvider.refresh();
       showBuildSuccess(result);
     } else {
-      vscode.window.showErrorMessage(`Failed to import icon: ${result.error}`);
+      vscode.window.showErrorMessage(t('messages.failedToImportIcon', { error: result.error || '' }));
     }
   });
 
@@ -141,18 +142,18 @@ export function registerMiscCommands(
     // Show source selection menu
     const sourceChoice = await vscode.window.showQuickPick([
       { 
-        label: '$(cloud-download) Search in Iconify', 
-        description: 'Find and build an icon from Iconify library',
+        label: `$(cloud-download) ${t('ui.labels.searchInIconify')}`, 
+        description: t('ui.labels.findBuildIconify'),
         value: 'iconify' 
       },
       { 
-        label: '$(file-media) Use referenced SVG file', 
+        label: `$(file-media) ${t('ui.labels.useReferencedSvg')}`, 
         description: `Build from: ${originalPath}`,
         value: 'current' 
       },
       { 
-        label: '$(library) Browse built icons', 
-        description: 'Select an icon already in your library',
+        label: `$(library) ${t('ui.labels.browseBuiltIcons')}`, 
+        description: t('ui.labels.selectIconFromLibrary'),
         value: 'built' 
       }
     ], {
@@ -168,15 +169,15 @@ export function registerMiscCommands(
 
     if (sourceChoice.value === 'iconify') {
       const query = await vscode.window.showInputBox({
-        prompt: 'Search Iconify for an icon',
+        prompt: t('ui.prompts.searchIconify'),
         value: iconName,
-        placeHolder: 'Enter search term (e.g., arrow, home, user)'
+        placeHolder: t('ui.placeholders.enterSearchTerm')
       });
       if (!query) return;
 
       const results = await searchIconify(query);
       if (results.length === 0) {
-        vscode.window.showInformationMessage(`No icons found for "${query}"`);
+        vscode.window.showInformationMessage(t('messages.noIconsFoundForQuery', { query }));
         return;
       }
 
@@ -189,7 +190,7 @@ export function registerMiscCommands(
     } else if (sourceChoice.value === 'current') {
       const fullSvgPath = path.isAbsolute(originalPath) ? originalPath : path.resolve(docDir, originalPath);
       if (!fs.existsSync(fullSvgPath)) {
-        vscode.window.showErrorMessage(`SVG file not found: ${originalPath}`);
+        vscode.window.showErrorMessage(t('messages.svgFileNotFound', { path: originalPath }));
         return;
       }
 
@@ -204,7 +205,7 @@ export function registerMiscCommands(
       const builtIcons = builtIconsProvider.getBuiltIconsList();
       
       if (builtIcons.length === 0) {
-        vscode.window.showWarningMessage('No built icons found. Build some icons first.');
+        vscode.window.showWarningMessage(t('messages.noBuiltIconsFound'));
         return;
       }
 
@@ -215,7 +216,7 @@ export function registerMiscCommands(
       }));
 
       const selected = await vscode.window.showQuickPick(items, {
-        placeHolder: 'Select a built icon',
+        placeHolder: t('ui.placeholders.selectBuiltIcon'),
         matchOnDescription: true
       });
 
@@ -230,7 +231,7 @@ export function registerMiscCommands(
     if (!skipBuild) {
       const result = await buildIcon({ iconName: finalIconName, svgContent: svgContent!, svgTransformer });
       if (!result.success) {
-        vscode.window.showErrorMessage(`Failed to build icon: ${result.error}`);
+        vscode.window.showErrorMessage(t('messages.failedToBuildIcon', { error: result.error || '' }));
         return;
       }
     }
@@ -255,14 +256,14 @@ export function registerMiscCommands(
 
     workspaceSvgProvider.refresh();
     builtIconsProvider.refresh();
-    vscode.window.showInformationMessage(`✅ Icon "${finalIconName}" transformed to <${componentName}>!`);
+    vscode.window.showInformationMessage(t('messages.iconTransformed', { name: finalIconName, component: componentName }));
   });
 
   // Command: Add SVG to build (uses buildFormat from config)
   const addSvgToCollectionCmd = vscode.commands.registerCommand('iconManager.addSvgToCollection', async (item: any) => {
     const icon = item?.icon;
     if (!icon) {
-      vscode.window.showWarningMessage('No icon selected');
+      vscode.window.showWarningMessage(t('messages.noIconSelected'));
       return;
     }
 
@@ -276,13 +277,13 @@ export function registerMiscCommands(
       }
 
       if (!svgContent) {
-        vscode.window.showErrorMessage('Could not read SVG content');
+        vscode.window.showErrorMessage(t('messages.couldNotReadSvg'));
         return;
       }
 
       const result = await buildIcon({ iconName: icon.name, svgContent, svgTransformer });
       if (!result.success) {
-        vscode.window.showErrorMessage(`Failed to add icon: ${result.error}`);
+        vscode.window.showErrorMessage(t('messages.failedToAddIcon', { error: result.error || '' }));
         return;
       }
 
@@ -311,16 +312,16 @@ export function registerMiscCommands(
         svgFilesProvider.refreshFile(icon.path);
       }
 
-      vscode.window.showInformationMessage(`✓ "${icon.name}" added to ${result.format === 'sprite' ? 'sprite.svg' : 'icons.js'}${extras.length ? ' and ' + extras.join(' and ') : ''}`);
+      vscode.window.showInformationMessage(t('messages.iconImported', { name: icon.name, targets: result.format === 'sprite' ? 'sprite.svg' : 'icons.js' }));
     } catch (error: any) {
-      vscode.window.showErrorMessage(`Failed to add icon: ${error.message}`);
+      vscode.window.showErrorMessage(t('messages.failedToAddIcon', { error: error.message }));
     }
   });
 
   // Command: Remove missing reference (delete the <img> tag)
   const removeReferenceCmd = vscode.commands.registerCommand('iconManager.removeReference', async (item: any) => {
     if (!item?.icon?.filePath || item.icon.line === undefined) {
-      vscode.window.showWarningMessage('Cannot find the reference location');
+      vscode.window.showWarningMessage(t('messages.cannotFindRefLocation'));
       return;
     }
 
@@ -350,18 +351,18 @@ export function registerMiscCommands(
         await vscode.workspace.applyEdit(edit);
         await document.save();
         
-        vscode.window.showInformationMessage(`Removed reference to "${item.icon.name}.svg"`);
+        vscode.window.showInformationMessage(t('messages.removedReference', { name: `${item.icon.name}.svg` }));
         workspaceSvgProvider.refresh();
       }
     } catch (error) {
-      vscode.window.showErrorMessage(`Error removing reference: ${error}`);
+      vscode.window.showErrorMessage(t('messages.errorRemovingReference', { error: String(error) }));
     }
   });
 
   // Command: Find and replace path for missing reference
   const findAndReplaceCmd = vscode.commands.registerCommand('iconManager.findAndReplace', async (item: any) => {
     if (!item?.icon?.filePath || item.icon.line === undefined) {
-      vscode.window.showWarningMessage('Cannot find the reference location');
+      vscode.window.showWarningMessage(t('messages.cannotFindRefLocation'));
       return;
     }
 
@@ -371,12 +372,12 @@ export function registerMiscCommands(
 
     // Offer options: browse for file, search workspace, Iconify, or enter path manually
     const choice = await vscode.window.showQuickPick([
-      { label: '$(file-directory) Browse for SVG file', value: 'browse' },
-      { label: '$(search) Search workspace for SVG', value: 'search' },
-      { label: '$(cloud-download) Search Iconify', value: 'iconify' },
-      { label: '$(edit) Enter new path manually', value: 'manual' }
+      { label: `$(file-directory) ${t('ui.labels.browseForSvgFile')}`, value: 'browse' },
+      { label: `$(search) ${t('ui.labels.searchWorkspaceSvg')}`, value: 'search' },
+      { label: `$(cloud-download) ${t('ui.labels.searchInIconify')}`, value: 'iconify' },
+      { label: `$(edit) ${t('ui.labels.enterNewPathManually')}`, value: 'manual' }
     ], {
-      placeHolder: 'How do you want to find the replacement SVG?'
+      placeHolder: t('ui.placeholders.howToFindReplacement')
     });
 
     if (!choice) return;
@@ -389,7 +390,7 @@ export function registerMiscCommands(
         canSelectFolders: false,
         canSelectMany: false,
         filters: { 'SVG Files': ['svg'] },
-        title: 'Select SVG file'
+        title: t('ui.titles.selectSvgFile')
       });
 
       if (fileUri && fileUri[0]) {
@@ -402,7 +403,7 @@ export function registerMiscCommands(
       const svgFiles = await vscode.workspace.findFiles('**/*.svg', '**/node_modules/**', 100);
       
       if (svgFiles.length === 0) {
-        vscode.window.showWarningMessage('No SVG files found in workspace');
+        vscode.window.showWarningMessage(t('messages.noSvgFilesFound'));
         return;
       }
 
@@ -428,9 +429,9 @@ export function registerMiscCommands(
     } else if (choice.value === 'iconify') {
       // Search Iconify for a replacement icon
       const query = await vscode.window.showInputBox({
-        prompt: `Search Iconify for a replacement icon`,
+        prompt: t('ui.prompts.searchIconify'),
         value: currentName,
-        placeHolder: 'Enter search term (e.g., arrow, home, user)'
+        placeHolder: t('ui.placeholders.enterSearchTerm')
       });
 
       if (!query) return;
@@ -438,7 +439,7 @@ export function registerMiscCommands(
       const results = await searchIconify(query);
 
       if (results.length === 0) {
-        vscode.window.showInformationMessage(`No icons found for "${query}"`);
+        vscode.window.showInformationMessage(t('messages.noIconsFoundForQuery', { query }));
         return;
       }
 
@@ -449,10 +450,10 @@ export function registerMiscCommands(
 
       // Ask where to save the icon
       const saveChoice = await vscode.window.showQuickPick([
-        { label: '$(file-add) Save next to referenced file', value: 'same-dir' },
-        { label: '$(folder) Choose folder', value: 'choose' }
+        { label: `$(file-add) ${t('ui.labels.saveNextToFile')}`, value: 'same-dir' },
+        { label: `$(folder) ${t('ui.labels.chooseFolder')}`, value: 'choose' }
       ], {
-        placeHolder: 'Where do you want to save the new SVG?'
+        placeHolder: t('ui.placeholders.whereToSaveSvg')
       });
 
       if (!saveChoice) return;
@@ -468,7 +469,7 @@ export function registerMiscCommands(
           canSelectFiles: false,
           canSelectFolders: true,
           canSelectMany: false,
-          title: 'Select folder to save the SVG'
+          title: t('ui.titles.selectFolderToSave')
         });
 
         if (!folderUri || !folderUri[0]) return;
@@ -477,15 +478,15 @@ export function registerMiscCommands(
 
       // Save the SVG file
       fs.writeFileSync(savePath, selectedIcon.svg);
-      vscode.window.showInformationMessage(`Saved icon to ${path.basename(savePath)}`);
+      vscode.window.showInformationMessage(t('messages.savedIconTo', { name: path.basename(savePath) }));
 
       // Set the new path relative to the reference file
       newPath = './' + path.relative(refFileDir, savePath).replace(/\\/g, '/');
     } else {
       newPath = await vscode.window.showInputBox({
-        prompt: 'Enter the new SVG path',
+        prompt: t('ui.prompts.enterNewSvgPath'),
         value: currentPath,
-        placeHolder: './path/to/icon.svg'
+        placeHolder: t('ui.placeholders.svgPathExample')
       });
     }
 
@@ -508,11 +509,11 @@ export function registerMiscCommands(
         await vscode.workspace.applyEdit(edit);
         await document.save();
         
-        vscode.window.showInformationMessage(`Updated path from "${oldSrc}" to "${newPath}"`);
+        vscode.window.showInformationMessage(t('messages.updatedPath', { oldPath: oldSrc, newPath }));
         workspaceSvgProvider.refresh();
       }
     } catch (error) {
-      vscode.window.showErrorMessage(`Error updating path: ${error}`);
+      vscode.window.showErrorMessage(t('messages.errorUpdatingPath', { error: String(error) }));
     }
   });
 

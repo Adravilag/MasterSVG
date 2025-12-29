@@ -1,4 +1,5 @@
 const vscode = acquireVsCodeApi();
+const i18n = __I18N__;
 
 let currentTab = 'workspace';
 let workspaceIcons = [];
@@ -74,8 +75,8 @@ function renderIcons(icons) {
           <circle cx="11" cy="11" r="8"/>
           <line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
-        <p>${icons.length === 0 ? 'No icons found. Scan your workspace to detect SVG files.' : 'No icons match your search.'}</p>
-        ${icons.length === 0 ? '<button class="btn" onclick="scanWorkspace()">Scan Workspace</button>' : ''}
+        <p>${icons.length === 0 ? i18n.noIconsFound : i18n.noIconsMatch}</p>
+        ${icons.length === 0 ? '<button class="btn" onclick="scanWorkspace()">' + i18n.scanWorkspaceBtn + '</button>' : ''}
       </div>
     `;
     return;
@@ -103,8 +104,8 @@ function renderOnline() {
         <circle cx="12" cy="12" r="10"/>
         <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
       </svg>
-      <p>Browse icons from Iconify</p>
-      <p style="font-size: 11px; margin-top: 8px;">Coming soon...</p>
+      <p>${i18n.browseIconify}</p>
+      <p style="font-size: 11px; margin-top: 8px;">${i18n.comingSoon}</p>
     </div>
   `;
 }

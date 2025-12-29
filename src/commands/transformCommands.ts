@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { SvgTransformer } from '../services/SvgTransformer';
 import { getConfig, getFullOutputPath } from '../utils/configHelper';
 import { addToIconsJs, addToSpriteSvg } from '../utils/iconsFileManager';
+import { t } from '../i18n';
 
 /**
  * Interface for providers needed by transform commands
@@ -82,7 +83,7 @@ export function registerTransformCommands(
           
           if (svgStart === -1) {
             console.log('[IconWrap] IMG tag not found. Regex pattern:', imgRegex.source);
-            vscode.window.showWarningMessage('Could not find IMG reference in document. The file might have changed. Please refresh the icons list.');
+            vscode.window.showWarningMessage(t('messages.couldNotFindImgRef') + ' ' + t('messages.refreshIcons'));
             return;
           }
         } else {
@@ -115,7 +116,7 @@ export function registerTransformCommands(
           }
 
           if (svgStart === -1) {
-            vscode.window.showWarningMessage('Could not find SVG in document. The file might have changed. Please refresh the icons list.');
+            vscode.window.showWarningMessage(t('messages.couldNotFindSvgInDoc') + ' ' + t('messages.refreshIcons'));
             return;
           }
         }
@@ -163,7 +164,7 @@ export function registerTransformCommands(
         workspaceSvgProvider.refresh();
         builtIconsProvider.refresh();
         const formatName = isSprite ? 'Sprite' : 'Web Component';
-        vscode.window.showInformationMessage(`Transformed SVG to ${formatName} format`);
+        vscode.window.showInformationMessage(t('messages.transformedToFormat', { format: formatName }));
       }
     })
   );
@@ -178,20 +179,20 @@ export function registerTransformCommands(
       const svgContent = editor.document.getText(selection);
 
       if (!svgContent.includes('<svg')) {
-        vscode.window.showWarningMessage('Please select an SVG element');
+        vscode.window.showWarningMessage(t('messages.pleaseSelectSvg'));
         return;
       }
 
       const format = await vscode.window.showQuickPick(
         ['react', 'vue', 'svelte', 'astro', 'html'],
-        { placeHolder: 'Select output format' }
+        { placeHolder: t('ui.placeholders.selectOutputFormat') }
       );
 
       if (!format) return;
 
       const componentName = await vscode.window.showInputBox({
-        prompt: 'Enter component name',
-        placeHolder: 'e.g., IconHome, ArrowIcon'
+        prompt: t('ui.prompts.enterComponentName'),
+        placeHolder: t('ui.placeholders.componentNameExample')
       });
 
       if (!componentName) return;
@@ -209,7 +210,7 @@ export function registerTransformCommands(
         editBuilder.replace(selection, result.component);
       });
 
-      vscode.window.showInformationMessage(`SVG transformed to ${format} component`);
+      vscode.window.showInformationMessage(t('messages.svgTransformedToComponent', { format }));
     })
   );
 
@@ -223,7 +224,7 @@ export function registerTransformCommands(
       const svgContent = editor.document.getText(selection);
 
       if (!svgContent.includes('<svg')) {
-        vscode.window.showWarningMessage('Please select an SVG element');
+        vscode.window.showWarningMessage(t('messages.pleaseSelectSvg'));
         return;
       }
 
@@ -232,7 +233,7 @@ export function registerTransformCommands(
         editBuilder.replace(selection, optimized);
       });
 
-      vscode.window.showInformationMessage('SVG optimized!');
+      vscode.window.showInformationMessage(t('messages.svgOptimized'));
     })
   );
 
@@ -249,7 +250,7 @@ export function registerTransformCommands(
         const icons = await workspaceSvgProvider.getAllIcons();
         const names = icons.map(i => i.name);
         const selected = await vscode.window.showQuickPick(names, {
-          placeHolder: 'Select icon to insert'
+          placeHolder: t('ui.placeholders.selectIconToInsert')
         });
         if (!selected) return;
         iconName = selected;

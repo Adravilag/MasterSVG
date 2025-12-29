@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { ColorService } from '../services/ColorService';
 import { VariantsService } from '../services/VariantsService';
+import { t } from '../i18n';
 
 /**
  * Context passed to variant handlers
@@ -25,13 +26,13 @@ export interface VariantHandlerContext {
  */
 export async function handleSaveVariant(ctx: VariantHandlerContext): Promise<void> {
   if (!ctx.iconData) {
-    vscode.window.showErrorMessage('Error: No icon data available. Please reopen the editor.');
+    vscode.window.showErrorMessage(t('messages.noIconData'));
     return;
   }
 
   const variantName = await vscode.window.showInputBox({
-    prompt: 'Enter variant name',
-    placeHolder: 'e.g. Dark theme, Primary colors...'
+    prompt: t('editor.enterVariantName'),
+    placeHolder: t('editor.variantPlaceholder')
   });
 
   if (variantName) {
@@ -142,11 +143,11 @@ export function handleSetDefaultVariant(
 
   if (variantName) {
     vscode.window.showInformationMessage(
-      `"${variantName}" is now the default Variant for ${ctx.iconData.name}`
+      t('messages.variantSetAsDefault', { name: variantName, icon: ctx.iconData.name })
     );
   } else {
     vscode.window.showInformationMessage(
-      `default variant cleared for ${ctx.iconData.name}`
+      t('messages.variantDefaultCleared', { icon: ctx.iconData.name })
     );
   }
 }
@@ -165,16 +166,16 @@ export async function handleEditVariant(
 
   if (variant) {
     const newName = await vscode.window.showInputBox({
-      prompt: 'Edit variant name',
+      prompt: t('editor.editVariantName'),
       value: variant.name,
-      placeHolder: 'e.g. Dark theme, Primary colors...'
+      placeHolder: t('editor.variantPlaceholder')
     });
 
     if (newName !== undefined) {
       const { colors } = ctx.colorService.extractColorsFromSvg(ctx.iconData.svg);
       ctx.variantsService.updateVariant(ctx.iconData.name, message.index, newName, colors);
       ctx.refresh();
-      vscode.window.showInformationMessage(`Variant "${newName}" updated`);
+      vscode.window.showInformationMessage(t('messages.variantUpdated', { name: newName }));
     }
   }
 }

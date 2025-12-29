@@ -11,6 +11,7 @@ import { SvgTransformer } from '../services/SvgTransformer';
 import { addToIconsJs, addToSpriteSvg } from '../utils/iconsFileManager';
 import { getConfig, getOutputPathOrWarn, getFullOutputPath } from '../utils/configHelper';
 import { WorkspaceIcon } from '../providers/WorkspaceSvgProvider';
+import { t } from '../i18n';
 
 /**
  * Result of a build operation
@@ -99,18 +100,18 @@ export async function showDeleteOriginalPrompt(options?: DeletePromptOptions): P
   
   const choice = await vscode.window.showQuickPick([
     { 
-      label: '$(trash) Delete original SVG', 
-      description: 'Remove the source file after build',
+      label: `$(trash) ${t('editor.deleteOriginalSvg')}`, 
+      description: t('editor.deleteOriginalSvgDesc'),
       value: true 
     },
     { 
-      label: '$(file) Keep original SVG', 
-      description: 'Preserve the source file',
+      label: `$(file) ${t('editor.keepOriginalSvg')}`, 
+      description: t('editor.keepOriginalSvgDesc'),
       value: false 
     }
   ], {
-    placeHolder: 'What to do with the original file?',
-    title: options?.title || `Add to ${isSprite ? 'Sprite' : 'Icons Library'}`
+    placeHolder: t('editor.whatToDoWithOriginal'),
+    title: options?.title || `${t('editor.addTo')} ${isSprite ? 'Sprite' : t('editor.iconsLibrary')}`
   });
 
   return choice?.value ?? options?.defaultValue ?? defaultDelete;
@@ -158,15 +159,15 @@ export async function checkScriptImport(
   if (!hasIconScript) {
     const outputDir = config.outputDirectory || 'iconwrap-icons';
     const addScript = await vscode.window.showWarningMessage(
-      `⚠️ Missing script import! Add <script type="module" src="./${outputDir}/icon.js"></script> to your HTML <head>`,
-      'Copy to Clipboard',
-      'Dismiss'
+      `⚠️ ${t('messages.missingScriptImport', { outputDir })}`,
+      t('messages.copyToClipboard'),
+      t('messages.dismiss')
     );
     
-    if (addScript === 'Copy to Clipboard') {
+    if (addScript === t('messages.copyToClipboard')) {
       const scriptTag = `<script type="module" src="./${outputDir}/icon.js"></script>`;
       await vscode.env.clipboard.writeText(scriptTag);
-      vscode.window.showInformationMessage('Script tag copied to clipboard!');
+      vscode.window.showInformationMessage(t('messages.scriptCopiedToClipboard'));
     }
   }
 }
@@ -193,10 +194,7 @@ export function createBuiltIcon(
  * Show success message after build operation.
  */
 export function showBuildSuccess(result: BuildResult, extras?: string[]): void {
-  const formatName = result.format === 'sprite' ? 'sprite' : 'icons library';
-  const parts = [formatName];
-  if (extras) {
-    parts.push(...extras);
-  }
-  vscode.window.showInformationMessage(`✅ Icon "${result.iconName}" imported to ${parts.join(' and ')}!`);
+  const formatName = result.format === 'sprite' ? 'sprite' : t('editor.iconsLibrary');
+  const targets = extras ? [formatName, ...extras].join(' & ') : formatName;
+  vscode.window.showInformationMessage(t('messages.iconImported', { name: result.iconName, targets }));
 }

@@ -12,6 +12,7 @@ import { SvgTransformer } from './SvgTransformer';
 import { ErrorHandler } from '../utils/errorHandler';
 import { getSvgConfig } from '../utils/config';
 import { toVariableName } from '../utils/extensionHelpers';
+import { t } from '../i18n';
 
 export class IconPersistenceService {
   private static _instance: IconPersistenceService;
@@ -180,7 +181,7 @@ export class IconPersistenceService {
                   await vscode.workspace.applyEdit(edit);
                   await document.save();
 
-                  vscode.window.showInformationMessage(`Updated ${relativePath}`);
+                  vscode.window.showInformationMessage(t('messages.updatedFile', { path: relativePath }));
                   return { success: true, path: iconsUri.fsPath, content: newText };
                 }
               }

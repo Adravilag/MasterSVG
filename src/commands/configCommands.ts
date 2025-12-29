@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { ensureOutputDirectory } from '../utils/configHelper';
+import { t } from '../i18n';
 
 /**
  * Registers configuration-related commands
@@ -18,90 +19,90 @@ export function registerConfigCommands(
 
       const items: vscode.QuickPickItem[] = [
         {
-          label: 'Output Directory',
+          label: t('ui.labels.outputDirectory'),
           description: config.get<string>('outputDirectory'),
-          detail: 'Directory where icons.ts or sprite.svg will be generated'
+          detail: t('ui.details.outputDirectoryDesc')
         },
         {
-          label: 'SVG Folders',
+          label: t('ui.labels.svgFolders'),
           description: (config.get<string[]>('svgFolders') || []).join(', '),
-          detail: 'Folders to scan for SVG files'
+          detail: t('ui.details.svgFoldersDesc')
         },
         {
-          label: 'Component Name',
+          label: t('ui.labels.componentName'),
           description: config.get<string>('componentName'),
-          detail: 'Name of the Icon component (e.g. Icon)'
+          detail: t('ui.details.componentNameDesc')
         },
         {
-          label: 'Output Format',
+          label: t('ui.labels.outputFormat'),
           description: config.get<string>('outputFormat'),
-          detail: 'Default output format (jsx, vue, svelte, etc.)'
+          detail: t('ui.details.outputFormatDesc')
         },
         {
-          label: 'Web Component Name',
+          label: t('ui.labels.webComponentName'),
           description: config.get<string>('webComponentName'),
-          detail: 'Name for the custom element (e.g. bezier-icon)'
+          detail: t('ui.details.webComponentNameDesc')
         }
       ];
 
       const selection = await vscode.window.showQuickPick(items, {
-        placeHolder: 'Select a setting to configure'
+        placeHolder: t('ui.placeholders.selectSettingToConfigure')
       });
 
       if (!selection) {
         return;
       }
 
-      if (selection.label === 'Output Directory') {
+      if (selection.label === t('ui.labels.outputDirectory')) {
         const outputDir = await vscode.window.showInputBox({
-          prompt: 'Enter the output directory for generated icons',
+          prompt: t('ui.prompts.enterOutputDirectory'),
           value: config.get('outputDirectory') || 'bezier-icons',
-          placeHolder: 'e.g., src/icons, assets/icons'
+          placeHolder: t('ui.placeholders.outputDirectoryExample')
         });
 
         if (outputDir !== undefined) {
           await config.update('outputDirectory', outputDir, vscode.ConfigurationTarget.Workspace);
           ensureOutputDirectory();
-          vscode.window.showInformationMessage(`Output directory set to: ${outputDir}`);
+          vscode.window.showInformationMessage(t('messages.outputDirectorySet', { path: outputDir }));
         }
-      } else if (selection.label === 'SVG Folders') {
+      } else if (selection.label === t('ui.labels.svgFolders')) {
         const currentFolders = config.get<string[]>('svgFolders') || [];
         const foldersStr = await vscode.window.showInputBox({
-          prompt: 'Enter SVG folders to scan (comma separated)',
+          prompt: t('ui.prompts.enterSvgFolders'),
           value: currentFolders.join(', '),
-          placeHolder: 'src/icons, assets/svg'
+          placeHolder: t('ui.placeholders.svgFoldersExample')
         });
         if (foldersStr !== undefined) {
           const folders = foldersStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
           await config.update('svgFolders', folders, vscode.ConfigurationTarget.Workspace);
-          vscode.window.showInformationMessage(`SVG folders updated`);
+          vscode.window.showInformationMessage(t('messages.svgFoldersUpdated'));
           vscode.commands.executeCommand('iconManager.refreshIcons');
         }
-      } else if (selection.label === 'Component Name') {
+      } else if (selection.label === t('ui.labels.componentName')) {
         const name = await vscode.window.showInputBox({
-          prompt: 'Enter the component name',
+          prompt: t('ui.prompts.enterComponentName'),
           value: config.get('componentName') || 'Icon'
         });
         if (name) {
           await config.update('componentName', name, vscode.ConfigurationTarget.Workspace);
-          vscode.window.showInformationMessage(`Component name set to: ${name}`);
+          vscode.window.showInformationMessage(t('messages.componentNameSet', { name }));
         }
-      } else if (selection.label === 'Output Format') {
+      } else if (selection.label === t('ui.labels.outputFormat')) {
         const format = await vscode.window.showQuickPick(['jsx', 'vue', 'svelte', 'astro', 'html'], {
-          placeHolder: 'Select output format'
+          placeHolder: t('ui.placeholders.selectOutputFormat')
         });
         if (format) {
           await config.update('outputFormat', format, vscode.ConfigurationTarget.Workspace);
-          vscode.window.showInformationMessage(`Output format set to: ${format}`);
+          vscode.window.showInformationMessage(t('messages.outputFormatSet', { format }));
         }
-      } else if (selection.label === 'Web Component Name') {
+      } else if (selection.label === t('ui.labels.webComponentName')) {
         const name = await vscode.window.showInputBox({
-          prompt: 'Enter the web component name',
+          prompt: t('ui.prompts.enterWebComponentName'),
           value: config.get('webComponentName') || 'bezier-icon'
         });
         if (name) {
           await config.update('webComponentName', name, vscode.ConfigurationTarget.Workspace);
-          vscode.window.showInformationMessage(`Web component name set to: ${name}`);
+          vscode.window.showInformationMessage(t('messages.componentNameSet', { name }));
         }
       }
     })
@@ -112,7 +113,7 @@ export function registerConfigCommands(
     vscode.commands.registerCommand('iconManager.editIgnoreFile', async () => {
       const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
       if (!workspaceFolder) {
-        vscode.window.showWarningMessage('No workspace folder open');
+        vscode.window.showWarningMessage(t('messages.noWorkspace'));
         return;
       }
 
@@ -157,7 +158,7 @@ export function registerConfigCommands(
     vscode.commands.registerCommand('iconManager.configureSvgFolder', async () => {
       const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
       if (!workspaceFolder) {
-        vscode.window.showWarningMessage('No workspace folder open');
+        vscode.window.showWarningMessage(t('messages.noWorkspace'));
         return;
       }
 
@@ -166,13 +167,13 @@ export function registerConfigCommands(
 
       const options: vscode.QuickPickItem[] = [
         {
-          label: '$(folder-opened) Browse for folder...',
-          description: 'Select a folder from the workspace',
+          label: `$(folder-opened) ${t('ui.labels.browseForFolder')}`,
+          description: t('ui.labels.selectFolderFromWorkspace'),
           alwaysShow: true
         },
         {
-          label: '$(edit) Enter path manually...',
-          description: 'Type a relative path',
+          label: `$(edit) ${t('ui.labels.enterPathManually')}`,
+          description: t('ui.labels.typeRelativePath'),
           alwaysShow: true
         }
       ];
@@ -181,22 +182,22 @@ export function registerConfigCommands(
       if (currentFolders.length > 0) {
         options.push({ label: '', kind: vscode.QuickPickItemKind.Separator });
         options.push({
-          label: '$(list-unordered) Current folders:',
+          label: `$(list-unordered) ${t('ui.labels.currentFolders')}`,
           description: currentFolders.join(', '),
           alwaysShow: true
         });
         for (const folder of currentFolders) {
           options.push({
-            label: `$(trash) Remove: ${folder}`,
-            description: 'Click to remove this folder',
+            label: `$(trash) ${t('ui.labels.removeFolder', { folder })}`,
+            description: folder, // Store folder path in description for easy extraction
             alwaysShow: true
           });
         }
       }
 
       const selection = await vscode.window.showQuickPick(options, {
-        placeHolder: 'Configure SVG folders to scan',
-        title: 'SVG Folders Configuration'
+        placeHolder: t('ui.placeholders.configureSvgFolders'),
+        title: t('ui.titles.svgFoldersConfiguration')
       });
 
       if (!selection) return;
@@ -208,7 +209,7 @@ export function registerConfigCommands(
           canSelectFolders: true,
           canSelectMany: false,
           defaultUri: workspaceFolder.uri,
-          openLabel: 'Select SVG Folder'
+          openLabel: t('ui.labels.selectSvgFolder')
         });
 
         if (folderUri && folderUri[0]) {
@@ -216,32 +217,36 @@ export function registerConfigCommands(
           if (relativePath && !relativePath.startsWith('..')) {
             const newFolders = [...new Set([...currentFolders, relativePath])];
             await config.update('svgFolders', newFolders, vscode.ConfigurationTarget.Workspace);
-            vscode.window.showInformationMessage(`Added SVG folder: ${relativePath}`);
+            vscode.window.showInformationMessage(t('messages.addedSvgFolder', { path: relativePath }));
             vscode.commands.executeCommand('iconManager.refreshIcons');
           } else {
-            vscode.window.showWarningMessage('Please select a folder inside the workspace');
+            vscode.window.showWarningMessage(t('messages.selectFolderInsideWorkspace'));
           }
         }
       } else if (selection.label.startsWith('$(edit)')) {
         // Manual input
         const foldersStr = await vscode.window.showInputBox({
-          prompt: 'Enter SVG folders to scan (comma separated, relative to workspace)',
+          prompt: t('ui.prompts.enterSvgFoldersRelative'),
           value: currentFolders.join(', '),
-          placeHolder: 'e.g., src/icons, assets/svg, public/images'
+          placeHolder: t('ui.placeholders.svgFoldersExampleLong')
         });
 
         if (foldersStr !== undefined) {
           const folders = foldersStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
           await config.update('svgFolders', folders, vscode.ConfigurationTarget.Workspace);
-          vscode.window.showInformationMessage(`SVG folders updated: ${folders.join(', ') || '(none - will scan all)'}`);
+          vscode.window.showInformationMessage(
+            folders.length > 0 
+              ? t('messages.svgFoldersUpdatedList', { folders: folders.join(', ') })
+              : t('messages.svgFoldersUpdatedNone')
+          );
           vscode.commands.executeCommand('iconManager.refreshIcons');
         }
       } else if (selection.label.startsWith('$(trash)')) {
-        // Remove folder
-        const folderToRemove = selection.label.replace('$(trash) Remove: ', '');
+        // Remove folder - folder path is stored in description
+        const folderToRemove = selection.description || '';
         const newFolders = currentFolders.filter(f => f !== folderToRemove);
         await config.update('svgFolders', newFolders, vscode.ConfigurationTarget.Workspace);
-        vscode.window.showInformationMessage(`Removed SVG folder: ${folderToRemove}`);
+        vscode.window.showInformationMessage(t('messages.removedSvgFolder', { folder: folderToRemove }));
         vscode.commands.executeCommand('iconManager.refreshIcons');
       }
     })

@@ -5,6 +5,7 @@ import { WorkspaceIcon, IconAnimation } from '../types/icons';
 import { getSvgConfig } from '../utils/config';
 import { SvgItem } from './SvgItem';
 import type { WorkspaceSvgProvider } from './WorkspaceSvgProvider';
+import { t } from '../i18n';
 
 /**
  * TreeDataProvider for Built Icons - separate view showing only compiled icons
@@ -25,12 +26,39 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
     this.builtIcons.clear();
     this.spriteIcons.clear();
     this.jsIcons.clear();
+    this.itemCache.clear();
     this.isInitialized = false;
     this._onDidChangeTreeData.fire();
   }
 
   /**
+   * Soft refresh - re-renders tree without clearing cache
+   * This preserves expansion state better than full refresh
+   * Use for updates that don't change the icon list significantly
+   */
+  softRefresh(): void {
+    // Don't clear caches - just re-render using cached data
+    // This preserves tree expansion state
+    this._onDidChangeTreeData.fire();
+  }
+
+  /**
+   * Refresh a specific file container (icons.js or sprite.svg) without collapsing other containers
+   */
+  refreshContainer(fileName: string): void {
+    const containerKey = `built:${fileName}`;
+    const cachedContainer = this.itemCache.get(containerKey);
+    if (cachedContainer) {
+      this._onDidChangeTreeData.fire(cachedContainer);
+    } else {
+      // Fallback to soft refresh if container not in cache
+      this.softRefresh();
+    }
+  }
+
+  /**
    * Refresh only a specific file category - invalidates cache to reload from disk
+   * Note: This will collapse the tree. Use refreshContainer for partial updates.
    */
   refreshFile(_fileName: string): void {
     // Must invalidate cache so getChildren() will re-read from disk
@@ -39,6 +67,85 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
     this.jsIcons.clear();
     this.isInitialized = false;
     this._onDidChangeTreeData.fire();
+  }
+
+  /**
+   * Refresh a specific item by icon name without collapsing tree branches
+   */
+  refreshItemByName(iconName: string): void {
+    const icon = this.builtIcons.get(iconName);
+    if (icon) {
+      // Create a SvgItem for this icon and fire partial refresh
+      const item = new SvgItem(
+        icon.name,
+        0,
+        vscode.TreeItemCollapsibleState.None,
+        'icon',
+        icon
+      );
+      this._onDidChangeTreeData.fire(item);
+    } else {
+      // Icon not in cache, need full refresh
+      this._onDidChangeTreeData.fire();
+    }
+  }
+
+  /**
+   * Add a new icon to the cache and refresh the icons.js container only
+   * This preserves tree expansion state when adding new icons
+   */
+  addIconAndRefresh(iconName: string, svg: string, iconsFilePath: string): void {
+    // Create WorkspaceIcon for the new icon
+    const newIcon: WorkspaceIcon = {
+      name: iconName,
+      path: iconsFilePath,
+      source: 'library',
+      svg: svg,
+      isBuilt: true
+    };
+    
+    // Add to caches
+    this.builtIcons.set(iconName, newIcon);
+    this.jsIcons.add(iconName);
+    
+    // Get the icons.js container item from cache and refresh only that
+    const containerItem = this.itemCache.get('built:icons.js');
+    if (containerItem) {
+      // Update the counter in the cached container before firing
+      // Count icons that belong to icons.js (not sprite.svg)
+      const jsIconCount = Array.from(this.builtIcons.values())
+        .filter(icon => icon.path.endsWith('icons.js') || icon.path.endsWith('icons.ts'))
+        .length;
+      containerItem.description = `(${jsIconCount})`;
+      this._onDidChangeTreeData.fire(containerItem);
+    } else {
+      // Fallback to full refresh if container not cached
+      this._onDidChangeTreeData.fire();
+    }
+  }
+
+  /**
+   * Remove an icon from the cache and refresh the icons.js container only
+   * This preserves tree expansion state when removing icons
+   */
+  removeIconAndRefresh(iconName: string): void {
+    // Remove from caches
+    this.builtIcons.delete(iconName);
+    this.jsIcons.delete(iconName);
+    
+    // Get the icons.js container item from cache and refresh only that
+    const containerItem = this.itemCache.get('built:icons.js');
+    if (containerItem) {
+      // Update the counter in the cached container before firing
+      const jsIconCount = Array.from(this.builtIcons.values())
+        .filter(icon => icon.path.endsWith('icons.js') || icon.path.endsWith('icons.ts'))
+        .length;
+      containerItem.description = jsIconCount > 0 ? `(${jsIconCount})` : '';
+      this._onDidChangeTreeData.fire(containerItem);
+    } else {
+      // Fallback to full refresh if container not cached
+      this._onDidChangeTreeData.fire();
+    }
   }
 
   /**
@@ -257,7 +364,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
       if (!outputDir) {
         // Not configured - show setup message
         const setupItem = new SvgItem(
-          '⚙️ Configure Icon Manager',
+          '⚙️ ' + t('treeView.configureFirst'),
           0,
           vscode.TreeItemCollapsibleState.None,
           'action',
@@ -266,14 +373,14 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
         );
         setupItem.command = {
           command: 'iconManager.openWelcome',
-          title: 'Open Setup'
+          title: t('commands.openSetup')
         };
-        setupItem.tooltip = 'Click to configure output directory and settings';
+        setupItem.tooltip = t('messages.clickToConfigureOutput');
         return [setupItem];
       }
       
       return [new SvgItem(
-        'No built icons - Run Build command',
+        t('treeView.noBuiltIcons'),
         0,
         vscode.TreeItemCollapsibleState.None,
         'action',

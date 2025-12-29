@@ -147,6 +147,33 @@ export function findIconsObjectPosition(content: string): number {
 }
 
 /**
+ * Extract the icons object content by properly matching braces
+ * @returns Object with start index (after opening brace), end index (before closing brace), and inner content
+ */
+export function extractIconsObjectContent(content: string): { startIndex: number; endIndex: number; inner: string } | null {
+  const iconsMatch = content.match(/export const icons = \{/);
+  if (!iconsMatch || iconsMatch.index === undefined) {
+    return null;
+  }
+  
+  const startIndex = iconsMatch.index + iconsMatch[0].length;
+  let braceCount = 1;
+  let endIndex = startIndex;
+  
+  while (braceCount > 0 && endIndex < content.length) {
+    if (content[endIndex] === '{') braceCount++;
+    if (content[endIndex] === '}') braceCount--;
+    endIndex++;
+  }
+  
+  return {
+    startIndex,
+    endIndex: endIndex - 1, // Position of closing brace
+    inner: content.substring(startIndex, endIndex - 1)
+  };
+}
+
+/**
  * Add a new icon export before the icons object
  */
 export function addIconBeforeIconsObject(
@@ -161,17 +188,14 @@ export function addIconBeforeIconsObject(
     // Insert before icons object
     let newContent = content.slice(0, iconsObjPos) + iconExport + '\n\n' + content.slice(iconsObjPos);
     
-    // Add to the icons object
-    const objMatch = newContent.match(/export const icons = \{([^}]*)\}/);
-    if (objMatch) {
-      const existingIcons = objMatch[1].trim();
-      const newIcons = existingIcons 
+    // Add to the icons object using proper brace matching
+    const objData = extractIconsObjectContent(newContent);
+    if (objData) {
+      const existingIcons = objData.inner.trim();
+      const newInner = existingIcons 
         ? `${existingIcons},\n  ${varName}` 
         : `\n  ${varName}\n`;
-      newContent = newContent.replace(
-        /export const icons = \{([^}]*)\}/,
-        `export const icons = {${newIcons}}`
-      );
+      newContent = newContent.substring(0, objData.startIndex) + newInner + newContent.substring(objData.endIndex);
     }
     return newContent;
   }
@@ -436,16 +460,54 @@ export function createSupportingFilesIfNeeded(outputPath: string): {
 export function removeIconExportFromContent(content: string, iconName: string): string {
   const varName = toVariableName(iconName);
   
-  // Remove the export statement
-  const exportRegex = new RegExp(`export const ${varName} = \\{[\\s\\S]*?\\};\\n?\\n?`, 'g');
+  // Remove the export statement - use word boundary to avoid matching partial names
+  const exportRegex = new RegExp(`export const ${varName}\\s*=\\s*\\{[\\s\\S]*?\\};\\n?\\n?`, 'g');
   let result = content.replace(exportRegex, '');
   
-  // Remove from icons object
-  const objRegex = new RegExp(`\\s*${varName},?`, 'g');
-  result = result.replace(/export const icons = \{([^}]*)\}/, (match, inner) => {
-    const cleaned = inner.replace(objRegex, '').trim();
-    return `export const icons = {${cleaned ? `\n  ${cleaned.replace(/,\s*$/, '')}\n` : '\n'}}`;
-  });
+  // Remove from icons object - use word boundary (\b) to avoid matching partial variable names
+  // e.g., removing "home" should not affect "homeOutline"
+  const objRegex = new RegExp(`\\s*\\b${varName}\\b,?`, 'g');
+  const iconsMatch = result.match(/export const icons = \{/);
+  
+  if (iconsMatch && iconsMatch.index !== undefined) {
+    const startIndex = iconsMatch.index + iconsMatch[0].length;
+    // Find the matching closing brace by counting braces
+    let braceCount = 1;
+    let endIndex = startIndex;
+    while (braceCount > 0 && endIndex < result.length) {
+      if (result[endIndex] === '{') braceCount++;
+      if (result[endIndex] === '}') braceCount--;
+      endIndex++;
+    }
+    
+    // Extract the inner content of the icons object
+    const inner = result.substring(startIndex, endIndex - 1);
+    let cleaned = inner.replace(objRegex, '').trim();
+    
+    // Remove trailing commas and clean up
+    cleaned = cleaned.replace(/,\s*$/, '');
+    
+    // Check if only comments remain (no actual icon names)
+    // Remove the placeholder comment if no icons left
+    const withoutComments = cleaned.replace(/\/\/[^\n]*/g, '').trim();
+    if (!withoutComments || withoutComments === ',') {
+      cleaned = '';
+    }
+    
+    // Format the inner content properly
+    // If empty, create an empty object with proper formatting
+    // If has content, wrap with newlines and proper indentation
+    let newInner: string;
+    if (!cleaned) {
+      newInner = '';  // Will result in `export const icons = {};`
+    } else {
+      // Ensure proper formatting with each icon on its own line
+      const iconNames = cleaned.split(',').map(s => s.trim()).filter(Boolean);
+      newInner = '\n  ' + iconNames.join(',\n  ') + '\n';
+    }
+    
+    result = result.substring(0, startIndex) + newInner + result.substring(endIndex - 1);
+  }
   
   // Clean up extra newlines
   result = result.replace(/\n{3,}/g, '\n\n');

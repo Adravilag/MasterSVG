@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import { getFullOutputPath, updateIconsJsContext } from '../utils/configHelper';
 import { removeFromIconsJs } from '../utils/iconsFileManager';
 import { VariantsService } from '../services/VariantsService';
+import { t } from '../i18n';
 
 /**
  * Interface for providers needed by icon commands
@@ -39,19 +40,19 @@ export function registerIconCommands(
       const itemsToDelete = selectedItems && selectedItems.length > 0 ? selectedItems : [item];
       
       if (itemsToDelete.length === 0) {
-        vscode.window.showWarningMessage('No icons selected for deletion');
+        vscode.window.showWarningMessage(t('messages.noIconsSelectedForDeletion'));
         return;
       }
 
       const names = itemsToDelete.map((i: any) => typeof i.label === 'string' ? i.label : '').filter(Boolean);
       
       const confirm = await vscode.window.showWarningMessage(
-        `Delete ${names.length} icon(s): ${names.join(', ')}?`,
+        t('messages.confirmDeleteIcons', { count: names.length, names: names.join(', ') }),
         { modal: true },
-        'Delete'
+        t('messages.deleteButton')
       );
 
-      if (confirm !== 'Delete') return;
+      if (confirm !== t('messages.deleteButton')) return;
 
       const fullOutputPath = getFullOutputPath();
       let deletedCount = 0;
@@ -73,7 +74,7 @@ export function registerIconCommands(
               });
             }
           } catch (error) {
-            vscode.window.showErrorMessage(`Failed to delete ${item.label}: ${error}`);
+            vscode.window.showErrorMessage(t('messages.failedToDelete', { name: item.label, error: String(error) }));
           }
         } else if (item.contextValue === 'builtIcon' || item.contextValue === 'builtIconRasterized') {
           // Collect built icons to delete from icons.js
@@ -103,7 +104,7 @@ export function registerIconCommands(
       }
       
       if (deletedCount > 0) {
-        vscode.window.showInformationMessage(`Deleted ${deletedCount} icon(s)`);
+        vscode.window.showInformationMessage(t('messages.deletedCount', { count: deletedCount }));
       }
     })
   );
@@ -116,7 +117,7 @@ export function registerIconCommands(
       const items = selectedItems && selectedItems.length > 0 ? selectedItems : (item ? [item] : []);
       
       if (items.length === 0 || !items[0]?.icon) {
-        vscode.window.showWarningMessage('Select icon(s) to remove from built');
+        vscode.window.showWarningMessage(t('messages.selectIconsToRemoveFromBuilt'));
         return;
       }
 
@@ -127,27 +128,27 @@ export function registerIconCommands(
         .filter((name: string | undefined): name is string => !!name);
 
       if (iconNames.length === 0) {
-        vscode.window.showWarningMessage('Could not determine icon names');
+        vscode.window.showWarningMessage(t('messages.couldNotDetermineIconNames'));
         return;
       }
 
       const fullOutputPath = getFullOutputPath();
       if (!fullOutputPath) {
-        vscode.window.showWarningMessage('Output directory not configured');
+        vscode.window.showWarningMessage(t('messages.outputDirectoryNotConfigured'));
         return;
       }
 
       const message = iconNames.length === 1
-        ? `Remove "${iconNames[0]}" from built icons library?`
-        : `Remove ${iconNames.length} icons from built icons library?`;
+        ? t('messages.removeIconFromBuilt', { name: iconNames[0] })
+        : t('messages.removeIconsFromBuilt', { count: iconNames.length });
 
       const confirm = await vscode.window.showWarningMessage(
         message,
         { modal: true },
-        'Remove'
+        t('messages.removeButton')
       );
 
-      if (confirm !== 'Remove') {
+      if (confirm !== t('messages.removeButton')) {
         return;
       }
 
@@ -169,11 +170,11 @@ export function registerIconCommands(
         svgFilesProvider.refresh();
         
         const infoMsg = iconNames.length === 1
-          ? `Removed "${iconNames[0]}" from built icons`
-          : `Removed ${iconNames.length} icons from built icons`;
+          ? t('messages.removedIconFromBuilt', { name: iconNames[0] })
+          : t('messages.removedIconsFromBuilt', { count: iconNames.length });
         vscode.window.showInformationMessage(infoMsg);
       } else {
-        vscode.window.showErrorMessage(`Failed to remove icon(s) from built icons`);
+        vscode.window.showErrorMessage(t('messages.failedToRemoveFromBuilt'));
       }
     })
   );
@@ -182,7 +183,7 @@ export function registerIconCommands(
   commands.push(
     vscode.commands.registerCommand('iconManager.renameIcon', async (item: any, providedNewName?: string) => {
       if (!item?.icon) {
-        vscode.window.showWarningMessage('Select an icon to rename');
+        vscode.window.showWarningMessage(t('messages.selectIconToRename'));
         return;
       }
 
@@ -195,19 +196,19 @@ export function registerIconCommands(
       let newName = providedNewName;
       if (!newName) {
         newName = await vscode.window.showInputBox({
-          prompt: 'Enter new name for the icon',
+          prompt: t('ui.prompts.enterNewIconName'),
           value: oldName,
-          placeHolder: 'icon-name',
+          placeHolder: t('ui.placeholders.iconName'),
           validateInput: (value) => {
             if (!value || value.trim() === '') {
-              return 'Name cannot be empty';
+              return t('editor.nameCannotBeEmpty');
             }
             if (value === oldName) {
-              return 'Enter a different name';
+              return t('editor.enterDifferentName');
             }
             // Basic validation: no special characters except dash and underscore
             if (!/^[a-zA-Z0-9_-]+$/.test(value)) {
-              return 'Name can only contain letters, numbers, dashes and underscores';
+              return t('editor.nameValidation');
             }
             return undefined;
           }
@@ -226,7 +227,7 @@ export function registerIconCommands(
           newPath = path.join(dir, `${newName}.svg`);
 
           if (fs.existsSync(newPath)) {
-            vscode.window.showErrorMessage(`A file named "${newName}.svg" already exists`);
+            vscode.window.showErrorMessage(t('messages.fileAlreadyExists', { name: `${newName}.svg` }));
             return;
           }
 
@@ -311,9 +312,9 @@ export function registerIconCommands(
           }
           
           if (referencesUpdated > 0) {
-            vscode.window.showInformationMessage(`Renamed "${oldName}.svg" to "${newName}.svg" and updated ${referencesUpdated} file(s) with references`);
+            vscode.window.showInformationMessage(t('messages.renamedWithReferences', { oldName: `${oldName}.svg`, newName: `${newName}.svg`, count: referencesUpdated }));
           } else {
-            vscode.window.showInformationMessage(`Renamed "${oldName}.svg" to "${newName}.svg"`);
+            vscode.window.showInformationMessage(t('messages.renamedTo', { name: `${newName}.svg` }));
           }
         } else if (isBuiltIcon) {
           // Rename in icons.js, icons.js, sprite.svg, etc.
@@ -393,7 +394,7 @@ export function registerIconCommands(
           }
 
           if (!foundInAnyFile) {
-            vscode.window.showErrorMessage(`Could not find icon "${oldName}" in build files`);
+            vscode.window.showErrorMessage(t('messages.iconNotFoundInBuildFiles', { name: oldName }));
             return;
           }
 
@@ -402,7 +403,7 @@ export function registerIconCommands(
           workspaceSvgProvider.renameBuiltIcon(oldName, newName);
           builtIconsProvider.refresh(); // Refresh the BuiltIconsProvider tree view
           
-          vscode.window.showInformationMessage(`Renamed "${oldName}" to "${newName}" (${filesUpdated} file${filesUpdated > 1 ? 's' : ''} updated)`);
+          vscode.window.showInformationMessage(t('messages.renamedFilesUpdated', { oldName, newName, count: filesUpdated }));
         }
 
         // For SVG files, use partial refresh if we have the new path
@@ -417,7 +418,7 @@ export function registerIconCommands(
         // Return the new path for SVG files so callers can update their references
         return { newName, newPath };
       } catch (error) {
-        vscode.window.showErrorMessage(`Error renaming icon: ${error}`);
+        vscode.window.showErrorMessage(t('messages.errorRenamingIcon', { error: String(error) }));
         return undefined;
       }
     })

@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { getSvgConfig, getFullSvgConfig } from '../utils/config';
 import { ErrorHandler } from '../utils/errorHandler';
+import { t } from '../i18n';
 
 export class IconManagerPanel {
   public static currentPanel: IconManagerPanel | undefined;
@@ -34,7 +35,7 @@ export class IconManagerPanel {
     // Create new panel
     const panel = vscode.window.createWebviewPanel(
       IconManagerPanel.viewType,
-      'Icon Manager',
+      t('treeView.files'),
       column || vscode.ViewColumn.One,
       {
         enableScripts: true,
@@ -112,7 +113,7 @@ export class IconManagerPanel {
 
       case 'copyToClipboard':
         await vscode.env.clipboard.writeText(message.text);
-        vscode.window.showInformationMessage('Copied to clipboard!');
+        vscode.window.showInformationMessage(t('messages.copiedToClipboard'));
         break;
 
       case 'getConfig':
@@ -159,7 +160,7 @@ export class IconManagerPanel {
   private async _insertIcon(iconName: string, format?: string) {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
-      vscode.window.showErrorMessage('No active editor');
+      vscode.window.showErrorMessage(t('messages.noActiveEditor'));
       return;
     }
 
@@ -267,15 +268,31 @@ export class IconManagerPanel {
     // Load templates from external files
     const templatesPath = path.join(this._extensionUri.fsPath, 'src', 'templates', 'icon-manager');
     const css = fs.readFileSync(path.join(templatesPath, 'IconManager.css'), 'utf8');
-    const js = fs.readFileSync(path.join(templatesPath, 'IconManager.js'), 'utf8');
+    const jsTemplate = fs.readFileSync(path.join(templatesPath, 'IconManager.js'), 'utf8');
     let html = fs.readFileSync(path.join(templatesPath, 'IconManager.html'), 'utf8');
+
+    // Inject i18n translations into JS
+    const i18nObject = {
+      noIconsFound: t('webview.js.noIconsFound'),
+      noIconsMatch: t('webview.js.noIconsMatch'),
+      browseIconify: t('webview.js.browseIconify'),
+      comingSoon: t('webview.js.comingSoon'),
+      scanWorkspaceBtn: t('webview.js.scanWorkspaceBtn')
+    };
+    const js = jsTemplate.replace(/__I18N__/g, JSON.stringify(i18nObject));
 
     // Replace placeholders
     html = html
       .replace(/\${cspSource}/g, webview.cspSource)
       .replace(/\${nonce}/g, nonce)
       .replace(/\${css}/g, css)
-      .replace(/\${js}/g, js);
+      .replace(/\${js}/g, js)
+      // i18n translations
+      .replace(/\${i18n_title}/g, t('webview.tabs.title'))
+      .replace(/\${i18n_searchPlaceholder}/g, t('webview.tabs.searchPlaceholder'))
+      .replace(/\${i18n_workspace}/g, t('webview.tabs.workspace'))
+      .replace(/\${i18n_library}/g, t('webview.tabs.library'))
+      .replace(/\${i18n_online}/g, t('webview.tabs.online'));
 
     return html;
   }

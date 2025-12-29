@@ -1,4 +1,5 @@
     const vscode = acquireVsCodeApi();
+    const i18n = __I18N__;
     
     // State
     let currentZoom = 3;
@@ -142,7 +143,7 @@
         countEl.textContent = message.total + ' found';
         
         if (message.usages.length === 0) {
-          listEl.innerHTML = '<div class="empty-state"><span class="codicon codicon-info"></span> No usages found in workspace</div>';
+          listEl.innerHTML = '<div class="empty-state"><span class="codicon codicon-info"></span> ' + i18n.noUsagesFound + '</div>';
         } else {
           listEl.innerHTML = message.usages.map(u => {
             const shortFile = u.file.split(/[\\/]/).slice(-3).join('/');
@@ -162,10 +163,10 @@
         const resultEl = document.getElementById('optimizeResult');
         resultEl.classList.add('visible');
         
-        document.getElementById('optimizeOriginal').textContent = 'Original: ' + message.originalSizeStr;
-        document.getElementById('optimizeNew').textContent = 'Optimized: ' + message.optimizedSizeStr;
+        document.getElementById('optimizeOriginal').textContent = i18n.original + ' ' + message.originalSizeStr;
+        document.getElementById('optimizeNew').textContent = i18n.optimized + ' ' + message.optimizedSizeStr;
         document.getElementById('optimizeSavings').textContent = 
-          'Saved: ' + (message.savingsPercent > 0 ? message.savingsPercent.toFixed(1) + '%' : 'Already optimal');
+          i18n.saved + ' ' + (message.savingsPercent > 0 ? message.savingsPercent.toFixed(1) + '%' : i18n.alreadyOptimal);
       }
       
       if (message.command === 'colorChanged') {

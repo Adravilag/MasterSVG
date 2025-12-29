@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { t } from '../i18n';
 
 /**
  * Registers navigation-related commands for icons
@@ -122,7 +123,7 @@ export function registerNavigationCommands(
         // Try to open with VS Code's built-in SVG preview
         await vscode.commands.executeCommand('vscode.open', uri);
       } else {
-        vscode.window.showWarningMessage('No SVG file path available');
+        vscode.window.showWarningMessage(t('messages.noSvgPathAvailable'));
       }
     })
   );
@@ -133,7 +134,7 @@ export function registerNavigationCommands(
       const icon = iconOrItem?.icon || iconOrItem;
       if (icon && icon.name) {
         await vscode.env.clipboard.writeText(icon.name);
-        vscode.window.showInformationMessage(`Copied: ${icon.name}`);
+        vscode.window.showInformationMessage(t('messages.iconCopied', { name: icon.name }));
       }
     })
   );

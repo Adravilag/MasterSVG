@@ -3,10 +3,10 @@
     <header class="header">
       <div class="header-left">
         <span class="icon-name" id="iconName">${name}</span>
-        <button class="rename-btn" onclick="renameIcon()" title="Rename Icon">
+        <button class="rename-btn" onclick="renameIcon()" title="${i18n_renameIcon}">
           <span class="codicon codicon-edit"></span>
         </button>
-        <span class="badge">Editor</span>
+        <span class="badge">${i18n_editorBadge}</span>
         ${isBuilt ? '<span class="badge badge-built">BUILT</span>' : ''}
       </div>
       <div class="header-right">
@@ -14,7 +14,7 @@
            <span class="codicon codicon-play"></span> <span id="animName"></span>
         </span>
         <span class="badge badge-optimized" id="optimizedBadge" style="display: none;">
-           <span class="codicon codicon-rocket"></span> Optimized
+           <span class="codicon codicon-rocket"></span> ${i18n_optimizedBadge}
         </span>
         <span class="file-size" id="fileSize">${fileSizeStr}</span>
       </div>
@@ -36,31 +36,31 @@
           </div>
         </div>
         <div class="zoom-controls">
-          <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">
+          <button class="zoom-btn" onclick="zoomOut()" title="${i18n_zoomOut}">
             <span class="codicon codicon-zoom-out"></span>
           </button>
           <span class="zoom-level" id="zoomLevel">100%</span>
-          <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">
+          <button class="zoom-btn" onclick="zoomIn()" title="${i18n_zoomIn}">
             <span class="codicon codicon-zoom-in"></span>
           </button>
-          <button class="zoom-btn" onclick="resetZoom()" title="Reset Zoom">
+          <button class="zoom-btn" onclick="resetZoom()" title="${i18n_resetZoom}">
             <span class="codicon codicon-screen-normal"></span>
           </button>
           <span class="zoom-separator"></span>
-          <button class="zoom-btn restart-anim-btn" id="restartAnimBtn" onclick="restartAnimation()" title="Restart Animation" style="display: none;">
+          <button class="zoom-btn restart-anim-btn" id="restartAnimBtn" onclick="restartAnimation()" title="${i18n_restartAnimation}" style="display: none;">
             <span class="codicon codicon-debug-restart"></span>
           </button>
         </div>
         
         <!-- Actions Toolbar -->
         <div class="actions-section">
-          <button class="action-btn warning" onclick="rebuild()" title="Build Icons">
+          <button class="action-btn warning" onclick="rebuild()" title="${i18n_buildIcons}">
             <span class="codicon codicon-sync"></span>
           </button>
-          <button class="action-btn" onclick="copySvg()" title="Copy SVG">
+          <button class="action-btn" onclick="copySvg()" title="${i18n_copySvg}">
             <span class="codicon codicon-copy"></span>
           </button>
-          <button class="action-btn optimize-btn" id="optimizeBtn" onclick="optimizeSvg('safe')" title="Optimize SVG (SVGO)">
+          <button class="action-btn optimize-btn" id="optimizeBtn" onclick="optimizeSvg('safe')" title="${i18n_optimizeSvg}">
             <span class="codicon codicon-rocket"></span>
           </button>
         </div>
@@ -73,10 +73,10 @@
           </div>
           <div class="optimize-build-hint" id="optimizeBuildHint">
             <span class="codicon codicon-arrow-right"></span>
-            <span>Apply on Build</span>
+            <span>${i18n_applyOnBuild}</span>
           </div>
           <div class="optimize-bar-actions" id="optimizeBarActions">
-            <button class="mini-btn" id="btnRevertOptimized" onclick="revertOptimized()" title="Discard optimization" style="display: none;">
+            <button class="mini-btn" id="btnRevertOptimized" onclick="revertOptimized()" title="${i18n_discardOptimization}" style="display: none;">
               <span class="codicon codicon-close"></span>
             </button>
           </div>
@@ -90,13 +90,13 @@
         <div class="tabs-container">
           <div class="tabs-header">
             <button class="tab-btn active" onclick="switchTab('color')">
-              <span class="codicon codicon-symbol-color"></span> Color
+              <span class="codicon codicon-symbol-color"></span> ${i18n_tabColor}
             </button>
             <button class="tab-btn" onclick="switchTab('animation')">
-              <span class="codicon codicon-play"></span> Animation
+              <span class="codicon codicon-play"></span> ${i18n_tabAnimation}
             </button>
             <button class="tab-btn" onclick="switchTab('code')">
-              <span class="codicon codicon-code"></span> Code
+              <span class="codicon codicon-code"></span> ${i18n_tabCode}
             </button>
           </div>
           

@@ -63,238 +63,257 @@
     "commands": [
       {
         "command": "iconManager.openPanel",
-        "title": "IconWrap: Open Panel",
+        "title": "%command.openPanel%",
         "icon": "$(symbol-color)"
       },
       {
         "command": "iconManager.openWelcome",
-        "title": "IconWrap: Setup / Welcome",
+        "title": "%command.openWelcome%",
         "icon": "$(home)"
       },
       {
         "command": "iconManager.scanWorkspace",
-        "title": "IconWrap: Scan Workspace SVGs"
+        "title": "%command.scanWorkspace%"
       },
       {
         "command": "iconManager.scanUsages",
-        "title": "IconWrap: Scan Icon Usages",
+        "title": "%command.scanUsages%",
         "icon": "$(references)"
       },
       {
         "command": "iconManager.transformSvgToIcon",
-        "title": "IconWrap: Transform SVG to Icon Component"
+        "title": "%command.transformSvgToIcon%"
       },
       {
         "command": "iconManager.optimizeSvg",
-        "title": "IconWrap: Optimize SVG (SVGO)",
+        "title": "%command.optimizeSvg%",
         "icon": "$(rocket)"
       },
       {
         "command": "iconManager.insertIcon",
-        "title": "IconWrap: Insert Icon"
+        "title": "%command.insertIcon%"
       },
       {
         "command": "iconManager.previewIcon",
-        "title": "IconWrap: Preview Icon at Cursor"
+        "title": "%command.previewIcon%"
       },
       {
         "command": "iconManager.goToInlineSvg",
-        "title": "Go to SVG",
+        "title": "%command.goToInlineSvg%",
         "icon": "$(go-to-file)"
       },
       {
         "command": "iconManager.goToUsage",
-        "title": "Go to Usage",
+        "title": "%command.goToUsage%",
         "icon": "$(go-to-file)"
       },
       {
         "command": "iconManager.transformInlineSvg",
-        "title": "Transform SVG to Icon Component",
+        "title": "%command.transformInlineSvg%",
         "icon": "$(replace)"
       },
       {
         "command": "iconManager.configureProject",
-        "title": "IconWrap: Configure Project",
+        "title": "%command.configureProject%",
         "icon": "$(gear)"
       },
       {
         "command": "iconManager.editIgnoreFile",
-        "title": "IconWrap: Edit Ignore File (.iconwrapignore)",
+        "title": "%command.editIgnoreFile%",
         "icon": "$(list-filter)"
       },
       {
         "command": "iconManager.refreshIcons",
-        "title": "IconWrap: Refresh All Views",
+        "title": "%command.refreshIcons%",
         "icon": "$(refresh)"
       },
       {
         "command": "iconManager.refreshFiles",
-        "title": "IconWrap: Refresh Files",
+        "title": "%command.refreshFiles%",
         "icon": "$(refresh)"
       },
       {
         "command": "iconManager.refreshCode",
-        "title": "IconWrap: Refresh Code",
+        "title": "%command.refreshCode%",
         "icon": "$(refresh)"
       },
       {
         "command": "iconManager.refreshBuilt",
-        "title": "IconWrap: Refresh Built Icons",
+        "title": "%command.refreshBuilt%",
         "icon": "$(refresh)"
       },
       {
         "command": "iconManager.buildIcons",
-        "title": "IconWrap: Build Icons",
+        "title": "%command.buildIcons%",
         "icon": "$(package)"
       },
       {
         "command": "iconManager.searchIcons",
-        "title": "IconWrap: Search Icons (Iconify)",
+        "title": "%command.searchIcons%",
         "icon": "$(search)"
       },
       {
         "command": "iconManager.deleteIcons",
-        "title": "Delete Icon(s)",
+        "title": "%command.deleteIcons%",
         "icon": "$(trash)"
       },
       {
         "command": "iconManager.removeFromBuilt",
-        "title": "Remove from Built",
+        "title": "%command.removeFromBuilt%",
         "icon": "$(remove)"
       },
       {
         "command": "iconManager.showDetails",
-        "title": "Show Details",
+        "title": "%command.showDetails%",
         "icon": "$(info)"
       },
       {
         "command": "iconManager.goToCode",
-        "title": "Go to Code",
+        "title": "%command.goToCode%",
         "icon": "$(go-to-file)"
       },
       {
         "command": "iconManager.openSvgFile",
-        "title": "Open SVG File",
+        "title": "%command.openSvgFile%",
         "icon": "$(file-media)"
       },
       {
         "command": "iconManager.copyIconName",
-        "title": "Copy Icon Name",
+        "title": "%command.copyIconName%",
         "icon": "$(copy)"
       },
       {
         "command": "iconManager.colorEditor",
-        "title": "Open in Editor",
+        "title": "%command.colorEditor%",
         "icon": "$(edit)"
       },
       {
         "command": "iconManager.expandAll",
-        "title": "Expand All",
+        "title": "%command.expandAll%",
         "icon": "$(expand-all)"
       },
       {
         "command": "iconManager.collapseAll",
-        "title": "Collapse All",
+        "title": "%command.collapseAll%",
         "icon": "$(collapse-all)"
       },
       {
         "command": "iconManager.expandBuiltIcons",
-        "title": "Expand All",
+        "title": "%command.expandAll%",
         "icon": "$(expand-all)"
       },
       {
         "command": "iconManager.collapseBuiltIcons",
-        "title": "Collapse All",
+        "title": "%command.collapseAll%",
         "icon": "$(collapse-all)"
       },
       {
         "command": "iconManager.expandSvgFiles",
-        "title": "Expand All",
+        "title": "%command.expandAll%",
         "icon": "$(expand-all)"
       },
       {
         "command": "iconManager.collapseSvgFiles",
-        "title": "Collapse All",
+        "title": "%command.collapseAll%",
         "icon": "$(collapse-all)"
       },
       {
         "command": "iconManager.configureSvgFolder",
-        "title": "Configure SVG Folder",
+        "title": "%command.configureSvgFolder%",
         "icon": "$(folder-opened)"
       },
       {
         "command": "iconManager.exportComponent",
-        "title": "Export as Component",
+        "title": "%command.exportComponent%",
         "icon": "$(file-code)"
       },
       {
         "command": "iconManager.generateSprite",
-        "title": "IconWrap: Generate SVG Sprite",
+        "title": "%command.generateSprite%",
         "icon": "$(layers)"
       },
       {
         "command": "iconManager.addSvgToCollection",
-        "title": "Add to Icon Collection",
+        "title": "%command.addSvgToCollection%",
         "icon": "$(add)"
       },
       {
         "command": "iconManager.removeReference",
-        "title": "Remove Reference",
+        "title": "%command.removeReference%",
         "icon": "$(trash)"
       },
       {
         "command": "iconManager.findAndReplace",
-        "title": "Find & Replace Path",
+        "title": "%command.findAndReplace%",
         "icon": "$(search-replace)"
       },
       {
         "command": "iconManager.renameIcon",
-        "title": "Rename Icon",
+        "title": "%command.renameIcon%",
         "icon": "$(edit)"
       },
       {
         "command": "iconManager.viewSprite",
-        "title": "View SVG Sprite",
+        "title": "%command.viewSprite%",
         "icon": "$(eye)"
       },
       {
         "command": "iconManager.viewIconsFile",
-        "title": "View Icons File",
+        "title": "%command.viewIconsFile%",
         "icon": "$(eye)"
       },
       {
         "command": "iconManager.deleteBuiltFile",
-        "title": "Delete File",
+        "title": "%command.deleteBuiltFile%",
         "icon": "$(trash)"
       },
       {
         "command": "iconManager.buildAllReferences",
-        "title": "Build All References",
+        "title": "%command.buildAllReferences%",
         "icon": "$(package)"
       },
       {
         "command": "iconManager.buildAllFiles",
-        "title": "Build All SVG Files",
+        "title": "%command.buildAllFiles%",
         "icon": "$(package)"
       },
       {
         "command": "iconManager.cleanSprite",
-        "title": "IconWrap: Clean Sprite (Remove Invalid Entries)",
+        "title": "%command.cleanSprite%",
         "icon": "$(trash)"
       }
     ],
     "configuration": {
-      "title": "IconWrap",
+      "title": "%config.title%",
       "properties": {
+        "iconManager.language": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "en",
+            "es",
+            "zh",
+            "ru"
+          ],
+          "enumDescriptions": [
+            "%config.language.auto%",
+            "%config.language.en%",
+            "%config.language.es%",
+            "%config.language.zh%",
+            "%config.language.ru%"
+          ],
+          "default": "auto",
+          "description": "%config.language.description%"
+        },
         "iconManager.componentName": {
           "type": "string",
           "default": "iw-icon",
-          "description": "Name of the Icon component to use in transformations"
+          "description": "%config.componentName.description%"
         },
         "iconManager.componentImport": {
           "type": "string",
           "default": "@/components/ui/Icon",
-          "description": "Import path for the Icon component"
+          "description": "%config.componentImport.description%"
         },
         "iconManager.svgFolders": {
           "type": "array",
@@ -307,7 +326,7 @@
             "svg",
             "assets/svg"
           ],
-          "description": "Folders to scan for SVG files"
+          "description": "%config.svgFolders.description%"
         },
         "iconManager.outputFormat": {
           "type": "string",
@@ -375,19 +394,19 @@
       "iconManager": [
         {
           "id": "iconManager.svgFiles",
-          "name": "Files"
+          "name": "%view.iconwrapFiles.title%"
         },
         {
           "id": "iconManager.workspaceIcons",
-          "name": "Code"
+          "name": "%view.iconwrapCode.title%"
         },
         {
           "id": "iconManager.builtIcons",
-          "name": "Built"
+          "name": "%view.iconwrapBuilt.title%"
         },
         {
           "id": "iconManager.preview",
-          "name": "Preview",
+          "name": "%view.iconwrapPreview.title%",
           "type": "webview"
         }
       ]

@@ -3,6 +3,7 @@ import { SvgOptimizer } from '../services/SvgOptimizer';
 import { SvgManipulationService } from '../services/SvgManipulationService';
 import { getSyntaxHighlighter } from '../services/SyntaxHighlighter';
 import { getIconEditorTemplateService } from '../services/IconEditorTemplateService';
+import { t } from '../i18n';
 
 const svgOptimizer = new SvgOptimizer();
 
@@ -115,7 +116,7 @@ export function handleCopySvg(
   const svgToCopy = message.svg || ctx.iconData?.svg;
   if (svgToCopy) {
     vscode.env.clipboard.writeText(svgToCopy);
-    vscode.window.showInformationMessage('SVG copied to clipboard');
+    vscode.window.showInformationMessage(t('messages.svgCopiedToClipboard'));
   }
 }
 
@@ -138,7 +139,7 @@ export function handleCopyWithAnimation(
     settings as unknown as import('../services/AnimationService').AnimationSettings
   );
   vscode.env.clipboard.writeText(animatedSvg);
-  vscode.window.showInformationMessage('Animated SVG copied to clipboard');
+  vscode.window.showInformationMessage(t('messages.animatedSvgCopied'));
 }
 
 /**
@@ -210,11 +211,11 @@ export function handleInsertCodeAtCursor(message: { code?: string }): void {
       editBuilder.insert(editor.selection.active, message.code!);
     }).then(success => {
       if (success) {
-        vscode.window.showInformationMessage('Code inserted at cursor');
+        vscode.window.showInformationMessage(t('messages.codeInsertedAtCursor'));
       }
     });
   } else {
     vscode.env.clipboard.writeText(message.code);
-    vscode.window.showInformationMessage('No active editor. Code copied to clipboard.');
+    vscode.window.showInformationMessage(t('messages.noActiveEditorCodeCopied'));
   }
 }
