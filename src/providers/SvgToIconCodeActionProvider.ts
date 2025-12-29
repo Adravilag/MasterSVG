@@ -32,7 +32,8 @@ export interface TransformOptions {
  */
 export class SvgToIconCodeActionProvider implements vscode.CodeActionProvider {
   public static readonly providedCodeActionKinds = [
-    vscode.CodeActionKind.QuickFix
+    vscode.CodeActionKind.QuickFix,
+    vscode.CodeActionKind.Refactor
   ];
 
   provideCodeActions(
@@ -44,7 +45,9 @@ export class SvgToIconCodeActionProvider implements vscode.CodeActionProvider {
     const line = document.lineAt(range.start.line);
     const lineText = line.text;
 
-    // Pattern: <img src="...svg" />
+    console.log('[IconManager] provideCodeActions called for line:', lineText);
+
+    // Pattern: <img src="...svg" /> - support both <img src and <img  src (multiple spaces)
     const imgSvgPattern = /<img\s+[^>]*src=["']([^"']*\.svg)["'][^>]*>/gi;
     
     let match;
@@ -52,14 +55,11 @@ export class SvgToIconCodeActionProvider implements vscode.CodeActionProvider {
       const svgPath = match[1];
       const iconName = this.extractIconName(svgPath);
       const fullMatch = match[0];
-      const startPos = lineText.indexOf(fullMatch);
       
-      // Check if cursor is within the match
-      if (range.start.character >= startPos && 
-          range.start.character <= startPos + fullMatch.length) {
-        
-        return [this.createTransformAction(document, svgPath, iconName, fullMatch, range.start.line)];
-      }
+      console.log('[IconManager] Found SVG img:', { svgPath, iconName, fullMatch });
+      
+      // Always return the action if we find an img with svg on this line
+      return [this.createTransformAction(document, svgPath, iconName, fullMatch, range.start.line)];
     }
 
     return undefined;

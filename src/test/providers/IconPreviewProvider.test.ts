@@ -6,6 +6,7 @@
  */
 
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 import { IconPreviewProvider } from '../../providers/IconPreviewProvider';
 
 // Mock de svgo
@@ -13,6 +14,17 @@ jest.mock('svgo', () => ({
   optimize: jest.fn((svg: string) => ({
     data: svg.replace(/\s+/g, ' ').trim()
   }))
+}));
+
+// Mock de fs
+jest.mock('fs', () => ({
+  ...jest.requireActual('fs'),
+  readFileSync: jest.fn((filePath: string, encoding?: string) => {
+    if (filePath.includes('IconPreview.css')) {
+      return '/* Mock CSS */';
+    }
+    return jest.requireActual('fs').readFileSync(filePath, encoding);
+  })
 }));
 
 describe('IconPreviewProvider', () => {

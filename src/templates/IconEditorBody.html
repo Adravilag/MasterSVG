@@ -1,0 +1,114 @@
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <span class="icon-name" id="iconName">${name}</span>
+        <button class="rename-btn" onclick="renameIcon()" title="Rename Icon">
+          <span class="codicon codicon-edit"></span>
+        </button>
+        <span class="badge">Editor</span>
+        ${isBuilt ? '<span class="badge badge-built">BUILT</span>' : ''}
+      </div>
+      <span class="file-size" id="fileSize">${fileSizeStr}</span>
+    </header>
+    
+    <div class="main-content">
+      <!-- Left Column - Preview -->
+      <div class="left-column">
+        <div class="preview-code-container" id="previewCodeContainer">
+          <div class="preview-section">
+            <div class="preview-box zoom-3" id="previewBox">
+              <div id="zoomContainer" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; transition: transform 0.2s ease;">
+                ${displaySvg}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="zoom-controls">
+          <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">
+            <span class="codicon codicon-zoom-out"></span>
+          </button>
+          <span class="zoom-level" id="zoomLevel">100%</span>
+          <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">
+            <span class="codicon codicon-zoom-in"></span>
+          </button>
+          <button class="zoom-btn" onclick="resetZoom()" title="Reset Zoom">
+            <span class="codicon codicon-screen-normal"></span>
+          </button>
+          <span class="zoom-separator"></span>
+          <button class="zoom-btn restart-anim-btn" id="restartAnimBtn" onclick="restartAnimation()" title="Restart Animation" style="display: none;">
+            <span class="codicon codicon-debug-restart"></span>
+          </button>
+        </div>
+        
+        <!-- Actions Toolbar -->
+        <div class="actions-section">
+          <button class="action-btn warning" onclick="rebuild()" title="Build Icons">
+            <span class="codicon codicon-sync"></span>
+          </button>
+          <button class="action-btn" onclick="copySvg()" title="Copy SVG">
+            <span class="codicon codicon-copy"></span>
+          </button>
+        </div>
+
+        <!-- Optimize Section -->
+        <div class="section" style="margin-top: 12px;">
+          <div class="section-title">
+            <span class="codicon codicon-rocket"></span> Optimize (SVGO)
+          </div>
+          <div class="optimize-presets">
+            <button class="optimize-preset" onclick="optimizeSvg('minimal')">Minimal</button>
+            <button class="optimize-preset" onclick="optimizeSvg('safe')">Safe</button>
+            <button class="optimize-preset" onclick="optimizeSvg('aggressive')">Aggressive</button>
+          </div>
+          <div class="optimize-result" id="optimizeResult">
+            <div class="optimize-stats">
+              <span id="optimizeOriginal">Original: --</span>
+              <span id="optimizeNew">Optimized: --</span>
+            </div>
+            <div class="optimize-savings" id="optimizeSavings">Saved: --</div>
+            <div class="optimize-actions">
+              <button id="btnApplyOptimized" class="btn btn-success" onclick="applyOptimized()" disabled>
+                <span class="codicon codicon-check"></span> Apply
+              </button>
+              <button class="btn" onclick="copyOptimized()">
+                <span class="codicon codicon-copy"></span> Copy
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Right Column - Controls -->
+      <div class="right-column">
+        <div class="tabs-container">
+          <div class="tabs-header">
+            <button class="tab-btn active" onclick="switchTab('color')">
+              <span class="codicon codicon-symbol-color"></span> Color
+            </button>
+            <button class="tab-btn" onclick="switchTab('animation')">
+              <span class="codicon codicon-play"></span> Animation
+            </button>
+            <button class="tab-btn" onclick="switchTab('code')">
+              <span class="codicon codicon-code"></span> Code
+            </button>
+          </div>
+          
+          <!-- Color Tab -->
+          <div class="tab-content active" id="tab-color">
+            ${colorTabContent}
+          </div>
+          
+          <!-- Animation Tab -->
+          <div class="tab-content" id="tab-animation">
+            ${animationTabContent}
+          </div>
+        
+          <!-- Code Tab -->
+          <div class="tab-content" id="tab-code">
+            ${codeTabContent}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

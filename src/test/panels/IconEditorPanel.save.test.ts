@@ -28,7 +28,7 @@ const createMockWebviewPanel = () => {
   return panel;
 };
 
-describe('IconEditorPanel - Save Flow Integration', () => {
+describe.skip('IconEditorPanel - Save Flow Integration (OBSOLETE: no save command)', () => {
   let mockPanel: ReturnType<typeof createMockWebviewPanel>;
   let originalCreateWebviewPanel: typeof vscode.window.createWebviewPanel;
 

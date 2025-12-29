@@ -270,29 +270,20 @@ export const arrowLeft = {
   });
 
   describe('generateWebComponent', () => {
-    it('should generate web component file', async () => {
-      mockFs.writeFileSync.mockImplementation(() => {});
+    it('should generate web component content', async () => {
+      const result = await generateWebComponent('/output');
 
-      await generateWebComponent('/output');
-
-      expect(mockFs.writeFileSync).toHaveBeenCalled();
-      const filePath = (mockFs.writeFileSync as jest.Mock).mock.calls[0][0];
-      const content = (mockFs.writeFileSync as jest.Mock).mock.calls[0][1];
-      
-      expect(filePath).toContain('icon.js');
-      expect(content).toContain('class IconElement extends HTMLElement');
-      expect(content).toContain('customElements.define');
+      expect(result.path).toContain('icon.js');
+      expect(result.content).toContain('class IconElement extends HTMLElement');
+      expect(result.content).toContain('customElements.define');
     });
 
     it('should include name, size, color attributes', async () => {
-      mockFs.writeFileSync.mockImplementation(() => {});
+      const result = await generateWebComponent('/output');
 
-      await generateWebComponent('/output');
-
-      const content = (mockFs.writeFileSync as jest.Mock).mock.calls[0][1];
-      expect(content).toContain("'name'");
-      expect(content).toContain("'size'");
-      expect(content).toContain("'color'");
+      expect(result.content).toContain("'name'");
+      expect(result.content).toContain("'size'");
+      expect(result.content).toContain("'color'");
     });
   });
 

@@ -1,0 +1,64 @@
+<!-- SVG Code Section -->
+<div class="code-tab-container" id="svgCodeContainer">
+  <div class="code-tab-header" onclick="toggleCodeSection('svgCodeContainer')">
+    <div class="code-header-left">
+      <span class="codicon codicon-chevron-down toggle-icon"></span>
+      <span class="code-title">
+        <span class="codicon codicon-file-code"></span> SVG (Clean)
+      </span>
+    </div>
+    <div class="code-actions" onclick="event.stopPropagation()">
+      <button class="code-action-btn" onclick="copySvgCode()" title="Copy SVG to clipboard">
+        <span class="codicon codicon-copy"></span>
+      </button>
+    </div>
+  </div>
+  <div class="code-content" id="svgCodeTab">
+    ${svgCodeHighlighted}
+  </div>
+</div>
+
+<!-- Animation Code Section -->
+<div class="code-tab-container animation-code-section" id="animationCodeSection" style="${animationSectionStyle}">
+  <div class="code-tab-header" onclick="toggleCodeSection('animationCodeSection')">
+    <div class="code-header-left">
+      <span class="codicon codicon-chevron-down toggle-icon"></span>
+      <span class="code-title">
+        <span class="codicon codicon-play"></span> Animation CSS
+      </span>
+      <span class="code-badge" id="animationTypeBadge">${animationType}</span>
+    </div>
+    <div class="code-actions" onclick="event.stopPropagation()">
+      <button class="code-action-btn" onclick="copyAnimationCode()" title="Copy animation CSS">
+        <span class="codicon codicon-copy"></span>
+      </button>
+    </div>
+  </div>
+  <div class="code-content" id="animationCodeTab">
+    ${animationCodeHtml}
+  </div>
+</div>
+
+<!-- Usage Example Section -->
+<div class="code-tab-container" id="usageCodeContainer">
+  <div class="code-tab-header" onclick="toggleCodeSection('usageCodeContainer')">
+    <div class="code-header-left">
+      <span class="codicon codicon-chevron-down toggle-icon"></span>
+      <span class="code-title">
+        <span class="codicon codicon-symbol-method"></span> Usage
+      </span>
+      <span class="code-badge" id="buildFormatBadge">${buildFormatBadge}</span>
+    </div>
+    <div class="code-actions" onclick="event.stopPropagation()">
+      <button class="code-action-btn" onclick="copyUsageCode()" title="Copy usage code">
+        <span class="codicon codicon-copy"></span>
+      </button>
+      <button class="code-action-btn" onclick="insertUsageCode()" title="Insert code at cursor">
+        <span class="codicon codicon-insert"></span>
+      </button>
+    </div>
+  </div>
+  <div class="code-content" id="usageCodeTab">
+    ${usageCodeHtml}
+  </div>
+</div>

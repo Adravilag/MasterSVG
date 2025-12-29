@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; img-src ${cspSource} https: data:; font-src ${cspSource};">
+  <title>Icon Manager</title>
+  <style>
+    ${css}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <input type="text" class="search-input" id="searchInput" placeholder="Search icons...">
+    </div>
+    
+    <div class="tabs">
+      <button class="tab active" data-tab="workspace">Workspace</button>
+      <button class="tab" data-tab="library">Library</button>
+      <button class="tab" data-tab="online">Online</button>
+    </div>
+
+    <div class="content" id="content">
+      <div class="loading">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+
+  <script nonce="${nonce}">
+    ${js}
+  </script>
+</body>
+</html>

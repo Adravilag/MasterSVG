@@ -3,6 +3,46 @@
  * 
  * Funciones utilitarias extraídas de extension.ts para facilitar testing
  */
+import * as path from 'node:path';
+
+// Cache for loaded templates
+const templateCache: Map<string, string> = new Map();
+
+/**
+ * Loads a template file from the templates directory.
+ * Templates are cached for performance.
+ * Uses require('fs') to avoid being mocked in tests - templates should always load from disk.
+ * @param templateName - The filename of the template (e.g., 'IconWebComponent.js')
+ * @returns The template content as a string
+ */
+export function loadTemplate(templateName: string): string {
+  // Check cache first
+  const cached = templateCache.get(templateName);
+  if (cached) {
+    return cached;
+  }
+  
+  // Use require('fs') to get the real fs module, not a mocked version
+  // This ensures templates are always loaded from disk even in tests
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const realFs = require('fs');
+  
+  // Load from disk - path is relative to utils folder
+  const templatesDir = path.join(__dirname, '..', 'templates');
+  const templatePath = path.join(templatesDir, templateName);
+  
+  const content = realFs.readFileSync(templatePath, 'utf-8');
+  templateCache.set(templateName, content);
+  
+  return content;
+}
+
+/**
+ * Clears the template cache. Useful for testing or hot reloading.
+ */
+export function clearTemplateCache(): void {
+  templateCache.clear();
+}
 
 /**
  * Obtiene el formato de salida basado en el languageId del documento

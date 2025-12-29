@@ -121,7 +121,8 @@ export const env = {
     writeText: jest.fn().mockResolvedValue(undefined),
     readText: jest.fn().mockResolvedValue('')
   },
-  openExternal: jest.fn().mockResolvedValue(true)
+  openExternal: jest.fn().mockResolvedValue(true),
+  language: 'en'
 };
 
 export class Uri {

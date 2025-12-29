@@ -65,7 +65,7 @@ describe('configHelper', () => {
 
       const config = getConfig();
 
-      expect(config.outputDirectory).toBe('bezier-svg');
+      expect(config.outputDirectory).toBe('bezier-icons');
       expect(config.componentName).toBe('Icon');
       expect(config.nameAttribute).toBe('name');
       expect(config.defaultSize).toBe(24);

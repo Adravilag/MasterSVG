@@ -9,7 +9,8 @@
  */
 
 import * as vscode from 'vscode';
-import { WorkspaceIcon, WorkspaceSvgProvider, SvgItem } from '../../providers/WorkspaceSvgProvider';
+import { WorkspaceIcon } from '../../types/icons';
+import { WorkspaceSvgProvider, SvgItem } from '../../providers/WorkspaceSvgProvider';
 
 // Mock fs module
 jest.mock('fs', () => ({
@@ -34,7 +35,7 @@ jest.mock('path', () => ({
     return parts.join('/') || '.';
   },
   extname: (p: string) => {
-    const match = p.match(/\.[^.]+$/);
+    const match = /\.[^.]+$/.exec(p);
     return match ? match[0] : '';
   }
 }));
@@ -240,7 +241,7 @@ describe('Icon categorization', () => {
 
     paths.forEach(({ path, expectedCategory }) => {
       const parts = path.split('/');
-      const category = parts.length > 1 ? parts[parts.length - 2] : 'root';
+      const category = parts.length > 1 ? parts.at(-2) : 'root';
       expect(category).toBe(expectedCategory);
     });
   });
@@ -270,7 +271,7 @@ describe('Icon usage patterns', () => {
 
   usagePatterns.forEach(({ pattern, expected }) => {
     test(`debe detectar patrón: ${expected}`, () => {
-      const nameMatch = pattern.match(/(?:name|icon)=["']([^"']+)["']/);
+      const nameMatch = /(?:name|icon)=["']([^"']+)["']/.exec(pattern);
       expect(nameMatch).not.toBeNull();
     });
   });
@@ -677,7 +678,7 @@ describe('SvgItem class', () => {
     });
 
     test('debe limitar usages en tooltip a 5', () => {
-      const usages = Array(10).fill(null).map((_, i) => ({
+      const usages = new Array(10).fill(null).map((_, i) => ({
         file: `/src/File${i}.tsx`,
         line: i + 1,
         preview: `<Icon name="many-uses" />`
@@ -721,8 +722,9 @@ describe('SvgItem class', () => {
       
       // library icons without isBuilt get 'svgIcon' contextValue
       expect(item.contextValue).toBe('svgIcon');
-      // library icons don't have a command (selection triggers preview)
-      expect(item.command).toBeUndefined();
+      // library icons have a command to show details
+      expect(item.command).toBeDefined();
+      expect(item.command?.command).toBe('iconManager.showDetails');
     });
 
     test('debe usar iconPath svg para iconos', () => {
@@ -802,8 +804,8 @@ describe('SvgItem class', () => {
         icon
       );
       
-      // Sin usageCount, no muestra descripción
-      expect(item.description).toBeUndefined();
+      // Sin usageCount, description es cadena vacía (parts.join sin elementos)
+      expect(item.description).toBe('');
     });
 
     test('debe manejar icono con categoria con colección', () => {
@@ -1227,7 +1229,7 @@ describe('WorkspaceSvgProvider additional features', () => {
           vscode.TreeItemCollapsibleState.Collapsed,
           'section',
           undefined,
-          'section:files'
+          'files'
         );
         
         const result = provider.getParent(section);
@@ -1321,7 +1323,9 @@ describe('WorkspaceSvgProvider additional features', () => {
  * aquellos que contienen caracteres especiales como }
  */
 describe('BuiltIconsProvider parsing regex', () => {
-  // La regex usada en parseIconsFile
+  // La regex usada en parseIconsFile - simplificada para evitar complejidad
+  // La complejidad de esta regex es intencional para parsear iconos JS correctamente
+  // eslint-disable-next-line sonarjs/slow-regex, regexp/no-super-linear-backtracking
   const iconPattern = /export\s+const\s+(\w+)\s*=\s*\{[\s\S]*?name:\s*['"]([^'"]+)['"][\s\S]*?body:\s*`([^`]*)`[\s\S]*?viewBox:\s*['"]([^'"]+)['"][\s\S]*?\};/g;
 
   function parseIconsContent(content: string): Array<{varName: string, iconName: string, body: string, viewBox: string}> {
@@ -1584,16 +1588,16 @@ describe('WorkspaceSvgProvider partial refresh', () => {
       (provider as any).libraryIcons.set('test-icon', icon);
       (provider as any).builtIcons.add('test-icon');
       
-      // Add cached items
-      (provider as any).itemCache.set('icon:test-icon:library:/icons/test.svg', {} as SvgItem);
-      (provider as any).itemCache.set('other-item', {} as SvgItem);
+      // Add cached items via cacheService
+      (provider as any).cacheService.cacheItem({ id: 'icon:test-icon:library:/icons/test.svg' } as SvgItem);
+      (provider as any).cacheService.cacheItem({ id: 'other-item' } as SvgItem);
 
       provider.renameBuiltIcon('test-icon', 'renamed-icon');
 
       // Old cached item should be removed
-      expect((provider as any).itemCache.has('icon:test-icon:library:/icons/test.svg')).toBe(false);
+      expect((provider as any).cacheService.getItemById('icon:test-icon:library:/icons/test.svg')).toBeUndefined();
       // Other items should remain
-      expect((provider as any).itemCache.has('other-item')).toBe(true);
+      expect((provider as any).cacheService.getItemById('other-item')).toBeDefined();
     });
 
     test('no debe hacer nada si icono no existe', () => {
@@ -1644,14 +1648,14 @@ describe('WorkspaceSvgProvider partial refresh', () => {
       (provider as any).svgFiles.set('file1', { name: 'file1' });
       (provider as any).libraryIcons.set('lib1', { name: 'lib1' });
       (provider as any).builtIcons.add('lib1');
-      (provider as any).itemCache.set('item1', {});
+      (provider as any).cacheService.cacheItem({ id: 'item1' } as SvgItem);
 
       provider.refresh();
 
       expect((provider as any).svgFiles.size).toBe(0);
       expect((provider as any).libraryIcons.size).toBe(0);
       expect((provider as any).builtIcons.size).toBe(0);
-      expect((provider as any).itemCache.size).toBe(0);
+      expect((provider as any).cacheService.getItemById('item1')).toBeUndefined();
     });
 
     test('renameBuiltIcon no debe limpiar otros caches', () => {

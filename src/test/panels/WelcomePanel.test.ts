@@ -23,6 +23,9 @@ jest.mock('vscode', () => ({
     }),
     workspaceFolders: [{ uri: { fsPath: '/test/workspace' } }]
   },
+  env: {
+    language: 'en'
+  },
   ViewColumn: { One: 1 },
   ConfigurationTarget: { Workspace: 1 },
   Uri: {
@@ -35,7 +38,19 @@ jest.mock('vscode', () => ({
 
 jest.mock('fs', () => ({
   existsSync: jest.fn().mockReturnValue(true),
-  mkdirSync: jest.fn()
+  mkdirSync: jest.fn(),
+  readFileSync: jest.fn().mockImplementation((filePath: string) => {
+    if (filePath.includes('Welcome.css')) {
+      return '/* Welcome CSS */';
+    }
+    if (filePath.includes('Welcome.js')) {
+      return '// Welcome JS';
+    }
+    if (filePath.includes('Welcome.html')) {
+      return '<div class="welcome-container">${headerIcons}</div>';
+    }
+    return '';
+  })
 }));
 
 describe('WelcomePanel', () => {
