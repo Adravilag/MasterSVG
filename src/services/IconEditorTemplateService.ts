@@ -159,13 +159,18 @@ ${animationRule}`;
     colorTabContent: string;
     animationTabContent: string;
     codeTabContent: string;
+    animationName?: string;
   }): string {
+    const hasAnimation = data.animationName && data.animationName !== 'none';
     return template
       .replace(/\$\{name\}/g, data.name)
       .replace(/\$\{displaySvg\}/g, data.displaySvg)
       .replace(/\$\{fileSizeStr\}/g, data.fileSizeStr)
       .replace(/\$\{isBuilt \? '<span class="badge badge-built">BUILT<\/span>' : ''\}/g,
         data.isBuilt ? '<span class="badge badge-built">BUILT</span>' : '')
+      .replace('id="animBadge" style="display: none;"', 
+        hasAnimation ? 'id="animBadge" style="display: inline-flex;"' : 'id="animBadge" style="display: none;"')
+      .replace('<span id="animName"></span>', `<span id="animName">${data.animationName}</span>`)
       .replace(/\$\{colorTabContent\}/g, data.colorTabContent)
       .replace(/\$\{animationTabContent\}/g, data.animationTabContent)
       .replace(/\$\{codeTabContent\}/g, data.codeTabContent);
@@ -291,17 +296,6 @@ ${animationRule}`;
         </div>
         <span class="current-color-label">currentColor</span>
       </div>
-    `;
-  }
-
-  /**
-   * Generate add color button HTML
-   */
-  public generateAddColorButtonHtml(): string {
-    return `
-      <button class="add-color-btn" onclick="addFillColor()" title="Add fill color">
-        <span class="codicon codicon-add"></span>
-      </button>
     `;
   }
 }

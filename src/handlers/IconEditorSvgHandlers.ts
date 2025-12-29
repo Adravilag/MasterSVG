@@ -23,6 +23,8 @@ export interface SvgCodeHandlerContext {
     skipPanelUpdate: boolean;
     successMessage: string;
   }) => Promise<void>;
+  getPreOptimizedSvg: () => string | undefined;
+  setPreOptimizedSvg: (svg: string | undefined) => void;
 }
 
 /**
@@ -55,17 +57,49 @@ export async function handleApplyOptimizedSvg(
 ): Promise<void> {
   if (!ctx.iconData || !message.svg) return;
 
+  // Save pre-optimized state if not already saved
+  if (!ctx.getPreOptimizedSvg()) {
+    ctx.setPreOptimizedSvg(ctx.iconData.svg);
+  }
+
   await ctx.processAndSaveIcon({
     svg: message.svg,
     includeAnimationInFile: false,
     updateAnimationMetadata: false,
     triggerFullRebuild: false,
     skipPanelUpdate: true,
-    successMessage: 'Optimized SVG applied and saved'
+    successMessage: 'Optimized SVG applied (session only)'
   });
 
   ctx.postMessage({
     command: 'optimizedSvgApplied',
+    svg: ctx.iconData.svg,
+    code: getSyntaxHighlighter().highlightSvg(ctx.iconData.svg)
+  });
+}
+
+/**
+ * Handle reverting optimization
+ */
+export async function handleRevertOptimization(
+  ctx: SvgCodeHandlerContext
+): Promise<void> {
+  const preOptimizedSvg = ctx.getPreOptimizedSvg();
+  if (!ctx.iconData || !preOptimizedSvg) return;
+
+  await ctx.processAndSaveIcon({
+    svg: preOptimizedSvg,
+    includeAnimationInFile: false,
+    updateAnimationMetadata: false,
+    triggerFullRebuild: false,
+    skipPanelUpdate: true,
+    successMessage: 'Optimization reverted'
+  });
+
+  ctx.setPreOptimizedSvg(undefined);
+
+  ctx.postMessage({
+    command: 'optimizationReverted',
     svg: ctx.iconData.svg,
     code: getSyntaxHighlighter().highlightSvg(ctx.iconData.svg)
   });

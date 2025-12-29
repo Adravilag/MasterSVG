@@ -16,7 +16,7 @@ let spritePreviewHtml: string | null = null;
 
 function loadSpritePreviewTemplates(): { css: string; js: string; html: string } {
   if (!spritePreviewCss || !spritePreviewJs || !spritePreviewHtml) {
-    const templatesDir = path.join(__dirname, '..', 'templates');
+    const templatesDir = path.join(__dirname, '..', 'templates', 'sprite-preview');
     spritePreviewCss = fs.readFileSync(path.join(templatesDir, 'SpritePreview.css'), 'utf-8');
     spritePreviewJs = fs.readFileSync(path.join(templatesDir, 'SpritePreview.js'), 'utf-8');
     spritePreviewHtml = fs.readFileSync(path.join(templatesDir, 'SpritePreview.html'), 'utf-8');

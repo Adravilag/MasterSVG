@@ -521,4 +521,20 @@ export class SvgManipulationService {
       }
     };
   }
+
+  public static applyCssFilter(svg: string, filter: string): string {
+    // Check if style attribute exists
+    if (svg.match(/<svg[^>]*style=["'][^"']*["']/i)) {
+      return svg.replace(/(<svg[^>]*style=["')([^"']*)(["'])/i, (match, p1, p2, p3) => {
+        // Remove existing filter if any
+        let style = p2;
+        style = style.replace(/filter:[^;]+;?/gi, '');
+        if (style && !style.endsWith(';')) style += ';';
+        return `${p1}${style} filter: ${filter};${p3}`;
+      });
+    } else {
+      // Add style attribute
+      return svg.replace(/<svg/i, `<svg style="filter: ${filter};"`);
+    }
+  }
 }

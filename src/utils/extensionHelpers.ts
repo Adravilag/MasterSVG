@@ -27,9 +27,16 @@ export function loadTemplate(templateName: string): string {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const realFs = require('fs');
   
-  // Load from disk - path is relative to utils folder
+  // Load from disk - try multiple locations
+  // __dirname points to out/utils in compiled code
   const templatesDir = path.join(__dirname, '..', 'templates');
-  const templatePath = path.join(templatesDir, templateName);
+  const sharedDir = path.join(templatesDir, 'shared');
+  
+  // Try shared folder first, then root templates folder
+  let templatePath = path.join(sharedDir, templateName);
+  if (!realFs.existsSync(templatePath)) {
+    templatePath = path.join(templatesDir, templateName);
+  }
   
   const content = realFs.readFileSync(templatePath, 'utf-8');
   templateCache.set(templateName, content);

@@ -1,0 +1,235 @@
+/* Code Tab Styles */
+.code-tab-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  background: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.code-tab-container:hover {
+  border-color: var(--vscode-focusBorder);
+}
+
+.code-tab-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--vscode-sideBar-background);
+  border-bottom: 1px solid var(--vscode-panel-border);
+  flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.code-tab-header:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.code-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.code-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--vscode-foreground);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.code-title .codicon {
+  font-size: 14px;
+  color: var(--vscode-textLink-foreground);
+}
+
+.code-badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+  border-radius: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 4px;
+}
+
+.code-actions {
+  display: flex;
+  gap: 6px;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.code-tab-header:hover .code-actions {
+  opacity: 1;
+}
+
+.code-action-btn {
+  background: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+  border: 1px solid transparent;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-family: var(--vscode-font-family);
+  transition: all 0.15s;
+}
+
+.code-action-btn:hover {
+  background: var(--vscode-button-secondaryHoverBackground);
+}
+
+.code-action-btn.primary {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+}
+
+.code-action-btn.primary:hover {
+  background: var(--vscode-button-hoverBackground);
+}
+
+.code-action-btn .codicon {
+  font-size: 14px;
+}
+
+.btn-text {
+  display: none;
+}
+
+/* Show text on larger screens or when space permits */
+@media (min-width: 600px) {
+  .btn-text {
+    display: inline;
+  }
+}
+
+.animation-code-section {
+  border-left: 3px solid var(--vscode-charts-blue, #4fc1ff);
+}
+
+/* Toggle functionality */
+.code-tab-container.collapsed {
+  flex: 0 0 auto;
+  min-height: auto;
+}
+
+.code-tab-container.collapsed .code-content {
+  display: none;
+}
+
+.code-tab-container.collapsed .code-tab-header {
+  border-bottom: none;
+}
+
+.code-tab-container.collapsed .toggle-icon {
+  transform: rotate(0deg);
+}
+
+.code-tab-container:not(.collapsed) .toggle-icon {
+  transform: rotate(90deg);
+}
+
+.toggle-icon {
+  transition: transform 0.2s ease;
+  opacity: 0.7;
+  font-size: 14px;
+  width: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.code-tab-header:hover .toggle-icon {
+  opacity: 1;
+}
+
+.code-content {
+  overflow: auto;
+  background: var(--vscode-editor-background);
+  flex: 1;
+  padding: 0;
+}
+
+/* Code Editor Layout */
+.code-editor {
+  display: block;
+  min-width: 100%;
+  font-family: var(--vscode-editor-font-family, 'Fira Code', 'Consolas', 'Monaco', monospace);
+  font-size: var(--vscode-editor-font-size, 14px);
+  line-height: 1.35;
+  padding: 10px 0;
+}
+
+.code-row {
+  display: flex;
+  flex-direction: row;
+  min-width: 100%;
+}
+
+.code-row:hover {
+  background: var(--vscode-editor-lineHighlightBackground, rgba(255,255,255,0.05));
+}
+
+.ln {
+  min-width: 45px;
+  padding-right: 15px;
+  text-align: right;
+  color: var(--vscode-editorLineNumber-foreground, #858585);
+  user-select: none;
+  border-right: 1px solid var(--vscode-editorGroup-border, #444);
+  margin-right: 15px;
+  opacity: 0.7;
+}
+
+.cl {
+  white-space: pre;
+  padding-right: 15px;
+  flex: 1;
+  color: var(--vscode-editor-foreground, #d4d4d4);
+}
+
+/* Syntax highlighting - VS Code Dark+ Theme Colors */
+.cl .tag { color: #569cd6; } /* Blue */
+.cl .attr-name { color: #9cdcfe; } /* Light Blue */
+.cl .string { color: #ce9178; } /* Orange */
+.cl .punctuation { color: #ffd700; } /* Gold/Yellow for brackets */
+.cl .comment { color: #6a9955; font-style: italic; } /* Green */
+.cl .keyword { color: #c586c0; } /* Purple */
+.cl .variable, .cl .selector { color: #dcdcaa; } /* Pale Yellow */
+.cl .value { color: #b5cea8; } /* Light Green */
+
+/* Scrollbar customization */
+.code-content::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.code-content::-webkit-scrollbar-track {
+  background: var(--vscode-editor-background);
+}
+
+.code-content::-webkit-scrollbar-thumb {
+  background: var(--vscode-scrollbarSlider-background);
+  border-radius: 5px;
+}
+
+.code-content::-webkit-scrollbar-thumb:hover {
+  background: var(--vscode-scrollbarSlider-hoverBackground);
+}

@@ -173,6 +173,11 @@
         "icon": "$(go-to-file)"
       },
       {
+        "command": "iconManager.openSvgFile",
+        "title": "Open SVG File",
+        "icon": "$(file-media)"
+      },
+      {
         "command": "iconManager.copyIconName",
         "title": "Copy Icon Name",
         "icon": "$(copy)"
@@ -211,6 +216,11 @@
         "command": "iconManager.collapseSvgFiles",
         "title": "Collapse All",
         "icon": "$(collapse-all)"
+      },
+      {
+        "command": "iconManager.configureSvgFolder",
+        "title": "Configure SVG Folder",
+        "icon": "$(folder-opened)"
       },
       {
         "command": "iconManager.exportComponent",
@@ -385,6 +395,11 @@
     "menus": {
       "view/title": [
         {
+          "command": "iconManager.configureSvgFolder",
+          "when": "view == iconManager.svgFiles",
+          "group": "navigation@-1"
+        },
+        {
           "command": "iconManager.expandSvgFiles",
           "when": "view == iconManager.svgFiles && !iconManager.svgFilesExpanded",
           "group": "navigation@0"
@@ -487,6 +502,7 @@
       "iconWrap.svgMenu": [
         {
           "command": "iconManager.colorEditor",
+          "when": "iconManager.iconsJsExists",
           "group": "1_edit@1"
         },
         {
@@ -526,7 +542,17 @@
         },
         {
           "command": "iconManager.colorEditor",
-          "when": "view == iconManager.svgFiles && viewItem =~ /svgIcon|svgIconBuilt/",
+          "when": "view == iconManager.svgFiles && viewItem =~ /svgIcon|svgIconBuilt/ && iconManager.iconsJsExists",
+          "group": "navigation"
+        },
+        {
+          "command": "iconManager.openSvgFile",
+          "when": "view == iconManager.svgFiles && viewItem =~ /svgIcon|svgIconBuilt|svgIconRasterized|svgIconRasterizedBuilt/",
+          "group": "navigation"
+        },
+        {
+          "command": "iconManager.goToCode",
+          "when": "view == iconManager.svgFiles && viewItem =~ /svgIcon|svgIconBuilt|svgIconRasterized|svgIconRasterizedBuilt/",
           "group": "navigation"
         },
         {
@@ -576,7 +602,7 @@
         },
         {
           "command": "iconManager.colorEditor",
-          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvg|imgRef|inlineSvgBuilt/",
+          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvg|imgRef|inlineSvgBuilt/ && iconManager.iconsJsExists",
           "group": "navigation"
         },
         {
@@ -621,7 +647,7 @@
         },
         {
           "command": "iconManager.colorEditor",
-          "when": "view == iconManager.builtIcons && viewItem == builtIcon",
+          "when": "view == iconManager.builtIcons && viewItem == builtIcon && iconManager.iconsJsExists",
           "group": "navigation"
         },
         {
@@ -677,7 +703,8 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
+    "compile": "tsc -p ./ && npm run copy-templates",
+    "copy-templates": "node -e \"const fs=require('fs');const path=require('path');function copyDir(s,d){fs.mkdirSync(d,{recursive:true});fs.readdirSync(s).forEach(f=>{const sp=path.join(s,f),dp=path.join(d,f);fs.statSync(sp).isDirectory()?copyDir(sp,dp):fs.copyFileSync(sp,dp)})};copyDir('src/templates','out/templates')\"",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile",
     "test": "jest --config jest.config.js",

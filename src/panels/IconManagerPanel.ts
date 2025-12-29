@@ -265,7 +265,7 @@ export class IconManagerPanel {
     const nonce = getNonce();
 
     // Load templates from external files
-    const templatesPath = path.join(this._extensionUri.fsPath, 'src', 'templates');
+    const templatesPath = path.join(this._extensionUri.fsPath, 'src', 'templates', 'icon-manager');
     const css = fs.readFileSync(path.join(templatesPath, 'IconManager.css'), 'utf8');
     const js = fs.readFileSync(path.join(templatesPath, 'IconManager.js'), 'utf8');
     let html = fs.readFileSync(path.join(templatesPath, 'IconManager.html'), 'utf8');

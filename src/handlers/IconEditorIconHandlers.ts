@@ -142,10 +142,19 @@ export async function handleRenameIcon(
  */
 export async function handleRebuild(
   ctx: IconHandlerContext,
-  message: { animation?: string; animationSettings?: Record<string, unknown> }
+  message: { 
+    animation?: string; 
+    animationSettings?: Record<string, unknown>;
+    applyOptimization?: boolean;
+  }
 ): Promise<void> {
   if (!ctx.iconData?.svg) return;
 
+  // If optimization is pending, apply it first via command
+  if (message.applyOptimization) {
+    ctx.postMessage({ command: 'applyOptimizationBeforeRebuild' });
+  }
+  
   await ctx.addToIconCollection(message.animation, message.animationSettings);
 }
 

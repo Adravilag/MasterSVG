@@ -1,0 +1,68 @@
+<!-- Colors & Variants Grid -->
+<div class="colors-variants-row">
+  <!-- Left Column: Colors + Filters -->
+  <div class="left-column">
+    <!-- Colors Section -->
+    <div class="section${colorsDisabledClass}">
+      <div class="section-title">
+        <span class="codicon codicon-paintcan"></span> Colors
+        ${colorsHint}
+      </div>
+      <div class="color-swatches${swatchesDisabledClass}" id="colorSwatches">
+        ${currentColorHtml}
+        ${colorSwatches}
+      </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="section${filtersDisabledClass}" style="margin-top: 12px;">
+      <div class="section-title">
+        <span class="codicon codicon-settings"></span> Global Filters
+        ${filtersHint}
+        <div class="variants-actions">
+          <button class="reset-filters-btn" onclick="resetFilters()" title="Reset all filters"${filtersDisabled}>
+            <span class="codicon codicon-refresh"></span> Reset
+          </button>
+        </div>
+      </div>
+      <div class="filters-container${filtersContainerDisabledClass}">
+        <div class="filter-control">
+          <div class="filter-header">
+            <label>Hue Rotate</label>
+            <span id="hueValue" class="filter-value">0deg</span>
+          </div>
+          <input type="range" id="hueSlider" min="0" max="360" value="0" oninput="updateFilters()"${filtersDisabled}>
+        </div>
+        <div class="filter-control">
+          <div class="filter-header">
+            <label>Saturation</label>
+            <span id="saturationValue" class="filter-value">100%</span>
+          </div>
+          <input type="range" id="saturationSlider" min="0" max="200" value="100" oninput="updateFilters()"${filtersDisabled}>
+        </div>
+        <div class="filter-control">
+          <div class="filter-header">
+            <label>Brightness</label>
+            <span id="brightnessValue" class="filter-value">100%</span>
+          </div>
+          <input type="range" id="brightnessSlider" min="0" max="200" value="100" oninput="updateFilters()"${filtersDisabled}>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Variants -->
+  <div class="section">
+    <div class="section-title">
+      <span class="codicon codicon-symbol-color"></span> Variants
+      <div class="variants-actions">
+        <button class="variant-save-btn" onclick="saveVariant()" title="Save current colors as variant">
+          <span class="codicon codicon-add"></span>
+        </button>
+      </div>
+    </div>
+    <div class="Variants-container" id="VariantsContainer">
+      ${variantsHtml}
+    </div>
+  </div>
+</div>

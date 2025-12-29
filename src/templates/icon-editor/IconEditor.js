@@ -11,18 +11,378 @@
       delay: __ANIMATION_DELAY__,
       direction: __ANIMATION_DIRECTION__
     };
+    const originalColors = __ORIGINAL_COLORS__;
+    const currentColors = __CURRENT_COLORS__;
     const zoomLevels = [50, 75, 100, 150, 200];
     
+    // Track if filters were calculated (informative) or manually changed
+    let filtersAreCalculated = false;
+    
+    window.revertOptimized = function() {
+      vscode.postMessage({
+        command: 'revertOptimization'
+      });
+    };
+
+    // Copy to clipboard utility
+    window.copyToClipboard = function(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        vscode.postMessage({ command: 'showMessage', message: `Copied: ${text}` });
+      }).catch(() => {
+        // Fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        vscode.postMessage({ command: 'showMessage', message: `Copied: ${text}` });
+      });
+    };
+
+    // Filter functions
+    window.updateFilters = function(isUserAction = true) {
+      // If user manually changes filters, mark them as not calculated
+      if (isUserAction) {
+        filtersAreCalculated = false;
+      }
+      
+      const hue = parseInt(document.getElementById('hueSlider').value);
+      const saturation = parseInt(document.getElementById('saturationSlider').value);
+      const brightness = parseInt(document.getElementById('brightnessSlider').value);
+      
+      document.getElementById('hueValue').textContent = hue + 'deg';
+      document.getElementById('saturationValue').textContent = saturation + '%';
+      document.getElementById('brightnessValue').textContent = brightness + '%';
+      
+      const filterString = `hue-rotate(${hue}deg) saturate(${saturation}%) brightness(${brightness}%)`;
+      const hasFilters = hue !== 0 || saturation !== 100 || brightness !== 100;
+
+      const container = document.getElementById('zoomContainer');
+      if (container) {
+        const svg = container.querySelector('svg');
+        if (svg) {
+          svg.style.filter = filterString;
+        }
+      }
+
+      // Update color swatches and labels to reflect filters
+      const colorItems = document.querySelectorAll('.color-item');
+      const filteredColors = []; // Collect filtered colors for variant update
+      colorItems.forEach((item, idx) => {
+        const label = item.querySelector('.color-label');
+        const input = item.querySelector('input[type="color"]');
+        const swatch = item.querySelector('.color-swatch');
+        if (label && input && swatch) {
+          const originalColor = input.dataset.originalColor || input.value;
+          if (hasFilters) {
+            const filteredColor = applyColorFilters(originalColor, hue, saturation, brightness);
+            filteredColors.push(filteredColor);
+            // Update label
+            label.textContent = filteredColor;
+            label.style.color = 'var(--vscode-charts-yellow)';
+            label.title = `Original: ${originalColor}`;
+            // Update swatch background directly (no CSS filter)
+            swatch.style.backgroundColor = filteredColor;
+            swatch.style.filter = 'none';
+            // Update picker value
+            input.value = filteredColor;
+          } else {
+            filteredColors.push(originalColor);
+            label.textContent = originalColor;
+            label.style.color = '';
+            label.title = '';
+            // Restore original color
+            swatch.style.backgroundColor = originalColor;
+            swatch.style.filter = '';
+            if (originalColor.startsWith('#')) {
+              input.value = originalColor;
+            }
+          }
+        }
+      });
+
+      // Update the selected variant's color dots (custom variant)
+      const selectedVariant = document.querySelector('.variant-item.selected:not(.default)');
+      if (selectedVariant && filteredColors.length > 0) {
+        const dotsContainer = selectedVariant.querySelector('.variant-colors');
+        if (dotsContainer) {
+          const dotsHtml = filteredColors.slice(0, 4).map(c => 
+            `<div class="variant-color-dot" style="background:${c}" title="${c}"></div>`
+          ).join('');
+          dotsContainer.innerHTML = dotsHtml;
+        }
+      }
+    };
+
+    // Apply HSB filters to a color and return the result
+    function applyColorFilters(colorStr, hue, saturation, brightness) {
+      // Convert color to RGB values
+      let r, g, b;
+      
+      if (colorStr.startsWith('#')) {
+        const hex = colorStr.slice(1);
+        if (hex.length === 3) {
+          r = parseInt(hex[0] + hex[0], 16);
+          g = parseInt(hex[1] + hex[1], 16);
+          b = parseInt(hex[2] + hex[2], 16);
+        } else if (hex.length === 6) {
+          r = parseInt(hex.slice(0, 2), 16);
+          g = parseInt(hex.slice(2, 4), 16);
+          b = parseInt(hex.slice(4, 6), 16);
+        } else {
+          return colorStr;
+        }
+      } else if (colorStr.startsWith('rgb')) {
+        // Handle rgb() and rgba()
+        const match = colorStr.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+        if (match) {
+          r = parseInt(match[1]);
+          g = parseInt(match[2]);
+          b = parseInt(match[3]);
+        } else {
+          return colorStr;
+        }
+      } else {
+        return colorStr; // Can't process named colors easily
+      }
+
+      // Convert to HSL
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      let h, s, l = (max + min) / 2;
+
+      if (max === min) {
+        h = s = 0;
+      } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+          case g: h = ((b - r) / d + 2) / 6; break;
+          case b: h = ((r - g) / d + 4) / 6; break;
+        }
+      }
+
+      // Apply hue rotation
+      h = (h + hue / 360) % 1;
+      if (h < 0) h += 1;
+
+      // Apply saturation (as multiplier, 100% = no change)
+      s = Math.min(1, Math.max(0, s * (saturation / 100)));
+
+      // Apply brightness (as multiplier, 100% = no change)
+      l = Math.min(1, Math.max(0, l * (brightness / 100)));
+
+      // Convert back to RGB
+      let r2, g2, b2;
+      if (s === 0) {
+        r2 = g2 = b2 = l;
+      } else {
+        const hue2rgb = (p, q, t) => {
+          if (t < 0) t += 1;
+          if (t > 1) t -= 1;
+          if (t < 1/6) return p + (q - p) * 6 * t;
+          if (t < 1/2) return q;
+          if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+          return p;
+        };
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r2 = hue2rgb(p, q, h + 1/3);
+        g2 = hue2rgb(p, q, h);
+        b2 = hue2rgb(p, q, h - 1/3);
+      }
+
+      // Convert to hex
+      const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
+      return `#${toHex(r2)}${toHex(g2)}${toHex(b2)}`;
+    }
+
+    window.resetFilters = function() {
+      document.getElementById('hueSlider').value = 0;
+      document.getElementById('saturationSlider').value = 100;
+      document.getElementById('brightnessSlider').value = 100;
+      updateFilters();
+    };
+
+    window.applyFilters = function() {
+      const hue = document.getElementById('hueSlider').value;
+      const saturation = document.getElementById('saturationSlider').value;
+      const brightness = document.getElementById('brightnessSlider').value;
+      
+      vscode.postMessage({
+        command: 'applyFilters',
+        filters: { hue, saturation, brightness }
+      });
+    };
+
     // Toggle code sections
-    function toggleCodeSection(containerId) {
+    window.toggleCodeSection = function(containerId) {
       const container = document.getElementById(containerId);
       if (container) {
         container.classList.toggle('collapsed');
       }
+    };
+
+    // Calculate filters by comparing original and current colors
+    function calculateFiltersFromColors(origColors, currColors) {
+      if (!origColors || !currColors || origColors.length === 0 || currColors.length === 0) {
+        return { hue: 0, saturation: 100, brightness: 100 };
+      }
+
+      // Helper to convert color to HSL
+      function colorToHsl(color) {
+        let r, g, b;
+        if (color.startsWith('#')) {
+          const hex = color.slice(1);
+          if (hex.length === 3) {
+            r = parseInt(hex[0] + hex[0], 16) / 255;
+            g = parseInt(hex[1] + hex[1], 16) / 255;
+            b = parseInt(hex[2] + hex[2], 16) / 255;
+          } else {
+            r = parseInt(hex.slice(0, 2), 16) / 255;
+            g = parseInt(hex.slice(2, 4), 16) / 255;
+            b = parseInt(hex.slice(4, 6), 16) / 255;
+          }
+        } else if (color.startsWith('rgb')) {
+          const match = color.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+          if (match) {
+            r = parseInt(match[1]) / 255;
+            g = parseInt(match[2]) / 255;
+            b = parseInt(match[3]) / 255;
+          } else {
+            return null;
+          }
+        } else {
+          return null;
+        }
+
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h = 0, s = 0, l = (max + min) / 2;
+
+        if (max !== min) {
+          const d = max - min;
+          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+          switch (max) {
+            case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+            case g: h = ((b - r) / d + 2) / 6; break;
+            case b: h = ((r - g) / d + 4) / 6; break;
+          }
+        }
+        return { h: h * 360, s, l };
+      }
+
+      // Find a non-white/black color to compare (more reliable for hue detection)
+      let bestOrigIdx = -1;
+      let bestSaturation = 0;
+      for (let i = 0; i < origColors.length && i < currColors.length; i++) {
+        const origHsl = colorToHsl(origColors[i]);
+        if (origHsl && origHsl.s > bestSaturation && origHsl.l > 0.1 && origHsl.l < 0.9) {
+          bestSaturation = origHsl.s;
+          bestOrigIdx = i;
+        }
+      }
+
+      if (bestOrigIdx === -1) bestOrigIdx = 0;
+
+      const origHsl = colorToHsl(origColors[bestOrigIdx]);
+      const currHsl = colorToHsl(currentColors[bestOrigIdx]);
+
+      if (!origHsl || !currHsl) {
+        return { hue: 0, saturation: 100, brightness: 100 };
+      }
+
+      // Calculate hue difference
+      let hueDiff = currHsl.h - origHsl.h;
+      if (hueDiff < 0) hueDiff += 360;
+      if (hueDiff > 180) hueDiff -= 360; // Normalize to -180 to 180
+
+      // Calculate saturation ratio
+      let satRatio = origHsl.s > 0.01 ? (currHsl.s / origHsl.s) * 100 : 100;
+      satRatio = Math.round(Math.min(200, Math.max(0, satRatio)));
+
+      // Calculate brightness ratio
+      let briRatio = origHsl.l > 0.01 ? (currHsl.l / origHsl.l) * 100 : 100;
+      briRatio = Math.round(Math.min(200, Math.max(0, briRatio)));
+
+      return {
+        hue: Math.round(hueDiff),
+        saturation: satRatio,
+        brightness: briRatio
+      };
     }
     
     // Initialize saved animation UI on load and apply to preview
     document.addEventListener('DOMContentLoaded', () => {
+      // Calculate filters from color difference between original and current
+      const calculatedFilters = calculateFiltersFromColors(originalColors, currentColors);
+      
+      if (calculatedFilters.hue !== 0 || calculatedFilters.saturation !== 100 || calculatedFilters.brightness !== 100) {
+        document.getElementById('hueSlider').value = calculatedFilters.hue;
+        document.getElementById('hueValue').textContent = calculatedFilters.hue + 'deg';
+        document.getElementById('saturationSlider').value = calculatedFilters.saturation;
+        document.getElementById('saturationValue').textContent = calculatedFilters.saturation + '%';
+        document.getElementById('brightnessSlider').value = calculatedFilters.brightness;
+        document.getElementById('brightnessValue').textContent = calculatedFilters.brightness + '%';
+        
+        // Mark filters as calculated (informative only, colors already transformed)
+        filtersAreCalculated = true;
+        
+        // Don't apply CSS filter - colors are already transformed
+        // Just update the swatches display
+      }
+      
+      // Also check for inline CSS filter (fallback)
+      const container = document.getElementById('zoomContainer');
+      if (container) {
+        const svg = container.querySelector('svg');
+        if (svg) {
+          // Try to get filter from style property or style attribute
+          let filter = svg.style.filter || '';
+          if (!filter) {
+            const styleAttr = svg.getAttribute('style') || '';
+            const filterMatch = styleAttr.match(/filter:\s*([^;]+)/i);
+            if (filterMatch) {
+              filter = filterMatch[1];
+            }
+          }
+          
+          if (filter) {
+            const hueMatch = filter.match(/hue-rotate\((-?[\d.]+)deg\)/);
+            if (hueMatch) {
+              document.getElementById('hueSlider').value = hueMatch[1];
+              document.getElementById('hueValue').textContent = hueMatch[1] + 'deg';
+            }
+            
+            const satMatch = filter.match(/saturate\(([\d.]+)%?\)/);
+            if (satMatch) {
+              // Handle both 1.5 (multiplier) and 150% formats
+              let satValue = parseFloat(satMatch[1]);
+              if (satValue <= 2 && !satMatch[0].includes('%')) {
+                satValue = satValue * 100; // Convert multiplier to percentage
+              }
+              document.getElementById('saturationSlider').value = satValue;
+              document.getElementById('saturationValue').textContent = satValue + '%';
+            }
+            
+            const briMatch = filter.match(/brightness\(([\d.]+)%?\)/);
+            if (briMatch) {
+              // Handle both 1.5 (multiplier) and 150% formats
+              let briValue = parseFloat(briMatch[1]);
+              if (briValue <= 2 && !briMatch[0].includes('%')) {
+                briValue = briValue * 100; // Convert multiplier to percentage
+              }
+              document.getElementById('brightnessSlider').value = briValue;
+              document.getElementById('brightnessValue').textContent = briValue + '%';
+            }
+            
+            // Apply filters to swatches on load
+            updateFilters();
+          }
+        }
+      }
+
       if (currentAnimation !== 'none') {
         // Update UI elements
         document.querySelectorAll('.animation-type-btn').forEach(btn => {
@@ -69,9 +429,11 @@
         if (iterationEl) iterationEl.value = animationSettings.iteration;
         if (directionEl) directionEl.value = animationSettings.direction;
         
-        // Show restart animation button
+        // Show restart animation button and indicator
         const restartBtn = document.getElementById('restartAnimBtn');
         if (restartBtn) restartBtn.style.display = 'flex';
+        const animIndicator = document.getElementById('animationIndicator');
+        if (animIndicator) animIndicator.style.display = 'flex';
         
         // Apply the saved animation to the preview
         updateAnimationPreview();
@@ -204,9 +566,9 @@
     let lastColorChange = { oldColor: null, newColor: null };
     
     // Preview color change in real-time (while dragging)
-    function previewColor(oldColor, newColor) {
+    window.previewColor = function(oldColor, newColor) {
       // Update swatch background immediately for visual feedback
-      const input = event.target;
+      const input = window.event ? window.event.target : null;
       if (input && input.parentElement) {
         input.parentElement.style.backgroundColor = newColor;
       }
@@ -222,21 +584,21 @@
         vscode.postMessage({ command: 'previewColor', oldColor: lastColorChange.oldColor, newColor: lastColorChange.newColor });
         colorChangeTimeout = null;
       }, 30);
-    }
+    };
     
     // Apply color change (when picker closes)
-    function applyColor(oldColor, newColor) {
+    window.changeColor = function(oldColor, newColor) {
       if (colorChangeTimeout) {
         clearTimeout(colorChangeTimeout);
         colorChangeTimeout = null;
       }
       vscode.postMessage({ command: 'changeColor', oldColor, newColor });
-    }
+    };
     
     // Replace currentColor with a specific color
-    function replaceCurrentColor(newColor) {
+    window.replaceCurrentColor = function(newColor) {
       vscode.postMessage({ command: 'replaceCurrentColor', newColor });
-    }
+    };
     
     // Show color picker to add a new fill color
     function showAddColorPicker() {
@@ -267,12 +629,11 @@
     // Variant functions
     function saveVariant() {
       try {
-        logToExt('[IconWrap IconEditor JS] saveVariant called');
+        console.log('[IconWrap IconEditor JS] saveVariant called');
         vscode.postMessage({ command: 'saveVariant' });
-        logToExt('[IconWrap IconEditor JS] postMessage sent');
+        console.log('[IconWrap IconEditor JS] postMessage sent');
       } catch (e) {
         console.error('[IconWrap IconEditor JS] Error in saveVariant:', e);
-        logToExt('Error in saveVariant: ' + e.toString());
       }
     }
     
@@ -306,24 +667,25 @@
     }
     
     function optimizeSvg(preset) {
-      // Don't run if already disabled
-      if (event.target.disabled) return;
+      const btn = document.getElementById('optimizeBtn');
+      if (btn && btn.classList.contains('optimized')) return;
       
-      document.querySelectorAll('.optimize-preset').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
       vscode.postMessage({ command: 'optimizeSvg', preset });
     }
     
-    function resetOptimizationButtons() {
-      document.querySelectorAll('.optimize-preset').forEach(btn => {
-        btn.disabled = false;
-        btn.textContent = btn.getAttribute('data-original-text') || btn.textContent;
-        btn.classList.remove('active');
-      });
-      const resultEl = document.getElementById('optimizeResult');
-      if (resultEl) resultEl.classList.remove('visible');
+    function resetOptimization() {
+      const btn = document.getElementById('optimizeBtn');
+      if (btn) {
+        btn.classList.remove('optimized');
+        btn.title = 'Optimize SVG (SVGO)';
+      }
+      const resultBar = document.getElementById('optimizeResultBar');
+      if (resultBar) resultBar.style.display = 'none';
+      
+      const revertBtn = document.getElementById('btnRevertOptimized');
+      if (revertBtn) revertBtn.style.display = 'none';
     }
-    
+
     function applyOptimized() {
       if (optimizedSvg) {
         vscode.postMessage({ command: 'applyOptimizedSvg', svg: optimizedSvg });
@@ -337,11 +699,40 @@
     }
     
     function rebuild() {
-      vscode.postMessage({ 
-        command: 'rebuild',
-        animation: currentAnimation !== 'none' ? currentAnimation : null,
-        animationSettings: currentAnimation !== 'none' ? animationSettings : null
-      });
+      // Check if there are active filters that need to be applied first
+      // BUT only if they were manually changed (not just calculated from existing colors)
+      const hue = parseInt(document.getElementById('hueSlider')?.value || '0');
+      const saturation = parseInt(document.getElementById('saturationSlider')?.value || '100');
+      const brightness = parseInt(document.getElementById('brightnessSlider')?.value || '100');
+      const hasActiveFilters = hue !== 0 || saturation !== 100 || brightness !== 100;
+      
+      // Check if there's pending optimization
+      const hasPendingOptimization = optimizedSvg !== null;
+      
+      vscode.postMessage({ command: 'log', message: `[Rebuild] hasActiveFilters=${hasActiveFilters}, filtersAreCalculated=${filtersAreCalculated}, hasPendingOptimization=${hasPendingOptimization}` });
+      
+      // Only apply filters if user manually changed them (not calculated)
+      if (hasActiveFilters && !filtersAreCalculated) {
+        vscode.postMessage({ command: 'log', message: '[Rebuild] Applying filters before rebuild' });
+        // Apply filters first, then rebuild
+        vscode.postMessage({
+          command: 'applyFilters',
+          filters: { hue: String(hue), saturation: String(saturation), brightness: String(brightness) },
+          thenRebuild: true,
+          applyOptimization: hasPendingOptimization,
+          animation: currentAnimation !== 'none' ? currentAnimation : null,
+          animationSettings: currentAnimation !== 'none' ? animationSettings : null
+        });
+      } else {
+        vscode.postMessage({ command: 'log', message: '[Rebuild] Direct rebuild (no filter application)' });
+        // Filters are calculated (informative) or no filters - colors already correct
+        vscode.postMessage({ 
+          command: 'rebuild',
+          applyOptimization: hasPendingOptimization,
+          animation: currentAnimation !== 'none' ? currentAnimation : null,
+          animationSettings: currentAnimation !== 'none' ? animationSettings : null
+        });
+      }
     }
     
     function copySvg() {
@@ -358,16 +749,16 @@
       const currentName = document.getElementById('iconName').textContent;
       vscode.postMessage({ command: 'requestRename', currentName: currentName });
     }
-    
-    // Store original text for reset
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('.optimize-preset').forEach(btn => {
-        btn.setAttribute('data-original-text', btn.textContent);
-      });
-    });
-    
+
     window.addEventListener('message', event => {
       const message = event.data;
+      
+      if (message.command === 'applyOptimizationBeforeRebuild') {
+        // Server wants us to apply optimization before rebuild
+        if (optimizedSvg) {
+          applyOptimized();
+        }
+      }
       
       if (message.command === 'previewUpdated') {
         // Only update SVG preview, don't touch swatches (picker is open)
@@ -432,45 +823,51 @@
       
       if (message.command === 'optimizeResult') {
         optimizedSvg = message.svg;
-        const resultEl = document.getElementById('optimizeResult');
-        resultEl.classList.add('visible');
-        document.getElementById('optimizeOriginal').textContent = 'Original: ' + message.originalSizeStr;
-        document.getElementById('optimizeNew').textContent = 'Optimized: ' + message.optimizedSizeStr;
-        document.getElementById('optimizeSavings').textContent = 
-          'Saved: ' + (message.savingsPercent > 0 ? message.savingsPercent.toFixed(1) + '%' : 'Already optimal');
         
-        const btnApply = document.getElementById('btnApplyOptimized');
-        if (btnApply) {
-          btnApply.disabled = message.savingsPercent <= 0;
+        // Show result bar
+        const resultBar = document.getElementById('optimizeResultBar');
+        if (resultBar) {
+          resultBar.style.display = 'flex';
         }
-
-        // If no savings, disable the active button and mark as optimized
+        
+        // Update savings badge
+        const savingsText = document.getElementById('optimizeSavingsText');
+        if (savingsText) {
+          if (message.savingsPercent > 0) {
+            savingsText.textContent = '-' + message.savingsPercent.toFixed(1) + '%';
+            savingsText.classList.remove('no-savings');
+          } else {
+            savingsText.textContent = 'Optimal';
+            savingsText.classList.add('no-savings');
+          }
+        }
+        
+        // Update size text
+        const sizeText = document.getElementById('optimizeSizeText');
+        if (sizeText) {
+          sizeText.textContent = message.originalSizeStr + ' → ' + message.optimizedSizeStr;
+        }
+        
+        // Show/hide build hint based on savings
+        const buildHint = document.getElementById('optimizeBuildHint');
+        if (buildHint) {
+          buildHint.style.display = message.savingsPercent > 0 ? 'flex' : 'none';
+        }
+        
+        // Mark optimize button if already optimal
         if (message.savingsPercent <= 0) {
-          const activeBtn = document.querySelector('.optimize-preset.active');
-          if (activeBtn) {
-            activeBtn.disabled = true;
-            activeBtn.textContent = 'Optimized';
-            
-            // Also disable lower levels if Aggressive is optimized
-            const presets = ['Minimal', 'Safe', 'Aggressive'];
-            const activeText = activeBtn.getAttribute('data-original-text');
-            const activeIndex = presets.indexOf(activeText);
-            
-            if (activeIndex >= 0) {
-              document.querySelectorAll('.optimize-preset').forEach(btn => {
-                const btnText = btn.getAttribute('data-original-text');
-                const btnIndex = presets.indexOf(btnText);
-                if (btnIndex <= activeIndex) {
-                  btn.disabled = true;
-                  btn.textContent = 'Optimized';
-                }
-              });
-            }
+          const optimizeBtn = document.getElementById('optimizeBtn');
+          if (optimizeBtn) {
+            optimizeBtn.classList.add('optimized');
+            optimizeBtn.title = 'Already optimized';
           }
         }
       }
 
       if (message.command === 'optimizedSvgApplied') {
+        // Clear pending optimization
+        optimizedSvg = null;
+        
         // Update preview
         const container = document.getElementById('zoomContainer');
         if (container) container.innerHTML = message.svg;
@@ -489,38 +886,58 @@
           fileSizeEl.textContent = newSizeStr;
         }
 
-        // Hide optimization result UI
-        const resultEl = document.getElementById('optimizeResult');
-        if (resultEl) {
-           resultEl.classList.remove('visible');
+        // Show optimized badge
+        const optimizedBadge = document.getElementById('optimizedBadge');
+        if (optimizedBadge) {
+          optimizedBadge.style.display = 'inline-flex';
         }
+
+        // Mark optimize button as optimized
+        const optimizeBtn = document.getElementById('optimizeBtn');
+        if (optimizeBtn) {
+          optimizeBtn.classList.add('optimized');
+          optimizeBtn.title = 'Already optimized';
+        }
+
+        // Hide build hint, show revert button
+        const buildHint = document.getElementById('optimizeBuildHint');
+        if (buildHint) buildHint.style.display = 'none';
         
-        // Disable the applied button and lower levels
-        const activeBtn = document.querySelector('.optimize-preset.active');
-        if (activeBtn) {
-          activeBtn.disabled = true;
-          activeBtn.textContent = 'Optimized';
-          activeBtn.classList.remove('active');
-          
-          const presets = ['Minimal', 'Safe', 'Aggressive'];
-          const activeText = activeBtn.getAttribute('data-original-text');
-          const activeIndex = presets.indexOf(activeText);
-          
-          if (activeIndex >= 0) {
-            document.querySelectorAll('.optimize-preset').forEach(btn => {
-              const btnText = btn.getAttribute('data-original-text');
-              const btnIndex = presets.indexOf(btnText);
-              if (btnIndex <= activeIndex) {
-                btn.disabled = true;
-                btn.textContent = 'Optimized';
-              }
-            });
-          }
-        }
+        const revertBtn = document.getElementById('btnRevertOptimized');
+        if (revertBtn) revertBtn.style.display = 'flex';
       }
       
+      if (message.command === 'optimizationReverted') {
+        // Update preview
+        const container = document.getElementById('zoomContainer');
+        if (container) container.innerHTML = message.svg;
+        
+        // Update code tab
+        const codeEl = document.getElementById('svgCodeTab');
+        if (codeEl) {
+          codeEl.innerHTML = message.code;
+        }
+        
+        // Update header file size
+        const fileSizeEl = document.getElementById('fileSize');
+        if (fileSizeEl) {
+          const newSize = new Blob([message.svg]).size;
+          const newSizeStr = newSize < 1024 ? newSize + ' B' : (newSize / 1024).toFixed(1) + ' KB';
+          fileSizeEl.textContent = newSizeStr;
+        }
+
+        // Hide optimized badge
+        const optimizedBadge = document.getElementById('optimizedBadge');
+        if (optimizedBadge) {
+          optimizedBadge.style.display = 'none';
+        }
+
+        // Reset optimization UI
+        resetOptimization();
+      }
+
       if (message.command === 'updateVariantselection') {
-        resetOptimizationButtons();
+        resetOptimization();
         document.querySelectorAll('.variant-item').forEach((el, idx) => {
           if (idx === message.selectedIndex) {
             el.classList.add('selected');
@@ -528,6 +945,24 @@
             el.classList.remove('selected');
           }
         });
+      }
+
+      // Update variant color dots after color/filter changes
+      if (message.command === 'variantColorsUpdated') {
+        const variantIndex = message.variantIndex;
+        const colors = message.colors;
+        // variantIndex 0 = original (index -1), 1 = first custom (index 0), etc.
+        const adjustedIndex = variantIndex + 1; // +1 because original is at index 0 in DOM
+        const variantItems = document.querySelectorAll('.variant-item');
+        if (variantItems[adjustedIndex]) {
+          const dotsContainer = variantItems[adjustedIndex].querySelector('.variant-colors');
+          if (dotsContainer) {
+            const dotsHtml = colors.slice(0, 4).map(c => 
+              `<div class="variant-color-dot" style="background:${c}" title="${c}"></div>`
+            ).join('');
+            dotsContainer.innerHTML = dotsHtml;
+          }
+        }
       }
       
       if (message.command === 'updateCodeTab') {
@@ -606,10 +1041,14 @@
         hint.textContent = 'SVG will include CSS animation';
       }
       
-      // Show/hide restart animation button
+      // Show/hide restart animation button and indicator
       const restartBtn = document.getElementById('restartAnimBtn');
       if (restartBtn) {
         restartBtn.style.display = type === 'none' ? 'none' : 'flex';
+      }
+      const animIndicator = document.getElementById('animationIndicator');
+      if (animIndicator) {
+        animIndicator.style.display = type === 'none' ? 'none' : 'flex';
       }
       
       // Update animation toggle visibility in code tab
@@ -683,6 +1122,18 @@
     }
     
     function updateAnimationPreview() {
+      // Update header badge
+      const animBadge = document.getElementById('animBadge');
+      const animName = document.getElementById('animName');
+      if (animBadge && animName) {
+        if (currentAnimation !== 'none') {
+          animBadge.style.display = 'inline-flex';
+          animName.textContent = currentAnimation;
+        } else {
+          animBadge.style.display = 'none';
+        }
+      }
+
       // Apply animation to main preview
       const previewBox = document.getElementById('previewBox');
       const svg = previewBox.querySelector('svg');
@@ -785,8 +1236,6 @@
     window.optimizeSvg = optimizeSvg;
     window.rebuild = rebuild;
     window.copySvg = copySvg;
-    window.previewColor = previewColor;
-    window.applyColor = applyColor;
     window.saveVariant = saveVariant;
     window.deleteVariant = deleteVariant;
     window.setDefaultVariant = setDefaultVariant;
@@ -802,7 +1251,6 @@
     window.applyDefaultVariant = applyDefaultVariant;
     window.editVariant = editVariant;
     window.renameIcon = renameIcon;
-    window.replaceCurrentColor = replaceCurrentColor;
     window.showAddColorPicker = showAddColorPicker;
     window.toggleAnimationInCode = toggleAnimationInCode;
     window.copyWithAnimation = copyWithAnimation;

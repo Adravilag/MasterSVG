@@ -48,6 +48,11 @@ export function clearTempIcons(): void {
 function normalizeSvgForDisplay(svgContent: string): string {
   let normalizedSvg = svgContent;
   
+  // Ensure SVG has xmlns namespace (required for VS Code to render correctly)
+  if (!normalizedSvg.includes('xmlns=')) {
+    normalizedSvg = normalizedSvg.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+  }
+  
   // If SVG doesn't have width/height, add them for proper display
   if (!normalizedSvg.includes('width=') && !normalizedSvg.includes('height=')) {
     normalizedSvg = normalizedSvg.replace('<svg', '<svg width="16" height="16"');

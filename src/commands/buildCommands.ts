@@ -9,7 +9,7 @@ import type { IconAnimation } from '../types/icons';
 import { SvgTransformer } from '../services/SvgTransformer';
 import { getSpriteGenerator, SpriteIcon } from '../services/SpriteGenerator';
 import { addToIconsJs, addToSpriteSvg, generateWebComponent } from '../utils/iconsFileManager';
-import { getConfig, getFullOutputPath, getOutputPathOrWarn } from '../utils/configHelper';
+import { getConfig, getFullOutputPath, getOutputPathOrWarn, updateIconsJsContext } from '../utils/configHelper';
 import { buildIconsFileContent } from '../utils/outputFileManager';
 
 // Interfaces for providers
@@ -415,6 +415,9 @@ export function registerBuildCommands(
 
         providers.workspaceSvgProvider.refresh();
       });
+      
+      // Update context for icons.js existence
+      updateIconsJsContext();
       
       const config = getConfig();
       const formatName = config.buildFormat === 'sprite.svg' ? 'sprite.svg' : 'icons.js';

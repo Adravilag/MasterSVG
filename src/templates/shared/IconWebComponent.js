@@ -10,11 +10,13 @@ import { icons } from './icons.js';
 // Optional imports - these files may not exist
 let Variants = {};
 let defaultVariants = {};
+let colorMappings = {};
 
 try {
   const VariantsModule = await import('./variants.js');
   Variants = VariantsModule.Variants || {};
   defaultVariants = VariantsModule.defaultVariants || {};
+  colorMappings = VariantsModule.colorMappings || {};
 } catch (e) {
   // variants.js not found, continue without Variants
 }
@@ -212,6 +214,15 @@ class IconElement extends HTMLElement {
     
     // Get body with variant colors applied if variant is specified
     let body = icon.body;
+    
+    // Apply color mappings first (custom color changes)
+    const iconColorMappings = colorMappings[icon.name] || {};
+    for (const [originalColor, newColor] of Object.entries(iconColorMappings)) {
+      const regex = new RegExp(originalColor.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      body = body.replace(regex, newColor);
+    }
+    
+    // Then apply variant colors if specified
     const iconVariants = Variants[icon.name] || {};
     if (variantName && iconVariants[variantName]) {
       const variantColors = iconVariants[variantName];

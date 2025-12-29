@@ -232,5 +232,14 @@ export function registerEditorCommands(
   });
   disposables.push(exportComponentCmd);
 
+  // Command: Update TreeView preview from Editor color changes
+  const updateTreeViewPreviewCmd = vscode.commands.registerCommand(
+    'iconManager.updateTreeViewPreview',
+    (name: string, svg: string) => {
+      iconPreviewProvider.updateSvgContent(name, svg);
+    }
+  );
+  disposables.push(updateTreeViewPreviewCmd);
+
   return disposables;
 }

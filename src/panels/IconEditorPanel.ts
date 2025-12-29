@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { SvgOptimizer } from '../services/SvgOptimizer';
 import { SvgManipulationService } from '../services/SvgManipulationService';
 import { SvgTransformer } from '../services/SvgTransformer';
 import { getColorService, ColorService } from '../services/ColorService';
@@ -20,7 +21,8 @@ import {
   handleChangeColor,
   handleReplaceCurrentColor,
   handleAddFillColor,
-  handleAddColor
+  handleAddColor,
+  handleApplyFilters
 } from '../handlers/IconEditorColorHandlers';
 import {
   VariantHandlerContext,
@@ -42,7 +44,8 @@ import {
   handleUpdateCodeWithAnimation,
   handleUpdateAnimationCode,
   handleShowMessage,
-  handleInsertCodeAtCursor
+  handleInsertCodeAtCursor,
+  handleRevertOptimization
 } from '../handlers/IconEditorSvgHandlers';
 import {
   IconHandlerContext,
@@ -78,8 +81,10 @@ export class IconEditorPanel {
   private readonly _extensionUri: vscode.Uri;
   private _disposables: vscode.Disposable[] = [];
   private _iconData?: IconData;
+  private _originalSvg: string = ''; // Original SVG without color modifications
   private _originalColors: string[] = [];
   private _selectedVariantIndex: number = -1;
+  private _preOptimizedSvg: string | undefined;
   private readonly _colorService: ColorService;
   private readonly _variantsService: VariantsService;
 
@@ -94,6 +99,11 @@ export class IconEditorPanel {
         // Reset cache when switching icons
         IconEditorPanel.currentPanel._variantsService.resetCache();
         IconEditorPanel.currentPanel._iconData = data;
+        // Clean embedded animations and store original SVG
+        if (data.svg) {
+          data.svg = SvgManipulationService.cleanAnimationFromSvg(data.svg);
+          IconEditorPanel.currentPanel._originalSvg = data.svg;
+        }
         IconEditorPanel.currentPanel._originalColors = IconEditorPanel.currentPanel._colorService.extractColorsFromSvg(data.svg).colors;
         IconEditorPanel.currentPanel._selectedVariantIndex = -1;
         IconEditorPanel.currentPanel._ensureCustomVariant();
@@ -126,6 +136,7 @@ export class IconEditorPanel {
     // Clean embedded animations from the loaded SVG to prevent double animations in preview
     if (this._iconData?.svg) {
       this._iconData.svg = SvgManipulationService.cleanAnimationFromSvg(this._iconData.svg);
+      this._originalSvg = this._iconData.svg; // Store original SVG for Build
       this._originalColors = this._colorService.extractColorsFromSvg(this._iconData.svg).colors;
       
       // Ensure "custom" variant exists for every icon
@@ -150,6 +161,34 @@ export class IconEditorPanel {
       null,
       this._disposables
     );
+
+    // Calculate optimization stats initially
+    if (this._iconData?.svg) {
+      setTimeout(() => this._sendOptimizationStats(), 1000);
+    }
+  }
+
+  private _sendOptimizationStats() {
+    if (!this._iconData?.svg) return;
+    
+    const optimizer = new SvgOptimizer();
+    const presets = optimizer.getPresets();
+    const stats: Record<string, string> = {};
+    
+    for (const [key, options] of Object.entries(presets)) {
+      const result = optimizer.optimize(this._iconData.svg, options);
+      const savings = result.originalSize - result.optimizedSize;
+      if (savings > 0) {
+        stats[key] = `-${optimizer.formatSize(savings)}`;
+      } else {
+        stats[key] = '';
+      }
+    }
+    
+    this._panel.webview.postMessage({
+      command: 'optimizationStats',
+      stats
+    });
   }
 
   /**
@@ -186,6 +225,14 @@ export class IconEditorPanel {
       case 'addColor':
         handleAddColor(colorCtx, message as { color?: string });
         break;
+      case 'applyFilters':
+        handleApplyFilters(colorCtx, message as unknown as { filters: { hue: string; saturation: string; brightness: string } });
+        // If thenRebuild is true, trigger rebuild after applying filters
+        if ((message as { thenRebuild?: boolean }).thenRebuild) {
+          const rebuildMsg = message as { animation?: string; animationSettings?: Record<string, unknown> };
+          await handleRebuild(iconCtx, { animation: rebuildMsg.animation, animationSettings: rebuildMsg.animationSettings });
+        }
+        break;
 
       // Variant handlers
       case 'saveVariant':
@@ -217,6 +264,9 @@ export class IconEditorPanel {
         break;
       case 'applyOptimizedSvg':
         await handleApplyOptimizedSvg(svgCtx, message as { svg?: string });
+        break;
+      case 'revertOptimization':
+        await handleRevertOptimization(svgCtx);
         break;
       case 'copySvg':
         handleCopySvg(svgCtx, message as { svg?: string });
@@ -300,7 +350,9 @@ export class IconEditorPanel {
     return {
       iconData: this._iconData,
       postMessage: (msg) => this._panel.webview.postMessage(msg),
-      processAndSaveIcon: (options) => this._processAndSaveIcon(options)
+      processAndSaveIcon: (options) => this._processAndSaveIcon(options),
+      getPreOptimizedSvg: () => this._preOptimizedSvg,
+      setPreOptimizedSvg: (svg) => { this._preOptimizedSvg = svg; }
     };
   }
 
@@ -324,37 +376,30 @@ export class IconEditorPanel {
    */
   private _generateVariantsHtml(iconName: string): string {
     const variants = this._variantsService.getSavedVariants(iconName);
-    const defaultVariant = this._variantsService.getDefaultVariant(iconName);
     
     // Original variant (read-only)
     const originalHtml = `
-      <div class="variant-item default${this._selectedVariantIndex === -1 ? ' selected' : ''}${!defaultVariant ? ' is-default' : ''}"
+      <div class="variant-item default${this._selectedVariantIndex === -1 ? ' selected' : ''}"
            onclick="applyDefaultVariant()"
-           title="Original colors (read-only)${!defaultVariant ? ' - active default' : ''}">
+           title="Original colors (read-only)">
         <div class="variant-colors">
           ${this._originalColors.slice(0, 4).map(c => `<div class="variant-color-dot" style="background:${c}" title="${c}"></div>`).join('')}
         </div>
         <span class="variant-name">original</span>
         <span class="variant-badge readonly">read-only</span>
-        ${!defaultVariant ? `<button class="variant-set-default active" title="Active default"><span class="codicon codicon-star-full"></span></button>` : ''}
       </div>
     `;
 
     // User-defined variants
     const variantsHtml = variants.map((variant, index) => `
-      <div class="variant-item${this._selectedVariantIndex === index ? ' selected' : ''}${defaultVariant === variant.name ? ' is-default' : ''}"
+      <div class="variant-item${this._selectedVariantIndex === index ? ' selected' : ''}"
            onclick="applyVariant(${index})"
-           title="${variant.name} - Click to edit${defaultVariant === variant.name ? ' (active default)' : ''}">
+           title="${variant.name} - Click to edit">
         <div class="variant-colors">
           ${variant.colors.slice(0, 4).map(c => `<div class="variant-color-dot" style="background:${c}" title="${c}"></div>`).join('')}
         </div>
         <span class="variant-name">${variant.name}</span>
         <div class="variant-actions">
-          <button class="variant-set-default${defaultVariant === variant.name ? ' active' : ''}" 
-                  onclick="event.stopPropagation(); setDefaultVariant('${variant.name}')" 
-                  title="${defaultVariant === variant.name ? 'Remove as default' : 'Set as default'}">
-            <span class="codicon codicon-${defaultVariant === variant.name ? 'star-full' : 'star-empty'}"></span>
-          </button>
           <button class="variant-edit" onclick="event.stopPropagation(); editVariant(${index})" title="Edit variant name">
             <span class="codicon codicon-edit"></span>
           </button>
@@ -581,6 +626,8 @@ export class IconEditorPanel {
   /**
    * Add icon to the icon collection
    * Uses buildFormat from config: sprite.svg OR icons.js (not both)
+   * Saves the ORIGINAL SVG (without color modifications) to icons.js
+   * Color mappings are saved separately in variants.js
    */
   private async _addToIconCollection(
     animation?: string,
@@ -599,8 +646,12 @@ export class IconEditorPanel {
       const config = getConfig();
       const isSprite = config.buildFormat === 'sprite.svg';
 
+      // Use ORIGINAL SVG (without color modifications) for storage
+      // Color changes are stored as colorMappings in variants.js
+      let svgToAdd = this._originalSvg || this._iconData.svg;
+      
       // 1. Clean the SVG and ensure namespace
-      let svgToAdd = SvgManipulationService.cleanAnimationFromSvg(this._iconData.svg);
+      svgToAdd = SvgManipulationService.cleanAnimationFromSvg(svgToAdd);
       svgToAdd = SvgManipulationService.ensureSvgNamespace(svgToAdd);
 
       // 2. Ensure SVG has an ID for animation/variation reference
@@ -701,6 +752,11 @@ export class IconEditorPanel {
     console.log('[IconWrap] IconEditorPanel has <script>:', html.includes('<script>'));
     console.log('[IconWrap] IconEditorPanel has acquireVsCodeApi:', html.includes('acquireVsCodeApi'));
     this._panel.webview.html = html;
+    
+    // Re-send optimization stats after update
+    if (this._iconData?.svg) {
+      setTimeout(() => this._sendOptimizationStats(), 100);
+    }
   }
 
   private _getHtmlForWebview(): string {
@@ -762,19 +818,27 @@ export class IconEditorPanel {
     const fileSizeStr = fileSize < 1024 ? `${fileSize} B` : `${(fileSize / 1024).toFixed(1)} KB`;
 
     // Load templates from external files
-    const templatesDir = path.join(this._extensionUri.fsPath, 'src', 'templates');
+    const templatesDir = path.join(this._extensionUri.fsPath, 'src', 'templates', 'icon-editor');
+    const tabsDir = path.join(templatesDir, 'tabs');
     console.log('[IconWrap] IconEditorPanel templates dir:', templatesDir);
     
     let cssContent: string, jsTemplate: string, bodyTemplate: string;
     let colorTabTemplate: string, animationTabTemplate: string, codeTabTemplate: string;
     
     try {
-      cssContent = fs.readFileSync(path.join(templatesDir, 'IconEditor.css'), 'utf-8');
+      // Load and concatenate CSS files
+      const baseCss = fs.readFileSync(path.join(templatesDir, 'IconEditor.css'), 'utf-8');
+      const colorCss = fs.readFileSync(path.join(tabsDir, 'IconEditorColor.css'), 'utf-8');
+      const filtersCss = fs.readFileSync(path.join(tabsDir, 'IconEditorFilters.css'), 'utf-8');
+      const animationCss = fs.readFileSync(path.join(tabsDir, 'IconEditorAnimation.css'), 'utf-8');
+      const codeCss = fs.readFileSync(path.join(tabsDir, 'IconEditorCode.css'), 'utf-8');
+      cssContent = baseCss + '\n' + colorCss + '\n' + filtersCss + '\n' + animationCss + '\n' + codeCss;
+      
       jsTemplate = fs.readFileSync(path.join(templatesDir, 'IconEditor.js'), 'utf-8');
       bodyTemplate = fs.readFileSync(path.join(templatesDir, 'IconEditorBody.html'), 'utf-8');
-      colorTabTemplate = fs.readFileSync(path.join(templatesDir, 'IconEditorColorTab.html'), 'utf-8');
-      animationTabTemplate = fs.readFileSync(path.join(templatesDir, 'IconEditorAnimationTab.html'), 'utf-8');
-      codeTabTemplate = fs.readFileSync(path.join(templatesDir, 'IconEditorCodeTab.html'), 'utf-8');
+      colorTabTemplate = fs.readFileSync(path.join(tabsDir, 'IconEditorColorTab.html'), 'utf-8');
+      animationTabTemplate = fs.readFileSync(path.join(tabsDir, 'IconEditorAnimationTab.html'), 'utf-8');
+      codeTabTemplate = fs.readFileSync(path.join(tabsDir, 'IconEditorCodeTab.html'), 'utf-8');
       console.log('[IconWrap] IconEditorPanel templates loaded successfully');
     } catch (err) {
       console.error('[IconWrap] IconEditorPanel template load error:', err);
@@ -788,7 +852,9 @@ export class IconEditorPanel {
       .replace(/__ANIMATION_TIMING__/g, JSON.stringify(detectedAnimation?.settings?.timing || 'ease'))
       .replace(/__ANIMATION_ITERATION__/g, JSON.stringify(detectedAnimation?.settings?.iteration || 'infinite'))
       .replace(/__ANIMATION_DELAY__/g, JSON.stringify(detectedAnimation?.settings?.delay || 0))
-      .replace(/__ANIMATION_DIRECTION__/g, JSON.stringify(detectedAnimation?.settings?.direction || 'normal'));
+      .replace(/__ANIMATION_DIRECTION__/g, JSON.stringify(detectedAnimation?.settings?.direction || 'normal'))
+      .replace(/__ORIGINAL_COLORS__/g, JSON.stringify(this._originalColors))
+      .replace(/__CURRENT_COLORS__/g, JSON.stringify(svgColors));
 
     // Generate tab contents using templates (delegate to service where possible)
     const templateService = getIconEditorTemplateService();
@@ -799,7 +865,8 @@ export class IconEditorPanel {
     // Generate HTML body from template
     const htmlBody = templateService.generateHtmlBody(bodyTemplate, {
       name, displaySvg, fileSizeStr, isBuilt,
-      colorTabContent, animationTabContent, codeTabContent
+      colorTabContent, animationTabContent, codeTabContent,
+      animationName: detectedAnimation?.type
     });
 
     // Get webview CSP source
@@ -858,16 +925,20 @@ ${jsContent}
       `;
     }
 
-    const colorSwatches = svgColors.map((color, index) => `
-      <div class="color-item">
+    const colorSwatches = svgColors.map((color, index) => {
+      const escapedColor = color.replace(/'/g, "\\'").replace(/"/g, '\\"');
+      return `
+      <div class="color-item" title="Click to change color">
         <div class="color-swatch" style="background-color: ${color}">
           <input type="color" value="${this._colorService.toHexColor(color)}" 
-            onchange="changeColor(${index}, this.value)"
-            oninput="previewColor(${index}, this.value)" />
+            data-original-color="${escapedColor}"
+            onchange="changeColor(this.dataset.originalColor, this.value)"
+            oninput="previewColor(this.dataset.originalColor, this.value)" />
         </div>
-        <span class="color-label">${color}</span>
+        <span class="color-label" onclick="copyToClipboard('${escapedColor}')" title="Click to copy: ${color}">${color}</span>
       </div>
-    `).join('');
+    `;
+    }).join('');
 
     const currentColorHtml = hasCurrentColor ? `
       <div class="current-color-item">
@@ -880,19 +951,18 @@ ${jsContent}
       </div>
     ` : '';
 
-    const addColorBtn = `
-      <button class="add-color-btn" onclick="addFillColor()" title="Add fill color">
-        <span class="codicon codicon-add"></span>
-      </button>
-    `;
+    const isOriginalSelected = this._selectedVariantIndex === -1;
 
     return template
-      .replace(/\$\{colorsDisabledClass\}/g, this._selectedVariantIndex === -1 ? ' colors-disabled' : '')
-      .replace(/\$\{colorsHint\}/g, this._selectedVariantIndex === -1 ? '<span class="colors-hint">(select custom to edit)</span>' : '')
-      .replace(/\$\{swatchesDisabledClass\}/g, this._selectedVariantIndex === -1 ? ' disabled' : '')
+      .replace(/\$\{colorsDisabledClass\}/g, isOriginalSelected ? ' colors-disabled' : '')
+      .replace(/\$\{colorsHint\}/g, isOriginalSelected ? '<span class="colors-hint">(select custom to edit)</span>' : '')
+      .replace(/\$\{swatchesDisabledClass\}/g, isOriginalSelected ? ' disabled' : '')
+      .replace(/\$\{filtersDisabledClass\}/g, isOriginalSelected ? ' colors-disabled' : '')
+      .replace(/\$\{filtersHint\}/g, isOriginalSelected ? '<span class="colors-hint">(select custom)</span>' : '')
+      .replace(/\$\{filtersContainerDisabledClass\}/g, isOriginalSelected ? ' disabled' : '')
+      .replace(/\$\{filtersDisabled\}/g, isOriginalSelected ? ' disabled' : '')
       .replace(/\$\{currentColorHtml\}/g, currentColorHtml)
       .replace(/\$\{colorSwatches\}/g, colorSwatches)
-      .replace(/\$\{addColorBtn\}/g, addColorBtn)
       .replace(/\$\{variantsHtml\}/g, this._generateVariantsHtml(this._iconData?.name || ''));
   }
 }

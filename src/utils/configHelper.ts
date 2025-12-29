@@ -57,6 +57,24 @@ export function isOutputConfigured(): boolean {
 }
 
 /**
+ * Check if icons.js file exists in the output directory
+ */
+export function iconsJsExists(): boolean {
+  const fullPath = getFullOutputPath();
+  if (!fullPath) return false;
+  return fs.existsSync(path.join(fullPath, 'icons.js'));
+}
+
+/**
+ * Update the VS Code context for icons.js existence
+ * Should be called when icons are built or removed
+ */
+export function updateIconsJsContext(): void {
+  const exists = iconsJsExists();
+  vscode.commands.executeCommand('setContext', 'iconManager.iconsJsExists', exists);
+}
+
+/**
  * Ensure output directory exists
  */
 export function ensureOutputDirectory(): string | undefined {

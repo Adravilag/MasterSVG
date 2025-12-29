@@ -105,6 +105,24 @@ export function registerNavigationCommands(
           new vscode.Range(position, position),
           vscode.TextEditorRevealType.InCenter
         );
+      } else if (icon && icon.path) {
+        // For SVG files (FILES view), open the file at line 1
+        const document = await vscode.workspace.openTextDocument(vscode.Uri.file(icon.path));
+        await vscode.window.showTextDocument(document);
+      }
+    })
+  );
+
+  // Command: Open SVG File (opens SVG as preview/image)
+  commands.push(
+    vscode.commands.registerCommand('iconManager.openSvgFile', async (iconOrItem: any) => {
+      const icon = iconOrItem?.icon || iconOrItem;
+      if (icon && icon.path) {
+        const uri = vscode.Uri.file(icon.path);
+        // Try to open with VS Code's built-in SVG preview
+        await vscode.commands.executeCommand('vscode.open', uri);
+      } else {
+        vscode.window.showWarningMessage('No SVG file path available');
       }
     })
   );

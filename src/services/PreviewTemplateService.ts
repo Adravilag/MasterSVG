@@ -23,7 +23,7 @@ export class PreviewTemplateService {
    * Load CSS from external file
    */
   loadCss(): string {
-    const cssPath = path.join(this.extensionUri.fsPath, 'src', 'templates', 'IconPreview.css');
+    const cssPath = path.join(this.extensionUri.fsPath, 'src', 'templates', 'shared', 'IconPreview.css');
     return fs.readFileSync(cssPath, 'utf8');
   }
 
@@ -121,16 +121,22 @@ export class PreviewTemplateService {
   generateVariantsBar(variants?: Array<{ name: string; colors: string[] }>): string {
     if (!variants || variants.length === 0) return '';
     
-    const swatches = variants.map((v, i) => {
-      const colorDots = v.colors.slice(0, 3).map(c => `<span style="background:${c}"></span>`).join('');
+    // Limit to max 3 variants for compact display
+    const maxVariants = 3;
+    const displayVariants = variants.slice(0, maxVariants);
+    const hasMore = variants.length > maxVariants;
+    
+    const swatches = displayVariants.map((v, i) => {
+      const colorDots = v.colors.slice(0, 4).map(c => `<span style="background:${c}"></span>`).join('');
       return `<button class="variant-swatch ${i === 0 ? 'active' : ''}" data-index="${i}" title="${v.name}" onclick="applyVariant(${i})">
           <span class="variant-colors">${colorDots}</span>
-          <span class="variant-name">${v.name}</span>
         </button>`;
     }).join('');
     
+    const moreIndicator = hasMore ? `<span class="variants-more" title="${variants.length - maxVariants} more variants">+${variants.length - maxVariants}</span>` : '';
+    
     return `<div class="variants-bar" id="variantsPalette">
-      ${swatches}
+      ${swatches}${moreIndicator}
     </div>`;
   }
 
@@ -140,11 +146,10 @@ export class PreviewTemplateService {
   generateToolbar(hasLocation: boolean, isRasterized?: boolean): string {
     const buttons: string[] = [];
     
-    if (!isRasterized) {
-      buttons.push(`<button class="toolbar-btn" onclick="resetColors()" title="Reset">
-      <span class="codicon codicon-discard"></span>
+    // Refresh button
+    buttons.push(`<button class="toolbar-btn" onclick="refreshPreview()" title="Refresh">
+      <span class="codicon codicon-refresh"></span>
     </button>`);
-    }
     
     buttons.push(`<button class="toolbar-btn" onclick="copySvg()" title="Copy SVG">
       <span class="codicon codicon-copy"></span>
@@ -182,7 +187,6 @@ export class PreviewTemplateService {
     return `<script>
     const vscode = acquireVsCodeApi();
     const colorMap = new Map();
-    const presets = ['#ffffff','#000000','#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899'];
     const savedVariants = ${JSON.stringify(variants || [])};
     const originalSvg = document.querySelector('.icon-container svg')?.outerHTML;
     
@@ -197,7 +201,7 @@ export class PreviewTemplateService {
       root.style.setProperty('--avatar-size', size + 'px');
     });
     
-    // === COLOR DETECTION ===
+    // === COLOR DETECTION (for variants) ===
     function normalizeColor(color) {
       if (!color || color === 'none' || color === 'currentColor') return null;
       const temp = document.createElement('div');
@@ -229,77 +233,56 @@ export class PreviewTemplateService {
       return Array.from(colors.entries());
     }
     
-    function buildColorUI() {
-      const palette = document.getElementById('colorPalette');
-      const detected = detectColors();
-      
-      let html = detected.map(([hex], i) => \`
-        <button class="color-swatch detected active" style="background:\${hex}" title="\${hex}" data-color="\${hex}">
-          <input type="color" value="\${hex}" onchange="changeColor('\${hex}', this.value)" />
-        </button>
-      \`).join('');
-      
-      html += presets.filter(p => !detected.find(([h]) => h === p)).slice(0, 8 - detected.length).map(hex => \`
-        <button class="color-swatch" style="background:\${hex}" title="\${hex}" onclick="setAllColors('\${hex}')"></button>
-      \`).join('');
-      
-      html += \`<button class="color-swatch add" title="Custom color">+<input type="color" value="#ffffff" onchange="setAllColors(this.value)" /></button>\`;
-      
-      palette.innerHTML = html;
-      detected.forEach(([hex]) => colorMap.set(hex, hex));
-    }
-    
-    function changeColor(original, newColor) {
-      const svg = document.querySelector('.icon-container svg');
-      if (!svg) return;
-      const current = colorMap.get(original) || original;
-      svg.querySelectorAll('*').forEach(el => {
-        ['fill', 'stroke'].forEach(attr => {
-          if (normalizeColor(el.getAttribute(attr)) === current) {
-            el.setAttribute(attr, newColor);
-          }
-        });
-      });
-      colorMap.set(original, newColor);
-      buildColorUI();
-    }
-    
-    function setAllColors(color) {
-      const svg = document.querySelector('.icon-container svg');
-      if (!svg) return;
-      svg.querySelectorAll('path, circle, rect, polygon, polyline, line, ellipse').forEach(el => {
-        ['fill', 'stroke'].forEach(attr => {
-          const val = el.getAttribute(attr);
-          if (val && val !== 'none') el.setAttribute(attr, color);
-        });
-      });
-      svg.style.fill = color;
-      buildColorUI();
-    }
-    
     // === VARIANTS ===
+    // Store original SVG on load
+    const originalSvgContent = document.querySelector('.icon-container svg')?.outerHTML || '';
+    // Use _original variant colors as reference
+    const originalVariant = savedVariants.find(v => v.name === '_original');
+    const originalColors = originalVariant ? originalVariant.colors : [];
+    
+    console.log('[Preview] savedVariants:', savedVariants);
+    console.log('[Preview] originalColors from _original:', originalColors);
+    
     function applyVariant(index) {
       const variant = savedVariants[index];
-      if (!variant || !variant.colors || variant.colors.length === 0) return;
+      console.log('[Preview] applyVariant:', index, variant);
       
-      const svg = document.querySelector('.icon-container svg');
-      if (!svg) return;
+      if (!variant || !variant.colors || variant.colors.length === 0) {
+        console.log('[Preview] No variant or colors');
+        return;
+      }
       
-      const detected = detectColors();
+      const container = document.querySelector('.icon-container');
+      if (!container || !originalSvgContent) {
+        console.log('[Preview] No container or originalSvgContent');
+        return;
+      }
       
-      detected.forEach(([originalColor], i) => {
-        const newColor = variant.colors[i % variant.colors.length];
-        svg.querySelectorAll('*').forEach(el => {
-          ['fill', 'stroke'].forEach(attr => {
-            const current = colorMap.get(originalColor) || originalColor;
-            if (normalizeColor(el.getAttribute(attr)) === current) {
-              el.setAttribute(attr, newColor);
-            }
-          });
+      // Start with original SVG
+      let newSvg = originalSvgContent;
+      
+      // Replace colors directly in SVG string
+      if (originalColors.length > 0) {
+        originalColors.forEach((origColor, i) => {
+          if (i < variant.colors.length) {
+            const newColor = variant.colors[i];
+            // Replace color in fill and stroke attributes (case insensitive)
+            const regex = new RegExp(origColor.replace('#', '#?'), 'gi');
+            newSvg = newSvg.replace(regex, newColor);
+            console.log('[Preview] Replaced', origColor, 'with', newColor);
+          }
         });
-        colorMap.set(originalColor, newColor);
-      });
+      }
       
+      // Update container
+      container.innerHTML = newSvg;
+      const svg = container.querySelector('svg');
+      if (svg) {
+        svg.style.width = 'var(--avatar-size)';
+        svg.style.height = 'var(--avatar-size)';
+      }
+      
+      // Update active state
       document.querySelectorAll('.variant-swatch').forEach((btn, i) => {
         btn.classList.toggle('active', i === index);
       });
@@ -324,8 +307,8 @@ export class PreviewTemplateService {
         URL.revokeObjectURL(url);
       }
     }
-    function resetColors() {
-      vscode.postMessage({ command: 'resetColors' });
+    function refreshPreview() {
+      vscode.postMessage({ command: 'refreshPreview' });
     }
     function optimizeSvg() {
       const svgEl = document.querySelector('.icon-container svg');
@@ -343,21 +326,7 @@ export class PreviewTemplateService {
     // Listen for messages from extension
     window.addEventListener('message', event => {
       const message = event.data;
-      if (message.command === 'svgOptimized') {
-        const container = document.querySelector('.icon-container');
-        if (container && message.svg) {
-          container.innerHTML = message.svg;
-          const svg = container.querySelector('svg');
-          if (svg) {
-            svg.style.width = 'var(--avatar-size)';
-            svg.style.height = 'var(--avatar-size)';
-          }
-          buildColorUI();
-          const saved = message.originalSize - message.optimizedSize;
-          const percent = Math.round((saved / message.originalSize) * 100);
-          console.log(\`Optimized: \${saved} bytes saved (\${percent}%)\`);
-        }
-      } else if (message.command === 'resetSvg') {
+      if (message.command === 'resetSvg') {
         const container = document.querySelector('.icon-container');
         if (container && message.svg) {
           let svg = message.svg;
@@ -371,13 +340,24 @@ export class PreviewTemplateService {
             svgEl.style.height = 'var(--avatar-size)';
           }
           colorMap.clear();
-          buildColorUI();
+        }
+      } else if (message.command === 'updateSvgContent') {
+        // Update SVG content from Editor color changes
+        const container = document.querySelector('.icon-container');
+        if (container && message.svg) {
+          let svg = message.svg;
+          if (!svg.includes('width=') && !svg.includes('style=')) {
+            svg = svg.replace('<svg', '<svg width="100%" height="100%"');
+          }
+          container.innerHTML = svg;
+          const svgEl = container.querySelector('svg');
+          if (svgEl) {
+            svgEl.style.width = 'var(--avatar-size)';
+            svgEl.style.height = 'var(--avatar-size)';
+          }
         }
       }
     });
-    
-    // Init
-    buildColorUI();
   </script>`;
   }
 
@@ -389,11 +369,13 @@ export class PreviewTemplateService {
     <div class="icon-container">
       ${displaySvg}
     </div>
-    <div class="size-bar">
-      <input type="range" class="size-slider" id="sizeSlider" min="16" max="128" value="64" />
-      <span class="size-value" id="sizeValue">64</span>
+    <div class="bottom-controls">
+      ${!isRasterized ? this.generateVariantsBar(variants) : ''}
+      <div class="size-bar">
+        <input type="range" class="size-slider" id="sizeSlider" min="16" max="128" value="64" />
+        <span class="size-value" id="sizeValue">64</span>
+      </div>
     </div>
-    ${!isRasterized ? this.generateVariantsBar(variants) : ''}
   </div>`;
   }
 

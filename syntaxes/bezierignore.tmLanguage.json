@@ -1,0 +1,56 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "IconWrap Ignore",
+  "scopeName": "source.iconwrapignore",
+  "patterns": [
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#negation"
+    },
+    {
+      "include": "#directory"
+    },
+    {
+      "include": "#wildcard"
+    },
+    {
+      "include": "#pattern"
+    }
+  ],
+  "repository": {
+    "comment": {
+      "match": "^\\s*#.*$",
+      "name": "comment.line.number-sign.iconwrapignore"
+    },
+    "negation": {
+      "match": "^!",
+      "name": "keyword.operator.negation.iconwrapignore"
+    },
+    "directory": {
+      "match": "/$",
+      "name": "punctuation.definition.directory.iconwrapignore"
+    },
+    "wildcard": {
+      "patterns": [
+        {
+          "match": "\\*\\*",
+          "name": "constant.other.wildcard.asterisk.double.iconwrapignore"
+        },
+        {
+          "match": "\\*",
+          "name": "constant.other.wildcard.asterisk.iconwrapignore"
+        },
+        {
+          "match": "\\?",
+          "name": "constant.other.wildcard.questionmark.iconwrapignore"
+        }
+      ]
+    },
+    "pattern": {
+      "match": "[^#\\s*?/]+",
+      "name": "string.unquoted.path.iconwrapignore"
+    }
+  }
+}

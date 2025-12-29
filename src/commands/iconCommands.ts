@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { getFullOutputPath } from '../utils/configHelper';
+import { getFullOutputPath, updateIconsJsContext } from '../utils/configHelper';
 import { removeFromIconsJs } from '../utils/iconsFileManager';
+import { VariantsService } from '../services/VariantsService';
 
 /**
  * Interface for providers needed by icon commands
@@ -108,16 +109,25 @@ export function registerIconCommands(
   );
 
   // Command: Remove from Built (unbuild icon without deleting file)
+  // Supports multiple selection
   commands.push(
-    vscode.commands.registerCommand('iconManager.removeFromBuilt', async (item: any) => {
-      if (!item?.icon) {
-        vscode.window.showWarningMessage('Select an icon to remove from built');
+    vscode.commands.registerCommand('iconManager.removeFromBuilt', async (item: any, selectedItems?: any[]) => {
+      // Handle multiple selection
+      const items = selectedItems && selectedItems.length > 0 ? selectedItems : (item ? [item] : []);
+      
+      if (items.length === 0 || !items[0]?.icon) {
+        vscode.window.showWarningMessage('Select icon(s) to remove from built');
         return;
       }
 
-      const iconName = typeof item.label === 'string' ? item.label : item.icon?.name;
-      if (!iconName) {
-        vscode.window.showWarningMessage('Could not determine icon name');
+      // Extract icon names from all selected items
+      const iconNames = items
+        .filter((i: any) => i?.icon)
+        .map((i: any) => typeof i.label === 'string' ? i.label : i.icon?.name)
+        .filter((name: string | undefined): name is string => !!name);
+
+      if (iconNames.length === 0) {
+        vscode.window.showWarningMessage('Could not determine icon names');
         return;
       }
 
@@ -127,8 +137,12 @@ export function registerIconCommands(
         return;
       }
 
+      const message = iconNames.length === 1
+        ? `Remove "${iconNames[0]}" from built icons library?`
+        : `Remove ${iconNames.length} icons from built icons library?`;
+
       const confirm = await vscode.window.showWarningMessage(
-        `Remove "${iconName}" from built icons library?`,
+        message,
         { modal: true },
         'Remove'
       );
@@ -137,13 +151,29 @@ export function registerIconCommands(
         return;
       }
 
-      const removed = removeFromIconsJs(fullOutputPath, [iconName]);
+      const removed = removeFromIconsJs(fullOutputPath, iconNames);
       if (removed) {
+        // Also remove variants/colorMappings configuration
+        const variantsService = new VariantsService();
+        for (const name of iconNames) {
+          variantsService.removeIconData(name);
+        }
+        variantsService.persistToFile();
+        
+        // Update context for icons.js existence
+        updateIconsJsContext();
+        
+        // Refresh all tree views
         builtIconsProvider.refresh();
         workspaceSvgProvider.refresh();
-        vscode.window.showInformationMessage(`Removed "${iconName}" from built icons`);
+        svgFilesProvider.refresh();
+        
+        const infoMsg = iconNames.length === 1
+          ? `Removed "${iconNames[0]}" from built icons`
+          : `Removed ${iconNames.length} icons from built icons`;
+        vscode.window.showInformationMessage(infoMsg);
       } else {
-        vscode.window.showErrorMessage(`Failed to remove "${iconName}" from built icons`);
+        vscode.window.showErrorMessage(`Failed to remove icon(s) from built icons`);
       }
     })
   );

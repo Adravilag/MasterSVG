@@ -37,20 +37,22 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
-  margin-bottom: var(--space-md);
-  padding-bottom: var(--space-sm);
-  border-bottom: 1px solid var(--vscode-panel-border);
+  margin-bottom: var(--space-sm);
+  padding: 4px 6px;
+  background: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.1));
+  border-radius: var(--radius);
 }
 
 .icon-name {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--vscode-foreground);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
   font-family: var(--font-mono);
+  opacity: 0.9;
 }
 
 .badge {
@@ -83,8 +85,8 @@ body {
 
 /* === PREVIEW SURFACE === */
 .preview-surface {
-  --checker-size: 10px;
-  --checker-color: rgba(128, 128, 128, 0.08);
+  --checker-size: 8px;
+  --checker-color: rgba(128, 128, 128, 0.06);
   position: relative;
   aspect-ratio: 1;
   background-color: var(--vscode-editor-background);
@@ -96,12 +98,12 @@ body {
   background-size: calc(var(--checker-size) * 2) calc(var(--checker-size) * 2);
   background-position: 0 0, 0 var(--checker-size), var(--checker-size) calc(var(--checker-size) * -1), calc(var(--checker-size) * -1) 0;
   border: 1px solid var(--vscode-panel-border);
-  border-radius: var(--radius);
+  border-radius: 6px;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   margin-bottom: var(--space-sm);
   overflow: hidden;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
 }
 
 .preview-surface .icon-container {
@@ -109,27 +111,30 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-bottom: 52px; /* Space for size-bar + color-bar */
+  min-height: 100px;
 }
 
 .preview-surface svg {
   width: var(--avatar-size);
   height: var(--avatar-size);
   transition: all 0.15s ease;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+/* === BOTTOM CONTROLS STACK === */
+.bottom-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
 }
 
 /* === SIZE SLIDER (inside preview) === */
 .size-bar {
-  position: absolute;
-  bottom: 8px;
-  left: 0;
-  right: 0;
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  padding: 4px 8px;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
+  padding: 4px 10px;
 }
 
 .size-slider {
@@ -167,15 +172,11 @@ body {
 
 /* === COLOR BAR (inside preview) === */
 .color-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 4px 8px;
+  padding: 5px 8px;
 }
 
 .color-bar .color-swatch {
@@ -224,16 +225,11 @@ body {
 
 /* === VARIANTS BAR (inside preview) === */
 .variants-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 6px 8px;
-  background: linear-gradient(to top, rgba(0,0,0,0.3), transparent);
+  gap: 4px;
+  padding: 5px 6px;
 }
 
 .variant-swatch {
@@ -241,20 +237,21 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 4px 8px;
-  background: var(--vscode-input-background);
-  border: 1px solid var(--vscode-input-border, rgba(128,128,128,0.3));
+  padding: 3px 6px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .variant-swatch:hover {
-  background: var(--vscode-list-hoverBackground);
-  border-color: var(--vscode-focusBorder);
+  background: rgba(255,255,255,0.15);
+  border-color: rgba(255,255,255,0.25);
 }
 
 .variant-swatch.active {
+  background: rgba(var(--vscode-button-background), 0.3);
   border-color: var(--vscode-button-background);
   box-shadow: 0 0 0 1px var(--vscode-button-background);
 }
@@ -265,19 +262,26 @@ body {
 }
 
 .variant-colors span {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 2px;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.1);
 }
 
 .variant-name {
-  font-size: 9px;
-  color: var(--vscode-descriptionForeground);
-  max-width: 50px;
+  font-size: 8px;
+  color: rgba(255,255,255,0.7);
+  max-width: 48px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.variants-more {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  padding: 0 4px;
+  align-self: center;
 }
 
 /* === TOOLBAR ROW === */
@@ -285,20 +289,19 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  margin-bottom: var(--space-md);
-  padding: var(--space-xs);
-  background: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.15));
-  border-radius: var(--radius);
+  gap: 1px;
+  padding: 2px;
+  background: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.1));
+  border-radius: 4px;
 }
 
 .toolbar-btn {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   background: transparent;
   color: var(--vscode-descriptionForeground);
   border: none;
-  border-radius: var(--radius);
+  border-radius: 3px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -307,7 +310,7 @@ body {
 }
 
 .toolbar-btn:hover {
-  background: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31));
+  background: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.4));
   color: var(--vscode-foreground);
 }
 
@@ -317,7 +320,7 @@ body {
 }
 
 .toolbar-btn .codicon {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 /* === EMPTY STATE === */

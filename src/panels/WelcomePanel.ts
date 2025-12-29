@@ -10,7 +10,7 @@ let welcomeHtml: string | null = null;
 
 function loadTemplates(): { css: string; js: string; html: string } {
   if (!welcomeCss || !welcomeJs || !welcomeHtml) {
-    const templatesDir = path.join(__dirname, '..', 'templates');
+    const templatesDir = path.join(__dirname, '..', 'templates', 'welcome');
     welcomeCss = fs.readFileSync(path.join(templatesDir, 'Welcome.css'), 'utf-8');
     welcomeJs = fs.readFileSync(path.join(templatesDir, 'Welcome.js'), 'utf-8');
     welcomeHtml = fs.readFileSync(path.join(templatesDir, 'Welcome.html'), 'utf-8');

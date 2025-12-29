@@ -52,24 +52,24 @@ export class SyntaxHighlighter {
       .replace(/⟨AMP⟩/g, '&amp;')
       .replace(/⟨LT⟩/g, '&lt;')
       .replace(/⟨GT⟩/g, '&gt;')
-      .replace(/⦃b⦄/g, '<b>')
-      .replace(/⦃\/b⦄/g, '</b>')
-      .replace(/⦃t⦄/g, '<i>')
-      .replace(/⦃\/t⦄/g, '</i>')
-      .replace(/⦃a⦄/g, '<u>')
-      .replace(/⦃\/a⦄/g, '</u>')
-      .replace(/⦃s⦄/g, '<em>')
-      .replace(/⦃\/s⦄/g, '</em>')
-      .replace(/⦃c⦄/g, '<cite>')
-      .replace(/⦃\/c⦄/g, '</cite>')
-      .replace(/⦃k⦄/g, '<kbd>')
-      .replace(/⦃\/k⦄/g, '</kbd>')
-      .replace(/⦃sel⦄/g, '<var>')
-      .replace(/⦃\/sel⦄/g, '</var>')
-      .replace(/⦃v⦄/g, '<samp>')
-      .replace(/⦃\/v⦄/g, '</samp>')
-      .replace(/⦃br⦄/g, '<s>')
-      .replace(/⦃\/br⦄/g, '</s>');
+      .replace(/⦃b⦄/g, '<span class="punctuation">')
+      .replace(/⦃\/b⦄/g, '</span>')
+      .replace(/⦃t⦄/g, '<span class="tag">')
+      .replace(/⦃\/t⦄/g, '</span>')
+      .replace(/⦃a⦄/g, '<span class="attr-name">')
+      .replace(/⦃\/a⦄/g, '</span>')
+      .replace(/⦃s⦄/g, '<span class="string">')
+      .replace(/⦃\/s⦄/g, '</span>')
+      .replace(/⦃c⦄/g, '<span class="comment">')
+      .replace(/⦃\/c⦄/g, '</span>')
+      .replace(/⦃k⦄/g, '<span class="keyword">')
+      .replace(/⦃\/k⦄/g, '</span>')
+      .replace(/⦃sel⦄/g, '<span class="variable">')
+      .replace(/⦃\/sel⦄/g, '</span>')
+      .replace(/⦃v⦄/g, '<span class="value">')
+      .replace(/⦃\/v⦄/g, '</span>')
+      .replace(/⦃br⦄/g, '<span class="punctuation">')
+      .replace(/⦃\/br⦄/g, '</span>');
   }
 
   /**
@@ -92,7 +92,7 @@ export class SyntaxHighlighter {
       .replace(/(⟨LT⟩!--.*?--⟨GT⟩)/g, '⦃c⦄$1⦃/c⦄')
       .replace(/(⟨LT⟩\/?)([\w:-]+)/g, '⦃b⦄$1⦃/b⦄⦃t⦄$2⦃/t⦄')
       .replace(/(\/?⟨GT⟩)/g, '⦃b⦄$1⦃/b⦄')
-      .replace(/\s([\w:-]+)(?==)/g, ' ⦃a⦄$1⦃/a⦄')
+      .replace(/(^|\s)([\w:-]+)(?==)/g, '$1⦃a⦄$2⦃/a⦄')
       .replace(/"([^"]*)"/g, '⦃s⦄"$1"⦃/s⦄');
   }
 
@@ -217,12 +217,18 @@ export class SyntaxHighlighter {
     return finalResult;
   }
 
+  // Helper to create consistent HTML rows
+  private _createRowHtml(lineContent: string, lineNumber: number): string {
+    const content = lineContent.trim().length === 0 ? '&nbsp;' : this._markersToHtml(lineContent);
+    return `<div class="code-row"><div class="ln">${lineNumber}</div><div class="cl">${content}</div></div>`;
+  }
+
   /**
    * Highlight SVG code with syntax coloring
    */
   highlightSvg(svg: string): string {
     const formatted = this.formatSvg(svg);
-    const lines = formatted.split('\n').filter(line => line.trim() !== '');
+    const lines = formatted.split('\n'); // Don't filter empty lines
     let insideStyle = false;
 
     const codeRows = lines.map((line, i) => {
@@ -241,7 +247,7 @@ export class SyntaxHighlighter {
         highlighted = this._highlightXml(highlighted);
       }
 
-      return `<div class="code-row"><div class="ln">${i + 1}</div><div class="cl">${this._markersToHtml(highlighted)}</div></div>`;
+      return this._createRowHtml(highlighted, i + 1);
     }).join('');
 
     return `<div class="code-editor">${codeRows}</div>`;
@@ -251,24 +257,24 @@ export class SyntaxHighlighter {
    * Highlight CSS code
    */
   highlightCssCode(css: string): string {
-    const lines = css.split('\n').filter(line => line.trim() !== '');
+    const lines = css.split('\n');
 
     const codeRows = lines.map((line, i) => {
       let highlighted = this.escapeHtml(line);
 
-      if (line.includes('/*')) {
-        highlighted = `<cite>${highlighted}</cite>`;
+      if (line.trim().startsWith('/*')) {
+        highlighted = `⦃c⦄${highlighted}⦃/c⦄`;
       } else if (line.includes('@keyframes')) {
-        highlighted = highlighted.replace(/@keyframes\s+(\w+)/, '<kbd>@keyframes</kbd> <var>$1</var>');
+        highlighted = highlighted.replace(/(@keyframes)\s+([\w-]+)/, '⦃k⦄$1⦃/k⦄ ⦃sel⦄$2⦃/sel⦄');
       } else if (line.includes('{') || line.includes('}')) {
-        highlighted = highlighted.replace(/([{}])/g, '<s>$1</s>');
-        highlighted = highlighted.replace(/(from|to|\d+%)/g, '<var>$1</var>');
+        highlighted = highlighted.replace(/([{}])/g, '⦃br⦄$1⦃/br⦄');
+        highlighted = highlighted.replace(/\b(from|to|\d+%)\b/g, '⦃sel⦄$1⦃/sel⦄');
       } else if (line.includes(':')) {
-        highlighted = highlighted.replace(/([\w-]+)(\s*:)/, '<u>$1</u>$2');
-        highlighted = highlighted.replace(/:\s*([^;]+)(;?)/, ': <samp>$1</samp>$2');
+        highlighted = highlighted.replace(/([\w-]+)(\s*:)/, '⦃a⦄$1⦃/a⦄$2');
+        highlighted = highlighted.replace(/:\s*([^;]+)(;?)/, ': ⦃v⦄$1⦃/v⦄$2');
       }
-
-      return `<div class="code-row"><div class="ln">${i + 1}</div><div class="cl">${highlighted}</div></div>`;
+      
+      return this._createRowHtml(highlighted, i + 1);
     }).join('');
 
     return `<div class="code-editor">${codeRows}</div>`;
@@ -281,20 +287,20 @@ export class SyntaxHighlighter {
     const codeRows = lines.map((line, i) => {
       let highlighted = this.escapeHtml(line);
 
-      if (line.startsWith('<!--')) {
-        highlighted = `<cite>${highlighted}</cite>`;
+      if (line.trim().startsWith('<!--')) {
+        highlighted = `⦃c⦄${highlighted}⦃/c⦄`;
       } else if (line.includes('<')) {
-        highlighted = highlighted.replace(/&lt;(\/?)([\w-]+)/g, '<b>&lt;$1</b><i>$2</i>');
-        highlighted = highlighted.replace(/([\w-]+)=/g, '<u>$1</u>=');
-        highlighted = highlighted.replace(/"([^"]*)"/g, '<em>"$1"</em>');
-        highlighted = highlighted.replace(/&gt;/g, '<b>&gt;</b>');
+        highlighted = highlighted.replace(/&lt;(\/?)([\w-]+)/g, '⦃b⦄&lt;$1⦃/b⦄⦃t⦄$2⦃/t⦄');
+        highlighted = highlighted.replace(/(\s)([\w-]+)=/g, '$1⦃a⦄$2⦃/a⦄=');
+        highlighted = highlighted.replace(/"([^"]*)"/g, '⦃s⦄"$1"⦃/s⦄');
+        highlighted = highlighted.replace(/&gt;/g, '⦃b⦄&gt;⦃/b⦄');
       } else if (line.includes('import')) {
-        highlighted = highlighted.replace(/(import|from)/g, '<kbd>$1</kbd>');
-        highlighted = highlighted.replace(/\{ ([^}]+) \}/, '{ <var>$1</var> }');
-        highlighted = highlighted.replace(/'([^']+)'/g, '<em>\'$1\'</em>');
+        highlighted = highlighted.replace(/(import|from)/g, '⦃k⦄$1⦃/k⦄');
+        highlighted = highlighted.replace(/\{ ([^}]+) \}/, '{ ⦃sel⦄$1⦃/sel⦄ }');
+        highlighted = highlighted.replace(/'([^']+)'/g, '⦃s⦄\'$1\'⦃/s⦄');
       }
 
-      return `<div class="code-row"><div class="ln">${i + 1}</div><div class="cl">${highlighted}</div></div>`;
+      return this._createRowHtml(highlighted, i + 1);
     }).join('');
 
     return `<div class="code-editor">${codeRows}</div>`;

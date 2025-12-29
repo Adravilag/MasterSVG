@@ -211,7 +211,7 @@ export class IconDetailsPanel {
     // Load templates
     const fs = require('fs');
     const path = require('path');
-    const templatesDir = path.join(this._extensionUri.fsPath, 'src', 'templates');
+    const templatesDir = path.join(this._extensionUri.fsPath, 'src', 'templates', 'icon-details');
     
     const cssContent = fs.readFileSync(path.join(templatesDir, 'iconDetails.css'), 'utf-8');
     const jsContent = fs.readFileSync(path.join(templatesDir, 'iconDetails.js'), 'utf-8');

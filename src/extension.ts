@@ -16,7 +16,7 @@ import { getSpriteGenerator, SpriteIcon } from './services/SpriteGenerator';
 import { toVariableName } from './utils/extensionHelpers';
 import { searchIconify, fetchIconSvg, IconifySearchResult } from './utils/iconifyService';
 import { addToIconsJs, addToSpriteSvg, removeFromIconsJs, cleanSpriteSvg, generateWebComponent } from './utils/iconsFileManager';
-import { getConfig, getFullOutputPath, getOutputPathOrWarn, ensureOutputDirectory } from './utils/configHelper';
+import { getConfig, getFullOutputPath, getOutputPathOrWarn, ensureOutputDirectory, updateIconsJsContext } from './utils/configHelper';
 import { registerTreeViewCommands } from './commands/treeViewCommands';
 import { registerRefreshCommands } from './commands/refreshCommands';
 import { registerBuildCommands } from './commands/buildCommands';
@@ -76,6 +76,9 @@ export function activate(context: vscode.ExtensionContext) {
   // Initialize .bezierignore file watcher
   initIgnoreFileWatcher(context);
 
+  // Set initial context for icons.js existence
+  updateIconsJsContext();
+
   // Initialize services
   const svgTransformer = new SvgTransformer();
   workspaceSvgProvider = new WorkspaceSvgProvider(context);
@@ -111,7 +114,8 @@ export function activate(context: vscode.ExtensionContext) {
   builtIconsProvider = new BuiltIconsProvider(workspaceSvgProvider);
   const builtIconsTreeView = vscode.window.createTreeView('iconManager.builtIcons', {
     treeDataProvider: builtIconsProvider,
-    showCollapseAll: false
+    showCollapseAll: false,
+    canSelectMany: true
   });
   context.subscriptions.push(builtIconsTreeView);
 

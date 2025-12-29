@@ -283,6 +283,18 @@ export class SvgItem extends vscode.TreeItem {
       return;
     }
 
+    // Try to load SVG content if not provided
+    if (!svgContent && icon.path) {
+      try {
+        const fs = require('fs');
+        if (fs.existsSync(icon.path)) {
+          svgContent = fs.readFileSync(icon.path, 'utf-8');
+        }
+      } catch (err) {
+        console.error('[IconWrap] Error reading SVG file:', icon.path, err);
+      }
+    }
+
     // Use the actual SVG as icon
     if (svgContent) {
       try {
@@ -296,6 +308,7 @@ export class SvgItem extends vscode.TreeItem {
       }
     } else {
       // Show symbol icon for missing SVGs
+      console.warn('[IconWrap] No SVG content for icon:', icon.name, 'path:', icon.path);
       this.iconPath = new vscode.ThemeIcon('symbol-misc');
     }
   }

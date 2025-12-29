@@ -9,7 +9,15 @@
         <span class="badge">Editor</span>
         ${isBuilt ? '<span class="badge badge-built">BUILT</span>' : ''}
       </div>
-      <span class="file-size" id="fileSize">${fileSizeStr}</span>
+      <div class="header-right">
+        <span class="badge badge-anim" id="animBadge" style="display: none;">
+           <span class="codicon codicon-play"></span> <span id="animName"></span>
+        </span>
+        <span class="badge badge-optimized" id="optimizedBadge" style="display: none;">
+           <span class="codicon codicon-rocket"></span> Optimized
+        </span>
+        <span class="file-size" id="fileSize">${fileSizeStr}</span>
+      </div>
     </header>
     
     <div class="main-content">
@@ -18,6 +26,9 @@
         <div class="preview-code-container" id="previewCodeContainer">
           <div class="preview-section">
             <div class="preview-box zoom-3" id="previewBox">
+              <div class="animation-indicator" id="animationIndicator" style="display: none;">
+                <span class="codicon codicon-play"></span>
+              </div>
               <div id="zoomContainer" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; transition: transform 0.2s ease;">
                 ${displaySvg}
               </div>
@@ -49,34 +60,29 @@
           <button class="action-btn" onclick="copySvg()" title="Copy SVG">
             <span class="codicon codicon-copy"></span>
           </button>
+          <button class="action-btn optimize-btn" id="optimizeBtn" onclick="optimizeSvg('safe')" title="Optimize SVG (SVGO)">
+            <span class="codicon codicon-rocket"></span>
+          </button>
+        </div>
+        
+        <!-- Optimize Result (shows after optimization) -->
+        <div class="optimize-result-bar" id="optimizeResultBar" style="display: none;">
+          <div class="optimize-info">
+            <span class="optimize-savings-badge" id="optimizeSavingsText">--%</span>
+            <span class="optimize-size-text" id="optimizeSizeText"></span>
+          </div>
+          <div class="optimize-build-hint" id="optimizeBuildHint">
+            <span class="codicon codicon-arrow-right"></span>
+            <span>Apply on Build</span>
+          </div>
+          <div class="optimize-bar-actions" id="optimizeBarActions">
+            <button class="mini-btn" id="btnRevertOptimized" onclick="revertOptimized()" title="Discard optimization" style="display: none;">
+              <span class="codicon codicon-close"></span>
+            </button>
+          </div>
         </div>
 
-        <!-- Optimize Section -->
-        <div class="section" style="margin-top: 12px;">
-          <div class="section-title">
-            <span class="codicon codicon-rocket"></span> Optimize (SVGO)
-          </div>
-          <div class="optimize-presets">
-            <button class="optimize-preset" onclick="optimizeSvg('minimal')">Minimal</button>
-            <button class="optimize-preset" onclick="optimizeSvg('safe')">Safe</button>
-            <button class="optimize-preset" onclick="optimizeSvg('aggressive')">Aggressive</button>
-          </div>
-          <div class="optimize-result" id="optimizeResult">
-            <div class="optimize-stats">
-              <span id="optimizeOriginal">Original: --</span>
-              <span id="optimizeNew">Optimized: --</span>
-            </div>
-            <div class="optimize-savings" id="optimizeSavings">Saved: --</div>
-            <div class="optimize-actions">
-              <button id="btnApplyOptimized" class="btn btn-success" onclick="applyOptimized()" disabled>
-                <span class="codicon codicon-check"></span> Apply
-              </button>
-              <button class="btn" onclick="copyOptimized()">
-                <span class="codicon codicon-copy"></span> Copy
-              </button>
-            </div>
-          </div>
-        </div>
+
       </div>
       
       <!-- Right Column - Controls -->
