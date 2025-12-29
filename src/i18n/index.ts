@@ -263,3 +263,4 @@ export function t(key: string, params?: Record<string, string | number>): string
 
 // Export type for translations
 export type { TranslationData };
+

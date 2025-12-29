@@ -206,7 +206,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
   }
 
   private async loadBuiltIcons(): Promise<void> {
-    console.log('[IconWrap] BuiltIconsProvider: Loading built icons...');
+    console.log('[Icon Studio] BuiltIconsProvider: Loading built icons...');
     this.builtIcons.clear();
 
     const outputDir = getSvgConfig<string>('outputDirectory', 'bezier-svg');
@@ -231,13 +231,13 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
       await this.parseSpriteFile(spriteSvg);
     }
 
-    console.log('[IconWrap] BuiltIconsProvider: Found', this.builtIcons.size, 'built icons');
+    console.log('[Icon Studio] BuiltIconsProvider: Found', this.builtIcons.size, 'built icons');
   }
 
   private async parseSpriteFile(filePath: string): Promise<void> {
     try {
       const content = fs.readFileSync(filePath, 'utf-8');
-      console.log('[IconWrap] BuiltIconsProvider: Parsing sprite file', filePath);
+      console.log('[Icon Studio] BuiltIconsProvider: Parsing sprite file', filePath);
 
       // Extract symbols with their content
       const symbolRegex = /<symbol[^>]*id=['"]([^'"]+)['"][^>]*viewBox=['"]([^'"]+)['"][^>]*>([\s\S]*?)<\/symbol>/gi;
@@ -256,7 +256,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
         // Create a full SVG from the symbol
         const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${body}</svg>`;
 
-        console.log('[IconWrap] BuiltIconsProvider: Found sprite icon:', iconName);
+        console.log('[Icon Studio] BuiltIconsProvider: Found sprite icon:', iconName);
 
         this.builtIcons.set(iconName, {
           name: iconName,
@@ -268,16 +268,16 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
         this.spriteIcons.add(iconName);
       }
 
-      console.log('[IconWrap] BuiltIconsProvider: Total from sprite:', this.builtIcons.size);
+      console.log('[Icon Studio] BuiltIconsProvider: Total from sprite:', this.builtIcons.size);
     } catch (error) {
-      console.error('[IconWrap] BuiltIconsProvider: Error parsing sprite file:', error);
+      console.error('[Icon Studio] BuiltIconsProvider: Error parsing sprite file:', error);
     }
   }
 
   private async parseIconsFile(filePath: string): Promise<void> {
     try {
       const content = fs.readFileSync(filePath, 'utf-8');
-      console.log('[IconWrap] BuiltIconsProvider: Parsing file', filePath);
+      console.log('[Icon Studio] BuiltIconsProvider: Parsing file', filePath);
       
       // Pattern for: export const iconName = { name: '...', body: `...`, viewBox: '...', animation?: {...} }
       const iconPattern = /export\s+const\s+(\w+)\s*=\s*\{\s*name:\s*['"]([^'"]+)['"]\s*,\s*body:\s*`([^`]*)`\s*,\s*viewBox:\s*['"]([^'"]+)['"](?:\s*,\s*animation:\s*\{([^}]*)\})?\s*\}/g;
@@ -315,11 +315,11 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
               };
             }
           } catch (e) {
-            console.warn('[IconWrap] BuiltIconsProvider: Failed to parse animation for', iconName);
+            console.warn('[Icon Studio] BuiltIconsProvider: Failed to parse animation for', iconName);
           }
         }
         
-        console.log('[IconWrap] BuiltIconsProvider: Found icon:', iconName, animation ? `with animation: ${animation.type}` : '');
+        console.log('[Icon Studio] BuiltIconsProvider: Found icon:', iconName, animation ? `with animation: ${animation.type}` : '');
         
         this.builtIcons.set(iconName, {
           name: iconName,
@@ -332,9 +332,9 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
         this.jsIcons.add(iconName);
       }
 
-      console.log('[IconWrap] BuiltIconsProvider: Total parsed:', this.builtIcons.size);
+      console.log('[Icon Studio] BuiltIconsProvider: Total parsed:', this.builtIcons.size);
     } catch (error) {
-      console.error('[IconWrap] BuiltIconsProvider: Error parsing icons file:', error);
+      console.error('[Icon Studio] BuiltIconsProvider: Error parsing icons file:', error);
     }
   }
 
@@ -442,3 +442,4 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
     return items.sort((a, b) => a.label.toString().localeCompare(b.label.toString()));
   }
 }
+

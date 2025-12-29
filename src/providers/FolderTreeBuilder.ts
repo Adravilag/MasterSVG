@@ -104,3 +104,4 @@ export class FolderTreeBuilder {
     return count;
   }
 }
+

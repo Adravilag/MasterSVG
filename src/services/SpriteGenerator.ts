@@ -456,3 +456,4 @@ export function getSpriteGenerator(): SpriteGenerator {
   }
   return generatorInstance;
 }
+

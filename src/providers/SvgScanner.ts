@@ -64,3 +64,4 @@ export class SvgScanner {
     return IconUsageScanner.scanIconUsages(libraryIcons, iconUsages);
   }
 }
+

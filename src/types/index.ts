@@ -11,3 +11,4 @@ export type {
   IconWithSvg,
   SpriteIconData
 } from './icons';
+

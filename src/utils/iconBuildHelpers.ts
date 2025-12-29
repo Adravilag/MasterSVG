@@ -198,3 +198,4 @@ export function showBuildSuccess(result: BuildResult, extras?: string[]): void {
   const targets = extras ? [formatName, ...extras].join(' & ') : formatName;
   vscode.window.showInformationMessage(t('messages.iconImported', { name: result.iconName, targets }));
 }
+

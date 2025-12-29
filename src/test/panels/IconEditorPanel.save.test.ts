@@ -180,3 +180,4 @@ describe.skip('IconEditorPanel - Save Flow Integration (OBSOLETE: no save comman
     expect(newText).toContain('@keyframes pulse');
   });
 });
+

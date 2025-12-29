@@ -283,3 +283,4 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
     }
   }
 }
+

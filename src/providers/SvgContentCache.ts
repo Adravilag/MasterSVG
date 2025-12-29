@@ -274,3 +274,4 @@ export class SvgContentCache {
     return null;
   }
 }
+

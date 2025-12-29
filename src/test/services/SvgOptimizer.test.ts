@@ -170,3 +170,4 @@ describe('SvgOptimizer', () => {
   });
 });
 
+

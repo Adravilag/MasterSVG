@@ -147,17 +147,7 @@ describe('IconPreviewProvider', () => {
       expect(vscode.env.clipboard.writeText).toHaveBeenCalledWith('<svg>modified</svg>');
     });
 
-    test('comando resetColors debe enviar SVG original al webview', async () => {
-      (provider as any)._currentSvg = '<svg><path fill="red"/></svg>';
-
-      await messageHandler({ command: 'resetColors' });
-
-      expect(mockWebviewView.webview.postMessage).toHaveBeenCalledWith({
-        command: 'resetSvg',
-        svg: '<svg><path fill="red"/></svg>'
-      });
-      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith('Colors reset to original');
-    });
+    // Removed test for resetColors - command no longer exists in provider
 
     test('comando goToLocation debe abrir archivo en la posición', async () => {
       (provider as any)._currentLocation = { file: '/test/file.tsx', line: 10 };
@@ -274,3 +264,4 @@ describe('IconPreviewProvider', () => {
     });
   });
 });
+

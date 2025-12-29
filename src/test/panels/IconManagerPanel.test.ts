@@ -88,7 +88,7 @@ describe('IconManagerPanel', () => {
 
       expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith(
         'iconManager',
-        'Icon Manager',
+        'Files',  // Uses t('treeView.files')
         expect.any(Number),
         expect.objectContaining({
           enableScripts: true,
@@ -423,7 +423,7 @@ describe('IconManagerPanel', () => {
 
       expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith(
         'iconManager',
-        'Icon Manager',
+        'Files',  // Uses t('treeView.files')
         vscode.ViewColumn.Two,
         expect.anything()
       );
@@ -439,10 +439,11 @@ describe('IconManagerPanel', () => {
 
       expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith(
         'iconManager',
-        'Icon Manager',
+        'Files',  // Uses t('treeView.files')
         vscode.ViewColumn.One,
         expect.anything()
       );
     });
   });
 });
+

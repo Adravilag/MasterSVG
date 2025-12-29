@@ -5,11 +5,12 @@
     "outDir": "out/test",
     "lib": ["ES2020"],
     "sourceMap": true,
-    "rootDir": "src",
+    "rootDir": ".",
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "resolveJsonModule": true
   },
-  "include": ["src/**/*.test.ts"],
+  "include": ["src/**/*.test.ts", "src/**/*.ts", "l10n/**/*.json"],
   "exclude": ["node_modules"]
 }

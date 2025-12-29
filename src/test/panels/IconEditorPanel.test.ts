@@ -613,7 +613,7 @@ describe('IconEditorPanel', () => {
       });
 
       // Debe mostrar mensaje de éxito
-      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith('Renamed to "new-icon-name"');
+      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith("Renamed to 'new-icon-name'");
 
       // Debe revelar en tree view con nuevo nombre y path
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
@@ -1050,3 +1050,4 @@ export const icons = { testIcon };`;
     });
   });
 });
+

@@ -21,16 +21,16 @@ export class FileSvgScanner {
     folderPath: string,
     svgFiles: Map<string, WorkspaceIcon>
   ): Promise<void> {
-    console.log('[IconWrap] Scanning folder:', folderPath);
+    console.log('[Icon Studio] Scanning folder:', folderPath);
     const svgFolders = getSvgConfig<string[]>('svgFolders', []);
-    console.log('[IconWrap] Configured svgFolders:', svgFolders);
+    console.log('[Icon Studio] Configured svgFolders:', svgFolders);
 
     let foundAny = false;
 
     // First try configured folders
     for (const svgFolder of svgFolders) {
       const fullPath = path.join(folderPath, svgFolder);
-      console.log('[IconWrap] Checking folder:', fullPath, 'exists:', fs.existsSync(fullPath));
+      console.log('[Icon Studio] Checking folder:', fullPath, 'exists:', fs.existsSync(fullPath));
       if (fs.existsSync(fullPath)) {
         await this.scanDirectory(fullPath, svgFolder, svgFiles);
         foundAny = true;
@@ -39,11 +39,11 @@ export class FileSvgScanner {
 
     // If no configured folders found, scan ALL SVGs in workspace
     if (!foundAny) {
-      console.log('[IconWrap] No configured folders found, scanning all SVGs...');
+      console.log('[Icon Studio] No configured folders found, scanning all SVGs...');
       await this.scanAllSvgsInFolder(folderPath, '', svgFiles);
     }
 
-    console.log('[IconWrap] Scan complete. Found SVGs:', svgFiles.size);
+    console.log('[Icon Studio] Scan complete. Found SVGs:', svgFiles.size);
   }
 
   /**
@@ -58,7 +58,7 @@ export class FileSvgScanner {
 
     // Check if this folder should be ignored
     if (shouldIgnorePath(folderPath)) {
-      console.log('[IconWrap] Ignoring folder (svgignore):', folderPath);
+      console.log('[Icon Studio] Ignoring folder (svgignore):', folderPath);
       return;
     }
 
@@ -76,14 +76,14 @@ export class FileSvgScanner {
         } else if (entry.isFile() && entry.name.endsWith('.svg')) {
           // Check if this SVG file should be ignored
           if (shouldIgnorePath(fullPath)) {
-            console.log('[IconWrap] Ignoring SVG (svgignore):', fullPath);
+            console.log('[Icon Studio] Ignoring SVG (svgignore):', fullPath);
             continue;
           }
           
           const iconName = path.basename(entry.name, '.svg');
           const category = path.dirname(relPath) || 'root';
           
-          console.log('[IconWrap] Found SVG (full scan):', iconName, 'at', fullPath);
+          console.log('[Icon Studio] Found SVG (full scan):', iconName, 'at', fullPath);
           svgFiles.set(iconName, {
             name: iconName,
             path: fullPath,
@@ -110,7 +110,7 @@ export class FileSvgScanner {
 
     // Check if this directory should be ignored
     if (shouldIgnorePath(dirPath)) {
-      console.log('[IconWrap] Ignoring directory (svgignore):', dirPath);
+      console.log('[Icon Studio] Ignoring directory (svgignore):', dirPath);
       return;
     }
 
@@ -126,12 +126,12 @@ export class FileSvgScanner {
         } else if (entry.isFile() && entry.name.endsWith('.svg')) {
           // Check if this SVG file should be ignored
           if (shouldIgnorePath(fullPath)) {
-            console.log('[IconWrap] Ignoring SVG (svgignore):', fullPath);
+            console.log('[Icon Studio] Ignoring SVG (svgignore):', fullPath);
             continue;
           }
           
           const iconName = path.basename(entry.name, '.svg');
-          console.log('[IconWrap] Found SVG (dir scan):', iconName, 'at', fullPath);
+          console.log('[Icon Studio] Found SVG (dir scan):', iconName, 'at', fullPath);
           svgFiles.set(iconName, {
             name: iconName,
             path: fullPath,
@@ -146,3 +146,4 @@ export class FileSvgScanner {
     }
   }
 }
+

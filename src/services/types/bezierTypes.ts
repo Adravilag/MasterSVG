@@ -423,3 +423,4 @@ export interface BzIconAttributes {
   animation?: string;
   variant?: string;
 }
+

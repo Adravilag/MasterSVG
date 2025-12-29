@@ -495,3 +495,4 @@ export function getCodeFormatterService(): CodeFormatterService {
   }
   return codeFormatterService;
 }
+

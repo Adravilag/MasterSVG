@@ -144,7 +144,7 @@ export class IconDetailsPanel {
 
     const { name, svg, location, isBuilt, animation } = this._iconDetails;
     
-    console.log('[IconWrap] IconDetailsPanel animation:', animation);
+    console.log('[Icon Studio] IconDetailsPanel animation:', animation);
 
     // Extract data from SVG
     const viewBoxMatch = svg.match(/viewBox=["']([^"']+)["']/);
@@ -391,3 +391,4 @@ export class IconDetailsPanel {
     return originalVariant + savedVariantsHtml;
   }
 }
+

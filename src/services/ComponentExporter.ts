@@ -548,3 +548,4 @@ export function getComponentExporter(): ComponentExporter {
   }
   return exporterInstance;
 }
+

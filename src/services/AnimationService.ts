@@ -74,3 +74,4 @@ export class AnimationService {
     return Object.keys(ANIMATION_KEYFRAMES);
   }
 }
+

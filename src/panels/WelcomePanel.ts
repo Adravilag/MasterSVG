@@ -570,3 +570,4 @@ declare global {
 </html>`;
   }
 }
+

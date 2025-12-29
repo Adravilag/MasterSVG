@@ -235,9 +235,11 @@ describe('SvgToIconCodeActionProvider', () => {
       );
 
       const transformAction = actions!.find(a => a.title.includes('Transform'));
-      // El nombre debe estar sanitizado (sin espacios ni paréntesis)
-      expect(transformAction!.title).not.toContain('(');
-      expect(transformAction!.title).not.toContain(')');
+      // El nombre del icono debe estar sanitizado: "My Icon (2)" → "my-icon-2"
+      // El título tiene formato: "🔄 Transform to {format}: \"{name}\""
+      // Verificar que el nombre sanitizado "my-icon-2" aparece (no "My Icon (2)")
+      expect(transformAction!.title).toContain('my-icon-2');
+      expect(transformAction!.title).not.toContain('My Icon');
     });
   });
 });
@@ -365,4 +367,5 @@ describe('SvgImgDiagnosticProvider', () => {
     });
   });
 });
+
 

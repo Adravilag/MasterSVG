@@ -409,3 +409,4 @@ export function deactivate() {
 
 // getSpritePreviewHtml
 // -> Now provided by ./commands/spriteCommands
+

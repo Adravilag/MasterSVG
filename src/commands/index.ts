@@ -15,3 +15,7 @@ export { registerIconifyCommands, showIconifyReplacementPicker, showIconPickerPa
 export { registerEditorCommands, type EditorCommandProviders } from './editorCommands';
 export { registerSpriteCommands, getSpritePreviewHtml, type SpriteCommandProviders } from './spriteCommands';
 export { registerMiscCommands, type MiscCommandProviders } from './miscCommands';
+export { registerImportCommands, type ImportCommandProviders } from './importCommands';
+export { registerReferenceCommands, type ReferenceCommandProviders } from './referenceCommands';
+
+

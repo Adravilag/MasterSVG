@@ -1678,3 +1678,4 @@ describe('WorkspaceSvgProvider partial refresh', () => {
     });
   });
 });
+

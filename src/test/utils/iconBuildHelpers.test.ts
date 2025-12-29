@@ -28,10 +28,16 @@ jest.mock('vscode', () => ({
     showInformationMessage: jest.fn()
   },
   env: {
+    language: 'en',
     clipboard: {
       writeText: jest.fn()
     }
-  }
+  },
+  EventEmitter: jest.fn().mockImplementation(() => ({
+    event: jest.fn(),
+    fire: jest.fn(),
+    dispose: jest.fn()
+  }))
 }));
 
 // Mock fs
@@ -267,3 +273,4 @@ describe('iconBuildHelpers', () => {
     });
   });
 });
+

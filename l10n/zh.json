@@ -1,6 +1,6 @@
 {
   "extension": {
-    "name": "IconWrap",
+    "name": "Icon Studio",
     "description": "VS Code 的 SVG 图标管理器",
     "appTitle": "Bezier SVG"
   },
@@ -628,3 +628,4 @@
       "scanWorkspaceBtn": "扫描工作区"    }
   }
 }
+

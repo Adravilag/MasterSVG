@@ -332,3 +332,4 @@ export function replaceSymbolInSprite(content: string, iconName: string, newSymb
 export function addSymbolToSprite(content: string, newSymbol: string): string {
   return content.replace('</svg>', `${newSymbol}\n</svg>`);
 }
+

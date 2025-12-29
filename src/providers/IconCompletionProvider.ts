@@ -174,3 +174,4 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
     return `<img src="data:image/svg+xml;base64,${encoded}" width="48" height="48" />`;
   }
 }
+

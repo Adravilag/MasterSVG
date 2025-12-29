@@ -25,7 +25,15 @@ jest.mock('vscode', () => ({
     showErrorMessage: jest.fn(),
     showWarningMessage: jest.fn(),
     showInformationMessage: jest.fn()
-  }
+  },
+  env: {
+    language: 'en'
+  },
+  EventEmitter: jest.fn().mockImplementation(() => ({
+    event: jest.fn(),
+    fire: jest.fn(),
+    dispose: jest.fn()
+  }))
 }));
 
 const mockFs = fs as jest.Mocked<typeof fs>;
@@ -468,3 +476,4 @@ export const arrowLeft = {
     });
   });
 });
+

@@ -1,6 +1,6 @@
 {
   "extension": {
-    "name": "IconWrap",
+    "name": "Icon Studio",
     "description": "Менеджер SVG иконок для VS Code",
     "appTitle": "Bezier SVG"
   },
@@ -628,3 +628,4 @@
       "scanWorkspaceBtn": "Сканировать рабочее пространство"    }
   }
 }
+

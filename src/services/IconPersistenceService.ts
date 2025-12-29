@@ -299,3 +299,4 @@ export function isValidIconName(name: string): name is IconName {
 export function getIconPersistenceService(): IconPersistenceService {
   return IconPersistenceService.getInstance();
 }
+

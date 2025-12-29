@@ -1,9 +1,15 @@
 {
-  "name": "iconwrap",
-  "displayName": "IconWrap",
-  "description": "Manage, preview, and transform SVG icons in your workspace. Convert SVGs to Icon components instantly.",
+  "name": "sagebox-icon-studio",
+  "displayName": "SageBox Icon Studio",
+  "description": "Professional SVG icon management studio. Preview, edit, transform and build icon components for your design system.",
   "version": "0.1.0",
-  "publisher": "adravilag",
+  "publisher": "sagebox",
+  "author": {
+    "name": "Adrián Dávila Guerra",
+    "url": "https://adravilag.github.io/sagebox/"
+  },
+  "license": "MIT",
+  "homepage": "https://adravilag.github.io/sagebox/components/icon/",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -15,7 +21,8 @@
   "keywords": [
     "svg",
     "icons",
-    "icon manager",
+    "icon studio",
+    "sagebox",
     "svg components",
     "iconify",
     "sprites",

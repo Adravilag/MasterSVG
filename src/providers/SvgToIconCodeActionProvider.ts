@@ -247,3 +247,4 @@ export class MissingIconCodeActionProvider implements vscode.CodeActionProvider 
     return action;
   }
 }
+

@@ -670,3 +670,4 @@ export function extractSymbolIdsFromSprite(content: string): string[] {
   }
   return ids;
 }
+

@@ -108,3 +108,4 @@ export class IconHoverProvider implements vscode.HoverProvider {
     return `![icon](data:image/svg+xml,${encoded})`;
   }
 }
+

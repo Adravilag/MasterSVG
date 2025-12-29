@@ -128,11 +128,11 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
    * Updates all internal caches and fires a partial tree update
    */
   renameBuiltIcon(oldName: string, newName: string): void {
-    console.log(`[IconWrap] renameBuiltIcon: "${oldName}" -> "${newName}"`);
+    console.log(`[Icon Studio] renameBuiltIcon: "${oldName}" -> "${newName}"`);
     
     const icon = this.libraryIcons.get(oldName);
     if (icon) {
-      console.log(`[IconWrap] Found icon, updating...`);
+      console.log(`[Icon Studio] Found icon, updating...`);
       
       // Update the icon's name property
       icon.name = newName;
@@ -154,10 +154,10 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
       clearTempIcons();
       
       // Fire update - use undefined to refresh entire tree
-      console.log(`[IconWrap] Firing tree data change event (undefined)`);
+      console.log(`[Icon Studio] Firing tree data change event (undefined)`);
       this._onDidChangeTreeData.fire(undefined);
     } else {
-      console.log(`[IconWrap] Icon "${oldName}" NOT FOUND in libraryIcons`);
+      console.log(`[Icon Studio] Icon "${oldName}" NOT FOUND in libraryIcons`);
     }
   }
 
@@ -611,7 +611,7 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
   }
 
   private async initialize(): Promise<void> {
-    console.log('[IconWrap] Initializing...');
+    console.log('[Icon Studio] Initializing...');
     // Load library icons first (fast, from JSON)
     this.scanner.loadLibraryIcons(this.libraryIcons);
     // Load built icons from output file
@@ -625,7 +625,7 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
     if (hasBuiltIcons) {
       await this.scanIconUsages();
     }
-    console.log('[IconWrap] Initialization complete. Total icons:', this.svgFiles.size + this.libraryIcons.size + this.inlineSvgs.size);
+    console.log('[Icon Studio] Initialization complete. Total icons:', this.svgFiles.size + this.libraryIcons.size + this.inlineSvgs.size);
   }
 
   async scanFolder(folderPath: string): Promise<void> {
@@ -634,21 +634,21 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
   }
 
   private async scanWorkspace(): Promise<void> {
-    console.log('[IconWrap] scanWorkspace: Starting...');
+    console.log('[Icon Studio] scanWorkspace: Starting...');
     this.svgFiles.clear();
 
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) {
-      console.log('[IconWrap] scanWorkspace: No workspace folders');
+      console.log('[Icon Studio] scanWorkspace: No workspace folders');
       return;
     }
 
-    console.log('[IconWrap] scanWorkspace: Found', workspaceFolders.length, 'workspace folders');
+    console.log('[Icon Studio] scanWorkspace: Found', workspaceFolders.length, 'workspace folders');
     for (const folder of workspaceFolders) {
-      console.log('[IconWrap] scanWorkspace: Scanning', folder.uri.fsPath);
+      console.log('[Icon Studio] scanWorkspace: Scanning', folder.uri.fsPath);
       await this.scanner.scanFolder(folder.uri.fsPath, this.svgFiles);
     }
-    console.log('[IconWrap] scanWorkspace: Complete. Total SVG files:', this.svgFiles.size);
+    console.log('[Icon Studio] scanWorkspace: Complete. Total SVG files:', this.svgFiles.size);
   }
 
   // Check if an icon is built
@@ -848,3 +848,4 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
     return this.cacheService.createSvgItemFromIcon(icon);
   }
 }
+

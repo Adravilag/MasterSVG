@@ -127,3 +127,4 @@ export function saveTempSvgIcon(name: string, svgContent: string): string {
   
   return iconPath;
 }
+

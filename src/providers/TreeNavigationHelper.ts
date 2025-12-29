@@ -137,3 +137,4 @@ export class TreeNavigationHelper {
     return CategorySectionBuilder.buildUsagesSectionChildren(iconUsages);
   }
 }
+

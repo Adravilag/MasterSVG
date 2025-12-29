@@ -32,7 +32,7 @@ export class IconLookupService {
       try {
         found.svg = fs.readFileSync(found.path, 'utf-8');
       } catch (err) {
-        console.error('[IconWrap] Error reading SVG for hover:', found.path, err);
+        console.error('[Icon Studio] Error reading SVG for hover:', found.path, err);
       }
     }
     
@@ -144,7 +144,7 @@ export class IconLookupService {
           try {
             icon.svg = fs.readFileSync(icon.path, 'utf-8');
           } catch (err) {
-            console.error('[IconWrap] Error reading SVG:', icon.path, err);
+            console.error('[Icon Studio] Error reading SVG:', icon.path, err);
           }
         }
         refs.push(icon);
@@ -199,3 +199,4 @@ export class IconLookupService {
     return inlineSvgs.get(key);
   }
 }
+

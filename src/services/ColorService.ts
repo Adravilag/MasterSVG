@@ -256,3 +256,4 @@ export function getColorService(): ColorService {
   }
   return colorServiceInstance;
 }
+

@@ -360,3 +360,4 @@ ${animationRule}`;
 export function getIconEditorTemplateService(): IconEditorTemplateService {
   return IconEditorTemplateService.getInstance();
 }
+

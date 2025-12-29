@@ -463,3 +463,4 @@ export function getVariantsService(): VariantsService {
   }
   return variantsServiceInstance;
 }
+

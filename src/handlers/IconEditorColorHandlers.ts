@@ -340,3 +340,4 @@ function applyColorFilters(hexColor: string, hue: number, saturation: number, br
   const toHex = (x: number): string => Math.round(x * 255).toString(16).padStart(2, '0');
   return `#${toHex(r2)}${toHex(g2)}${toHex(b2)}`;
 }
+

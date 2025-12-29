@@ -165,3 +165,4 @@ export async function handleRebuild(
 export function handleRefresh(): void {
   vscode.commands.executeCommand('iconManager.refreshIcons');
 }
+

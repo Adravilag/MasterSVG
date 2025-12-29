@@ -111,3 +111,4 @@ export async function getCollections(): Promise<Record<string, any> | null> {
     }).on('error', () => resolve(null));
   });
 }
+

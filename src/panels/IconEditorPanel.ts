@@ -196,7 +196,7 @@ export class IconEditorPanel {
    * Handle incoming webview messages by delegating to appropriate handlers
    */
   private async _handleMessage(message: { command: string; [key: string]: unknown }): Promise<void> {
-    console.log('[IconWrap] IconEditorPanel received message:', message.command, message);
+    console.log('[Icon Studio] IconEditorPanel received message:', message.command, message);
     
     if (message.command === 'log') {
         // Force a toast on first log to prove connectivity
@@ -237,7 +237,7 @@ export class IconEditorPanel {
 
       // Variant handlers
       case 'saveVariant':
-        // console.log('[IconWrap] Handling saveVariant command');
+        // console.log('[Icon Studio] Handling saveVariant command');
         await handleSaveVariant(variantCtx);
         break;
       case 'applyVariant':
@@ -756,9 +756,9 @@ export class IconEditorPanel {
       this._panel.title = `Edit: ${this._iconData.name}`;
     }
     const html = this._getHtmlForWebview();
-    console.log('[IconWrap] IconEditorPanel HTML length:', html.length);
-    console.log('[IconWrap] IconEditorPanel has <script>:', html.includes('<script>'));
-    console.log('[IconWrap] IconEditorPanel has acquireVsCodeApi:', html.includes('acquireVsCodeApi'));
+    console.log('[Icon Studio] IconEditorPanel HTML length:', html.length);
+    console.log('[Icon Studio] IconEditorPanel has <script>:', html.includes('<script>'));
+    console.log('[Icon Studio] IconEditorPanel has acquireVsCodeApi:', html.includes('acquireVsCodeApi'));
     this._panel.webview.html = html;
     
     // Re-send optimization stats after update
@@ -828,7 +828,7 @@ export class IconEditorPanel {
     // Load templates from external files
     const templatesDir = path.join(this._extensionUri.fsPath, 'src', 'templates', 'icon-editor');
     const tabsDir = path.join(templatesDir, 'tabs');
-    console.log('[IconWrap] IconEditorPanel templates dir:', templatesDir);
+    console.log('[Icon Studio] IconEditorPanel templates dir:', templatesDir);
     
     let cssContent: string, jsTemplate: string, bodyTemplate: string;
     let colorTabTemplate: string, animationTabTemplate: string, codeTabTemplate: string;
@@ -847,9 +847,9 @@ export class IconEditorPanel {
       colorTabTemplate = fs.readFileSync(path.join(tabsDir, 'IconEditorColorTab.html'), 'utf-8');
       animationTabTemplate = fs.readFileSync(path.join(tabsDir, 'IconEditorAnimationTab.html'), 'utf-8');
       codeTabTemplate = fs.readFileSync(path.join(tabsDir, 'IconEditorCodeTab.html'), 'utf-8');
-      console.log('[IconWrap] IconEditorPanel templates loaded successfully');
+      console.log('[Icon Studio] IconEditorPanel templates loaded successfully');
     } catch (err) {
-      console.error('[IconWrap] IconEditorPanel template load error:', err);
+      console.error('[Icon Studio] IconEditorPanel template load error:', err);
       return '<html><body><p>Error loading templates</p></body></html>';
     }
     
@@ -895,7 +895,7 @@ export class IconEditorPanel {
     // Get webview CSP source
     const cspSource = this._panel.webview.cspSource;
     
-    console.log('[IconWrap] JS Content length:', jsContent.length);
+    console.log('[Icon Studio] JS Content length:', jsContent.length);
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -999,3 +999,4 @@ ${jsContent}
       .replace(/\$\{i18n_saveVariant\}/g, t('webview.color.saveVariant'));
   }
 }
+

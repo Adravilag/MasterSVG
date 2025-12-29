@@ -339,3 +339,4 @@ describe('IconCompletionProvider', () => {
   });
 });
 
+

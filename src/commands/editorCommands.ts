@@ -244,3 +244,4 @@ export function registerEditorCommands(
 
   return disposables;
 }
+

@@ -109,3 +109,4 @@ export interface SpriteIconData {
   svg: string;
   viewBox?: string;
 }
+

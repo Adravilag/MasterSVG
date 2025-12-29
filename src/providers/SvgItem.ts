@@ -292,7 +292,7 @@ export class SvgItem extends vscode.TreeItem {
           svgContent = fs.readFileSync(icon.path, 'utf-8');
         }
       } catch (err) {
-        console.error('[IconWrap] Error reading SVG file:', icon.path, err);
+        console.error('[Icon Studio] Error reading SVG file:', icon.path, err);
       }
     }
 
@@ -302,14 +302,14 @@ export class SvgItem extends vscode.TreeItem {
         const tempPath = saveTempSvgIcon(icon.name, svgContent);
         this.iconPath = vscode.Uri.file(tempPath);
       } catch (err) {
-        console.error('[IconWrap] Error saving temp SVG:', icon.name, err);
+        console.error('[Icon Studio] Error saving temp SVG:', icon.name, err);
         this.iconPath = icon.isBuilt 
           ? new vscode.ThemeIcon('pass', new vscode.ThemeColor('charts.green'))
           : new vscode.ThemeIcon('circle-outline');
       }
     } else {
       // Show symbol icon for missing SVGs
-      console.warn('[IconWrap] No SVG content for icon:', icon.name, 'path:', icon.path);
+      console.warn('[Icon Studio] No SVG content for icon:', icon.name, 'path:', icon.path);
       this.iconPath = new vscode.ThemeIcon('symbol-misc');
     }
   }
@@ -385,3 +385,4 @@ export class SvgItem extends vscode.TreeItem {
     return this.countSvgColors(svg) > MAX_COLORS_FOR_ICONS;
   }
 }
+

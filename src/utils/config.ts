@@ -33,3 +33,4 @@ export async function updateSvgConfig<T>(
   const config = vscode.workspace.getConfiguration('iconManager');
   await config.update(key, value, global ? vscode.ConfigurationTarget.Global : vscode.ConfigurationTarget.Workspace);
 }
+

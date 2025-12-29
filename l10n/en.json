@@ -1,11 +1,11 @@
 {
   "extension": {
-    "name": "IconWrap",
+    "name": "Icon Studio",
     "description": "SVG Icon Manager for VS Code",
     "appTitle": "Bezier SVG"
   },
   "welcome": {
-    "title": "Welcome to IconWrap",
+    "title": "Welcome to Icon Studio",
     "subtitle": "Your SVG icon management solution",
     "getStarted": "Get Started",
     "configuration": "Configuration",
@@ -25,10 +25,10 @@
     "saving": "Saving...",
     "saved": "Configuration saved!",
     "features": "Features",
-    "featuresDescription": "Discover what IconWrap can do for you",
+    "featuresDescription": "Discover what Icon Studio can do for you",
     "documentation": "Documentation",
     "quickStart": "Quick Start",
-    "quickStartDescription": "Learn how to use IconWrap in minutes",
+    "quickStartDescription": "Learn how to use Icon Studio in minutes",
     "browse": "Browse...",
     "selectFolder": "Select Folder",
     "jsModule": "JS Module",
@@ -632,3 +632,4 @@
     }
   }
 }
+

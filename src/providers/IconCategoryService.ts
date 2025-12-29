@@ -178,3 +178,4 @@ export class IconCategoryService {
     return icons.sort((a, b) => a.name.localeCompare(b.name));
   }
 }
+

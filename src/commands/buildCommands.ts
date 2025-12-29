@@ -192,7 +192,7 @@ export function registerBuildCommands(
             await vscode.workspace.applyEdit(edit);
             await document.save();
           } catch (err) {
-            console.error('[IconWrap] Error transforming references in', filePath, err);
+            console.error('[Icon Studio] Error transforming references in', filePath, err);
             failed++;
           }
         }
@@ -270,7 +270,7 @@ export function registerBuildCommands(
             }
             built++;
           } catch (err) {
-            console.error('[IconWrap] Error building', icon.name, err);
+            console.error('[Icon Studio] Error building', icon.name, err);
             failed++;
           }
         }
@@ -293,7 +293,7 @@ export function registerBuildCommands(
                 await vscode.workspace.fs.delete(vscode.Uri.file(icon.path));
                 deleted++;
               } catch (err) {
-                console.error('[IconWrap] Error deleting', icon.path, err);
+                console.error('[Icon Studio] Error deleting', icon.path, err);
               }
             }
           }
@@ -428,3 +428,4 @@ export function registerBuildCommands(
 
   return disposables;
 }
+

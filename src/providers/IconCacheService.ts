@@ -136,3 +136,4 @@ export class IconCacheService {
     return item;
   }
 }
+

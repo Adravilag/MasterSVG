@@ -89,3 +89,4 @@ export function registerRefreshCommands(
 
   return disposables;
 }
+

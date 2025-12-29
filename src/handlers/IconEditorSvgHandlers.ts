@@ -219,3 +219,4 @@ export function handleInsertCodeAtCursor(message: { code?: string }): void {
     vscode.window.showInformationMessage(t('messages.noActiveEditorCodeCopied'));
   }
 }
+

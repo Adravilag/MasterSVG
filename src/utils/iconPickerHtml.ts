@@ -317,3 +317,4 @@ export function getIconPickerHtml(icons: IconSearchResult[], query: string, prev
 </body>
 </html>`;
 }
+

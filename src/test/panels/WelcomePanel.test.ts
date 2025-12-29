@@ -33,7 +33,12 @@ jest.mock('vscode', () => ({
   },
   commands: {
     executeCommand: jest.fn()
-  }
+  },
+  EventEmitter: jest.fn().mockImplementation(() => ({
+    event: jest.fn(),
+    fire: jest.fn(),
+    dispose: jest.fn()
+  }))
 }));
 
 jest.mock('fs', () => ({
@@ -86,7 +91,7 @@ describe('WelcomePanel', () => {
       
       expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith(
         'iconManager.welcome',
-        'Welcome to Bezier SVG',
+        'Welcome to Icon Studio',  // Uses t('welcome.title')
         expect.anything(),
         expect.objectContaining({
           enableScripts: true,
@@ -119,3 +124,4 @@ describe('WelcomePanel', () => {
     });
   });
 });
+

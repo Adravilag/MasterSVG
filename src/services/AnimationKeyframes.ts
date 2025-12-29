@@ -107,3 +107,4 @@ export function getKeyframesForAnimation(animationType: string): string {
 export function getAllAnimationTypes(): string[] {
   return Object.keys(ANIMATION_KEYFRAMES);
 }
+
