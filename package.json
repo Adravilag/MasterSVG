@@ -1,6 +1,6 @@
 {
-  "name": "bezier-icons",
-  "displayName": "Bezier Icons",
+  "name": "iconwrap",
+  "displayName": "IconWrap",
   "description": "Manage, preview, and transform SVG icons in your workspace. Convert SVGs to Icon components instantly.",
   "version": "0.1.0",
   "publisher": "adravilag",
@@ -13,11 +13,15 @@
     "Snippets"
   ],
   "keywords": [
-    "icons",
     "svg",
-    "bezier-icons",
+    "icons",
+    "icon manager",
+    "svg components",
     "iconify",
-    "components"
+    "sprites",
+    "react icons",
+    "vue icons",
+    "design system"
   ],
   "activationEvents": [
     "onLanguage:html",
@@ -33,65 +37,65 @@
   "contributes": {
     "submenus": [
       {
-        "id": "bezierIcons.svgMenu",
-        "label": "Bezier Icons"
+        "id": "iconWrap.svgMenu",
+        "label": "IconWrap"
       }
     ],
     "languages": [
       {
-        "id": "bezierignore",
+        "id": "iconwrapignore",
         "aliases": [
-          "Bezier Ignore"
+          "IconWrap Ignore"
         ],
         "filenames": [
-          ".bezierignore"
+          ".iconwrapignore"
         ],
         "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
       {
-        "language": "bezierignore",
-        "scopeName": "source.bezierignore",
-        "path": "./syntaxes/bezierignore.tmLanguage.json"
+        "language": "iconwrapignore",
+        "scopeName": "source.iconwrapignore",
+        "path": "./syntaxes/iconwrapignore.tmLanguage.json"
       }
     ],
     "commands": [
       {
         "command": "iconManager.openPanel",
-        "title": "Bezier: Open Panel",
+        "title": "IconWrap: Open Panel",
         "icon": "$(symbol-color)"
       },
       {
         "command": "iconManager.openWelcome",
-        "title": "Bezier: Setup / Welcome",
+        "title": "IconWrap: Setup / Welcome",
         "icon": "$(home)"
       },
       {
         "command": "iconManager.scanWorkspace",
-        "title": "Bezier: Scan Workspace SVGs"
+        "title": "IconWrap: Scan Workspace SVGs"
       },
       {
         "command": "iconManager.scanUsages",
-        "title": "Bezier: Scan Icon Usages",
+        "title": "IconWrap: Scan Icon Usages",
         "icon": "$(references)"
       },
       {
         "command": "iconManager.transformSvgToIcon",
-        "title": "Bezier: Transform SVG to Icon Component"
+        "title": "IconWrap: Transform SVG to Icon Component"
       },
       {
         "command": "iconManager.optimizeSvg",
-        "title": "Bezier: Optimize SVG (SVGO)",
+        "title": "IconWrap: Optimize SVG (SVGO)",
         "icon": "$(rocket)"
       },
       {
         "command": "iconManager.insertIcon",
-        "title": "Bezier: Insert Icon"
+        "title": "IconWrap: Insert Icon"
       },
       {
         "command": "iconManager.previewIcon",
-        "title": "Bezier: Preview Icon at Cursor"
+        "title": "IconWrap: Preview Icon at Cursor"
       },
       {
         "command": "iconManager.goToInlineSvg",
@@ -110,42 +114,42 @@
       },
       {
         "command": "iconManager.configureProject",
-        "title": "Bezier: Configure Project",
+        "title": "IconWrap: Configure Project",
         "icon": "$(gear)"
       },
       {
         "command": "iconManager.editIgnoreFile",
-        "title": "Bezier: Edit Ignore File (.bezierignore)",
+        "title": "IconWrap: Edit Ignore File (.iconwrapignore)",
         "icon": "$(list-filter)"
       },
       {
         "command": "iconManager.refreshIcons",
-        "title": "Bezier: Refresh All Views",
+        "title": "IconWrap: Refresh All Views",
         "icon": "$(refresh)"
       },
       {
         "command": "iconManager.refreshFiles",
-        "title": "Bezier: Refresh Files",
+        "title": "IconWrap: Refresh Files",
         "icon": "$(refresh)"
       },
       {
         "command": "iconManager.refreshCode",
-        "title": "Bezier: Refresh Code",
+        "title": "IconWrap: Refresh Code",
         "icon": "$(refresh)"
       },
       {
         "command": "iconManager.refreshBuilt",
-        "title": "Bezier: Refresh Built Icons",
+        "title": "IconWrap: Refresh Built Icons",
         "icon": "$(refresh)"
       },
       {
         "command": "iconManager.buildIcons",
-        "title": "Bezier: Build Icons",
+        "title": "IconWrap: Build Icons",
         "icon": "$(package)"
       },
       {
         "command": "iconManager.searchIcons",
-        "title": "Bezier: Search Icons (Iconify)",
+        "title": "IconWrap: Search Icons (Iconify)",
         "icon": "$(search)"
       },
       {
@@ -215,7 +219,7 @@
       },
       {
         "command": "iconManager.generateSprite",
-        "title": "Bezier: Generate SVG Sprite",
+        "title": "IconWrap: Generate SVG Sprite",
         "icon": "$(layers)"
       },
       {
@@ -265,16 +269,16 @@
       },
       {
         "command": "iconManager.cleanSprite",
-        "title": "Bezier: Clean Sprite (Remove Invalid Entries)",
+        "title": "IconWrap: Clean Sprite (Remove Invalid Entries)",
         "icon": "$(trash)"
       }
     ],
     "configuration": {
-      "title": "Bezier",
+      "title": "IconWrap",
       "properties": {
         "iconManager.componentName": {
           "type": "string",
-          "default": "bz-icon",
+          "default": "iw-icon",
           "description": "Name of the Icon component to use in transformations"
         },
         "iconManager.componentImport": {
@@ -320,7 +324,7 @@
         "iconManager.libraryPath": {
           "type": "string",
           "default": "",
-          "description": "Path to the Bezier library (icons.json)"
+          "description": "Path to the IconWrap library (icons.json)"
         },
         "iconManager.outputDirectory": {
           "type": "string",
@@ -352,7 +356,7 @@
       "activitybar": [
         {
           "id": "iconManager",
-          "title": "Bezier Icons",
+          "title": "IconWrap",
           "icon": "resources/icon.svg"
         }
       ]
@@ -475,12 +479,12 @@
           "group": "iconManager"
         },
         {
-          "submenu": "bezierIcons.svgMenu",
+          "submenu": "iconWrap.svgMenu",
           "when": "resourceExtname == .svg",
           "group": "iconManager"
         }
       ],
-      "bezierIcons.svgMenu": [
+      "iconWrap.svgMenu": [
         {
           "command": "iconManager.colorEditor",
           "group": "1_edit@1"

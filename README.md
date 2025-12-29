@@ -1,4 +1,4 @@
-# Icon Manager for VS Code
+# IconWrap for VS Code
 
 > **The complete SVG icon workflow without leaving your editor**
 
@@ -10,9 +10,9 @@ Search, preview, edit, optimize, and export SVG icons to React, Vue, Svelte, Ang
 
 ---
 
-## ✨ Why Icon Manager?
+## ✨ Why IconWrap?
 
-Most icon extensions do **one thing**. Icon Manager does the **complete workflow**:
+Most icon extensions do **one thing**. IconWrap does the **complete workflow**:
 
 ```
 🔍 Search    →    👁️ Preview    →    🎨 Edit    →    ⚡ Optimize    →    📦 Export

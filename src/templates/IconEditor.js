@@ -267,17 +267,17 @@
     // Variant functions
     function saveVariant() {
       try {
-        logToExt('[Bezier IconEditor JS] saveVariant called');
+        logToExt('[IconWrap IconEditor JS] saveVariant called');
         vscode.postMessage({ command: 'saveVariant' });
-        logToExt('[Bezier IconEditor JS] postMessage sent');
+        logToExt('[IconWrap IconEditor JS] postMessage sent');
       } catch (e) {
-        console.error('[Bezier IconEditor JS] Error in saveVariant:', e);
+        console.error('[IconWrap IconEditor JS] Error in saveVariant:', e);
         logToExt('Error in saveVariant: ' + e.toString());
       }
     }
     
     function generateAutoVariant(type) {
-      console.log('[Bezier IconEditor JS] generateAutoVariant called:', type);
+      console.log('[IconWrap IconEditor JS] generateAutoVariant called:', type);
       vscode.postMessage({ command: 'generateAutoVariant', type });
     }
     

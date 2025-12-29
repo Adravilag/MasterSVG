@@ -47,10 +47,10 @@ jest.mock('../../utils/configHelper', () => ({
   getConfig: jest.fn().mockReturnValue({
     buildFormat: 'icons.js',
     webComponentName: 'bz-icon',
-    outputDirectory: 'bezier-icons'
+    outputDirectory: 'iconwrap-icons'
   }),
-  getOutputPathOrWarn: jest.fn().mockReturnValue('/workspace/bezier-icons'),
-  getFullOutputPath: jest.fn().mockReturnValue('/workspace/bezier-icons')
+  getOutputPathOrWarn: jest.fn().mockReturnValue('/workspace/iconwrap-icons'),
+  getFullOutputPath: jest.fn().mockReturnValue('/workspace/iconwrap-icons')
 }));
 
 // Mock iconsFileManager
@@ -134,7 +134,7 @@ describe('iconBuildHelpers', () => {
       getConfig.mockReturnValue({
         buildFormat: 'icons.js',
         webComponentName: 'bz-icon',
-        outputDirectory: 'bezier-icons'
+        outputDirectory: 'iconwrap-icons'
       });
     });
 
@@ -218,7 +218,7 @@ describe('iconBuildHelpers', () => {
     test('should use output path', () => {
       const icon = createBuiltIcon('arrow', '<svg></svg>');
       
-      expect(icon.path).toBe('/workspace/bezier-icons');
+      expect(icon.path).toBe('/workspace/iconwrap-icons');
     });
 
     test('should use source path as fallback', () => {

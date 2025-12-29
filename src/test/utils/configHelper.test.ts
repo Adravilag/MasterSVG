@@ -65,7 +65,7 @@ describe('configHelper', () => {
 
       const config = getConfig();
 
-      expect(config.outputDirectory).toBe('bezier-icons');
+      expect(config.outputDirectory).toBe('iconwrap-icons');
       expect(config.componentName).toBe('Icon');
       expect(config.nameAttribute).toBe('name');
       expect(config.defaultSize).toBe(24);
@@ -242,7 +242,7 @@ describe('configHelper', () => {
         nameAttribute: 'name',
         defaultSize: 24,
         defaultColor: 'currentColor',
-        webComponentName: 'bezier-icon',
+        webComponentName: 'icon-wrap',
         buildFormat: 'icons.ts'
       };
 

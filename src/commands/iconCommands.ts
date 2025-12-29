@@ -275,7 +275,7 @@ export function registerIconCommands(
                 }
               } catch (err) {
                 // Skip files that can't be read/written
-                console.log(`[Bezier] Could not update references in ${fileUri.fsPath}: ${err}`);
+                console.log(`[IconWrap] Could not update references in ${fileUri.fsPath}: ${err}`);
               }
             }
           }
@@ -368,7 +368,7 @@ export function registerIconCommands(
           }
 
           // Partial refresh for built icons - update both providers
-          console.log(`[Bezier] Calling renameBuiltIcon("${oldName}", "${newName}")`);
+          console.log(`[IconWrap] Calling renameBuiltIcon("${oldName}", "${newName}")`);
           workspaceSvgProvider.renameBuiltIcon(oldName, newName);
           builtIconsProvider.refresh(); // Refresh the BuiltIconsProvider tree view
           

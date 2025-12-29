@@ -2,9 +2,13 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as crypto from 'crypto';
+import { SvgContentCache } from './SvgContentCache';
 
 // Directory for temporary SVG icon files
 let tempIconDir: string | undefined;
+
+// In-memory cache for temp icon paths to avoid file system checks
+const tempIconPathCache: Map<string, string> = new Map();
 
 function getTempIconDir(): string {
   if (!tempIconDir) {
@@ -22,26 +26,26 @@ export function clearTempIcons(): void {
   try {
     const files = fs.readdirSync(iconDir);
     for (const file of files) {
-      fs.unlinkSync(path.join(iconDir, file));
+      try {
+        fs.unlinkSync(path.join(iconDir, file));
+      } catch {
+        // Ignore individual file errors
+      }
     }
   } catch {
     // Ignore errors
   }
+  // Clear in-memory cache
+  tempIconPathCache.clear();
+  // Clear temp paths in SvgContentCache
+  SvgContentCache.getInstance().clearTempPaths();
 }
 
-export function saveTempSvgIcon(name: string, svgContent: string): string {
-  const iconDir = getTempIconDir();
-  const safeName = name.replace(/[^a-z0-9-]/gi, '_');
-  // Add hash of content to filename to force VS Code to reload when content changes
-  const contentHash = crypto.createHash('md5').update(svgContent).digest('hex').substring(0, 8);
-  const iconPath = path.join(iconDir, `${safeName}_${contentHash}.svg`);
-  
-  // Skip if file already exists with same content
-  if (fs.existsSync(iconPath)) {
-    return iconPath;
-  }
-  
-  // Normalize SVG for display - ensure it has proper viewBox and size
+/**
+ * Normalize SVG content for display in tree view
+ * Extracted for reuse and caching
+ */
+function normalizeSvgForDisplay(svgContent: string): string {
   let normalizedSvg = svgContent;
   
   // If SVG doesn't have width/height, add them for proper display
@@ -50,7 +54,6 @@ export function saveTempSvgIcon(name: string, svgContent: string): string {
   }
   
   // Check if SVG has real colors (not just black/none/currentColor)
-  // Look for any color that is NOT black
   const hasGradient = /url\(#/.test(normalizedSvg);
   const colorPattern = /(?:fill|stroke)="([^"]+)"/gi;
   let match;
@@ -62,24 +65,60 @@ export function saveTempSvgIcon(name: string, svgContent: string): string {
     if (color === 'none' || color === 'currentcolor') continue;
     if (color === '#000' || color === '#000000' || color === 'black' || 
         color === 'rgb(0,0,0)' || color === 'rgb(0, 0, 0)') continue;
-    // Found a real color
     hasRealColors = true;
     break;
   }
   
   // If no real colors (monochrome black or no fill at all), use currentColor
   if (!hasRealColors) {
-    // Replace existing black fills/strokes
     normalizedSvg = normalizedSvg
       .replace(/fill="(#000|#000000|black|rgb\(0,\s*0,\s*0\))"/gi, 'fill="currentColor"')
       .replace(/stroke="(#000|#000000|black|rgb\(0,\s*0,\s*0\))"/gi, 'stroke="currentColor"');
     
-    // Add fill="currentColor" to svg element if no fill defined
     if (!normalizedSvg.includes('fill="')) {
       normalizedSvg = normalizedSvg.replace('<svg', '<svg fill="currentColor"');
     }
   }
   
+  return normalizedSvg;
+}
+
+export function saveTempSvgIcon(name: string, svgContent: string): string {
+  const contentHash = crypto.createHash('md5').update(svgContent).digest('hex').substring(0, 8);
+  const cacheKey = `${name}_${contentHash}`;
+  
+  // Check in-memory cache first (fastest)
+  const cachedPath = tempIconPathCache.get(cacheKey);
+  if (cachedPath) {
+    return cachedPath;
+  }
+
+  // Check SvgContentCache
+  const svgCache = SvgContentCache.getInstance();
+  const cachedTempPath = svgCache.getTempPath(contentHash);
+  if (cachedTempPath && fs.existsSync(cachedTempPath)) {
+    tempIconPathCache.set(cacheKey, cachedTempPath);
+    return cachedTempPath;
+  }
+
+  const iconDir = getTempIconDir();
+  const safeName = name.replace(/[^a-z0-9-]/gi, '_');
+  const iconPath = path.join(iconDir, `${safeName}_${contentHash}.svg`);
+  
+  // Skip if file already exists
+  if (fs.existsSync(iconPath)) {
+    tempIconPathCache.set(cacheKey, iconPath);
+    svgCache.cacheTempPath(contentHash, iconPath);
+    return iconPath;
+  }
+  
+  // Normalize and write
+  const normalizedSvg = normalizeSvgForDisplay(svgContent);
   fs.writeFileSync(iconPath, normalizedSvg);
+  
+  // Cache the path
+  tempIconPathCache.set(cacheKey, iconPath);
+  svgCache.cacheTempPath(contentHash, iconPath);
+  
   return iconPath;
 }

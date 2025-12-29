@@ -33,7 +33,7 @@ export class InlineSvgScanner {
   ): Promise<void> {
     inlineSvgs.clear();
     svgReferences.clear();
-    console.log('[Bezier] Scanning for inline SVGs and SVG references...');
+    console.log('[IconWrap] Scanning for inline SVGs and SVG references...');
 
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) return;
@@ -51,7 +51,7 @@ export class InlineSvgScanner {
       try {
         // Check if file should be ignored
         if (shouldIgnorePath(file.fsPath)) {
-          console.log('[Bezier] Ignoring file (svgignore):', file.fsPath);
+          console.log('[IconWrap] Ignoring file (svgignore):', file.fsPath);
           continue;
         }
 
@@ -80,8 +80,8 @@ export class InlineSvgScanner {
       }
     }
 
-    console.log('[Bezier] Found inline SVGs:', inlineSvgs.size);
-    console.log('[Bezier] Found files with SVG references:', svgReferences.size);
+    console.log('[IconWrap] Found inline SVGs:', inlineSvgs.size);
+    console.log('[IconWrap] Found files with SVG references:', svgReferences.size);
   }
 
   /**
@@ -179,7 +179,7 @@ export class InlineSvgScanner {
         try {
           svgContent = fs.readFileSync(resolvedPath, 'utf-8');
         } catch (err) {
-          console.error('[Bezier] Error reading SVG file:', resolvedPath, err);
+          console.error('[IconWrap] Error reading SVG file:', resolvedPath, err);
         }
       }
       

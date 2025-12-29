@@ -9,7 +9,7 @@ export class ErrorHandler {
    */
   public static handleError(error: any, context: string, showNotification: boolean = true): void {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    const fullMessage = `Bezier Icons: Error during ${context}: ${errorMessage}`;
+    const fullMessage = `IconWrap: Error during ${context}: ${errorMessage}`;
     
     console.error(fullMessage);
     if (error instanceof Error && error.stack) {
@@ -17,7 +17,7 @@ export class ErrorHandler {
     }
 
     if (showNotification) {
-      vscode.window.showErrorMessage(`Bezier Icons: ${errorMessage}`);
+      vscode.window.showErrorMessage(`IconWrap: ${errorMessage}`);
     }
   }
 

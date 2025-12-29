@@ -156,7 +156,7 @@ export async function checkScriptImport(
   const hasIconScript = fullText.includes('icon.js') || fullText.includes('icons.js');
   
   if (!hasIconScript) {
-    const outputDir = config.outputDirectory || 'bezier-icons';
+    const outputDir = config.outputDirectory || 'iconwrap-icons';
     const addScript = await vscode.window.showWarningMessage(
       `⚠️ Missing script import! Add <script type="module" src="./${outputDir}/icon.js"></script> to your HTML <head>`,
       'Copy to Clipboard',

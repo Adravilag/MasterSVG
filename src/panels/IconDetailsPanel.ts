@@ -143,7 +143,7 @@ export class IconDetailsPanel {
 
     const { name, svg, location, isBuilt, animation } = this._iconDetails;
     
-    console.log('[Bezier] IconDetailsPanel animation:', animation);
+    console.log('[IconWrap] IconDetailsPanel animation:', animation);
 
     // Extract data from SVG
     const viewBoxMatch = svg.match(/viewBox=["']([^"']+)["']/);

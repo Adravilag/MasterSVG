@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-  "name": "Bezier Ignore",
-  "scopeName": "source.bezierignore",
+  "name": "IconWrap Ignore",
+  "scopeName": "source.iconwrapignore",
   "patterns": [
     {
       "include": "#comment"
@@ -22,35 +22,35 @@
   "repository": {
     "comment": {
       "match": "^\\s*#.*$",
-      "name": "comment.line.number-sign.bezierignore"
+      "name": "comment.line.number-sign.iconwrapignore"
     },
     "negation": {
       "match": "^!",
-      "name": "keyword.operator.negation.bezierignore"
+      "name": "keyword.operator.negation.iconwrapignore"
     },
     "directory": {
       "match": "/$",
-      "name": "punctuation.definition.directory.bezierignore"
+      "name": "punctuation.definition.directory.iconwrapignore"
     },
     "wildcard": {
       "patterns": [
         {
           "match": "\\*\\*",
-          "name": "constant.other.wildcard.asterisk.double.bezierignore"
+          "name": "constant.other.wildcard.asterisk.double.iconwrapignore"
         },
         {
           "match": "\\*",
-          "name": "constant.other.wildcard.asterisk.bezierignore"
+          "name": "constant.other.wildcard.asterisk.iconwrapignore"
         },
         {
           "match": "\\?",
-          "name": "constant.other.wildcard.questionmark.bezierignore"
+          "name": "constant.other.wildcard.questionmark.iconwrapignore"
         }
       ]
     },
     "pattern": {
       "match": "[^#\\s*?/]+",
-      "name": "string.unquoted.path.bezierignore"
+      "name": "string.unquoted.path.iconwrapignore"
     }
   }
 }

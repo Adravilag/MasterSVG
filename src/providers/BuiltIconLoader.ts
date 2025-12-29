@@ -75,12 +75,12 @@ export class BuiltIconLoader {
     const iconsTs = path.join(fullOutputPath, 'icons.ts');
     const iconsFile = fs.existsSync(iconsBzJs) ? iconsBzJs : (fs.existsSync(iconsJs) ? iconsJs : (fs.existsSync(iconsTs) ? iconsTs : null));
     
-    console.log('[Bezier] Looking for icons in:', fullOutputPath);
+    console.log('[IconWrap] Looking for icons in:', fullOutputPath);
     
     if (iconsFile) {
       await this.loadIconsFromJsFile(iconsFile, libraryIcons, builtIcons);
     } else {
-      console.log('[Bezier] No icons file found in output directory');
+      console.log('[IconWrap] No icons file found in output directory');
     }
     
     // Try to load from sprite.svg
@@ -104,7 +104,7 @@ export class BuiltIconLoader {
       const fileContent = await vscode.workspace.fs.readFile(uri);
       const content = Buffer.from(fileContent).toString('utf-8');
       
-      console.log('[Bezier] Reading icons file, length:', content.length);
+      console.log('[IconWrap] Reading icons file, length:', content.length);
       
       // Regex to match icon exports - capture everything including optional animation
       const iconRegex = /export\s+const\s+(\w+)\s*=\s*\{\s*name:\s*['"]([^'"]+)['"]\s*,\s*body:\s*`([\s\S]*?)`\s*,\s*viewBox:\s*['"]([^'"]+)['"](?:\s*,\s*animation:\s*\{([^}]*)\})?\s*\}/g;
@@ -135,10 +135,10 @@ export class BuiltIconLoader {
           animation
         });
         
-        console.log('[Bezier] Loaded icon:', iconName, animation ? `with animation: ${animation.type}` : '');
+        console.log('[IconWrap] Loaded icon:', iconName, animation ? `with animation: ${animation.type}` : '');
       }
       
-      console.log('[Bezier] Total built icons loaded:', builtIcons.size);
+      console.log('[IconWrap] Total built icons loaded:', builtIcons.size);
     } catch (error) {
       console.error('Error loading built icons:', error);
     }
@@ -169,7 +169,7 @@ export class BuiltIconLoader {
         };
       }
     } catch (e) {
-      console.warn('[Bezier] Failed to parse animation');
+      console.warn('[IconWrap] Failed to parse animation');
     }
     return undefined;
   }
@@ -209,7 +209,7 @@ export class BuiltIconLoader {
           });
         }
       }
-      console.log('[Bezier] Loaded built icons from sprite.svg:', builtIcons.size);
+      console.log('[IconWrap] Loaded built icons from sprite.svg:', builtIcons.size);
     } catch (error) {
       console.error('Error loading built icons from sprite.svg:', error);
     }

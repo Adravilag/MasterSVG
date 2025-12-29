@@ -191,7 +191,7 @@ export function registerBuildCommands(
             await vscode.workspace.applyEdit(edit);
             await document.save();
           } catch (err) {
-            console.error('[Bezier] Error transforming references in', filePath, err);
+            console.error('[IconWrap] Error transforming references in', filePath, err);
             failed++;
           }
         }
@@ -269,7 +269,7 @@ export function registerBuildCommands(
             }
             built++;
           } catch (err) {
-            console.error('[Bezier] Error building', icon.name, err);
+            console.error('[IconWrap] Error building', icon.name, err);
             failed++;
           }
         }
@@ -292,7 +292,7 @@ export function registerBuildCommands(
                 await vscode.workspace.fs.delete(vscode.Uri.file(icon.path));
                 deleted++;
               } catch (err) {
-                console.error('[Bezier] Error deleting', icon.path, err);
+                console.error('[IconWrap] Error deleting', icon.path, err);
               }
             }
           }

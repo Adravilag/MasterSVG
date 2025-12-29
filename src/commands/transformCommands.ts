@@ -48,7 +48,7 @@ export function registerTransformCommands(
           const escapedIconName = iconName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
           const imgRegex = new RegExp(`<img\\s+[^>]*src=["'][^"']*${escapedIconName}\\.svg["'][^>]*>`, 'gi');
           
-          console.log('[Bezier] Searching for IMG ref:', iconName, 'in file:', item.icon.filePath, 'at line:', item.icon.line);
+          console.log('[IconWrap] Searching for IMG ref:', iconName, 'in file:', item.icon.filePath, 'at line:', item.icon.line);
           
           // Search around the recorded line
           if (item.icon.line !== undefined) {
@@ -62,7 +62,7 @@ export function registerTransformCommands(
               if (imgTagMatch) {
                 svgStart = document.offsetAt(line.range.start) + imgTagMatch.index;
                 imgTagText = imgTagMatch[0];
-                console.log('[Bezier] Found IMG tag at line', i, ':', imgTagText);
+                console.log('[IconWrap] Found IMG tag at line', i, ':', imgTagText);
                 break;
               }
               imgRegex.lastIndex = 0; // Reset regex for next line
@@ -76,12 +76,12 @@ export function registerTransformCommands(
             if (imgTagMatch) {
               svgStart = imgTagMatch.index;
               imgTagText = imgTagMatch[0];
-              console.log('[Bezier] Found IMG tag in document:', imgTagText);
+              console.log('[IconWrap] Found IMG tag in document:', imgTagText);
             }
           }
           
           if (svgStart === -1) {
-            console.log('[Bezier] IMG tag not found. Regex pattern:', imgRegex.source);
+            console.log('[IconWrap] IMG tag not found. Regex pattern:', imgRegex.source);
             vscode.window.showWarningMessage('Could not find IMG reference in document. The file might have changed. Please refresh the icons list.');
             return;
           }

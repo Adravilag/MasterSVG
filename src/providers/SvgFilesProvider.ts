@@ -5,6 +5,7 @@ import { WorkspaceIcon } from '../types/icons';
 import { getSvgConfig } from '../utils/config';
 import { SvgItem } from './SvgItem';
 import { shouldIgnorePath } from './IgnorePatterns';
+import { SvgContentCache } from './SvgContentCache';
 import type { WorkspaceSvgProvider } from './WorkspaceSvgProvider';
 import type { BuiltIconsProvider } from './BuiltIconsProvider';
 
@@ -94,12 +95,12 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
   }
 
   private async scanSvgFiles(): Promise<void> {
-    console.log('[Bezier] SvgFilesProvider: Starting scan...');
+    console.log('[IconWrap] SvgFilesProvider: Starting scan...');
     this.svgFiles.clear();
 
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) {
-      console.log('[Bezier] SvgFilesProvider: No workspace folders');
+      console.log('[IconWrap] SvgFilesProvider: No workspace folders');
       return;
     }
 
@@ -107,7 +108,7 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
       await this.scanFolder(folder.uri.fsPath);
     }
     
-    console.log('[Bezier] SvgFilesProvider: Scan complete. Found:', this.svgFiles.size, 'files');
+    console.log('[IconWrap] SvgFilesProvider: Scan complete. Found:', this.svgFiles.size, 'files');
   }
 
   private async scanFolder(folderPath: string): Promise<void> {
@@ -125,7 +126,7 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
 
     // If no configured folders found, scan ALL SVGs in workspace
     if (!foundAny) {
-      console.log('[Bezier] SvgFilesProvider: No configured folders, scanning all...');
+      console.log('[IconWrap] SvgFilesProvider: No configured folders, scanning all...');
       await this.scanAllSvgs(folderPath);
     }
   }
@@ -155,7 +156,7 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
         }
       }
     } catch (error) {
-      console.error(`[Bezier] SvgFilesProvider: Error scanning ${dirPath}:`, error);
+      console.error(`[IconWrap] SvgFilesProvider: Error scanning ${dirPath}:`, error);
     }
   }
 
@@ -191,7 +192,7 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
         }
       }
     } catch (error) {
-      console.error(`[Bezier] SvgFilesProvider: Error scanning ${folderPath}:`, error);
+      console.error(`[IconWrap] SvgFilesProvider: Error scanning ${folderPath}:`, error);
     }
   }
 
@@ -339,6 +340,12 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
         const subFolder = parts[0];
         subFolders.set(subFolder, (subFolders.get(subFolder) || 0) + 1);
       }
+    }
+
+    // Pre-load SVG content for files in this folder (batch optimization)
+    const filePaths = filesInFolder.map(icon => icon.path);
+    if (filePaths.length > 0) {
+      SvgContentCache.getInstance().preloadBatch(filePaths);
     }
 
     const sortedFolders = Array.from(subFolders.entries()).sort((a, b) => a[0].localeCompare(b[0]));

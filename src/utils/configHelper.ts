@@ -18,12 +18,12 @@ export interface IconManagerConfig {
 export function getConfig(): IconManagerConfig {
   const config = vscode.workspace.getConfiguration('iconManager');
   return {
-    outputDirectory: config.get<string>('outputDirectory', 'bezier-icons'),
+    outputDirectory: config.get<string>('outputDirectory', 'iconwrap-icons'),
     componentName: config.get<string>('componentName', 'Icon'),
     nameAttribute: config.get<string>('nameAttribute', 'name'),
     defaultSize: config.get<number>('defaultSize', 24),
     defaultColor: config.get<string>('defaultColor', 'currentColor'),
-    webComponentName: config.get<string>('webComponentName', 'bezier-icon'),
+    webComponentName: config.get<string>('webComponentName', 'icon-wrap'),
     buildFormat: config.get<'icons.ts' | 'sprite.svg'>('buildFormat', 'icons.ts')
   };
 }

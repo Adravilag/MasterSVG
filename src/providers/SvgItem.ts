@@ -1,14 +1,15 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
 import * as path from 'path';
 import { WorkspaceIcon, IconAnimation } from '../types/icons';
 import { saveTempSvgIcon } from './TempIconManager';
+import { SvgContentCache } from './SvgContentCache';
 
 /**
  * TreeItem for SVG icons in the tree view
  */
 export class SvgItem extends vscode.TreeItem {
   private static instanceCounter = 0;
+  private static svgCache = SvgContentCache.getInstance();
   
   constructor(
     public readonly label: string,
@@ -106,23 +107,24 @@ export class SvgItem extends vscode.TreeItem {
     // Check if this is a missing/broken reference (exists === false)
     const isMissingRef = icon.category === 'img-ref' && icon.exists === false;
     
-    // Get SVG content early for rasterization check
+    // Get SVG content using cache (lazy loading)
     let svgContent = icon.svg;
     if (!svgContent && icon.path) {
-      try {
-        if (fs.existsSync(icon.path)) {
-          svgContent = fs.readFileSync(icon.path, 'utf-8');
-        }
-      } catch (err) {
-        // Ignore read errors for now
-      }
+      // Use cached content instead of direct file read
+      svgContent = SvgItem.svgCache.getContent(icon.path);
     }
     
-    // Check if this is a rasterized SVG (too many colors)
-    const isRasterized = this.isRasterizedSvg(svgContent);
+    // Check if this is a rasterized SVG using cached analysis
+    const isRasterized = icon.path 
+      ? SvgItem.svgCache.isRasterized(icon.path) 
+      : this.isRasterizedSvg(svgContent);
     
-    // Detect animation type from icon data or SVG content
-    const animationType = this.detectAnimationType(icon);
+    // Detect animation type using cached analysis or from icon data
+    const animationType = icon.animation?.type || (
+      icon.path 
+        ? SvgItem.svgCache.getAnimationType(icon.path) 
+        : this.detectAnimationType(icon)
+    );
     
     // Show usage count for built icons, or line number for inline SVGs
     if (isMissingRef) {
@@ -287,7 +289,7 @@ export class SvgItem extends vscode.TreeItem {
         const tempPath = saveTempSvgIcon(icon.name, svgContent);
         this.iconPath = vscode.Uri.file(tempPath);
       } catch (err) {
-        console.error('[Bezier] Error saving temp SVG:', icon.name, err);
+        console.error('[IconWrap] Error saving temp SVG:', icon.name, err);
         this.iconPath = icon.isBuilt 
           ? new vscode.ThemeIcon('pass', new vscode.ThemeColor('charts.green'))
           : new vscode.ThemeIcon('circle-outline');

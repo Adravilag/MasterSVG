@@ -520,7 +520,7 @@ export function registerMiscCommands(
   const revealInTreeCmd = vscode.commands.registerCommand('iconManager.revealInTree', async (iconName: string, filePath?: string, lineNumber?: number) => {
     if (!iconName && !filePath) return;
 
-    console.log(`[Bezier] revealInTree: name="${iconName}", path="${filePath}", line=${lineNumber}`);
+    console.log(`[IconWrap] revealInTree: name="${iconName}", path="${filePath}", line=${lineNumber}`);
 
     try {
       // Ensure the tree is initialized before searching
@@ -528,12 +528,12 @@ export function registerMiscCommands(
       
       // First try to find a cached item (already rendered in tree)
       let item = workspaceSvgProvider.findItemByIconNameOrPath(iconName, filePath, lineNumber);
-      console.log(`[Bezier] findItemByIconNameOrPath:`, item?.label, item?.icon?.name, item?.icon?.path);
+      console.log(`[IconWrap] findItemByIconNameOrPath:`, item?.label, item?.icon?.name, item?.icon?.path);
       
       if (!item) {
         // If not cached, try to find the icon and create an item
         let icon = workspaceSvgProvider.getIconByName(iconName);
-        console.log(`[Bezier] getIconByName:`, icon?.name, icon?.path);
+        console.log(`[IconWrap] getIconByName:`, icon?.name, icon?.path);
         
         if (!icon && filePath) {
           icon = workspaceSvgProvider.getIconByPath(filePath);
@@ -551,12 +551,12 @@ export function registerMiscCommands(
         } catch (revealError) {
           // If reveal fails, the item might not be in the visible tree yet
           // This can happen if the parent sections are collapsed
-          console.log('[Bezier] Reveal failed, item may not be visible:', revealError);
+          console.log('[IconWrap] Reveal failed, item may not be visible:', revealError);
         }
       }
     } catch (error) {
       // Silently fail - this is a nice-to-have feature
-      console.log('[Bezier] Could not reveal in tree:', error);
+      console.log('[IconWrap] Could not reveal in tree:', error);
     }
   });
 
