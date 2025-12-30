@@ -1,11 +1,11 @@
 {
   "extension": {
-    "name": "IconWrap",
+    "name": "Icon Studio",
     "description": "SVG Icon Manager for VS Code",
-    "appTitle": "Bezier SVG"
+    "appTitle": "Icon Studio"
   },
   "welcome": {
-    "title": "Welcome to IconWrap",
+    "title": "Welcome to Icon Studio",
     "subtitle": "Your SVG icon management solution",
     "getStarted": "Get Started",
     "configuration": "Configuration",
@@ -43,7 +43,11 @@
     "setupComplete": "Setup complete!",
     "filesCreated": "Files created in {path}",
     "spriteCreated": "Sprite created in {path}",
-    "errorCreatingFiles": "Error creating files"
+    "errorCreatingFiles": "Error creating files",
+    "previewResult": "Result",
+    "workflowSource": "Source",
+    "workflowBuild": "Build",
+    "workflowOutput": "Output"
   },
   "features": {
     "iconManagement": "Icon Management",
@@ -292,9 +296,9 @@
     "errorUpdatingPath": "Error updating path: {error}",
     "failedToFetchIcon": "Failed to fetch icon SVG",
     "failedToFetchIconError": "Failed to fetch icon: {error}",
-    "iconAddedToFormat": "✅ Icon \"{name}\" added to {format}!",
+    "iconAddedToFormat": "Icon \"{name}\" added to {format}!",
     "failedToAddIcon": "Failed to add icon: {error}",
-    "iconImportedToFormat": "✅ Icon \"{name}\" imported to {format}!",
+    "iconImportedToFormat": "Icon \"{name}\" imported to {format}!",
     "updatedFile": "Updated {path}",
     "copiedNameToClipboard": "Copied \"{name}\" to clipboard",
     "svgAlreadyOptimized": "SVG is already optimized",

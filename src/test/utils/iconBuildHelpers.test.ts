@@ -52,7 +52,7 @@ jest.mock('fs', () => ({
 jest.mock('../../utils/configHelper', () => ({
   getConfig: jest.fn().mockReturnValue({
     buildFormat: 'icons.js',
-    webComponentName: 'bz-icon',
+    webComponentName: 'sg-icon',
     outputDirectory: 'iconwrap-icons'
   }),
   getOutputPathOrWarn: jest.fn().mockReturnValue('/workspace/iconwrap-icons'),
@@ -139,50 +139,50 @@ describe('iconBuildHelpers', () => {
     beforeEach(() => {
       getConfig.mockReturnValue({
         buildFormat: 'icons.js',
-        webComponentName: 'bz-icon',
+        webComponentName: 'sg-icon',
         outputDirectory: 'iconwrap-icons'
       });
     });
 
     test('should generate web component for HTML', () => {
       const result = generateReplacement('arrow', 'html');
-      expect(result).toBe('<bz-icon name="arrow"></bz-icon>');
+      expect(result).toBe('<sg-icon name="arrow"></sg-icon>');
     });
 
     test('should generate self-closing for JSX', () => {
       const result = generateReplacement('arrow', 'javascriptreact');
-      expect(result).toBe('<bz-icon name="arrow" />');
+      expect(result).toBe('<sg-icon name="arrow" />');
     });
 
     test('should generate self-closing for TSX', () => {
       const result = generateReplacement('arrow', 'typescriptreact');
-      expect(result).toBe('<bz-icon name="arrow" />');
+      expect(result).toBe('<sg-icon name="arrow" />');
     });
 
     test('should generate self-closing for Vue', () => {
       const result = generateReplacement('arrow', 'vue');
-      expect(result).toBe('<bz-icon name="arrow" />');
+      expect(result).toBe('<sg-icon name="arrow" />');
     });
 
     test('should generate self-closing for Svelte', () => {
       const result = generateReplacement('arrow', 'svelte');
-      expect(result).toBe('<bz-icon name="arrow" />');
+      expect(result).toBe('<sg-icon name="arrow" />');
     });
 
     test('should generate self-closing for Astro', () => {
       const result = generateReplacement('arrow', 'astro');
-      expect(result).toBe('<bz-icon name="arrow" />');
+      expect(result).toBe('<sg-icon name="arrow" />');
     });
 
     test('should generate standard HTML for unknown language', () => {
       const result = generateReplacement('arrow', 'plaintext');
-      expect(result).toBe('<bz-icon name="arrow"></bz-icon>');
+      expect(result).toBe('<sg-icon name="arrow"></sg-icon>');
     });
 
     test('should generate sprite reference for sprite format', () => {
       getConfig.mockReturnValue({
         buildFormat: 'sprite.svg',
-        webComponentName: 'bz-icon'
+        webComponentName: 'sg-icon'
       });
 
       const result = generateReplacement('arrow', 'html');
@@ -202,12 +202,12 @@ describe('iconBuildHelpers', () => {
 
     test('should handle icons with hyphens', () => {
       const result = generateReplacement('arrow-right', 'html');
-      expect(result).toBe('<bz-icon name="arrow-right"></bz-icon>');
+      expect(result).toBe('<sg-icon name="arrow-right"></sg-icon>');
     });
 
     test('should handle icons with numbers', () => {
       const result = generateReplacement('icon-2', 'html');
-      expect(result).toBe('<bz-icon name="icon-2"></bz-icon>');
+      expect(result).toBe('<sg-icon name="icon-2"></sg-icon>');
     });
   });
 

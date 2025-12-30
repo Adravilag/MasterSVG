@@ -34,3 +34,27 @@ export async function updateSvgConfig<T>(
   await config.update(key, value, global ? vscode.ConfigurationTarget.Global : vscode.ConfigurationTarget.Workspace);
 }
 
+/**
+ * Check if Icon Studio is fully configured (all 4 steps completed)
+ * Step 1: Source directory (svgFolders)
+ * Step 2: Output directory (outputDirectory)
+ * Step 3: Build format (buildFormat)
+ * Step 4: Web component name (webComponentName with hyphen)
+ * @returns true if all configuration steps are complete
+ */
+export function isFullyConfigured(): boolean {
+  const config = vscode.workspace.getConfiguration('iconManager');
+  
+  const svgFolders = config.get<string[]>('svgFolders', []);
+  const outputDirectory = config.get<string>('outputDirectory', '');
+  const buildFormat = config.get<string>('buildFormat', '');
+  const webComponentName = config.get<string>('webComponentName', '');
+  
+  const isStep1Complete = svgFolders.length > 0 && svgFolders[0].length > 0;
+  const isStep2Complete = !!outputDirectory;
+  const isStep3Complete = !!buildFormat;
+  const isStep4Complete = webComponentName.includes('-');
+  
+  return isStep1Complete && isStep2Complete && isStep3Complete && isStep4Complete;
+}
+

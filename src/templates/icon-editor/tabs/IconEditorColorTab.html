@@ -1,57 +1,18 @@
-<!-- Colors & Variants Grid -->
-<div class="colors-variants-row">
-  <!-- Left Column: Colors + Filters -->
-  <div class="left-column">
-    <!-- Colors Section -->
-    <div class="section${colorsDisabledClass}">
-      <div class="section-title">
-        <span class="codicon codicon-paintcan"></span> ${i18n_colors}
-        ${colorsHint}
-      </div>
-      <div class="color-swatches${swatchesDisabledClass}" id="colorSwatches">
-        ${currentColorHtml}
-        ${colorSwatches}
-      </div>
+<!-- Colors, Variants & Filters - Full Width Stacked Layout -->
+<div class="color-tab-content">
+  <!-- Colors Section - Full Width -->
+  <div class="section${colorsDisabledClass}">
+    <div class="section-title">
+      <span class="codicon codicon-paintcan"></span> ${i18n_colors}
+      ${colorsHint}
     </div>
-
-    <!-- Filters Section -->
-    <div class="section${filtersDisabledClass}" style="margin-top: 12px;">
-      <div class="section-title">
-        <span class="codicon codicon-settings"></span> ${i18n_globalFilters}
-        ${filtersHint}
-        <div class="variants-actions">
-          <button class="reset-filters-btn" onclick="resetFilters()" title="${i18n_resetFilters}"${filtersDisabled}>
-            <span class="codicon codicon-refresh"></span> ${i18n_reset}
-          </button>
-        </div>
-      </div>
-      <div class="filters-container${filtersContainerDisabledClass}">
-        <div class="filter-control">
-          <div class="filter-header">
-            <label>${i18n_hueRotate}</label>
-            <span id="hueValue" class="filter-value">0deg</span>
-          </div>
-          <input type="range" id="hueSlider" min="0" max="360" value="0" oninput="updateFilters()"${filtersDisabled}>
-        </div>
-        <div class="filter-control">
-          <div class="filter-header">
-            <label>${i18n_saturation}</label>
-            <span id="saturationValue" class="filter-value">100%</span>
-          </div>
-          <input type="range" id="saturationSlider" min="0" max="200" value="100" oninput="updateFilters()"${filtersDisabled}>
-        </div>
-        <div class="filter-control">
-          <div class="filter-header">
-            <label>${i18n_brightness}</label>
-            <span id="brightnessValue" class="filter-value">100%</span>
-          </div>
-          <input type="range" id="brightnessSlider" min="0" max="200" value="100" oninput="updateFilters()"${filtersDisabled}>
-        </div>
-      </div>
+    <div class="color-swatches horizontal${swatchesDisabledClass}" id="colorSwatches">
+      ${currentColorHtml}
+      ${colorSwatches}
     </div>
   </div>
 
-  <!-- Right Column: Variants -->
+  <!-- Variants Section - Full Width -->
   <div class="section">
     <div class="section-title">
       <span class="codicon codicon-symbol-color"></span> ${i18n_variants}
@@ -61,8 +22,44 @@
         </button>
       </div>
     </div>
-    <div class="Variants-container" id="VariantsContainer">
+    <div class="Variants-container horizontal" id="VariantsContainer">
       ${variantsHtml}
+    </div>
+  </div>
+
+  <!-- Filters Section - Full Width, Inline Controls -->
+  <div class="section${filtersDisabledClass}">
+    <div class="section-title">
+      <span class="codicon codicon-settings"></span> ${i18n_globalFilters}
+      ${filtersHint}
+      <div class="variants-actions">
+        <button class="reset-filters-btn" onclick="resetFilters()" title="${i18n_resetFilters}"${filtersDisabled}>
+          <span class="codicon codicon-refresh"></span> ${i18n_reset}
+        </button>
+      </div>
+    </div>
+    <div class="filters-container inline${filtersContainerDisabledClass}">
+      <div class="filter-control">
+        <div class="filter-header">
+          <label>${i18n_hueRotate}</label>
+          <span id="hueValue" class="filter-value">0deg</span>
+        </div>
+        <input type="range" id="hueSlider" min="0" max="360" value="0" oninput="updateFilters()"${filtersDisabled}>
+      </div>
+      <div class="filter-control">
+        <div class="filter-header">
+          <label>${i18n_saturation}</label>
+          <span id="saturationValue" class="filter-value">100%</span>
+        </div>
+        <input type="range" id="saturationSlider" min="0" max="200" value="100" oninput="updateFilters()"${filtersDisabled}>
+      </div>
+      <div class="filter-control">
+        <div class="filter-header">
+          <label>${i18n_brightness}</label>
+          <span id="brightnessValue" class="filter-value">100%</span>
+        </div>
+        <input type="range" id="brightnessSlider" min="0" max="200" value="100" oninput="updateFilters()"${filtersDisabled}>
+      </div>
     </div>
   </div>
 </div>

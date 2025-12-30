@@ -449,7 +449,7 @@ ${animationRule}`;
   /**
    * Generate HTML for usage code section
    */
-  generateUsageCodeHtml(iconName: string, animationType?: string, tagName: string = 'bz-icon'): string {
+  generateUsageCodeHtml(iconName: string, animationType?: string, tagName: string = 'sg-icon'): string {
     const lines: string[] = [
       `<!-- Web Component -->`,
       `<${tagName} name="${iconName}"${animationType && animationType !== 'none' ? ` animation="${animationType}"` : ''}></${tagName}>`,

@@ -44,6 +44,12 @@
       vscode.postMessage({ command: 'copySvg', svg: svg?.outerHTML });
     }
     
+    function copyColor(color) {
+      navigator.clipboard.writeText(color).then(() => {
+        vscode.postMessage({ command: 'showMessage', message: `Copied: ${color}` });
+      });
+    }
+    
     function openEditor() {
       vscode.postMessage({ command: 'openEditor' });
     }

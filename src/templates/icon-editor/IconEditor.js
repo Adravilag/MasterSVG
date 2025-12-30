@@ -1110,10 +1110,10 @@
       animationSettings[setting] = value;
       
       if (setting === 'duration') {
-        document.getElementById('animDurationValue').textContent = value + 's';
+        document.getElementById('durationValue').textContent = value + 's';
       }
       if (setting === 'delay') {
-        document.getElementById('animDelayValue').textContent = value + 's';
+        document.getElementById('delayValue').textContent = value + 's';
       }
       
       updateAnimationPreview();

@@ -41,7 +41,7 @@
   "command.buildAllFiles": "构建所有 SVG 文件",
   "command.cleanSprite": "Icon Studio: 清理雪碧图 (移除无效条目)",
   "config.title": "Icon Studio",
-  "config.language.description": "IconWrap 界面语言。设置为 'auto' 使用系统语言。",
+  "config.language.description": "Icon Studio 界面语言。设置为 'auto' 使用系统语言。",
   "config.language.auto": "自动检测系统语言",
   "config.language.en": "English",
   "config.language.es": "Español (Spanish)",

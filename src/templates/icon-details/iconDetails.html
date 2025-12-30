@@ -71,7 +71,9 @@
               </div>
             ` : ''}
             ${svgColors.length > 0 ? svgColors.map(color => `
-              <div class="color-swatch-view" style="background-color: ${color}" title="${color}"></div>
+              <div class="color-swatch-view" style="background-color: ${color}" title="Click to copy: ${color}" onclick="copyColor('${color}')">
+                <span class="color-tooltip">${color}</span>
+              </div>
             `).join('') : (!hasCurrentColor ? '<span class="no-colors">No colors detected</span>' : '')}
           </div>
           `}
@@ -80,51 +82,47 @@
       
       <div class="details-section">
         <h2>Properties</h2>
+        
+        <!-- Compact Stats Row -->
+        <div class="stats-row">
+          <div class="stat-item">
+            <span class="stat-value">${viewBox}</span>
+            <span class="stat-label">viewBox</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-value" id="fileSize">${fileSizeStr}</span>
+            <span class="stat-label">Size</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-value">${totalElements}</span>
+            <span class="stat-label">Elements</span>
+          </div>
+        </div>
+        
+        <!-- Details Grid -->
         <div class="details-grid">
           <div class="detail-card">
             <div class="detail-label">
-              <span class="codicon codicon-symbol-ruler"></span> viewBox
+              <span class="codicon codicon-symbol-class"></span> Elements Breakdown
             </div>
-            <div class="detail-value">${viewBox}</div>
-          </div>
-          
-          ${dimensions ? `
-          <div class="detail-card">
-            <div class="detail-label">
-              <span class="codicon codicon-screen-full"></span> Dimensions
-            </div>
-            <div class="detail-value">${dimensions}</div>
-          </div>
-          ` : ''}
-          
-          <div class="detail-card">
-            <div class="detail-label">
-              <span class="codicon codicon-file-code"></span> File Size
-            </div>
-            <div class="detail-value" id="fileSize">${fileSizeStr}</div>
-          </div>
-          
-          <div class="detail-card">
-            <div class="detail-label">
-              <span class="codicon codicon-symbol-class"></span> Elements
-            </div>
-            <div class="detail-value">${totalElements}</div>
             <div class="detail-sub">${elementsStr}</div>
           </div>
           
-          ${features.length > 0 ? `
-          <div class="detail-card" style="grid-column: span 2">
+          <div class="detail-card">
             <div class="detail-label">
               <span class="codicon codicon-extensions"></span> Features
             </div>
+            ${features.length > 0 ? `
             <div class="features">
-              ${features.map(f => `<span class="feature-tag">${f}</span>`).join('')}
+              ${features.map(f => `<span class="feature-tag" data-feature="${f}">${f}</span>`).join('')}
             </div>
+            ` : `<div class="detail-value muted">None detected</div>`}
           </div>
-          ` : ''}
           
           ${location ? `
-          <div class="detail-card clickable" style="grid-column: span 2" onclick="goToLocation()">
+          <div class="detail-card clickable location-card" onclick="goToLocation()">
             <div class="detail-label">
               <span class="codicon codicon-go-to-file"></span> Source Location
             </div>

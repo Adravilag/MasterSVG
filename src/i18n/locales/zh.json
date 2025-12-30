@@ -1,11 +1,11 @@
 {
   "extension": {
-    "name": "IconWrap",
+    "name": "Icon Studio",
     "description": "VS Code 的 SVG 图标管理器",
-    "appTitle": "Bezier SVG"
+    "appTitle": "Icon Studio"
   },
   "welcome": {
-    "title": "欢迎使用 IconWrap",
+    "title": "欢迎使用 Icon Studio",
     "subtitle": "您的 SVG 图标管理解决方案",
     "getStarted": "开始使用",
     "configuration": "配置",
@@ -41,7 +41,11 @@
     "setupComplete": "设置完成！",
     "filesCreated": "文件已创建在 {path}",
     "spriteCreated": "精灵图已创建在 {path}",
-    "errorCreatingFiles": "创建文件时出错"
+    "errorCreatingFiles": "创建文件时出错",
+    "previewResult": "结果",
+    "workflowSource": "源文件",
+    "workflowBuild": "构建",
+    "workflowOutput": "输出"
   },
   "features": {
     "iconManagement": "图标管理",
@@ -290,9 +294,9 @@
     "errorUpdatingPath": "更新路径时出错：{error}",
     "failedToFetchIcon": "获取图标 SVG 失败",
     "failedToFetchIconError": "获取图标失败：{error}",
-    "iconAddedToFormat": "✅ 图标 \"{name}\" 已添加到 {format}！",
+    "iconAddedToFormat": "图标 \"{name}\" 已添加到 {format}！",
     "failedToAddIcon": "添加图标失败：{error}",
-    "iconImportedToFormat": "✅ 图标 \"{name}\" 已导入到 {format}！",
+    "iconImportedToFormat": "图标 \"{name}\" 已导入到 {format}！",
     "updatedFile": "已更新 {path}",
     "copiedNameToClipboard": "\"{name}\" 已复制到剪贴板",
     "svgAlreadyOptimized": "SVG 已经是最优化的",

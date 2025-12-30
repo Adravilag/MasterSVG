@@ -23,6 +23,14 @@ export interface TransformOptions {
   line: number;
   /** Original HTML to replace */
   originalHtml: string;
+  /** Whether this is an inline SVG */
+  isInlineSvg?: boolean;
+  /** The inline SVG content */
+  svgContent?: string;
+  /** Start offset for multi-line replacement */
+  startOffset?: number;
+  /** End offset for multi-line replacement */
+  endOffset?: number;
 }
 
 /**
@@ -48,7 +56,7 @@ export class SvgToIconCodeActionProvider implements vscode.CodeActionProvider {
 
     console.log('[IconManager] provideCodeActions called for line:', lineText);
 
-    // Pattern: <img src="...svg" /> - support both <img src and <img  src (multiple spaces)
+    // Pattern 1: <img src="...svg" /> - support both <img src and <img  src (multiple spaces)
     const imgSvgPattern = /<img\s+[^>]*src=["']([^"']*\.svg)["'][^>]*>/gi;
     
     let match;
@@ -63,7 +71,156 @@ export class SvgToIconCodeActionProvider implements vscode.CodeActionProvider {
       return [this.createTransformAction(document, svgPath, iconName, fullMatch, range.start.line)];
     }
 
+    // Pattern 2: Inline <svg> - detect SVG opening tag
+    if (lineText.includes('<svg')) {
+      const inlineSvgAction = this.detectInlineSvg(document, range.start.line);
+      if (inlineSvgAction) {
+        return [inlineSvgAction];
+      }
+    }
+
     return undefined;
+  }
+
+  /**
+   * Detect and extract inline SVG from document
+   */
+  private detectInlineSvg(document: vscode.TextDocument, startLine: number): vscode.CodeAction | undefined {
+    const text = document.getText();
+    const lineStartOffset = document.offsetAt(new vscode.Position(startLine, 0));
+    
+    // Find the <svg that contains the cursor position
+    const textFromLine = text.substring(lineStartOffset);
+    const svgStartMatch = textFromLine.match(/<svg[^>]*>/i);
+    
+    if (!svgStartMatch) {
+      return undefined;
+    }
+
+    const svgStartIndex = lineStartOffset + svgStartMatch.index!;
+    
+    // Find the closing </svg> tag
+    let depth = 1;
+    let searchIndex = svgStartIndex + svgStartMatch[0].length;
+    
+    while (depth > 0 && searchIndex < text.length) {
+      const openTag = text.indexOf('<svg', searchIndex);
+      const closeTag = text.indexOf('</svg>', searchIndex);
+      
+      if (closeTag === -1) {
+        return undefined; // No closing tag found
+      }
+      
+      if (openTag !== -1 && openTag < closeTag) {
+        depth++;
+        searchIndex = openTag + 4;
+      } else {
+        depth--;
+        if (depth === 0) {
+          const svgEndIndex = closeTag + 6;
+          const svgContent = text.substring(svgStartIndex, svgEndIndex);
+          
+          // Generate icon name from nearby context or use generic name
+          const iconName = this.suggestIconName(document, startLine, svgContent);
+          
+          return this.createInlineSvgAction(document, svgContent, iconName, startLine, svgStartIndex, svgEndIndex);
+        }
+        searchIndex = closeTag + 6;
+      }
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Suggest a name for inline SVG based on context
+   */
+  private suggestIconName(document: vscode.TextDocument, line: number, svgContent: string): string {
+    // Try to extract from id attribute
+    const idMatch = svgContent.match(/id=["']([^"']+)["']/);
+    if (idMatch) {
+      return this.cleanIconName(idMatch[1]);
+    }
+
+    // Try to extract from aria-label
+    const ariaMatch = svgContent.match(/aria-label=["']([^"']+)["']/);
+    if (ariaMatch) {
+      return this.cleanIconName(ariaMatch[1]);
+    }
+
+    // Try to find class name that looks like an icon name
+    const classMatch = svgContent.match(/class=["'][^"']*icon[- ]?([a-zA-Z0-9-_]+)/i);
+    if (classMatch) {
+      return this.cleanIconName(classMatch[1]);
+    }
+
+    // Look at surrounding context (comments, variable names)
+    if (line > 0) {
+      const prevLine = document.lineAt(line - 1).text;
+      const commentMatch = prevLine.match(/<!--\s*([^-]+)\s*-->/);
+      if (commentMatch) {
+        return this.cleanIconName(commentMatch[1].trim());
+      }
+    }
+
+    // Default name with line number
+    return `inline-icon-${line + 1}`;
+  }
+
+  /**
+   * Clean a string to be a valid icon name
+   */
+  private cleanIconName(name: string): string {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      .substring(0, 50) || 'icon';
+  }
+
+  /**
+   * Create action for inline SVG transformation
+   */
+  private createInlineSvgAction(
+    document: vscode.TextDocument,
+    svgContent: string,
+    iconName: string,
+    line: number,
+    startOffset: number,
+    endOffset: number
+  ): vscode.CodeAction {
+    const config = getConfig();
+    const buildFormat = config.buildFormat || 'icons.ts';
+    const isSprite = buildFormat === 'sprite.svg';
+    const formatLabel = isSprite ? t('ui.labels.svgSprite') : t('ui.labels.webComponentJs');
+    
+    const action = new vscode.CodeAction(
+      t('messages.extractInlineSvg', { name: iconName }) || `Extract inline SVG as "${iconName}"`,
+      vscode.CodeActionKind.Refactor
+    );
+
+    // Get the original HTML for replacement
+    const originalHtml = document.getText().substring(startOffset, endOffset);
+
+    const options: TransformOptions = {
+      originalPath: '',
+      iconName,
+      documentUri: document.uri.fsPath,
+      line,
+      originalHtml,
+      isInlineSvg: true,
+      svgContent,
+      startOffset,
+      endOffset
+    };
+
+    action.command = {
+      command: 'iconManager.transformSvgReference',
+      title: t('commands.transformSvg'),
+      arguments: [options]
+    };
+
+    return action;
   }
 
   /**
@@ -176,7 +333,7 @@ export class SvgImgDiagnosticProvider {
 /**
  * Code Action Provider for missing icons in web components
  * 
- * Detects: <bz-icon name="missing-icon"> where icon doesn't exist
+ * Detects: <sg-icon name="missing-icon"> where icon doesn't exist
  * Offers: Import from Iconify or file
  */
 export class MissingIconCodeActionProvider implements vscode.CodeActionProvider {
@@ -193,7 +350,7 @@ export class MissingIconCodeActionProvider implements vscode.CodeActionProvider 
     _token: vscode.CancellationToken
   ): vscode.CodeAction[] | undefined {
     const config = getConfig();
-    const componentName = config.webComponentName || 'bz-icon';
+    const componentName = config.webComponentName || 'sg-icon';
 
     const line = document.lineAt(range.start.line);
     const lineText = line.text;

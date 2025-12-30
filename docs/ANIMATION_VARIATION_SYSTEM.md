@@ -121,7 +121,7 @@ animation-name:variant1:variant2:variant3
 ┌─────────────────────────────────────────────────────────────┐
 │                     Icon Elements                            │
 ├───────────────┬────────────────┬───────────────┬────────────┤
-│  <svg>        │  <svg><use>    │  <img>        │ <bz-icon>  │
+│  <svg>        │  <svg><use>    │  <img>        │ <sg-icon>  │
 │  inline       │  sprite ref    │  external     │ web comp   │
 │               │                │               │            │
 │  id="icon-x"  │  href="#icon"  │  data-bz-*    │ name="x"   │
@@ -142,7 +142,7 @@ animation-name:variant1:variant2:variant3
 ### SVG Sprite Reference
 
 ```html
-<svg class="bz-icon bz-size-md bz-color-primary" data-bz-icon-id="arrow-right">
+<svg class="sg-icon bz-size-md bz-color-primary" data-sg-icon-id="arrow-right">
   <use href="sprite.svg#arrow-right"></use>
 </svg>
 ```
@@ -151,20 +151,20 @@ animation-name:variant1:variant2:variant3
 
 ```html
 <img src="icons/check.svg" 
-     class="bz-icon bz-size-lg" 
-     data-bz-icon-id="check"
+     class="sg-icon bz-size-lg" 
+     data-sg-icon-id="check"
      data-bz-animation="zoom-in">
 ```
 
-### Web Component (bz-icon)
+### Web Component (sg-icon)
 
 ```html
-<bz-icon 
+<sg-icon 
   name="heart" 
   size="md" 
   color="error" 
   animation="heartbeat">
-</bz-icon>
+</sg-icon>
 ```
 
 ## API de animation.bz.js

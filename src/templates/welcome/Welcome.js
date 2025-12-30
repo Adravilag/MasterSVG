@@ -6,6 +6,7 @@ const helpClosedText = '${helpClosedText}';
 function setSourceDirectory(dir) {
   document.getElementById('sourceDir').value = dir;
   vscode.postMessage({ command: 'setSourceDirectory', directory: dir });
+  showApplySuccess('sourceDir');
 }
 
 function chooseSourceFolder() {
@@ -13,9 +14,11 @@ function chooseSourceFolder() {
 }
 
 function applyCustomSourcePath() {
-  const dir = document.getElementById('sourceDir').value.trim();
+  const input = document.getElementById('sourceDir');
+  const dir = input.value.trim();
   if (dir) {
     vscode.postMessage({ command: 'setSourceDirectory', directory: dir });
+    showApplySuccess('sourceDir');
   }
 }
 
@@ -29,6 +32,7 @@ function handleSourcePathKeypress(event) {
 function setDirectory(dir) {
   document.getElementById('outputDir').value = dir;
   vscode.postMessage({ command: 'setOutputDirectory', directory: dir });
+  showApplySuccess('outputDir');
 }
 
 function chooseFolder() {
@@ -36,9 +40,11 @@ function chooseFolder() {
 }
 
 function applyCustomPath() {
-  const dir = document.getElementById('outputDir').value.trim();
+  const input = document.getElementById('outputDir');
+  const dir = input.value.trim();
   if (dir) {
     vscode.postMessage({ command: 'setOutputDirectory', directory: dir });
+    showApplySuccess('outputDir');
   }
 }
 
@@ -50,6 +56,7 @@ function handlePathKeypress(event) {
 
 function setBuildFormat(format) {
   vscode.postMessage({ command: 'setBuildFormat', format: format });
+  // Visual feedback for format cards is handled by CSS :active and page refresh
 }
 
 function setLanguage(lang) {
@@ -57,9 +64,13 @@ function setLanguage(lang) {
 }
 
 function applyWebComponentName() {
-  const name = document.getElementById('webComponentName').value.trim();
+  const input = document.getElementById('webComponentName');
+  const name = input.value.trim();
   if (name && name.includes('-')) {
     vscode.postMessage({ command: 'setWebComponentName', name: name });
+    showApplySuccess('webComponentName');
+  } else if (name && !name.includes('-')) {
+    showApplyError('webComponentName');
   }
 }
 
@@ -67,6 +78,45 @@ function handleTagKeypress(event) {
   if (event.key === 'Enter') {
     applyWebComponentName();
   }
+}
+
+// Visual feedback functions
+function showApplySuccess(inputId) {
+  const input = document.getElementById(inputId);
+  const button = input.parentElement.querySelector('button');
+  
+  // Add success class to input
+  input.classList.add('input-success');
+  if (button) {
+    button.classList.add('btn-success');
+  }
+  
+  // Remove after animation
+  setTimeout(() => {
+    input.classList.remove('input-success');
+    if (button) {
+      button.classList.remove('btn-success');
+    }
+  }, 1500);
+}
+
+function showApplyError(inputId) {
+  const input = document.getElementById(inputId);
+  const button = input.parentElement.querySelector('button');
+  
+  // Add error class to input
+  input.classList.add('input-error');
+  if (button) {
+    button.classList.add('btn-error');
+  }
+  
+  // Remove after animation
+  setTimeout(() => {
+    input.classList.remove('input-error');
+    if (button) {
+      button.classList.remove('btn-error');
+    }
+  }, 1500);
 }
 
 function toggleHelp() {
@@ -90,4 +140,31 @@ function searchIcons() {
 
 function close() {
   vscode.postMessage({ command: 'close' });
+}
+
+// Advanced Options
+function toggleAdvanced() {
+  const content = document.getElementById('advancedContent');
+  const arrow = document.getElementById('advancedArrow');
+  content.classList.toggle('show');
+  arrow.classList.toggle('open');
+}
+
+function setSvgoOptimize(checked) {
+  vscode.postMessage({ command: 'setSvgoOptimize', value: checked });
+}
+
+function setScanOnStartup(checked) {
+  vscode.postMessage({ command: 'setScanOnStartup', value: checked });
+}
+
+function setDefaultIconSize(value) {
+  const size = parseInt(value, 10);
+  if (size >= 8 && size <= 512) {
+    vscode.postMessage({ command: 'setDefaultIconSize', value: size });
+  }
+}
+
+function setPreviewBackground(value) {
+  vscode.postMessage({ command: 'setPreviewBackground', value: value });
 }

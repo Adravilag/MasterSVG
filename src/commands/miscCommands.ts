@@ -49,30 +49,45 @@ export function registerMiscCommands(
 
   // Command: Transform SVG reference to web component (unified flow)
   const transformSvgReferenceCmd = vscode.commands.registerCommand('iconManager.transformSvgReference', async (options: TransformOptions) => {
-    const { originalPath, iconName, documentUri, line, originalHtml } = options;
+    const { originalPath, iconName, documentUri, line, originalHtml, isInlineSvg, svgContent: inlineSvgContent } = options;
     const docDir = path.dirname(documentUri);
     const config = getConfig();
     const isSprite = config.buildFormat === 'sprite.svg';
-    const componentName = config.webComponentName || 'bz-icon';
+    const componentName = config.webComponentName || 'sg-icon';
 
-    // Show source selection menu
-    const sourceChoice = await vscode.window.showQuickPick([
+    // Build different menu options based on whether it's inline SVG or img reference
+    const menuOptions = [
       { 
         label: `$(cloud-download) ${t('ui.labels.searchInIconify')}`, 
         description: t('ui.labels.findBuildIconify'),
         value: 'iconify' 
-      },
-      { 
+      }
+    ];
+
+    if (isInlineSvg) {
+      // For inline SVG, offer to use the current SVG content
+      menuOptions.push({ 
+        label: `$(file-code) ${t('ui.labels.useInlineSvg') || 'Use this inline SVG'}`, 
+        description: t('ui.labels.extractAndBuild') || 'Extract and build as icon',
+        value: 'current' 
+      });
+    } else {
+      // For img reference, offer to use the referenced file
+      menuOptions.push({ 
         label: `$(file-media) ${t('ui.labels.useReferencedSvg')}`, 
         description: `Build from: ${originalPath}`,
         value: 'current' 
-      },
-      { 
-        label: `$(library) ${t('ui.labels.browseBuiltIcons')}`, 
-        description: t('ui.labels.selectIconFromLibrary'),
-        value: 'built' 
-      }
-    ], {
+      });
+    }
+
+    menuOptions.push({ 
+      label: `$(library) ${t('ui.labels.browseBuiltIcons')}`, 
+      description: t('ui.labels.selectIconFromLibrary'),
+      value: 'built' 
+    });
+
+    // Show source selection menu
+    const sourceChoice = await vscode.window.showQuickPick(menuOptions, {
       placeHolder: `Transform to ${isSprite ? 'SVG Sprite' : 'Web Component'} - Select icon source`,
       title: `🔄 Transform: ${iconName}`
     });
@@ -104,16 +119,32 @@ export function registerMiscCommands(
       finalIconName = selectedIcon.name;
 
     } else if (sourceChoice.value === 'current') {
-      const fullSvgPath = path.isAbsolute(originalPath) ? originalPath : path.resolve(docDir, originalPath);
-      if (!fs.existsSync(fullSvgPath)) {
-        vscode.window.showErrorMessage(t('messages.svgFileNotFound', { path: originalPath }));
-        return;
-      }
+      if (isInlineSvg && inlineSvgContent) {
+        // Use the inline SVG content directly
+        svgContent = inlineSvgContent;
+        
+        // Ask for icon name
+        const newName = await vscode.window.showInputBox({
+          prompt: t('ui.prompts.enterIconName') || 'Enter a name for this icon',
+          value: finalIconName,
+          placeHolder: t('ui.placeholders.iconName') || 'icon-name'
+        });
+        if (!newName) return;
+        finalIconName = newName;
+        
+      } else {
+        // Load from file path
+        const fullSvgPath = path.isAbsolute(originalPath) ? originalPath : path.resolve(docDir, originalPath);
+        if (!fs.existsSync(fullSvgPath)) {
+          vscode.window.showErrorMessage(t('messages.svgFileNotFound', { path: originalPath }));
+          return;
+        }
 
-      svgContent = fs.readFileSync(fullSvgPath, 'utf-8');
-      const deleteOriginal = await showDeleteOriginalPrompt();
-      if (deleteOriginal) {
-        try { fs.unlinkSync(fullSvgPath); } catch (e) { console.error('Failed to delete:', e); }
+        svgContent = fs.readFileSync(fullSvgPath, 'utf-8');
+        const deleteOriginal = await showDeleteOriginalPrompt();
+        if (deleteOriginal) {
+          try { fs.unlinkSync(fullSvgPath); } catch (e) { console.error('Failed to delete:', e); }
+        }
       }
 
     } else if (sourceChoice.value === 'built') {
@@ -155,16 +186,25 @@ export function registerMiscCommands(
     // Replace in document
     try {
       const document = await vscode.workspace.openTextDocument(documentUri);
-      const lineText = document.lineAt(line).text;
       const replacement = generateReplacement(finalIconName, document.languageId);
-      const newText = lineText.replace(originalHtml, replacement);
+      const edit = new vscode.WorkspaceEdit();
       
-      if (newText !== lineText) {
-        const edit = new vscode.WorkspaceEdit();
-        edit.replace(document.uri, new vscode.Range(line, 0, line, lineText.length), newText);
-        await vscode.workspace.applyEdit(edit);
+      if (isInlineSvg && options.startOffset !== undefined && options.endOffset !== undefined) {
+        // For inline SVG, use offsets for multi-line replacement
+        const startPos = document.positionAt(options.startOffset);
+        const endPos = document.positionAt(options.endOffset);
+        edit.replace(document.uri, new vscode.Range(startPos, endPos), replacement);
+      } else {
+        // For single line (img reference)
+        const lineText = document.lineAt(line).text;
+        const newText = lineText.replace(originalHtml, replacement);
+        
+        if (newText !== lineText) {
+          edit.replace(document.uri, new vscode.Range(line, 0, line, lineText.length), newText);
+        }
       }
-
+      
+      await vscode.workspace.applyEdit(edit);
       await checkScriptImport(document, documentUri);
     } catch (e) {
       console.error('Failed to replace in document:', e);

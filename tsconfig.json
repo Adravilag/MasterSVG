@@ -4,7 +4,7 @@
     "target": "ES2022",
     "lib": ["ES2022"],
     "outDir": "out",
-    "rootDir": ".",
+    "rootDir": "src",
     "sourceMap": true,
     "strict": true,
     "esModuleInterop": true,
@@ -12,6 +12,6 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
-  "include": ["src/**/*", "l10n/**/*.json"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "out"]
 }

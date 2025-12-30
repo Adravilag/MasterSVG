@@ -240,7 +240,7 @@ export class IconDetailsPanel {
       ? `<div class="colors-warning"><span class="codicon codicon-warning"></span><span>${t('webview.details.colorsWarning').replace('{count}', String(totalColorCount))}</span></div>`
       : `<div class="color-swatches" id="colorSwatches">
           ${hasCurrentColor ? `<div class="current-color-info"><span class="codicon codicon-paintcan"></span><span>${t('webview.details.usesCurrentColor')}</span><span class="color-hint">(${t('webview.details.inheritsFromCss')})</span></div>` : ''}
-          ${svgColors.length > 0 ? svgColors.map(color => `<div class="color-swatch-view" style="background-color: ${color}" title="${color}"></div>`).join('') : (!hasCurrentColor ? `<span class="no-colors">${t('webview.details.noColorsDetected')}</span>` : '')}
+          ${svgColors.length > 0 ? svgColors.map(color => `<div class="color-swatch-view" style="background-color: ${color}" title="Click to copy: ${color}" onclick="copyColor('${color}')"><span class="color-tooltip">${color}</span></div>`).join('') : (!hasCurrentColor ? `<span class="no-colors">${t('webview.details.noColorsDetected')}</span>` : '')}
         </div>`;
 
     const dimensionsHtml = dimensions 
@@ -248,11 +248,11 @@ export class IconDetailsPanel {
       : '';
 
     const featuresHtml = features.length > 0 
-      ? `<div class="detail-card" style="grid-column: span 2"><div class="detail-label"><span class="codicon codicon-extensions"></span> ${t('webview.details.features')}</div><div class="features">${features.map(f => `<span class="feature-tag">${f}</span>`).join('')}</div></div>` 
+      ? `<div class="detail-card"><div class="detail-label"><span class="codicon codicon-extensions"></span> ${t('webview.details.features')}</div><div class="features">${features.map(f => `<span class="feature-tag" data-feature="${f}">${f}</span>`).join('')}</div></div>` 
       : '';
 
     const locationCardHtml = location 
-      ? `<div class="detail-card clickable" style="grid-column: span 2" onclick="goToLocation()"><div class="detail-label"><span class="codicon codicon-go-to-file"></span> ${t('webview.details.sourceLocation')}</div><div class="detail-value">${fileName}:${location.line}</div><div class="detail-sub">${location.file}</div></div>` 
+      ? `<div class="detail-card clickable location-card" onclick="goToLocation()"><div class="detail-label"><span class="codicon codicon-go-to-file"></span> ${t('webview.details.sourceLocation')}</div><div class="detail-value">${fileName}:${location.line}</div><div class="detail-sub">${location.file}</div></div>` 
       : '';
 
     const variantsContentHtml = hasMoreColors 
@@ -306,19 +306,28 @@ export class IconDetailsPanel {
       
       <div class="details-section">
         <h2>${t('webview.details.properties')}</h2>
+        
+        <!-- Compact Stats Row -->
+        <div class="stats-row">
+          <div class="stat-item">
+            <span class="stat-value">${viewBox}</span>
+            <span class="stat-label">viewBox</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-value" id="fileSize">${fileSizeStr}</span>
+            <span class="stat-label">Size</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-value">${totalElements}</span>
+            <span class="stat-label">Elements</span>
+          </div>
+        </div>
+        
         <div class="details-grid">
           <div class="detail-card">
-            <div class="detail-label"><span class="codicon codicon-symbol-ruler"></span> ${t('webview.details.viewBox')}</div>
-            <div class="detail-value">${viewBox}</div>
-          </div>
-          ${dimensionsHtml}
-          <div class="detail-card">
-            <div class="detail-label"><span class="codicon codicon-file-code"></span> ${t('webview.details.fileSize')}</div>
-            <div class="detail-value" id="fileSize">${fileSizeStr}</div>
-          </div>
-          <div class="detail-card">
-            <div class="detail-label"><span class="codicon codicon-symbol-class"></span> ${t('webview.details.elements')}</div>
-            <div class="detail-value">${totalElements}</div>
+            <div class="detail-label"><span class="codicon codicon-symbol-class"></span> ${t('webview.details.elementsBreakdown') || 'Elements Breakdown'}</div>
             <div class="detail-sub">${elementsStr}</div>
           </div>
           ${featuresHtml}

@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { WorkspaceIcon, IconAnimation } from '../types/icons';
-import { getSvgConfig } from '../utils/config';
+import { getSvgConfig, isFullyConfigured } from '../utils/config';
 import { SvgItem } from './SvgItem';
 import type { WorkspaceSvgProvider } from './WorkspaceSvgProvider';
 import { t } from '../i18n';
@@ -20,7 +20,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
   private isInitialized = false;
   private isScanning = false;
 
-  constructor(private workspaceProvider: WorkspaceSvgProvider) {}
+  constructor(private workspaceProvider: WorkspaceSvgProvider) { }
 
   refresh(): void {
     this.builtIcons.clear();
@@ -103,11 +103,11 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
       svg: svg,
       isBuilt: true
     };
-    
+
     // Add to caches
     this.builtIcons.set(iconName, newIcon);
     this.jsIcons.add(iconName);
-    
+
     // Get the icons.js container item from cache and refresh only that
     const containerItem = this.itemCache.get('built:icons.js');
     if (containerItem) {
@@ -132,7 +132,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
     // Remove from caches
     this.builtIcons.delete(iconName);
     this.jsIcons.delete(iconName);
-    
+
     // Get the icons.js container item from cache and refresh only that
     const containerItem = this.itemCache.get('built:icons.js');
     if (containerItem) {
@@ -278,21 +278,21 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
     try {
       const content = fs.readFileSync(filePath, 'utf-8');
       console.log('[Icon Studio] BuiltIconsProvider: Parsing file', filePath);
-      
+
       // Pattern for: export const iconName = { name: '...', body: `...`, viewBox: '...', animation?: {...} }
       const iconPattern = /export\s+const\s+(\w+)\s*=\s*\{\s*name:\s*['"]([^'"]+)['"]\s*,\s*body:\s*`([^`]*)`\s*,\s*viewBox:\s*['"]([^'"]+)['"](?:\s*,\s*animation:\s*\{([^}]*)\})?\s*\}/g;
       let match;
-      
+
       while ((match = iconPattern.exec(content)) !== null) {
         const varName = match[1];
         const iconName = match[2];
         const body = match[3];
         const viewBox = match[4];
         const animationStr = match[5];
-        
+
         // Reconstruct full SVG
         const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${body}</svg>`;
-        
+
         // Parse animation if present
         let animation: IconAnimation | undefined;
         if (animationStr) {
@@ -303,7 +303,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
             const iterationMatch = animationStr.match(/iteration:\s*['"]([^'"]+)['"]/);
             const delayMatch = animationStr.match(/delay:\s*([\d.]+)/);
             const directionMatch = animationStr.match(/direction:\s*['"]([^'"]+)['"]/);
-            
+
             if (typeMatch) {
               animation = {
                 type: typeMatch[1],
@@ -318,9 +318,9 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
             console.warn('[Icon Studio] BuiltIconsProvider: Failed to parse animation for', iconName);
           }
         }
-        
+
         console.log('[Icon Studio] BuiltIconsProvider: Found icon:', iconName, animation ? `with animation: ${animation.type}` : '');
-        
+
         this.builtIcons.set(iconName, {
           name: iconName,
           path: filePath,
@@ -346,6 +346,27 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
   }
 
   async getChildren(element?: SvgItem): Promise<SvgItem[]> {
+    // Check if extension is fully configured first
+    if (!isFullyConfigured()) {
+      if (!element) {
+        const setupItem = new SvgItem(
+          t('treeView.configureFirst'),
+          0,
+          vscode.TreeItemCollapsibleState.None,
+          'action',
+          undefined,
+          'configure'
+        );
+        setupItem.command = {
+          command: 'iconManager.showWelcome',
+          title: t('commands.openSetup')
+        };
+        setupItem.iconPath = new vscode.ThemeIcon('gear');
+        return [setupItem];
+      }
+      return [];
+    }
+
     await this.ensureInitialized();
 
     if (element) {
@@ -360,11 +381,11 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
       // Check if output directory is configured
       const config = vscode.workspace.getConfiguration('iconManager');
       const outputDir = config.get<string>('outputDirectory', '');
-      
+
       if (!outputDir) {
         // Not configured - show setup message
         const setupItem = new SvgItem(
-          '⚙️ ' + t('treeView.configureFirst'),
+          t('treeView.configureFirst'),
           0,
           vscode.TreeItemCollapsibleState.None,
           'action',
@@ -378,7 +399,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
         setupItem.tooltip = t('messages.clickToConfigureOutput');
         return [setupItem];
       }
-      
+
       return [new SvgItem(
         t('treeView.noBuiltIcons'),
         0,

@@ -41,7 +41,7 @@
   "command.buildAllFiles": "Собрать все SVG файлы",
   "command.cleanSprite": "Icon Studio: Очистить спрайт (удалить недействительные записи)",
   "config.title": "Icon Studio",
-  "config.language.description": "Язык интерфейса IconWrap. Установите 'auto' для автоматического определения.",
+  "config.language.description": "Язык интерфейса Icon Studio. Установите 'auto' для автоматического определения.",
   "config.language.auto": "Автоопределение языка системы",
   "config.language.en": "English",
   "config.language.es": "Español (Spanish)",

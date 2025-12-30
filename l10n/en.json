@@ -2,7 +2,7 @@
   "extension": {
     "name": "Icon Studio",
     "description": "SVG Icon Manager for VS Code",
-    "appTitle": "Bezier SVG"
+    "appTitle": "Icon Studio"
   },
   "welcome": {
     "title": "Welcome to Icon Studio",
@@ -43,7 +43,19 @@
     "setupComplete": "Setup complete!",
     "filesCreated": "Files created in {path}",
     "spriteCreated": "Sprite created in {path}",
-    "errorCreatingFiles": "Error creating files"
+    "errorCreatingFiles": "Error creating files",
+    "previewResult": "Result",
+    "workflowSource": "Source",
+    "workflowBuild": "Build",
+    "workflowOutput": "Output",
+    "comingSoon": "Coming Soon",
+    "selectFormat": "Select format...",    "selectFormatFirst": "Select an output format to see the preview",    "buildFirstMessage": "Build icons first to see preview",
+    "advancedOptions": "Advanced Options",
+    "svgoOptimize": "SVGO Optimization",
+    "scanOnStartup": "Scan on Startup",
+    "defaultIconSize": "Default Icon Size",
+    "previewBackground": "Preview Background",
+    "allSettings": "All Settings..."
   },
   "features": {
     "iconManagement": "Icon Management",
@@ -64,7 +76,7 @@
     "preview": "Preview",
     "noIcons": "No icons found",
     "scanWorkspace": "Scan workspace for SVG files",
-    "configureFirst": "Configure Icon Manager",
+    "configureFirst": "Configure Icon Studio",
     "noBuiltIcons": "No built icons - Run Build command",
     "inlineSvgs": "Inline SVGs",
     "imgReferences": "IMG References"
@@ -249,6 +261,7 @@
     "dismiss": "Dismiss",
     "iconImported": "Icon '{name}' imported to {targets}!",
     "iconTransformed": "Icon '{name}' transformed to <{component}>!",
+    "extractInlineSvg": "Extract inline SVG as \"{name}\"",
     "addedFillColor": "Added fill color: {color}",
     "updatedFile": "Updated {path}",
     "errorRenaming": "Error renaming: {error}",
@@ -292,9 +305,9 @@
     "errorUpdatingPath": "Error updating path: {error}",
     "failedToFetchIcon": "Failed to fetch icon SVG",
     "failedToFetchIconError": "Failed to fetch icon: {error}",
-    "iconAddedToFormat": "✅ Icon \"{name}\" added to {format}!",
+    "iconAddedToFormat": "Icon \"{name}\" added to {format}!",
     "failedToAddIcon": "Failed to add icon: {error}",
-    "iconImportedToFormat": "✅ Icon \"{name}\" imported to {format}!",
+    "iconImportedToFormat": "Icon \"{name}\" imported to {format}!",
     "updatedFile": "Updated {path}",
     "copiedNameToClipboard": "Copied \"{name}\" to clipboard",
     "svgAlreadyOptimized": "SVG is already optimized",
@@ -412,6 +425,7 @@
       "enterComponentName": "Enter the component name",
       "enterWebComponentName": "Enter the web component name",
       "enterNewIconName": "Enter new icon name",
+      "enterIconName": "Enter a name for this icon",
       "enterVariantName": "Enter variant name",
       "searchIconify": "Search Iconify for an icon",
       "searchIconifyFull": "Search for icons (e.g., \"arrow\", \"home\", \"user\")",
@@ -450,6 +464,8 @@
       "both": "Both",
       "searchInIconify": "Search in Iconify",
       "useReferencedSvg": "Use referenced SVG file",
+      "useInlineSvg": "Use this inline SVG",
+      "extractAndBuild": "Extract and build as icon",
       "browseBuiltIcons": "Browse built icons",
       "browseForSvgFile": "Browse for SVG file",
       "searchWorkspaceSvg": "Search workspace for SVG",
@@ -580,6 +596,7 @@
       "dimensions": "Dimensions",
       "fileSize": "File Size",
       "elements": "Elements",
+      "elementsBreakdown": "Elements",
       "features": "Features",
       "sourceLocation": "Source Location",
       "variants": "Variants",

@@ -8,6 +8,13 @@
   border-radius: 6px;
 }
 
+/* Inline filters - all in one row */
+.filters-container.inline {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
 .filter-control {
   display: flex;
   flex-direction: column;

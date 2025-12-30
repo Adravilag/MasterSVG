@@ -1,11 +1,11 @@
 {
   "extension": {
-    "name": "IconWrap",
+    "name": "Icon Studio",
     "description": "Менеджер SVG иконок для VS Code",
-    "appTitle": "Bezier SVG"
+    "appTitle": "Icon Studio"
   },
   "welcome": {
-    "title": "Добро пожаловать в IconWrap",
+    "title": "Добро пожаловать в Icon Studio",
     "subtitle": "Ваше решение для управления SVG иконками",
     "getStarted": "Начать",
     "configuration": "Конфигурация",
@@ -41,7 +41,11 @@
     "setupComplete": "Настройка завершена!",
     "filesCreated": "Файлы созданы в {path}",
     "spriteCreated": "Спрайт создан в {path}",
-    "errorCreatingFiles": "Ошибка создания файлов"
+    "errorCreatingFiles": "Ошибка создания файлов",
+    "previewResult": "Результат",
+    "workflowSource": "Источник",
+    "workflowBuild": "Сборка",
+    "workflowOutput": "Вывод"
   },
   "features": {
     "iconManagement": "Управление иконками",
@@ -290,9 +294,9 @@
     "errorUpdatingPath": "Ошибка при обновлении пути: {error}",
     "failedToFetchIcon": "Не удалось получить SVG иконки",
     "failedToFetchIconError": "Не удалось получить иконку: {error}",
-    "iconAddedToFormat": "✅ Иконка \"{name}\" добавлена в {format}!",
+    "iconAddedToFormat": "Иконка \"{name}\" добавлена в {format}!",
     "failedToAddIcon": "Не удалось добавить иконку: {error}",
-    "iconImportedToFormat": "✅ Иконка \"{name}\" импортирована в {format}!",
+    "iconImportedToFormat": "Иконка \"{name}\" импортирована в {format}!",
     "updatedFile": "Обновлено {path}",
     "copiedNameToClipboard": "\"{name}\" скопировано в буфер обмена",
     "svgAlreadyOptimized": "SVG уже оптимизирован",

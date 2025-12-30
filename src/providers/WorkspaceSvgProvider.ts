@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { getSvgConfig } from '../utils/config';
+import { getSvgConfig, isFullyConfigured } from '../utils/config';
 import { WorkspaceIcon, IconUsage, IconAnimation } from '../types/icons';
 import { removeIconExportFromContent } from '../utils/outputFileManager';
 
@@ -353,6 +353,27 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
   }
 
   async getChildren(element?: SvgItem): Promise<SvgItem[]> {
+    // Check if extension is fully configured first
+    if (!isFullyConfigured()) {
+      if (!element) {
+        const configureItem = new SvgItem(
+          'Configurar Icon Studio',
+          0,
+          vscode.TreeItemCollapsibleState.None,
+          'action',
+          undefined,
+          'configure'
+        );
+        configureItem.command = {
+          command: 'iconManager.showWelcome',
+          title: 'Configurar Icon Studio'
+        };
+        configureItem.iconPath = new vscode.ThemeIcon('gear');
+        return [configureItem];
+      }
+      return [];
+    }
+
     // Lazy initialization
     if (!this.isInitialized && !this.isScanning) {
       this.isScanning = true;

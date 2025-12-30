@@ -389,7 +389,7 @@ export interface GeneratedFile {
 /**
  * Icon rendering method
  */
-export type IconRenderMethod = 'svg-inline' | 'svg-use' | 'img' | 'web-component' | 'bz-icon';
+export type IconRenderMethod = 'svg-inline' | 'svg-use' | 'img' | 'web-component' | 'sg-icon';
 
 /**
  * Icon element configuration
@@ -414,7 +414,7 @@ export interface IconElementConfig {
 }
 
 /**
- * Web component attributes for bz-icon
+ * Web component attributes for sg-icon
  */
 export interface BzIconAttributes {
   name: string;

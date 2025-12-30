@@ -41,6 +41,32 @@
       gap: 12px;
     }
     
+    /* Grid layout for settings */
+    .animation-settings.grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px 24px;
+    }
+    
+    /* Make sliders span full width of their cell */
+    .animation-settings.grid .setting-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .animation-settings.grid .setting-row label {
+      font-size: 11px;
+    }
+    
+    .animation-settings.grid .setting-control {
+      width: 100%;
+    }
+    
+    .animation-settings.grid .setting-row select {
+      width: 100%;
+    }
+
     .setting-row {
       display: flex;
       align-items: center;

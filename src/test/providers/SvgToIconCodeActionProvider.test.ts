@@ -242,6 +242,168 @@ describe('SvgToIconCodeActionProvider', () => {
       expect(transformAction!.title).not.toContain('My Icon');
     });
   });
+
+  // =====================================================
+  // Inline SVG detection
+  // =====================================================
+
+  describe('inline SVG detection', () => {
+    const createMockDocumentWithFullText = (
+      lineText: string,
+      fullText: string,
+      languageId: string = 'html'
+    ): Partial<vscode.TextDocument> => ({
+      lineAt: jest.fn().mockReturnValue({
+        text: lineText
+      }),
+      getText: jest.fn().mockReturnValue(fullText),
+      offsetAt: jest.fn().mockImplementation((pos: vscode.Position) => {
+        // Simple implementation: just return character count up to that line
+        const lines = fullText.split('\n');
+        let offset = 0;
+        for (let i = 0; i < pos.line; i++) {
+          offset += lines[i].length + 1; // +1 for newline
+        }
+        offset += pos.character;
+        return offset;
+      }),
+      positionAt: jest.fn().mockImplementation((offset: number) => {
+        const lines = fullText.split('\n');
+        let currentOffset = 0;
+        for (let i = 0; i < lines.length; i++) {
+          if (currentOffset + lines[i].length >= offset) {
+            return new vscode.Position(i, offset - currentOffset);
+          }
+          currentOffset += lines[i].length + 1;
+        }
+        return new vscode.Position(0, 0);
+      }),
+      languageId,
+      uri: { fsPath: '/test/file.html' } as vscode.Uri
+    });
+
+    test('debe detectar SVG inline simple', () => {
+      const lineText = '<svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>';
+      const fullText = lineText;
+      mockDocument = createMockDocumentWithFullText(lineText, fullText);
+      mockRange = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0));
+
+      const actions = provider.provideCodeActions(
+        mockDocument as vscode.TextDocument,
+        mockRange,
+        mockContext,
+        mockToken
+      );
+
+      expect(actions).toBeDefined();
+      expect(actions!.length).toBe(1);
+    });
+
+    test('acción de SVG inline debe tener isInlineSvg=true', () => {
+      const lineText = '<svg viewBox="0 0 24 24"><path d="M10 20"/></svg>';
+      const fullText = lineText;
+      mockDocument = createMockDocumentWithFullText(lineText, fullText);
+      mockRange = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0));
+
+      const actions = provider.provideCodeActions(
+        mockDocument as vscode.TextDocument,
+        mockRange,
+        mockContext,
+        mockToken
+      );
+
+      expect(actions).toBeDefined();
+      expect(actions![0].command!.arguments![0]).toHaveProperty('isInlineSvg', true);
+      expect(actions![0].command!.arguments![0]).toHaveProperty('svgContent');
+    });
+
+    test('debe extraer nombre de icono desde id del SVG', () => {
+      const lineText = '<svg id="home-icon" viewBox="0 0 24 24"><path d="M10 20"/></svg>';
+      const fullText = lineText;
+      mockDocument = createMockDocumentWithFullText(lineText, fullText);
+      mockRange = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0));
+
+      const actions = provider.provideCodeActions(
+        mockDocument as vscode.TextDocument,
+        mockRange,
+        mockContext,
+        mockToken
+      );
+
+      expect(actions).toBeDefined();
+      expect(actions![0].command!.arguments![0].iconName).toBe('home-icon');
+    });
+
+    test('debe extraer nombre de icono desde aria-label', () => {
+      const lineText = '<svg aria-label="Settings Icon" viewBox="0 0 24 24"><path d="M10 20"/></svg>';
+      const fullText = lineText;
+      mockDocument = createMockDocumentWithFullText(lineText, fullText);
+      mockRange = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0));
+
+      const actions = provider.provideCodeActions(
+        mockDocument as vscode.TextDocument,
+        mockRange,
+        mockContext,
+        mockToken
+      );
+
+      expect(actions).toBeDefined();
+      expect(actions![0].command!.arguments![0].iconName).toBe('settings-icon');
+    });
+
+    test('debe incluir offsets para SVG multilínea', () => {
+      const lineText = '<svg viewBox="0 0 24 24">';
+      const fullText = '<svg viewBox="0 0 24 24">\n  <path d="M10 20"/>\n</svg>';
+      mockDocument = createMockDocumentWithFullText(lineText, fullText);
+      mockRange = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0));
+
+      const actions = provider.provideCodeActions(
+        mockDocument as vscode.TextDocument,
+        mockRange,
+        mockContext,
+        mockToken
+      );
+
+      expect(actions).toBeDefined();
+      expect(actions![0].command!.arguments![0]).toHaveProperty('startOffset');
+      expect(actions![0].command!.arguments![0]).toHaveProperty('endOffset');
+    });
+
+    test('no debe detectar SVG incompleto sin cierre', () => {
+      const lineText = '<svg viewBox="0 0 24 24"><path d="M10 20"/>';
+      const fullText = lineText; // No closing </svg>
+      mockDocument = createMockDocumentWithFullText(lineText, fullText);
+      mockRange = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0));
+
+      const actions = provider.provideCodeActions(
+        mockDocument as vscode.TextDocument,
+        mockRange,
+        mockContext,
+        mockToken
+      );
+
+      expect(actions).toBeUndefined();
+    });
+
+    test('img debe tener prioridad sobre svg inline en la misma línea', () => {
+      const lineText = '<img src="icon.svg" /> <svg viewBox="0 0 24 24"></svg>';
+      const fullText = lineText;
+      mockDocument = createMockDocumentWithFullText(lineText, fullText, 'html');
+      mockRange = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0));
+
+      const actions = provider.provideCodeActions(
+        mockDocument as vscode.TextDocument,
+        mockRange,
+        mockContext,
+        mockToken
+      );
+
+      expect(actions).toBeDefined();
+      expect(actions!.length).toBe(1);
+      // Debe detectar el img, no el svg inline
+      expect(actions![0].command!.arguments![0].originalPath).toBe('icon.svg');
+    });
+  });
 });
 
 // =====================================================

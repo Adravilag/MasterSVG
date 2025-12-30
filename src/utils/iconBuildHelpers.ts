@@ -123,7 +123,7 @@ export async function showDeleteOriginalPrompt(options?: DeletePromptOptions): P
 export function generateReplacement(iconName: string, languageId: string): string {
   const config = getConfig();
   const isSprite = config.buildFormat === 'sprite.svg';
-  const componentName = config.webComponentName || 'bz-icon';
+  const componentName = config.webComponentName || 'sg-icon';
 
   if (isSprite) {
     return `<svg class="icon" aria-hidden="true"><use href="sprite.svg#${iconName}"></use></svg>`;
@@ -157,7 +157,7 @@ export async function checkScriptImport(
   const hasIconScript = fullText.includes('icon.js') || fullText.includes('icons.js');
   
   if (!hasIconScript) {
-    const outputDir = config.outputDirectory || 'iconwrap-icons';
+    const outputDir = config.outputDirectory || 'icon-studio-icons';
     const addScript = await vscode.window.showWarningMessage(
       `⚠️ ${t('messages.missingScriptImport', { outputDir })}`,
       t('messages.copyToClipboard'),

@@ -133,7 +133,7 @@ ${animationRule}`;
    */
   public generateUsageCodeHtml(iconName: string, animationType?: string): string {
     const config = getConfig();
-    const tagName = config.webComponentName || 'bz-icon';
+    const tagName = config.webComponentName || 'sg-icon';
 
     const lines: string[] = [
       `<!-- Web Component -->`,

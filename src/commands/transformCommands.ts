@@ -137,7 +137,7 @@ export function registerTransformCommands(
         const buildFormat = config.buildFormat || 'icons.ts';
         const isSprite = buildFormat === 'sprite.svg';
         const outputDir = config.outputDirectory;
-        const webComponentName = config.webComponentName || 'bz-icon';
+        const webComponentName = config.webComponentName || 'sg-icon';
         const iconName = item.label as string;
 
         let replacement: string;

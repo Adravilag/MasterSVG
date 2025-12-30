@@ -1,5 +1,5 @@
 /**
- * Internationalization (i18n) Service for IconWrap
+ * Internationalization (i18n) Service for Icon Studio
  * 
  * Provides translation support for multiple languages:
  * - English (en)
@@ -171,7 +171,7 @@ class I18nService {
     }
     
     if (typeof value !== 'string') {
-      console.warn(`[IconWrap i18n] Translation key not found: ${key}`);
+      console.warn(`[Icon Studio i18n] Translation key not found: ${key}`);
       return key;
     }
     

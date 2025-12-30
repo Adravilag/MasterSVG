@@ -1,11 +1,11 @@
 {
   "extension": {
-    "name": "IconWrap",
+    "name": "Icon Studio",
     "description": "Gestor de iconos SVG para VS Code",
-    "appTitle": "Bezier SVG"
+    "appTitle": "Icon Studio"
   },
   "welcome": {
-    "title": "Bienvenido a IconWrap",
+    "title": "Bienvenido a Icon Studio",
     "subtitle": "Tu solución para gestionar iconos SVG",
     "getStarted": "Comenzar",
     "configuration": "Configuración",
@@ -41,7 +41,11 @@
     "setupComplete": "¡Configuración completa!",
     "filesCreated": "Archivos creados en {path}",
     "spriteCreated": "Sprite creado en {path}",
-    "errorCreatingFiles": "Error al crear archivos"
+    "errorCreatingFiles": "Error al crear archivos",
+    "previewResult": "Resultado",
+    "workflowSource": "Origen",
+    "workflowBuild": "Compilar",
+    "workflowOutput": "Salida"
   },
   "features": {
     "iconManagement": "Gestión de Iconos",
@@ -290,9 +294,9 @@
     "errorUpdatingPath": "Error al actualizar ruta: {error}",
     "failedToFetchIcon": "Error al obtener SVG del icono",
     "failedToFetchIconError": "Error al obtener icono: {error}",
-    "iconAddedToFormat": "✅ ¡Icono \"{name}\" añadido a {format}!",
+    "iconAddedToFormat": "¡Icono \"{name}\" añadido a {format}!",
     "failedToAddIcon": "Error al añadir icono: {error}",
-    "iconImportedToFormat": "✅ ¡Icono \"{name}\" importado a {format}!",
+    "iconImportedToFormat": "¡Icono \"{name}\" importado a {format}!",
     "updatedFile": "Actualizado {path}",
     "copiedNameToClipboard": "\"{name}\" copiado al portapapeles",
     "svgAlreadyOptimized": "El SVG ya está optimizado",
