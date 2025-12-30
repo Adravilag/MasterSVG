@@ -139,20 +139,16 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
   }
 
   private async scanSvgFiles(): Promise<void> {
-    console.log('[Icon Studio] SvgFilesProvider: Starting scan...');
     this.svgFiles.clear();
 
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) {
-      console.log('[Icon Studio] SvgFilesProvider: No workspace folders');
       return;
     }
 
     for (const folder of workspaceFolders) {
       await this.scanFolder(folder.uri.fsPath);
     }
-    
-    console.log('[Icon Studio] SvgFilesProvider: Scan complete. Found:', this.svgFiles.size, 'files');
   }
 
   private async scanFolder(folderPath: string): Promise<void> {
@@ -170,7 +166,6 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
 
     // If no configured folders found, scan ALL SVGs in workspace
     if (!foundAny) {
-      console.log('[Icon Studio] SvgFilesProvider: No configured folders, scanning all...');
       await this.scanAllSvgs(folderPath);
     }
   }

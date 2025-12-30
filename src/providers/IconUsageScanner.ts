@@ -30,7 +30,6 @@ export class IconUsageScanner {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) return;
 
-    console.log('[Icon Studio] Scanning for icon usages...');
     iconUsages.clear();
     
     // Get all icon names (built icons only for now)
@@ -73,10 +72,8 @@ export class IconUsageScanner {
           icon.usageCount = usages.length;
         }
       }
-      
-      console.log('[Icon Studio] Usage scan complete. Icons with usages:', iconUsages.size);
-    } catch (error) {
-      console.error('[Icon Studio] Error scanning usages:', error);
+    } catch {
+      // Silent fail - usage scanning is not critical
     }
   }
 

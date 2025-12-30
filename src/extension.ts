@@ -31,6 +31,33 @@ import { registerSpriteCommands, getSpritePreviewHtml } from './commands/spriteC
 import { registerMiscCommands } from './commands/miscCommands';
 import { registerImportCommands } from './commands/importCommands';
 import { registerLicenseCommands } from './commands/licenseCommands';
+import { getAnimationService } from './services/AnimationAssignmentService';
+
+/**
+ * Supported language selectors for code intelligence features
+ */
+const SUPPORTED_LANGUAGES: vscode.DocumentSelector = [
+  { language: 'javascript' },
+  { language: 'typescript' },
+  { language: 'javascriptreact' },
+  { language: 'typescriptreact' },
+  { language: 'vue' },
+  { language: 'svelte' },
+  { language: 'html' }
+];
+
+/**
+ * Supported language selectors with scheme for code actions
+ */
+const SUPPORTED_LANGUAGES_WITH_SCHEME: vscode.DocumentSelector = [
+  { language: 'javascript', scheme: '*' },
+  { language: 'typescript', scheme: '*' },
+  { language: 'javascriptreact', scheme: '*' },
+  { language: 'typescriptreact', scheme: '*' },
+  { language: 'vue', scheme: '*' },
+  { language: 'svelte', scheme: '*' },
+  { language: 'html', scheme: '*' }
+];
 
 let workspaceSvgProvider: WorkspaceSvgProvider;
 let builtIconsProvider: BuiltIconsProvider;
@@ -38,6 +65,7 @@ let svgFilesProvider: SvgFilesProvider;
 let iconPreviewProvider: IconPreviewProvider;
 let workspaceTreeView: vscode.TreeView<SvgItem>;
 let svgFilesTreeView: vscode.TreeView<SvgItem>;
+let svgWatcher: vscode.FileSystemWatcher | undefined;
 
 /**
  * Write file using VS Code API to avoid conflicts with open editors
@@ -289,35 +317,19 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register completion provider
   const completionDisposable = vscode.languages.registerCompletionItemProvider(
-    [
-      { language: 'javascript' },
-      { language: 'typescript' },
-      { language: 'javascriptreact' },
-      { language: 'typescriptreact' },
-      { language: 'vue' },
-      { language: 'svelte' },
-      { language: 'html' }
-    ],
+    SUPPORTED_LANGUAGES,
     new IconCompletionProvider(workspaceSvgProvider),
     '<', '"', "'"
   );
 
   // Register hover provider
   const hoverDisposable = vscode.languages.registerHoverProvider(
-    [
-      { language: 'javascript' },
-      { language: 'typescript' },
-      { language: 'javascriptreact' },
-      { language: 'typescriptreact' },
-      { language: 'vue' },
-      { language: 'svelte' },
-      { language: 'html' }
-    ],
+    SUPPORTED_LANGUAGES,
     new IconHoverProvider(workspaceSvgProvider)
   );
 
   // Watch for SVG file changes
-  const svgWatcher = vscode.workspace.createFileSystemWatcher('**/*.svg');
+  svgWatcher = vscode.workspace.createFileSystemWatcher('**/*.svg');
   svgWatcher.onDidCreate(() => svgFilesProvider.refresh());
   svgWatcher.onDidDelete(() => svgFilesProvider.refresh());
   svgWatcher.onDidChange(() => svgFilesProvider.refresh());
@@ -325,15 +337,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Register code action provider for SVG img references
   // Use '*' scheme to match all file types including untitled
   const codeActionProvider = vscode.languages.registerCodeActionsProvider(
-    [
-      { language: 'javascript', scheme: '*' },
-      { language: 'typescript', scheme: '*' },
-      { language: 'javascriptreact', scheme: '*' },
-      { language: 'typescriptreact', scheme: '*' },
-      { language: 'vue', scheme: '*' },
-      { language: 'svelte', scheme: '*' },
-      { language: 'html', scheme: '*' }
-    ],
+    SUPPORTED_LANGUAGES_WITH_SCHEME,
     new SvgToIconCodeActionProvider(),
     {
       providedCodeActionKinds: SvgToIconCodeActionProvider.providedCodeActionKinds
@@ -342,15 +346,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register code action provider for missing icons in web components
   const missingIconCodeActionProvider = vscode.languages.registerCodeActionsProvider(
-    [
-      { language: 'javascript' },
-      { language: 'typescript' },
-      { language: 'javascriptreact' },
-      { language: 'typescriptreact' },
-      { language: 'vue' },
-      { language: 'svelte' },
-      { language: 'html' }
-    ],
+    SUPPORTED_LANGUAGES,
     new MissingIconCodeActionProvider(workspaceSvgProvider),
     {
       providedCodeActionKinds: MissingIconCodeActionProvider.providedCodeActionKinds
@@ -412,7 +408,22 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-  // Cleanup
+  // Cleanup file watcher
+  if (svgWatcher) {
+    svgWatcher.dispose();
+    svgWatcher = undefined;
+  }
+
+  // Reset animation service cache
+  getAnimationService().resetCache();
+
+  // Clear providers
+  workspaceSvgProvider = undefined!;
+  builtIconsProvider = undefined!;
+  svgFilesProvider = undefined!;
+  iconPreviewProvider = undefined!;
+  workspaceTreeView = undefined!;
+  svgFilesTreeView = undefined!;
 }
 
 // ============================================================================

@@ -32,10 +32,8 @@ function loadIgnorePatterns(): string[] {
       .map(line => line.trim())
       .filter(line => line && !line.startsWith('#'));
     
-    console.log('[Icon Studio] Loaded .bezierignore patterns:', patterns);
     return patterns;
-  } catch (error) {
-    console.error('[Icon Studio] Error reading .bezierignore:', error);
+  } catch {
     return [];
   }
 }

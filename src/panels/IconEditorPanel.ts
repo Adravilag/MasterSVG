@@ -198,8 +198,6 @@ export class IconEditorPanel {
    * Handle incoming webview messages by delegating to appropriate handlers
    */
   private async _handleMessage(message: { command: string; [key: string]: unknown }): Promise<void> {
-    console.log('[Icon Studio] IconEditorPanel received message:', message.command, message);
-    
     if (message.command === 'log') {
         // Force a toast on first log to prove connectivity
         // vscode.window.showInformationMessage('Webview Log: ' + (message.message as string));
@@ -310,8 +308,7 @@ export class IconEditorPanel {
         handleRefresh();
         break;
       case 'log':
-        console.log('[Webview]', message.message as string);
-        // vscode.window.showInformationMessage('Webview Log: ' + (message.message as string));
+        // Webview log - no-op in production
         break;
     }
   }
@@ -780,9 +777,6 @@ export class IconEditorPanel {
       this._panel.title = `Edit: ${this._iconData.name}`;
     }
     const html = this._getHtmlForWebview();
-    console.log('[Icon Studio] IconEditorPanel HTML length:', html.length);
-    console.log('[Icon Studio] IconEditorPanel has <script>:', html.includes('<script>'));
-    console.log('[Icon Studio] IconEditorPanel has acquireVsCodeApi:', html.includes('acquireVsCodeApi'));
     this._panel.webview.html = html;
     
     // Re-send optimization stats after update
@@ -852,7 +846,6 @@ export class IconEditorPanel {
     // Load templates from external files
     const templatesDir = path.join(this._extensionUri.fsPath, 'src', 'templates', 'icon-editor');
     const tabsDir = path.join(templatesDir, 'tabs');
-    console.log('[Icon Studio] IconEditorPanel templates dir:', templatesDir);
     
     let cssContent: string, jsTemplate: string, bodyTemplate: string;
     let colorTabTemplate: string, animationTabTemplate: string, codeTabTemplate: string;
@@ -871,7 +864,6 @@ export class IconEditorPanel {
       colorTabTemplate = fs.readFileSync(path.join(tabsDir, 'IconEditorColorTab.html'), 'utf-8');
       animationTabTemplate = fs.readFileSync(path.join(tabsDir, 'IconEditorAnimationTab.html'), 'utf-8');
       codeTabTemplate = fs.readFileSync(path.join(tabsDir, 'IconEditorCodeTab.html'), 'utf-8');
-      console.log('[Icon Studio] IconEditorPanel templates loaded successfully');
     } catch (err) {
       console.error('[Icon Studio] IconEditorPanel template load error:', err);
       return '<html><body><p>Error loading templates</p></body></html>';

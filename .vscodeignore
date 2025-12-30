@@ -1,0 +1,45 @@
+# Source files - no need in package
+src/**
+**/*.ts
+!**/*.d.ts
+
+# Test files
+out/**
+**/*.test.js
+coverage/**
+coverage-output.txt
+jest.config.js
+
+# Development files
+.vscode/**
+.vscode-test/**
+.vscode-test/
+.vscode-test
+.git/**
+.gitignore
+.github/**
+
+# Documentation (keep README)
+docs/**
+
+# Config files
+tsconfig*.json
+esbuild.js
+.eslintrc*
+.prettierrc*
+
+# Scripts
+scripts/**
+
+# Source maps (enable for debugging production issues)
+# **/*.map
+
+# Node modules - not needed with bundling!
+node_modules/**
+
+# Misc
+**/.DS_Store
+*.vsix
+
+# Lock files
+package-lock.json

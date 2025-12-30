@@ -37,6 +37,28 @@ class AnimationAssignmentService {
   }
 
   /**
+   * Safely parse a JS object literal string into an object
+   * Converts JS syntax to JSON (single quotes to double, unquoted keys to quoted)
+   */
+  private _parseJsObjectLiteral(jsObjectStr: string): Record<string, IconAnimation> {
+    try {
+      // Convert JS object literal to valid JSON:
+      // 1. Replace single quotes with double quotes for string values
+      // 2. Add quotes around unquoted keys
+      let jsonStr = jsObjectStr
+        .replace(/'/g, '"')  // Single to double quotes
+        .replace(/(\w+)\s*:/g, '"$1":')  // Quote unquoted keys
+        .replace(/,\s*}/g, '}')  // Remove trailing commas
+        .replace(/,\s*]/g, ']');  // Remove trailing commas in arrays
+      
+      return JSON.parse(jsonStr);
+    } catch {
+      // If parsing fails, return empty object
+      return {};
+    }
+  }
+
+  /**
    * Get the path to the animations.js file
    */
   private _getAnimationsFilePath(): string | undefined {
@@ -73,16 +95,16 @@ class AnimationAssignmentService {
       const regex = /export\s+const\s+animations\s*=\s*(\{[\s\S]*\});?\s*$/;
       const match = regex.exec(content);
       if (match) {
-        // Use Function constructor to safely parse the object
-        const parsed = new Function(`return ${match[1]}`)();
+        // Safely parse by converting JS object literal to JSON
+        const parsed = this._parseJsObjectLiteral(match[1]);
         this._animationsCache = parsed || {};
         return { ...this._animationsCache };
       }
 
       this._animationsCache = {};
       return {};
-    } catch (error) {
-      console.error('[Icon Studio] Error reading animations file:', error);
+    } catch {
+      // Silent fail - return empty animations if file can't be read
       this._animationsCache = {};
       return {};
     }
@@ -110,8 +132,8 @@ class AnimationAssignmentService {
       this._animationsCache = { ...animations };
       
       return true;
-    } catch (error) {
-      console.error('[Icon Studio] Error writing animations file:', error);
+    } catch {
+      // Silent fail - return false if file can't be written
       return false;
     }
   }

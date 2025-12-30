@@ -54,8 +54,6 @@ export class SvgToIconCodeActionProvider implements vscode.CodeActionProvider {
     const line = document.lineAt(range.start.line);
     const lineText = line.text;
 
-    console.log('[IconManager] provideCodeActions called for line:', lineText);
-
     // Pattern 1: <img src="...svg" /> - support both <img src and <img  src (multiple spaces)
     const imgSvgPattern = /<img\s+[^>]*src=["']([^"']*\.svg)["'][^>]*>/gi;
     
@@ -64,8 +62,6 @@ export class SvgToIconCodeActionProvider implements vscode.CodeActionProvider {
       const svgPath = match[1];
       const iconName = this.extractIconName(svgPath);
       const fullMatch = match[0];
-      
-      console.log('[IconManager] Found SVG img:', { svgPath, iconName, fullMatch });
       
       // Always return the action if we find an img with svg on this line
       return [this.createTransformAction(document, svgPath, iconName, fullMatch, range.start.line)];

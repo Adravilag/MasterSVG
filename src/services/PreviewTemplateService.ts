@@ -240,21 +240,15 @@ export class PreviewTemplateService {
     const originalVariant = savedVariants.find(v => v.name === '_original');
     const originalColors = originalVariant ? originalVariant.colors : [];
     
-    console.log('[Preview] savedVariants:', savedVariants);
-    console.log('[Preview] originalColors from _original:', originalColors);
-    
     function applyVariant(index) {
       const variant = savedVariants[index];
-      console.log('[Preview] applyVariant:', index, variant);
       
       if (!variant || !variant.colors || variant.colors.length === 0) {
-        console.log('[Preview] No variant or colors');
         return;
       }
       
       const container = document.querySelector('.icon-container');
       if (!container || !originalSvgContent) {
-        console.log('[Preview] No container or originalSvgContent');
         return;
       }
       
@@ -269,7 +263,6 @@ export class PreviewTemplateService {
             // Replace color in fill and stroke attributes (case insensitive)
             const regex = new RegExp(origColor.replace('#', '#?'), 'gi');
             newSvg = newSvg.replace(regex, newColor);
-            console.log('[Preview] Replaced', origColor, 'with', newColor);
           }
         });
       }

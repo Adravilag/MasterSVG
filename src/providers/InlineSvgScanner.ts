@@ -33,7 +33,6 @@ export class InlineSvgScanner {
   ): Promise<void> {
     inlineSvgs.clear();
     svgReferences.clear();
-    console.log('[Icon Studio] Scanning for inline SVGs and SVG references...');
 
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) return;
@@ -51,7 +50,6 @@ export class InlineSvgScanner {
       try {
         // Check if file should be ignored
         if (shouldIgnorePath(file.fsPath)) {
-          console.log('[Icon Studio] Ignoring file (svgignore):', file.fsPath);
           continue;
         }
 
@@ -75,13 +73,10 @@ export class InlineSvgScanner {
 
         // Find all <img src="...svg"> references
         this.extractImgReferences(document, text, file, svgReferences, workspaceFolders[0].uri.fsPath);
-      } catch (error) {
-        console.error(`Error scanning file ${file.fsPath}:`, error);
+      } catch {
+        // Silent fail - continue scanning other files
       }
     }
-
-    console.log('[Icon Studio] Found inline SVGs:', inlineSvgs.size);
-    console.log('[Icon Studio] Found files with SVG references:', svgReferences.size);
   }
 
   /**

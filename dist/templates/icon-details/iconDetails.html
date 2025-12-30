@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/@vscode/codicons/dist/codicon.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <span class="icon-name">${name}</span>
+      ${isBuilt !== undefined ? `<span class="badge ${isBuilt ? 'built' : 'draft'}">${isBuilt ? 'Built' : 'Draft'}</span>` : ''}
+    </header>
+    
+    <div class="content">
+      <div class="preview-section">
+        <div class="preview-container">
+          <div class="preview-box zoom-3" id="previewBox">
+            ${displaySvg}
+          </div>
+        </div>
+        
+        <!-- Zoom Controls -->
+        <div class="zoom-controls">
+          <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">
+            <span class="codicon codicon-zoom-out"></span>
+          </button>
+          <span class="zoom-level" id="zoomLevel">100%</span>
+          <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">
+            <span class="codicon codicon-zoom-in"></span>
+          </button>
+          <button class="zoom-btn" onclick="resetZoom()" title="Reset Zoom">
+            <span class="codicon codicon-screen-normal"></span>
+          </button>
+        </div>
+        
+        <div class="quick-actions">
+          <button class="action-btn" onclick="copyName()" title="Copy icon name">
+            <span class="codicon codicon-copy"></span>
+          </button>
+          <button class="action-btn" onclick="copySvg()" title="Copy SVG code">
+            <span class="codicon codicon-code"></span>
+          </button>
+          <button class="action-btn primary" onclick="openEditor()" title="Open in Editor">
+            <span class="codicon codicon-edit"></span>
+          </button>
+          ${location ? `
+          <button class="action-btn" onclick="goToLocation()" title="Go to source">
+            <span class="codicon codicon-go-to-file"></span>
+          </button>
+          ` : ''}
+        </div>
+        
+        <!-- Colors (view only) -->
+        <div class="color-picker-section">
+          <div class="color-picker-title">
+            <span class="codicon codicon-symbol-color"></span> Colors
+          </div>
+          ${hasMoreColors ? `
+          <div class="colors-warning">
+            <span class="codicon codicon-warning"></span>
+            <span>This SVG has <strong>${totalColorCount}</strong> unique colors. Color preview disabled for rasterized SVGs.</span>
+          </div>
+          ` : `
+          <div class="color-swatches" id="colorSwatches">
+            ${hasCurrentColor ? `
+              <div class="current-color-info">
+                <span class="codicon codicon-paintcan"></span>
+                <span>Uses <code>currentColor</code></span>
+                <span class="color-hint">(inherits from CSS)</span>
+              </div>
+            ` : ''}
+            ${svgColors.length > 0 ? svgColors.map(color => `
+              <div class="color-swatch-view" style="background-color: ${color}" title="Click to copy: ${color}" onclick="copyColor('${color}')">
+                <span class="color-tooltip">${color}</span>
+              </div>
+            `).join('') : (!hasCurrentColor ? '<span class="no-colors">No colors detected</span>' : '')}
+          </div>
+          `}
+        </div>
+      </div>
+      
+      <div class="details-section">
+        <h2>Properties</h2>
+        
+        <!-- Compact Stats Row -->
+        <div class="stats-row">
+          <div class="stat-item">
+            <span class="stat-value">${viewBox}</span>
+            <span class="stat-label">viewBox</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-value" id="fileSize">${fileSizeStr}</span>
+            <span class="stat-label">Size</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-value">${totalElements}</span>
+            <span class="stat-label">Elements</span>
+          </div>
+        </div>
+        
+        <!-- Details Grid -->
+        <div class="details-grid">
+          <div class="detail-card">
+            <div class="detail-label">
+              <span class="codicon codicon-symbol-class"></span> Elements Breakdown
+            </div>
+            <div class="detail-sub">${elementsStr}</div>
+          </div>
+          
+          <div class="detail-card">
+            <div class="detail-label">
+              <span class="codicon codicon-extensions"></span> Features
+            </div>
+            ${features.length > 0 ? `
+            <div class="features">
+              ${features.map(f => `<span class="feature-tag" data-feature="${f}">${f}</span>`).join('')}
+            </div>
+            ` : `<div class="detail-value muted">None detected</div>`}
+          </div>
+          
+          ${location ? `
+          <div class="detail-card clickable location-card" onclick="goToLocation()">
+            <div class="detail-label">
+              <span class="codicon codicon-go-to-file"></span> Source Location
+            </div>
+            <div class="detail-value">${fileName}:${location.line}</div>
+            <div class="detail-sub">${location.file}</div>
+          </div>
+          ` : ''}
+        </div>
+        
+        <!-- Variants Section -->
+        <div class="Variants-section${hasMoreColors ? ' disabled-section' : ''}">
+          <div class="Variants-header">
+            <h2><span class="codicon codicon-color-mode"></span> Variants</h2>
+            ${!hasMoreColors ? `
+            <button class="variant-add-btn" onclick="saveVariant()" title="Save current colors as variant">
+              <span class="codicon codicon-add"></span>
+            </button>
+            ` : ''}
+          </div>
+          ${hasMoreColors ? `
+          <div class="Variants-disabled-message">
+            <span class="codicon codicon-info"></span>
+            Variants disabled for SVGs with too many colors
+          </div>
+          ` : `
+          <div class="Variants-container" id="VariantsContainer">
+            ${this._generateVariantsHtml(name)}
+          </div>
+          `}
+        </div>
+        
+        <div class="usages-section">
+          <div class="usages-header">
+            <h2><span class="codicon codicon-references"></span> Usages</h2>
+            <span class="usages-count" id="usagesCount"></span>
+          </div>
+          <div class="usages-list" id="usagesList">
+            <div class="loading">
+              <span class="codicon codicon-sync"></span> Searching for usages...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

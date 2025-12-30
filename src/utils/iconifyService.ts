@@ -63,9 +63,19 @@ export async function fetchIconSvg(prefix: string, name: string, color?: string)
 }
 
 /**
+ * Iconify icon set response
+ */
+export interface IconifyIconSet {
+  prefix: string;
+  icons: Record<string, { body: string; width?: number; height?: number }>;
+  width?: number;
+  height?: number;
+}
+
+/**
  * Get icon info from Iconify
  */
-export async function getIconInfo(prefix: string, name: string): Promise<any | null> {
+export async function getIconInfo(prefix: string, name: string): Promise<IconifyIconSet | null> {
   return new Promise((resolve) => {
     const url = `https://api.iconify.design/${prefix}.json?icons=${name}`;
 
@@ -88,9 +98,21 @@ export async function getIconInfo(prefix: string, name: string): Promise<any | n
 }
 
 /**
+ * Iconify collection info
+ */
+export interface IconifyCollection {
+  name: string;
+  total: number;
+  author?: { name: string; url?: string };
+  license?: { title: string; spdx?: string; url?: string };
+  samples?: string[];
+  category?: string;
+}
+
+/**
  * Get available icon collections from Iconify
  */
-export async function getCollections(): Promise<Record<string, any> | null> {
+export async function getCollections(): Promise<Record<string, IconifyCollection> | null> {
   return new Promise((resolve) => {
     const url = 'https://api.iconify.design/collections';
 

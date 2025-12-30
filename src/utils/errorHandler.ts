@@ -7,7 +7,7 @@ export class ErrorHandler {
    * @param context A description of what was happening when the error occurred.
    * @param showNotification Whether to show a VS Code notification (default: true).
    */
-  public static handleError(error: any, context: string, showNotification: boolean = true): void {
+  public static handleError(error: unknown, context: string, showNotification: boolean = true): void {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const fullMessage = `Icon Studio: Error during ${context}: ${errorMessage}`;
     
