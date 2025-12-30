@@ -4,6 +4,7 @@ import { getVariantsService } from '../services/VariantsService';
 import { getUsageFinderService } from '../services/UsageFinderService';
 import { handleMessage, PanelContext, IconDetails, IconAnimation } from './handlers/iconDetailHandlers';
 import { t } from '../i18n';
+import { getIconLicenseInfoSync, parseIconifyName } from '../services/LicenseService';
 
 export { IconDetails, IconAnimation };
 
@@ -255,12 +256,55 @@ export class IconDetailsPanel {
       ? `<div class="detail-card clickable location-card" onclick="goToLocation()"><div class="detail-label"><span class="codicon codicon-go-to-file"></span> ${t('webview.details.sourceLocation')}</div><div class="detail-value">${fileName}:${location.line}</div><div class="detail-sub">${location.file}</div></div>` 
       : '';
 
+    // License info for Iconify icons
+    let licenseCardHtml = '';
+    const iconifyParsed = parseIconifyName(name);
+    if (iconifyParsed) {
+      const licenseInfo = getIconLicenseInfoSync(iconifyParsed.prefix);
+      if (licenseInfo) {
+        const authorLink = licenseInfo.author?.url 
+          ? `<a href="${licenseInfo.author.url}" class="license-link" onclick="openExternal('${licenseInfo.author.url}')">${licenseInfo.author.name}</a>`
+          : licenseInfo.author?.name || t('webview.details.unknownAuthor');
+        const licenseLink = licenseInfo.license?.url 
+          ? `<a href="${licenseInfo.license.url}" class="license-link" onclick="openExternal('${licenseInfo.license.url}')">${licenseInfo.license.spdx || licenseInfo.license.title}</a>`
+          : licenseInfo.license?.spdx || licenseInfo.license?.title || t('webview.details.unknownLicense');
+        licenseCardHtml = `
+          <div class="detail-card license-card">
+            <div class="detail-label"><span class="codicon codicon-law"></span> ${t('webview.details.license')}</div>
+            <div class="license-info">
+              <div class="license-row"><span class="license-label">${t('webview.details.collection')}:</span> <span class="license-value">${licenseInfo.name || iconifyParsed.prefix}</span></div>
+              <div class="license-row"><span class="license-label">${t('webview.details.author')}:</span> <span class="license-value">${authorLink}</span></div>
+              <div class="license-row"><span class="license-label">${t('webview.details.licenseType')}:</span> <span class="license-value">${licenseLink} ✅</span></div>
+            </div>
+          </div>`;
+      } else {
+        licenseCardHtml = `
+          <div class="detail-card license-card warning">
+            <div class="detail-label"><span class="codicon codicon-law"></span> ${t('webview.details.license')}</div>
+            <div class="license-info">
+              <div class="license-row"><span class="license-label">${t('webview.details.collection')}:</span> <span class="license-value">${iconifyParsed.prefix}</span></div>
+              <div class="license-row"><span class="license-value warning-text">⚠️ ${t('webview.details.licenseUnknown')}</span></div>
+            </div>
+          </div>`;
+      }
+    }
+
     const variantsContentHtml = hasMoreColors 
       ? `<div class="Variants-disabled-message"><span class="codicon codicon-info"></span> ${t('webview.details.variantsDisabled')}</div>`
       : `<div class="Variants-container" id="VariantsContainer">${this._generateVariantsHtml(name)}</div>`;
 
     const variantsAddButtonHtml = !hasMoreColors 
       ? `<button class="variant-add-btn" onclick="saveVariant()" title="${t('webview.details.saveVariant')}"><span class="codicon codicon-add"></span></button>` 
+      : '';
+
+    // Animation section HTML
+    const animationHtml = animation && animation.type && animation.type !== 'none'
+      ? `<div class="animation-section">
+          <h2><span class="codicon codicon-play"></span> ${t('webview.details.animation')}</h2>
+          <div class="animation-info">
+            <span class="animation-type">${animation.type}</span>
+          </div>
+        </div>`
       : '';
 
     return `<!DOCTYPE html>
@@ -332,7 +376,10 @@ export class IconDetailsPanel {
           </div>
           ${featuresHtml}
           ${locationCardHtml}
+          ${licenseCardHtml}
         </div>
+        
+        ${animationHtml}
         
         <div class="Variants-section${hasMoreColors ? ' disabled-section' : ''}">
           <div class="Variants-header">

@@ -4,6 +4,8 @@ import * as path from 'path';
 import { WorkspaceSvgProvider } from './WorkspaceSvgProvider';
 import { getSvgConfig } from '../utils/config';
 import { ANIMATION_KEYFRAMES } from '../services/AnimationKeyframes';
+import { getIconLicenseInfo, parseIconifyName } from '../services/LicenseService';
+import { getAnimationService } from '../services/AnimationAssignmentService';
 
 export class IconHoverProvider implements vscode.HoverProvider {
   constructor(private svgProvider: WorkspaceSvgProvider) {}
@@ -46,17 +48,24 @@ export class IconHoverProvider implements vscode.HoverProvider {
           if (icon) {
             const markdown = new vscode.MarkdownString();
             markdown.supportHtml = true;
+            markdown.supportThemeIcons = true;
             markdown.isTrusted = true;
 
             // Check for variant, animation, and size attributes in the same tag
             const variantName = this.extractAttributeFromLine(line, match.index, 'variant');
-            const animationName = this.extractAttributeFromLine(line, match.index, 'animation');
+            const animationAttr = this.extractAttributeFromLine(line, match.index, 'animation');
             const sizeAttr = this.extractAttributeFromLine(line, match.index, 'size');
+            
+            // Get assigned animation from service if not specified in tag
+            const animationService = getAnimationService();
+            const assignedAnimation = animationService.getAnimation(iconName);
+            const effectiveAnimation = animationAttr || assignedAnimation?.type || null;
             
             // Parse size for preview
             const previewSize = this.parseSize(sizeAttr);
             
-            // Add SVG preview if available
+            // Create SVG preview
+            let svgPreview = '';
             if (icon.svg) {
               let svgToPreview = icon.svg;
               
@@ -65,24 +74,81 @@ export class IconHoverProvider implements vscode.HoverProvider {
                 svgToPreview = this.applyVariantToSvg(iconName, svgToPreview, variantName);
               }
               
-              // Apply animation if specified
-              const preview = this.createSvgPreview(svgToPreview, animationName, previewSize);
-              markdown.appendMarkdown(preview + '\n\n');
+              // Apply animation if specified (from tag or assigned)
+              svgPreview = this.createSvgPreview(svgToPreview, effectiveAnimation, previewSize);
             }
 
-            markdown.appendMarkdown(`**${icon.name}**\n\n`);
-            if (variantName) {
-              markdown.appendMarkdown(`- Variant: \`${variantName}\`\n`);
+            // Build info lines
+            const infoLines: string[] = [];
+            
+            // Check if it's an Iconify icon
+            const licenseInfo = await getIconLicenseInfo(icon.name);
+            
+            if (licenseInfo?.isIconify) {
+              if (licenseInfo.collection) {
+                infoLines.push(`Collection: ${licenseInfo.collection}`);
+              }
+              if (licenseInfo.author) {
+                const authorLink = licenseInfo.author.url 
+                  ? `[${licenseInfo.author.name}](${licenseInfo.author.url})`
+                  : licenseInfo.author.name;
+                infoLines.push(`Author: ${authorLink}`);
+              }
+              if (licenseInfo.license) {
+                const licenseLink = licenseInfo.license.url
+                  ? `[${licenseInfo.license.title}](${licenseInfo.license.url})`
+                  : licenseInfo.license.title;
+                infoLines.push(`License: ${licenseLink} ✅`);
+              }
             }
-            if (animationName && animationName !== 'none') {
-              markdown.appendMarkdown(`- Animation: \`${animationName}\`\n`);
+            
+            // Source and category
+            infoLines.push(`Source: ${icon.source}`);
+            if (icon.category && icon.category !== 'none') {
+              infoLines.push(`Category: ${icon.category}`);
+            }
+            
+            // Path (shortened)
+            const displayPath = icon.path.length > 40 
+              ? '...' + icon.path.slice(-37) 
+              : icon.path;
+            infoLines.push(`Path: ${displayPath}`);
+            
+            // Optional attributes
+            if (variantName) {
+              infoLines.push(`Variant: ${variantName}`);
+            }
+            if (effectiveAnimation && effectiveAnimation !== 'none') {
+              // Show animation source: from tag attribute or assigned by default
+              const animSource = animationAttr ? '' : ' (default)';
+              infoLines.push(`Animation: ${effectiveAnimation}${animSource}`);
             }
             if (sizeAttr) {
-              markdown.appendMarkdown(`- Size: \`${sizeAttr}\`\n`);
+              infoLines.push(`Size: ${sizeAttr}`);
             }
-            markdown.appendMarkdown(`- Source: \`${icon.source}\`\n`);
-            markdown.appendMarkdown(`- Category: \`${icon.category || 'none'}\`\n`);
-            markdown.appendMarkdown(`- Path: \`${icon.path}\`\n`);
+
+            // Title on its own line, then table layout: icon on left, info on right
+            markdown.appendMarkdown(`**${icon.name}**\n\n`);
+            const infoColumn = infoLines.map(l => `• ${l}`).join('<br/>');
+            markdown.appendMarkdown(`| | |\n|:---:|:---|\n| ${svgPreview} &nbsp;&nbsp; | ${infoColumn} |`);
+            
+            // Action links using HTML to avoid long command tooltips
+            const editCmd = `command:iconManager.colorEditor?${encodeURIComponent(JSON.stringify(icon.name))}`;
+            const detailsData = {
+              name: icon.name,
+              svg: icon.svg,
+              path: icon.path,
+              source: icon.source,
+              category: icon.category,
+              filePath: icon.filePath,
+              line: icon.line,
+              isBuilt: icon.isBuilt,
+              animation: effectiveAnimation ? { type: effectiveAnimation } : undefined
+            };
+            const detailsCmd = `command:iconManager.showDetails?${encodeURIComponent(JSON.stringify(detailsData))}`;
+            
+            markdown.appendMarkdown(`\n\n`);
+            markdown.appendMarkdown(`[$(edit) Edit](${editCmd} "Edit icon") · [$(info) Details](${detailsCmd} "Show details")`);
 
             const range = new vscode.Range(
               position.line, startIndex,
@@ -95,11 +161,21 @@ export class IconHoverProvider implements vscode.HoverProvider {
             const markdown = new vscode.MarkdownString();
             markdown.isTrusted = true;
             markdown.supportHtml = true;
-            markdown.appendMarkdown(`⚠️ **Icon not found**: \`${iconName}\`\n\n`);
+            markdown.supportThemeIcons = true;
+            markdown.appendMarkdown(`⚠️ **Icon not found:** ${iconName}\n\n`);
             markdown.appendMarkdown(`This icon is not in your workspace or library.\n\n`);
-            markdown.appendMarkdown(`[📥 Import "${iconName}"](command:iconManager.importIcon?${encodeURIComponent(JSON.stringify([iconName, document.uri.fsPath, position.line]))})`);
             
-            return new vscode.Hover(markdown);
+            // Import from Iconify (will search and optionally replace the reference)
+            const importCmd = `command:iconManager.importIcon?${encodeURIComponent(JSON.stringify([iconName, document.uri.fsPath, position.line]))}`;
+            
+            markdown.appendMarkdown(`[$(cloud-download) Import](${importCmd} "Import or replace icon")`);
+            
+            const range = new vscode.Range(
+              position.line, startIndex,
+              position.line, endIndex
+            );
+            
+            return new vscode.Hover(markdown, range);
           }
         }
       }
@@ -197,20 +273,20 @@ export class IconHoverProvider implements vscode.HoverProvider {
    * Parse size attribute to a number for preview
    */
   private parseSize(sizeAttr: string | null): number {
-    if (!sizeAttr) return 64; // Default preview size
+    if (!sizeAttr) return 48; // Default preview size (compact)
     
     // Extract numeric value
     const numericMatch = sizeAttr.match(/^(\d+(?:\.\d+)?)/);
     if (numericMatch) {
       const size = parseFloat(numericMatch[1]);
-      // Clamp size for preview between 16 and 128
-      return Math.max(16, Math.min(128, size));
+      // Clamp size for preview between 16 and 64
+      return Math.max(16, Math.min(64, size));
     }
     
     return 64;
   }
 
-private createSvgPreview(svg: string, animationName?: string | null, size: number = 64): string {
+private createSvgPreview(svg: string, animationName?: string | null, size: number = 48): string {
     // Extract viewBox if present
     const viewBoxMatch = svg.match(/viewBox=["']([^"']+)["']/);
     const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24';

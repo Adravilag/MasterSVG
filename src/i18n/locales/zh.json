@@ -358,8 +358,13 @@
     "noButton": "否",
     "clickToConfigureOutput": "点击配置输出目录和设置",
     "svgCanBeConverted": "SVG \"{name}\" 可以转换为图标组件",
-    "transformToFormat": "🔄 转换为 {format}: \"{name}\"",
-    "importIconName": "📥 导入图标: \"{name}\""
+    "transformToFormat": "转换为 {format}: \"{name}\"",
+    "importIconName": "导入图标: \"{name}\"",
+    "searchIconify": "在 Iconify 中搜索...",
+    "browseWorkspaceIcons": "浏览工作区图标...",
+    "noIconsInWorkspace": "工作区中未找到图标。请尝试在 Iconify 中搜索。",
+    "iconSelected": "图标 \"{name}\" 已选中",
+    "iconAlreadyExists": "图标 \"{name}\" 已存在"
   },
   "settings": {
     "title": "设置",
@@ -423,7 +428,8 @@
       "svgFoldersConfiguration": "SVG 文件夹配置",
       "selectSvgFile": "选择 SVG 文件",
       "selectFolderToSave": "选择保存 SVG 的文件夹",
-      "iconEditor": "图标编辑器"
+      "iconEditor": "图标编辑器",
+      "duplicateIcon": "图标重复"
     },
     "labels": {
       "browseForFolder": "浏览文件夹...",
@@ -442,6 +448,11 @@
       "fromIconify": "从 Iconify（在线搜索）",
       "saveToWorkspace": "保存到 workspace 文件夹",
       "replaceInPlace": "原地替换（仅更新路径）",
+      "renameIcon": "重命名图标",
+      "enterNewName": "为图标输入新名称",
+      "replaceIcon": "替换图标",
+      "overwriteExisting": "覆盖现有图标",
+      "cancel": "取消",
       "outputDirectory": "输出目录",
       "svgFolders": "SVG 文件夹",
       "componentName": "组件名称",

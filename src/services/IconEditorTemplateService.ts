@@ -235,6 +235,7 @@ ${animationRule}`;
       .replace(/\$\{directionAlternateSelected\}/g, settings.direction === 'alternate' ? 'selected' : '')
       .replace(/\$\{directionAltReverseSelected\}/g, settings.direction === 'alternate-reverse' ? 'selected' : '')
       .replace(/\$\{copyAnimBtnDisabled\}/g, currentType === 'none' ? 'disabled' : '')
+      .replace(/\$\{saveAnimBtnDisabled\}/g, '') // Save button is always enabled (can save 'none' to remove)
       // i18n translations for animation tab
       .replace(/\$\{i18n_animationType\}/g, t('webview.animation.animationType'))
       .replace(/\$\{i18n_categoryBasic\}/g, t('webview.animation.categoryBasic'))
@@ -262,6 +263,8 @@ ${animationRule}`;
       .replace(/\$\{i18n_directionAlternate\}/g, t('webview.animation.directionAlternate'))
       .replace(/\$\{i18n_directionAltReverse\}/g, t('webview.animation.directionAltReverse'))
       .replace(/\$\{i18n_export\}/g, t('webview.animation.export'))
+      .replace(/\$\{i18n_saveAnimation\}/g, t('webview.animation.saveAnimation'))
+      .replace(/\$\{i18n_saveAnimationTooltip\}/g, t('webview.animation.saveAnimationTooltip'))
       .replace(/\$\{i18n_copyWithAnimation\}/g, t('webview.animation.copyWithAnimation'))
       .replace(/\$\{i18n_exportHint\}/g, t('webview.animation.exportHint'));
   }

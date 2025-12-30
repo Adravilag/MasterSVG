@@ -50,6 +50,12 @@
       });
     }
     
+    function openExternal(url) {
+      event.preventDefault();
+      event.stopPropagation();
+      vscode.postMessage({ command: 'openExternal', url: url });
+    }
+    
     function openEditor() {
       vscode.postMessage({ command: 'openEditor' });
     }

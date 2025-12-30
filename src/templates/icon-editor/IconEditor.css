@@ -988,6 +988,15 @@
       background: var(--vscode-button-hoverBackground);
     }
     
+    .btn-secondary {
+      background: var(--vscode-button-secondaryBackground);
+      color: var(--vscode-button-secondaryForeground);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--vscode-button-secondaryHoverBackground);
+    }
+    
     .btn-success {
       background: rgba(115, 201, 145, 0.15);
       color: #73c991;

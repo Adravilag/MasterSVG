@@ -12,6 +12,7 @@ import { addToIconsJs, addToSpriteSvg, generateWebComponent } from '../utils/ico
 import { getConfig, getFullOutputPath, getOutputPathOrWarn, updateIconsJsContext } from '../utils/configHelper';
 import { buildIconsFileContent } from '../utils/outputFileManager';
 import { t } from '../i18n';
+import { autoGenerateLicensesIfEnabled } from './licenseCommands';
 
 // Interfaces for providers
 export interface WorkspaceSvgProviderLike {
@@ -415,6 +416,9 @@ export function registerBuildCommands(
         }
 
         providers.workspaceSvgProvider.refresh();
+        
+        // Auto-generate licenses if enabled
+        await autoGenerateLicensesIfEnabled(outputPath);
       });
       
       // Update context for icons.js existence

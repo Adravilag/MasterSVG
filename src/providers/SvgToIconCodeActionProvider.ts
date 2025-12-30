@@ -338,7 +338,8 @@ export class SvgImgDiagnosticProvider {
  */
 export class MissingIconCodeActionProvider implements vscode.CodeActionProvider {
   public static readonly providedCodeActionKinds = [
-    vscode.CodeActionKind.QuickFix
+    vscode.CodeActionKind.QuickFix,
+    vscode.CodeActionKind.Refactor
   ];
 
   constructor(private svgProvider: WorkspaceSvgProvider) {}
@@ -354,31 +355,77 @@ export class MissingIconCodeActionProvider implements vscode.CodeActionProvider 
 
     const line = document.lineAt(range.start.line);
     const lineText = line.text;
+    const actions: vscode.CodeAction[] = [];
 
-    // Patterns for icon references
+    // Pattern to detect if cursor is inside the component tag (anywhere)
+    const tagPattern = new RegExp(`<${componentName}[^>]*>`, 'gi');
+    let tagMatch;
+    
+    while ((tagMatch = tagPattern.exec(lineText)) !== null) {
+      const tagStart = tagMatch.index;
+      const tagEnd = tagStart + tagMatch[0].length;
+      
+      // Check if cursor is within this tag
+      if (range.start.character >= tagStart && range.start.character <= tagEnd) {
+        // Extract name attribute if present
+        const nameMatch = tagMatch[0].match(/name=["']([^"']*)["']/i);
+        const iconName = nameMatch ? nameMatch[1] : '';
+        
+        // Check if icon exists
+        const icon = iconName ? this.svgProvider.getIcon(iconName) : undefined;
+        
+        if (!icon) {
+          // Add import action
+          if (iconName) {
+            actions.push(this.createImportAction(iconName, document, range.start.line));
+          }
+          
+          // Always add "Search in Iconify" action when on the tag
+          actions.push(this.createSearchIconifyAction(iconName, document, range.start.line));
+          
+          // Add "Browse workspace icons" action
+          actions.push(this.createBrowseWorkspaceAction(iconName, document, range.start.line));
+        }
+        
+        if (actions.length > 0) {
+          return actions;
+        }
+      }
+    }
+
+    // Also support patterns with name attribute for precise targeting
     const patterns = [
-      new RegExp(`<${componentName}[^>]*name=["']([^"']+)["']`, 'gi'),
-      /<iconify-icon[^>]*icon=["']([^"']+)["']/gi
+      new RegExp(`<${componentName}[^>]*name=["']([^"']*)["']`, 'gi'),
+      /<iconify-icon[^>]*icon=["']([^"']*)["']/gi
     ];
 
     for (const pattern of patterns) {
       let match;
       while ((match = pattern.exec(lineText)) !== null) {
-        const iconName = match[1];
-        const icon = this.svgProvider.getIcon(iconName);
+        const iconName = match[1] || '';
+        const icon = iconName ? this.svgProvider.getIcon(iconName) : undefined;
         
         if (!icon) {
-          const nameStart = match.index + match[0].indexOf(iconName);
-          const nameEnd = nameStart + iconName.length;
+          // Check if cursor is within the match
+          const matchStart = match.index;
+          const matchEnd = matchStart + match[0].length;
           
-          if (range.start.character >= nameStart && range.start.character <= nameEnd) {
-            return [this.createImportAction(iconName, document, range.start.line)];
+          if (range.start.character >= matchStart && range.start.character <= matchEnd) {
+            if (iconName) {
+              actions.push(this.createImportAction(iconName, document, range.start.line));
+            }
+            actions.push(this.createSearchIconifyAction(iconName, document, range.start.line));
+            actions.push(this.createBrowseWorkspaceAction(iconName, document, range.start.line));
+            
+            if (actions.length > 0) {
+              return actions;
+            }
           }
         }
       }
     }
 
-    return undefined;
+    return actions.length > 0 ? actions : undefined;
   }
 
   /**
@@ -401,6 +448,50 @@ export class MissingIconCodeActionProvider implements vscode.CodeActionProvider 
     };
 
     action.isPreferred = true;
+    return action;
+  }
+
+  /**
+   * Create action for searching icons in Iconify
+   */
+  private createSearchIconifyAction(
+    suggestedQuery: string,
+    document: vscode.TextDocument,
+    line: number
+  ): vscode.CodeAction {
+    const action = new vscode.CodeAction(
+      t('messages.searchIconify') || '🔍 Search in Iconify...',
+      vscode.CodeActionKind.Refactor
+    );
+
+    action.command = {
+      command: 'iconManager.searchIconifyForComponent',
+      title: t('commands.searchIconify') || 'Search Iconify',
+      arguments: [suggestedQuery, document.uri.fsPath, line]
+    };
+
+    return action;
+  }
+
+  /**
+   * Create action for browsing workspace icons
+   */
+  private createBrowseWorkspaceAction(
+    suggestedName: string,
+    document: vscode.TextDocument,
+    line: number
+  ): vscode.CodeAction {
+    const action = new vscode.CodeAction(
+      t('messages.browseWorkspaceIcons') || '📁 Browse workspace icons...',
+      vscode.CodeActionKind.Refactor
+    );
+
+    action.command = {
+      command: 'iconManager.browseWorkspaceIcons',
+      title: t('commands.browseWorkspaceIcons') || 'Browse Icons',
+      arguments: [suggestedName, document.uri.fsPath, line]
+    };
+
     return action;
   }
 }

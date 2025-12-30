@@ -37,6 +37,10 @@
     "tag": "标签",
     "webComponentName": "Web组件名称",
     "webComponentDesc": "图标的自定义元素标签名",
+    "licenseConsentTitle": "第三方许可证",
+    "licenseConsentDesc": "Iconify图标有自己的许可证，可能需要署名。",
+    "licenseConsentCheckbox": "我了解Iconify图标是具有自己许可证的第三方内容，并同意在构建时自动生成许可证署名文件。",
+    "licenseConsentInfo": "启用后，将在输出文件夹中自动生成LICENSES.md文件，其中包含项目中使用的所有Iconify图标的正确署名。",
     "configureOutputFirst": "请先配置输出目录",
     "setupComplete": "设置完成！",
     "filesCreated": "文件已创建在 {path}",
@@ -200,6 +204,8 @@
     "iconAddedToSprite": "'{name}' 已添加到 sprite.svg",
     "iconAddedToIconsJs": "'{name}' 已添加到 icons.js",
     "iconAddedWithAnimation": "'{name}' 已添加到 icons.js（含动画）",
+    "animationSaved": "动画 '{animation}' 已分配给 '{name}'",
+    "animationRemoved": "动画已从 '{name}' 移除",
     "iconRemoved": "图标 '{name}' 已删除",
     "iconRenamed": "图标已从 '{oldName}' 重命名为 '{newName}'",
     "renamedTo": "已重命名为 '{name}'",
@@ -369,8 +375,13 @@
     "noButton": "否",
     "clickToConfigureOutput": "点击配置输出目录和设置",
     "svgCanBeConverted": "SVG \"{name}\" 可以转换为图标组件",
-    "transformToFormat": "🔄 转换为 {format}: \"{name}\"",
-    "importIconName": "📥 导入图标: \"{name}\""
+    "transformToFormat": "转换为 {format}: \"{name}\"",
+    "importIconName": "导入图标: \"{name}\"",
+    "searchIconify": "在 Iconify 中搜索...",
+    "browseWorkspaceIcons": "浏览工作区图标...",
+    "noIconsInWorkspace": "工作区中未找到图标。请尝试在 Iconify 中搜索。",
+    "iconSelected": "图标 \"{name}\" 已选中",
+    "iconAlreadyExists": "图标 \"{name}\" 已存在"
   },
   "settings": {
     "title": "设置",
@@ -435,7 +446,8 @@
       "svgFoldersConfiguration": "SVG 文件夹配置",
       "selectSvgFile": "选择 SVG 文件",
       "selectFolderToSave": "选择保存 SVG 的文件夹",
-      "iconEditor": "图标编辑器"
+      "iconEditor": "图标编辑器",
+      "duplicateIcon": "图标重复"
     },
     "labels": {
       "browseForFolder": "浏览文件夹...",
@@ -454,6 +466,11 @@
       "fromIconify": "从 Iconify（在线搜索）",
       "saveToWorkspace": "保存到 workspace 文件夹",
       "replaceInPlace": "原地替换（仅更新路径）",
+      "renameIcon": "重命名图标",
+      "enterNewName": "为图标输入新名称",
+      "replaceIcon": "替换图标",
+      "overwriteExisting": "覆盖现有图标",
+      "cancel": "取消",
       "outputDirectory": "输出目录",
       "svgFolders": "SVG 文件夹",
       "componentName": "组件名称",
@@ -529,6 +546,8 @@
       "directionAlternate": "交替",
       "directionAltReverse": "交替反向",
       "export": "导出",
+      "saveAnimation": "分配",
+      "saveAnimationTooltip": "保存此图标的动画分配",
       "copyWithAnimation": "复制带动画",
       "exportHint": "SVG 将包含 CSS 动画"
     },
@@ -599,6 +618,7 @@
       "elementsBreakdown": "元素",
       "features": "特性",
       "sourceLocation": "源位置",
+      "animation": "动画",
       "variants": "变体",
       "variantsDisabled": "颜色过多的SVG已禁用变体",
       "saveVariant": "将当前颜色保存为变体",
@@ -609,7 +629,14 @@
       "setAsDefault": "设为默认",
       "clickToApply": "点击应用",
       "activeDefault": "活动默认",
-      "delete": "删除"
+      "delete": "删除",
+      "license": "许可证",
+      "collection": "集合",
+      "author": "作者",
+      "licenseType": "许可证",
+      "unknownAuthor": "未知",
+      "unknownLicense": "未知",
+      "licenseUnknown": "许可证信息不可用"
     },
     "spritePreview": {
       "icons": "图标",

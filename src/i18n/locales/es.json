@@ -358,8 +358,13 @@
     "noButton": "No",
     "clickToConfigureOutput": "Clic para configurar el directorio de salida y ajustes",
     "svgCanBeConverted": "SVG \"{name}\" puede convertirse a componente de Icono",
-    "transformToFormat": "🔄 Transformar a {format}: \"{name}\"",
-    "importIconName": "📥 Importar icono: \"{name}\""
+    "transformToFormat": "Transformar a {format}: \"{name}\"",
+    "importIconName": "Importar icono: \"{name}\"",
+    "searchIconify": "Buscar en Iconify...",
+    "browseWorkspaceIcons": "Explorar iconos del workspace...",
+    "noIconsInWorkspace": "No se encontraron iconos en el workspace. Intenta buscar en Iconify.",
+    "iconSelected": "Icono \"{name}\" seleccionado",
+    "iconAlreadyExists": "El icono \"{name}\" ya existe"
   },
   "settings": {
     "title": "Configuración",
@@ -423,7 +428,8 @@
       "svgFoldersConfiguration": "Configuración de Carpetas SVG",
       "selectSvgFile": "Seleccionar archivo SVG",
       "selectFolderToSave": "Seleccionar carpeta para guardar el SVG",
-      "iconEditor": "Editor de Iconos"
+      "iconEditor": "Editor de Iconos",
+      "duplicateIcon": "Icono Duplicado"
     },
     "labels": {
       "browseForFolder": "Explorar carpeta...",
@@ -442,6 +448,11 @@
       "fromIconify": "Desde Iconify (buscar online)",
       "saveToWorkspace": "Guardar en carpeta del workspace",
       "replaceInPlace": "Reemplazar en sitio (solo actualizar ruta)",
+      "renameIcon": "Renombrar icono",
+      "enterNewName": "Introduce un nuevo nombre para el icono",
+      "replaceIcon": "Reemplazar icono",
+      "overwriteExisting": "Sobrescribir icono existente",
+      "cancel": "Cancelar",
       "outputDirectory": "Directorio de Salida",
       "svgFolders": "Carpetas SVG",
       "componentName": "Nombre del Componente",

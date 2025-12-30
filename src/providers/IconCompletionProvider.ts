@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { WorkspaceSvgProvider } from './WorkspaceSvgProvider';
 import { getSvgConfig } from '../utils/config';
-import { ANIMATION_CATEGORIES } from '../services/AnimationKeyframes';
+import { ANIMATION_CATEGORIES, ANIMATION_KEYFRAMES } from '../services/AnimationKeyframes';
 
 export class IconCompletionProvider implements vscode.CompletionItemProvider {
   constructor(private svgProvider: WorkspaceSvgProvider) {}
@@ -67,7 +67,10 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
     
     const shouldCompleteAnimation = animationPatterns.some(p => p.test(linePrefix));
     if (shouldCompleteAnimation) {
-      return this.getAnimationCompletions();
+      // Try to extract the icon name from the line for preview
+      const iconNameMatch = fullLine.match(new RegExp(`${nameAttr}=["']([^"']+)["']`));
+      const iconName = iconNameMatch ? iconNameMatch[1] : null;
+      return this.getAnimationCompletions(iconName);
     }
 
     // Match patterns like: <Icon name=" or icon=" or name="
@@ -153,28 +156,96 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
   }
 
   /**
-   * Create rich documentation for variant with color swatches
+   * Create rich documentation for variant with color swatches and preview
    */
   private createVariantDocumentation(variantName: string, colors: string[], iconName?: string): vscode.MarkdownString {
+    const md = new vscode.MarkdownString();
+    md.supportHtml = true;
+    md.supportThemeIcons = true;
+    md.isTrusted = true;
+    
+    // Add SVG preview with variant colors applied
+    if (iconName) {
+      const icon = this.svgProvider.getIcon(iconName);
+      if (icon?.svg) {
+        const preview = this.createVariantSvgPreview(icon.svg, iconName, variantName);
+        md.appendMarkdown(preview + '\n\n');
+      }
+    }
+    
+    md.appendMarkdown(`**🎨 ${variantName}**\n\n`);
+    
+    // Color swatches
     const colorSwatches = colors.map(color => {
-      // Create inline color swatch using Unicode blocks or HTML
       const safeColor = color.replace(/[^#a-fA-F0-9,()rgb]/g, '');
       return `<span style="background-color:${safeColor};color:${safeColor};border:1px solid #888;border-radius:2px;">&nbsp;&nbsp;&nbsp;</span> \`${color}\``;
     }).join('\n\n');
-
-    const md = new vscode.MarkdownString();
-    md.supportHtml = true;
-    md.isTrusted = true;
-    md.appendMarkdown(`**🎨 ${variantName}**\n\n`);
-    if (iconName) {
-      md.appendMarkdown(`*Icon: ${iconName}*\n\n`);
-    }
+    
     md.appendMarkdown(`**Colors:**\n\n${colorSwatches}\n\n`);
     md.appendMarkdown(`---\n*Use \`variant="${variantName}"\` to apply*`);
     return md;
   }
 
-  private getAnimationCompletions(): vscode.CompletionItem[] {
+  /**
+   * Create SVG preview with variant colors applied
+   */
+  private createVariantSvgPreview(svg: string, iconName: string, variantName: string): string {
+    const size = 48;
+    
+    // Read variants data
+    const variantsData = this.readVariantsFromFile();
+    const iconVariants = variantsData[iconName];
+    
+    if (!iconVariants) {
+      return this.createSvgPreview(svg);
+    }
+    
+    const originalColors = iconVariants['_original'] || [];
+    const variantColors = iconVariants[variantName] || [];
+    
+    // Apply color replacements
+    let modifiedSvg = svg;
+    for (let i = 0; i < originalColors.length && i < variantColors.length; i++) {
+      const original = originalColors[i];
+      const replacement = variantColors[i];
+      const colorRegex = new RegExp(this.escapeRegex(original), 'gi');
+      modifiedSvg = modifiedSvg.replace(colorRegex, replacement);
+    }
+    
+    // Clean and format SVG
+    const viewBoxMatch = modifiedSvg.match(/viewBox=["']([^"']+)["']/);
+    const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24';
+    
+    let cleanSvg = modifiedSvg
+      .replace(/\s+width="[^"]*"/g, '')
+      .replace(/\s+height="[^"]*"/g, '')
+      .replace(/\s+class="[^"]*"/g, '');
+    
+    if (!cleanSvg.includes('viewBox')) {
+      cleanSvg = cleanSvg.replace(/<svg/, `<svg viewBox="${viewBox}"`);
+    }
+    
+    cleanSvg = cleanSvg.replace(/<svg/, `<svg width="${size}" height="${size}"`);
+    
+    const encoded = encodeURIComponent(cleanSvg)
+      .replace(/'/g, '%27')
+      .replace(/"/g, '%22');
+    
+    return `![icon](data:image/svg+xml,${encoded})`;
+  }
+
+  private escapeRegex(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  private getAnimationCompletions(iconName: string | null): vscode.CompletionItem[] {
+    // Get icon SVG for preview if available
+    let iconSvg: string | undefined;
+    if (iconName) {
+      const icon = this.svgProvider.getIcon(iconName);
+      iconSvg = icon?.svg;
+    }
+    
     // Animation metadata with descriptions and icons
     const animationMeta: Record<string, { description: string; icon: string }> = {
       // Basic
@@ -213,6 +284,8 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
       'draw': { description: 'Draw stroke animation', icon: '✏️' },
       'draw-reverse': { description: 'Undraw stroke animation', icon: '🧹' },
       'draw-loop': { description: 'Draw and undraw loop', icon: '🔄' },
+      // Custom
+      'custom': { description: 'Custom CSS animation (define your own keyframes)', icon: '🎨' },
     };
 
     const items: vscode.CompletionItem[] = [];
@@ -223,7 +296,8 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
       basic: '🎯 Basic',
       attention: '👀 Attention',
       entrance: '🚪 Entrance/Exit',
-      draw: '✏️ Draw'
+      draw: '✏️ Draw',
+      custom: '🎨 Custom'
     };
 
     for (const [category, animations] of Object.entries(ANIMATION_CATEGORIES)) {
@@ -234,6 +308,15 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
         item.detail = `${meta.icon} ${meta.description}`;
         
         const md = new vscode.MarkdownString();
+        md.supportHtml = true;
+        md.isTrusted = true;
+        
+        // Add animated preview if we have an icon
+        if (iconSvg && animName !== 'none') {
+          const preview = this.createAnimatedSvgPreview(iconSvg, animName);
+          md.appendMarkdown(preview + '\n\n');
+        }
+        
         md.appendMarkdown(`${meta.icon} **${animName}**\n\n`);
         md.appendMarkdown(`${meta.description}\n\n`);
         md.appendMarkdown(`*Category: ${categoryLabels[category] || category}*\n\n`);
@@ -360,6 +443,70 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
     // Convert to data URI for markdown
     const encoded = Buffer.from(cleanSvg).toString('base64');
     return `<img src="data:image/svg+xml;base64,${encoded}" width="48" height="48" />`;
+  }
+
+  /**
+   * Create an animated SVG preview for the completion hover
+   */
+  private createAnimatedSvgPreview(svg: string, animationName: string): string {
+    const size = 48;
+    
+    // Extract viewBox if present
+    const viewBoxMatch = svg.match(/viewBox=["']([^"']+)["']/);
+    const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24';
+    
+    // Clean SVG
+    let cleanSvg = svg
+      .replace(/\s+width="[^"]*"/g, '')
+      .replace(/\s+height="[^"]*"/g, '')
+      .replace(/\s+class="[^"]*"/g, '');
+    
+    // Ensure viewBox is set
+    if (!cleanSvg.includes('viewBox')) {
+      cleanSvg = cleanSvg.replace(/<svg/, `<svg viewBox="${viewBox}"`);
+    }
+    
+    // Add width/height
+    cleanSvg = cleanSvg.replace(/<svg/, `<svg width="${size}" height="${size}"`);
+    
+    // Add animation if keyframes exist
+    const keyframes = ANIMATION_KEYFRAMES[animationName];
+    if (keyframes) {
+      const duration = this.getAnimationDuration(animationName);
+      const timing = this.getAnimationTiming(animationName);
+      
+      const styleContent = `
+        ${keyframes}
+        svg { animation: ${animationName} ${duration} ${timing} infinite; }
+      `.trim();
+      
+      cleanSvg = cleanSvg.replace(/<svg([^>]*)>/, `<svg$1><style>${styleContent}</style>`);
+    }
+    
+    // URL encode for data URI
+    const encoded = encodeURIComponent(cleanSvg)
+      .replace(/'/g, '%27')
+      .replace(/"/g, '%22');
+    
+    return `![icon](data:image/svg+xml,${encoded})`;
+  }
+
+  private getAnimationDuration(animationType: string): string {
+    const fastAnimations = ['spin', 'spin-reverse', 'blink'];
+    const slowAnimations = ['float', 'fade', 'glow'];
+    
+    if (fastAnimations.includes(animationType)) return '1s';
+    if (slowAnimations.includes(animationType)) return '2s';
+    return '1.5s';
+  }
+
+  private getAnimationTiming(animationType: string): string {
+    const linearAnimations = ['spin', 'spin-reverse'];
+    const easeOutAnimations = ['bounce', 'bounce-horizontal', 'slide-in-up', 'slide-in-down'];
+    
+    if (linearAnimations.includes(animationType)) return 'linear';
+    if (easeOutAnimations.includes(animationType)) return 'ease-out';
+    return 'ease-in-out';
   }
 }
 

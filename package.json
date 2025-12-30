@@ -31,6 +31,7 @@
     "design system"
   ],
   "activationEvents": [
+    "workspaceContains:**/*.svg",
     "onLanguage:html",
     "onLanguage:javascript",
     "onLanguage:javascriptreact",
@@ -288,6 +289,16 @@
         "command": "iconManager.cleanSprite",
         "title": "%command.cleanSprite%",
         "icon": "$(trash)"
+      },
+      {
+        "command": "iconManager.generateLicenses",
+        "title": "%command.generateLicenses%",
+        "icon": "$(law)"
+      },
+      {
+        "command": "iconManager.showLicenseSummary",
+        "title": "%command.showLicenseSummary%",
+        "icon": "$(list-unordered)"
       }
     ],
     "configuration": {
@@ -454,6 +465,26 @@
           "default": true,
           "description": "Automatically scan workspace for SVG files on startup"
         },
+        "iconManager.licenseFormat": {
+          "type": "string",
+          "enum": [
+            "combined",
+            "perCollection",
+            "both"
+          ],
+          "default": "combined",
+          "description": "%config.licenseFormat.description%"
+        },
+        "iconManager.autoGenerateLicenses": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.autoGenerateLicenses.description%"
+        },
+        "iconManager.licensesFolder": {
+          "type": "string",
+          "default": "icon-licenses",
+          "description": "%config.licensesFolder.description%"
+        },
         "iconManager.excludePatterns": {
           "type": "array",
           "default": [
@@ -612,15 +643,6 @@
         {
           "command": "iconManager.showDetails",
           "group": "1_edit@2"
-        },
-        {
-          "command": "iconManager.optimizeSvg",
-          "group": "2_optimize@1"
-        },
-        {
-          "command": "iconManager.viewSprite",
-          "when": "resourceFilename == sprite.svg",
-          "group": "3_view@1"
         }
       ],
       "view/item/context": [

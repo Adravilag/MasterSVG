@@ -360,8 +360,13 @@
     "noButton": "No",
     "clickToConfigureOutput": "Click to configure output directory and settings",
     "svgCanBeConverted": "SVG \"{name}\" can be converted to Icon component",
-    "transformToFormat": "🔄 Transform to {format}: \"{name}\"",
-    "importIconName": "📥 Import icon: \"{name}\""
+    "transformToFormat": "Transform to {format}: \"{name}\"",
+    "importIconName": "Import icon: \"{name}\"",
+    "searchIconify": "Search in Iconify...",
+    "browseWorkspaceIcons": "Browse workspace icons...",
+    "noIconsInWorkspace": "No icons found in workspace. Try searching Iconify.",
+    "iconSelected": "Icon \"{name}\" selected",
+    "iconAlreadyExists": "Icon \"{name}\" already exists"
   },
   "settings": {
     "title": "Settings",
@@ -425,7 +430,8 @@
       "svgFoldersConfiguration": "SVG Folders Configuration",
       "selectSvgFile": "Select SVG file",
       "selectFolderToSave": "Select folder to save the SVG",
-      "iconEditor": "Icon Editor"
+      "iconEditor": "Icon Editor",
+      "duplicateIcon": "Duplicate Icon"
     },
     "labels": {
       "browseForFolder": "Browse for folder...",
@@ -444,6 +450,11 @@
       "fromIconify": "From Iconify (search online)",
       "saveToWorkspace": "Save to workspace folder",
       "replaceInPlace": "Replace in place (update path only)",
+      "renameIcon": "Rename icon",
+      "enterNewName": "Enter a new name for the icon",
+      "replaceIcon": "Replace icon",
+      "overwriteExisting": "Overwrite existing icon",
+      "cancel": "Cancel",
       "outputDirectory": "Output Directory",
       "svgFolders": "SVG Folders",
       "componentName": "Component Name",

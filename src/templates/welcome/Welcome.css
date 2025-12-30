@@ -1349,3 +1349,83 @@ input[type="text"].input-error {
     display: none;
   }
 }
+
+/* License Consent Box */
+.license-consent-box {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.consent-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.consent-checkbox input[type="checkbox"] {
+  display: none;
+}
+
+.consent-checkmark {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--vscode-checkbox-border, rgba(255, 255, 255, 0.3));
+  border-radius: 4px;
+  background: var(--vscode-checkbox-background, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.consent-checkbox input[type="checkbox"]:checked + .consent-checkmark {
+  background: var(--vscode-checkbox-selectBackground, #0078d4);
+  border-color: var(--vscode-checkbox-selectBorder, #0078d4);
+}
+
+.consent-checkbox input[type="checkbox"]:checked + .consent-checkmark::after {
+  content: '';
+  width: 6px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-bottom: 2px;
+}
+
+.consent-checkbox:hover .consent-checkmark {
+  border-color: var(--vscode-focusBorder, #0078d4);
+}
+
+.consent-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--vscode-foreground);
+}
+
+.consent-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(0, 120, 212, 0.1);
+  border-radius: 6px;
+  border-left: 3px solid var(--vscode-textLink-foreground, #3794ff);
+  font-size: 12px;
+  color: var(--vscode-descriptionForeground);
+  line-height: 1.5;
+}
+
+.consent-info .info-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  fill: var(--vscode-textLink-foreground, #3794ff);
+  margin-top: 1px;
+}

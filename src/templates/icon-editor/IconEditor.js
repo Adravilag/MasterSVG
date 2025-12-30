@@ -1106,6 +1106,14 @@
       });
     }
     
+    function saveAnimation() {
+      vscode.postMessage({
+        command: 'saveAnimation',
+        animation: currentAnimation,
+        settings: currentAnimation !== 'none' ? animationSettings : null
+      });
+    }
+    
     function updateAnimationSetting(setting, value) {
       animationSettings[setting] = value;
       
@@ -1257,5 +1265,6 @@
     window.showAddColorPicker = showAddColorPicker;
     window.toggleAnimationInCode = toggleAnimationInCode;
     window.copyWithAnimation = copyWithAnimation;
+    window.saveAnimation = saveAnimation;
     window.updateAnimationSetting = updateAnimationSetting;
 })();

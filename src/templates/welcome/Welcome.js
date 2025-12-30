@@ -168,3 +168,7 @@ function setDefaultIconSize(value) {
 function setPreviewBackground(value) {
   vscode.postMessage({ command: 'setPreviewBackground', value: value });
 }
+
+function setLicenseConsent(value) {
+  vscode.postMessage({ command: 'setLicenseConsent', value: value });
+}

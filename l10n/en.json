@@ -39,6 +39,10 @@
     "tag": "Tag",
     "webComponentName": "Web Component Name",
     "webComponentDesc": "Custom element tag name for your icons",
+    "licenseConsentTitle": "Third-Party Licenses",
+    "licenseConsentDesc": "Icons from Iconify have their own licenses that may require attribution.",
+    "licenseConsentCheckbox": "I understand that Iconify icons are third-party content with their own licenses, and I agree to auto-generate license attribution files when building.",
+    "licenseConsentInfo": "When enabled, a LICENSES.md file will be automatically generated in your output folder with proper attribution for all Iconify icons used in your project.",
     "configureOutputFirst": "Configure output directory first",
     "setupComplete": "Setup complete!",
     "filesCreated": "Files created in {path}",
@@ -200,6 +204,8 @@
     "iconAddedToSprite": "'{name}' added to sprite.svg",
     "iconAddedToIconsJs": "'{name}' added to icons.js",
     "iconAddedWithAnimation": "'{name}' added to icons.js with animation",
+    "animationSaved": "Animation '{animation}' assigned to '{name}'",
+    "animationRemoved": "Animation removed from '{name}'",
     "iconRemoved": "Icon '{name}' removed",
     "iconRenamed": "Icon renamed from '{oldName}' to '{newName}'",
     "renamedTo": "Renamed to '{name}'",
@@ -369,8 +375,13 @@
     "noButton": "No",
     "clickToConfigureOutput": "Click to configure output directory and settings",
     "svgCanBeConverted": "SVG \"{name}\" can be converted to Icon component",
-    "transformToFormat": "🔄 Transform to {format}: \"{name}\"",
-    "importIconName": "📥 Import icon: \"{name}\""
+    "transformToFormat": "Transform to {format}: \"{name}\"",
+    "importIconName": "Import icon: \"{name}\"",
+    "searchIconify": "Search in Iconify...",
+    "browseWorkspaceIcons": "Browse workspace icons...",
+    "noIconsInWorkspace": "No icons found in workspace. Try searching Iconify.",
+    "iconSelected": "Icon \"{name}\" selected",
+    "iconAlreadyExists": "Icon \"{name}\" already exists"
   },
   "settings": {
     "title": "Settings",
@@ -435,7 +446,8 @@
       "svgFoldersConfiguration": "SVG Folders Configuration",
       "selectSvgFile": "Select SVG file",
       "selectFolderToSave": "Select folder to save the SVG",
-      "iconEditor": "Icon Editor"
+      "iconEditor": "Icon Editor",
+      "duplicateIcon": "Duplicate Icon Name"
     },
     "labels": {
       "browseForFolder": "Browse for folder...",
@@ -477,7 +489,12 @@
       "typeRelativePath": "Type a relative path",
       "findBuildIconify": "Find and build an icon from Iconify library",
       "selectExistingSvg": "Select an existing SVG file",
-      "selectIconFromLibrary": "Select an icon already in your library"
+      "selectIconFromLibrary": "Select an icon already in your library",
+      "renameIcon": "Rename icon",
+      "enterNewName": "Enter a different name",
+      "replaceIcon": "Replace existing",
+      "overwriteExisting": "Overwrite the existing icon",
+      "cancel": "Cancel"
     },
     "details": {
       "outputDirectoryDesc": "Directory where icons.ts or sprite.svg will be generated",
@@ -529,6 +546,8 @@
       "directionAlternate": "Alternate",
       "directionAltReverse": "Alt Reverse",
       "export": "Export",
+      "saveAnimation": "Assign",
+      "saveAnimationTooltip": "Save animation assignment for this icon",
       "copyWithAnimation": "Copy with Animation",
       "exportHint": "SVG will include CSS animation"
     },
@@ -599,6 +618,7 @@
       "elementsBreakdown": "Elements",
       "features": "Features",
       "sourceLocation": "Source Location",
+      "animation": "Animation",
       "variants": "Variants",
       "variantsDisabled": "Variants disabled for SVGs with too many colors",
       "saveVariant": "Save current colors as variant",
@@ -609,7 +629,14 @@
       "setAsDefault": "Set as default",
       "clickToApply": "Click to apply",
       "activeDefault": "active default",
-      "delete": "Delete"
+      "delete": "Delete",
+      "license": "License",
+      "collection": "Collection",
+      "author": "Author",
+      "licenseType": "License",
+      "unknownAuthor": "Unknown",
+      "unknownLicense": "Unknown",
+      "licenseUnknown": "License information not available"
     },
     "spritePreview": {
       "icons": "icons",

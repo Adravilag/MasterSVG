@@ -17,5 +17,6 @@ export { registerSpriteCommands, getSpritePreviewHtml, type SpriteCommandProvide
 export { registerMiscCommands, type MiscCommandProviders } from './miscCommands';
 export { registerImportCommands, type ImportCommandProviders } from './importCommands';
 export { registerReferenceCommands, type ReferenceCommandProviders } from './referenceCommands';
+export { registerLicenseCommands } from './licenseCommands';
 
 

@@ -5,7 +5,7 @@ import { WorkspaceSvgProvider, SvgItem, BuiltIconsProvider, SvgFilesProvider } f
 import { SvgTransformer } from '../services/SvgTransformer';
 import { searchIconify } from '../utils/iconifyService';
 import { getConfig } from '../utils/configHelper';
-import { showIconifyReplacementPicker } from './iconifyCommands';
+import { showIconifyReplacementPicker, handleDuplicateIconName } from './iconifyCommands';
 import { TransformOptions } from '../providers/SvgToIconCodeActionProvider';
 import { 
   buildIcon, 
@@ -116,14 +116,19 @@ export function registerMiscCommands(
       if (!selectedIcon) return;
 
       svgContent = selectedIcon.svg;
-      finalIconName = selectedIcon.name;
+      finalIconName = `${selectedIcon.prefix}-${selectedIcon.name}`;
+
+      // Check for duplicate name
+      const resolvedName = await handleDuplicateIconName(finalIconName, workspaceSvgProvider);
+      if (!resolvedName) return;
+      finalIconName = resolvedName;
 
     } else if (sourceChoice.value === 'current') {
       if (isInlineSvg && inlineSvgContent) {
         // Use the inline SVG content directly
         svgContent = inlineSvgContent;
         
-        // Ask for icon name
+        // Ask for icon name (with duplicate check built into validation)
         const newName = await vscode.window.showInputBox({
           prompt: t('ui.prompts.enterIconName') || 'Enter a name for this icon',
           value: finalIconName,
@@ -141,6 +146,12 @@ export function registerMiscCommands(
         }
 
         svgContent = fs.readFileSync(fullSvgPath, 'utf-8');
+
+        // Check for duplicate name
+        const resolvedName = await handleDuplicateIconName(finalIconName, workspaceSvgProvider);
+        if (!resolvedName) return;
+        finalIconName = resolvedName;
+
         const deleteOriginal = await showDeleteOriginalPrompt();
         if (deleteOriginal) {
           try { fs.unlinkSync(fullSvgPath); } catch (e) { console.error('Failed to delete:', e); }
@@ -181,6 +192,19 @@ export function registerMiscCommands(
         vscode.window.showErrorMessage(t('messages.failedToBuildIcon', { error: result.error || '' }));
         return;
       }
+
+      // Add icon directly to cache for immediate detection
+      const config = getConfig();
+      const outputPath = config.outputDirectory || 'src/icons';
+      const builtIcon = {
+        name: finalIconName,
+        svg: svgContent!,
+        path: outputPath,
+        source: 'library' as const,
+        category: 'built',
+        isBuilt: true
+      };
+      workspaceSvgProvider.addBuiltIcon(finalIconName, builtIcon);
     }
 
     // Replace in document
@@ -210,7 +234,8 @@ export function registerMiscCommands(
       console.error('Failed to replace in document:', e);
     }
 
-    workspaceSvgProvider.refresh();
+    // Soft refresh to update tree without clearing cache
+    workspaceSvgProvider.softRefresh();
     builtIconsProvider.refresh();
     vscode.window.showInformationMessage(t('messages.iconTransformed', { name: finalIconName, component: componentName }));
   });

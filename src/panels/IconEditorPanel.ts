@@ -53,8 +53,10 @@ import {
   handleRequestRename,
   handleRenameIcon,
   handleRebuild,
-  handleRefresh
+  handleRefresh,
+  handleSaveAnimation
 } from '../handlers/IconEditorIconHandlers';
+import { getAnimationService } from '../services/AnimationAssignmentService';
 
 interface IconAnimation {
   type: string;
@@ -301,6 +303,9 @@ export class IconEditorPanel {
       case 'rebuild':
         await handleRebuild(iconCtx, message as { animation?: string; animationSettings?: Record<string, unknown> });
         break;
+      case 'saveAnimation':
+        handleSaveAnimation(iconCtx, message as { animation?: string; settings?: Record<string, unknown> });
+        break;
       case 'refresh':
         handleRefresh();
         break;
@@ -476,6 +481,25 @@ export class IconEditorPanel {
   }
 
   private _readIconAnimation(iconName: string): AnimationConfig | undefined {
+    // First, check the AnimationAssignmentService (animations.js)
+    try {
+      const animService = getAnimationService();
+      const assigned = animService.getAnimation(iconName);
+      if (assigned && assigned.type && assigned.type !== 'none') {
+        return {
+          type: assigned.type,
+          duration: assigned.duration || 1,
+          timing: assigned.timing || 'ease',
+          iteration: assigned.iteration || 'infinite',
+          delay: assigned.delay,
+          direction: assigned.direction
+        };
+      }
+    } catch (err) {
+      console.error('[Icon Studio] Error reading from AnimationAssignmentService:', err);
+    }
+    
+    // Fallback: check the icons.js file for embedded animation
     try {
       const filePath = this._getIconsFilePath();
       if (!filePath || !fs.existsSync(filePath)) return undefined;

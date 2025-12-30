@@ -29,6 +29,8 @@ import { registerIconifyCommands, showIconifyReplacementPicker, showIconPickerPa
 import { registerEditorCommands } from './commands/editorCommands';
 import { registerSpriteCommands, getSpritePreviewHtml } from './commands/spriteCommands';
 import { registerMiscCommands } from './commands/miscCommands';
+import { registerImportCommands } from './commands/importCommands';
+import { registerLicenseCommands } from './commands/licenseCommands';
 
 let workspaceSvgProvider: WorkspaceSvgProvider;
 let builtIconsProvider: BuiltIconsProvider;
@@ -271,6 +273,19 @@ export function activate(context: vscode.ExtensionContext) {
     workspaceTreeView
   });
   context.subscriptions.push(...miscCommands);
+
+  // Register import commands (importSvgToLibrary, checkAndImportSvg, addSvgToCollection)
+  const importCommands = registerImportCommands(context, {
+    workspaceSvgProvider,
+    builtIconsProvider,
+    svgFilesProvider,
+    svgTransformer
+  });
+  context.subscriptions.push(...importCommands);
+
+  // Register license commands
+  const licenseCommands = registerLicenseCommands(context);
+  context.subscriptions.push(...licenseCommands);
 
   // Register completion provider
   const completionDisposable = vscode.languages.registerCompletionItemProvider(

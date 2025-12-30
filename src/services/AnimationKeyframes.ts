@@ -54,6 +54,7 @@ export const ANIMATION_CATEGORIES = {
   attention: ['swing', 'wobble', 'rubber-band', 'jello', 'heartbeat', 'tada'],
   entrance: ['fade-in', 'fade-out', 'zoom-in', 'zoom-out', 'slide-in-up', 'slide-in-down', 'slide-in-left', 'slide-in-right', 'flip', 'flip-x'],
   draw: ['draw', 'draw-reverse', 'draw-loop'],
+  custom: ['custom'],
 };
 
 /**
@@ -92,6 +93,7 @@ export const ANIMATION_BUTTONS: Record<string, { label: string; icon: string }> 
   'draw': { label: 'Draw', icon: 'edit' },
   'draw-reverse': { label: 'Undraw', icon: 'discard' },
   'draw-loop': { label: 'Draw Loop', icon: 'sync' },
+  'custom': { label: 'Custom', icon: 'symbol-color' },
 };
 
 /**

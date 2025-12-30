@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { t } from '../i18n';
+import { getAnimationService } from '../services/AnimationAssignmentService';
 
 /**
  * Icon location data
@@ -157,6 +158,34 @@ export async function handleRebuild(
   }
   
   await ctx.addToIconCollection(message.animation, message.animationSettings);
+}
+
+/**
+ * Handle saving animation assignment for an icon
+ */
+export function handleSaveAnimation(
+  ctx: IconHandlerContext,
+  message: { animation?: string; settings?: Record<string, unknown> }
+): void {
+  if (!ctx.iconData?.name) return;
+  
+  const animService = getAnimationService();
+  const animationType = message.animation || 'none';
+  
+  if (animationType === 'none') {
+    animService.removeAnimation(ctx.iconData.name);
+    vscode.window.showInformationMessage(t('messages.animationRemoved', { name: ctx.iconData.name }));
+  } else {
+    animService.setAnimation(ctx.iconData.name, {
+      type: animationType,
+      duration: message.settings?.duration as number | undefined,
+      timing: message.settings?.timing as string | undefined,
+      iteration: message.settings?.iteration as string | undefined,
+      delay: message.settings?.delay as number | undefined,
+      direction: message.settings?.direction as string | undefined
+    });
+    vscode.window.showInformationMessage(t('messages.animationSaved', { name: ctx.iconData.name, animation: animationType }));
+  }
 }
 
 /**

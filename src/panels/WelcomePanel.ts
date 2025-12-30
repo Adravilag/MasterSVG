@@ -37,6 +37,7 @@ export class WelcomePanel {
     scanOnStartup: boolean;
     defaultIconSize: number;
     previewBackground: string;
+    autoGenerateLicenses: boolean;
   };
 
   public static createOrShow(extensionUri: vscode.Uri): void {
@@ -83,7 +84,8 @@ export class WelcomePanel {
       svgoOptimize: config.get<boolean>('svgoOptimize', true),
       scanOnStartup: config.get<boolean>('scanOnStartup', true),
       defaultIconSize: config.get<number>('defaultIconSize', 24),
-      previewBackground: config.get<string>('previewBackground', 'transparent')
+      previewBackground: config.get<string>('previewBackground', 'transparent'),
+      autoGenerateLicenses: config.get<boolean>('autoGenerateLicenses', true)
     };
 
     this._update();
@@ -125,6 +127,9 @@ export class WelcomePanel {
             break;
           case 'setPreviewBackground':
             await this._setPreviewBackground(message.value);
+            break;
+          case 'setLicenseConsent':
+            await this._setLicenseConsent(message.value);
             break;
           case 'openSettings':
             vscode.commands.executeCommand('workbench.action.openSettings', 'iconManager');
@@ -265,6 +270,12 @@ export class WelcomePanel {
     this._sessionConfig.previewBackground = value;
   }
 
+  private async _setLicenseConsent(value: boolean): Promise<void> {
+    // Update session config only - will be persisted on finishSetup
+    this._sessionConfig.autoGenerateLicenses = value;
+    this._update();
+  }
+
   private async _finishSetup(): Promise<void> {
     // Use session config values (not yet persisted)
     const outputDir = this._sessionConfig.outputDirectory;
@@ -295,6 +306,7 @@ export class WelcomePanel {
       await config.update('scanOnStartup', this._sessionConfig.scanOnStartup, vscode.ConfigurationTarget.Workspace);
       await config.update('defaultIconSize', this._sessionConfig.defaultIconSize, vscode.ConfigurationTarget.Workspace);
       await config.update('previewBackground', this._sessionConfig.previewBackground, vscode.ConfigurationTarget.Workspace);
+      await config.update('autoGenerateLicenses', this._sessionConfig.autoGenerateLicenses, vscode.ConfigurationTarget.Workspace);
 
       if (buildFormat === 'sprite.svg') {
         // Generate empty sprite.svg
@@ -467,6 +479,12 @@ declare global {
       step4Title: t('welcome.webComponentName'),
       step4Desc: t('welcome.webComponentDesc'),
       
+      // Step 5 - License Consent
+      step5Title: t('welcome.licenseConsentTitle'),
+      step5Desc: t('welcome.licenseConsentDesc'),
+      step5Checkbox: t('welcome.licenseConsentCheckbox'),
+      step5Info: t('welcome.licenseConsentInfo'),
+      
       // Advanced Options
       advancedTitle: t('welcome.advancedOptions'),
       svgoOptimizeLabel: t('welcome.svgoOptimize'),
@@ -593,6 +611,33 @@ declare global {
         </div>
       </div>
     ` : '';
+
+    // Step 5 - License consent for Iconify icons
+    const autoGenerateLicenses = this._sessionConfig.autoGenerateLicenses;
+    const isStep5Complete = autoGenerateLicenses;
+    const step5Section = `
+      <div class="step">
+        <div class="step-header">
+          <div class="step-number${isStep5Complete ? ' completed' : ''}"><span>5</span></div>
+          <div class="step-title">${tr.step5Title}</div>
+          ${isStep5Complete ? `<span class="step-summary">✓</span>` : ''}
+        </div>
+        <div class="step-content">
+          <p class="step-description">${tr.step5Desc}</p>
+          <div class="license-consent-box">
+            <label class="consent-checkbox">
+              <input type="checkbox" id="licenseConsent" ${autoGenerateLicenses ? 'checked' : ''} onchange="setLicenseConsent(this.checked)">
+              <span class="consent-checkmark"></span>
+              <span class="consent-text">${tr.step5Checkbox}</span>
+            </label>
+            <p class="consent-info">
+              <svg viewBox="0 0 24 24" class="info-icon"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+              ${tr.step5Info}
+            </p>
+          </div>
+        </div>
+      </div>
+    `;
 
     const outputDirDisplay = outputDir || 'public/icons';
     const webComponentDisplay = webComponentName || 'sg-icon';
@@ -806,6 +851,8 @@ declare global {
       .replace(/\$\{spritePro2\}/g, tr.spritePro2)
       // Step 4 - Web Component Name
       .replace(/\$\{step4Section\}/g, step4Section)
+      // Step 5 - License Consent
+      .replace(/\$\{step5Section\}/g, step5Section)
       // Advanced Options
       .replace(/\$\{advancedTitle\}/g, tr.advancedTitle)
       .replace(/\$\{svgoOptimizeLabel\}/g, tr.svgoOptimizeLabel)

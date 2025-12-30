@@ -312,6 +312,11 @@ export async function handleMessage(ctx: PanelContext, message: any): Promise<vo
     case 'setDefaultVariant':
       handleSetDefaultVariant(ctx, message);
       break;
+    case 'openExternal':
+      if (message.url) {
+        vscode.env.openExternal(vscode.Uri.parse(message.url));
+      }
+      break;
   }
 }
 
