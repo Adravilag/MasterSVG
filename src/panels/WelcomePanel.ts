@@ -517,14 +517,14 @@ declare global {
     const isBuildFormatConfigured = !!buildFormat;
     const isWebComponentConfigured = webComponentName && webComponentName.includes('-');
     
-    // Progressive unlock logic: each step unlocks when the previous is completed
+    // All steps are always unlocked - users can configure in any order
     const isStep1Complete = isSourceConfigured;
-    const isStep2Unlocked = isStep1Complete;
-    const isStep2Complete = isStep2Unlocked && isOutputConfigured;
-    const isStep3Unlocked = isStep2Complete;
-    const isStep3Complete = isStep3Unlocked && isBuildFormatConfigured;
-    const isStep4Unlocked = isStep3Complete;
-    const isStep4Complete = isStep4Unlocked && isWebComponentConfigured;
+    const isStep2Unlocked = true;
+    const isStep2Complete = isOutputConfigured;
+    const isStep3Unlocked = true;
+    const isStep3Complete = isBuildFormatConfigured;
+    const isStep4Unlocked = true;
+    const isStep4Complete = isWebComponentConfigured;
     
     // All 4 steps must be complete for the button to be enabled
     const isFullyConfigured = isStep1Complete && isStep2Complete && isStep3Complete && isStep4Complete;

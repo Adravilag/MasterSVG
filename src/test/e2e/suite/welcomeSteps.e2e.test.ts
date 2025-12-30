@@ -29,12 +29,12 @@ suite('Welcome Panel Steps State Tests', () => {
     
     // Progressive unlock logic
     const isStep1Complete = isSourceConfigured;
-    const isStep2Unlocked = isStep1Complete;
-    const isStep2Complete = isStep2Unlocked && isOutputConfigured;
-    const isStep3Unlocked = isStep2Complete;
-    const isStep3Complete = isStep3Unlocked && isBuildFormatConfigured;
-    const isStep4Unlocked = isStep3Complete;
-    const isStep4Complete = !!(isStep4Unlocked && isWebComponentConfigured);
+    const isStep2Unlocked = true;
+    const isStep2Complete = isOutputConfigured;
+    const isStep3Unlocked = true;
+    const isStep3Complete = isBuildFormatConfigured;
+    const isStep4Unlocked = true;
+    const isStep4Complete = !!(isWebComponentConfigured);
     
     // All 4 steps must be complete for button to be enabled
     const isFullyConfigured = !!(isStep1Complete && isStep2Complete && isStep3Complete && isStep4Complete);

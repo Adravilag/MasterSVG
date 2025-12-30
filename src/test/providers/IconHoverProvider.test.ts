@@ -319,6 +319,111 @@ describe('IconHoverProvider', () => {
       // Debe mostrar info aunque no haya preview
     });
   });
+
+  // =====================================================
+  // Variantes en hover preview
+  // =====================================================
+
+  describe('variantes en hover preview', () => {
+    test('debe detectar atributo variant en el tag', async () => {
+      const lineText = '<sg-icon name="star" variant="custom"></sg-icon>';
+      mockDocument = createMockDocument(lineText);
+      (mockSvgProvider.getIcon as jest.Mock).mockReturnValue({
+        ...mockIcon,
+        name: 'star',
+        svg: '<svg viewBox="0 0 24 24"><path fill="#fff" d="M12 2l3 7h7l-6 5 3 7-7-5-7 5 3-7-6-5h7z"/></svg>'
+      });
+
+      const position = new vscode.Position(0, 16); // cursor sobre "star"
+      
+      const hover = await provider.provideHover(
+        mockDocument as vscode.TextDocument,
+        position,
+        mockToken
+      );
+
+      expect(hover).not.toBeNull();
+      const content = Array.isArray(hover!.contents) 
+        ? (hover!.contents[0] as vscode.MarkdownString).value
+        : (hover!.contents as vscode.MarkdownString).value;
+      expect(content).toContain('Variant');
+      expect(content).toContain('custom');
+    });
+
+    test('debe mostrar hover sin variant cuando no está especificado', async () => {
+      const lineText = '<sg-icon name="star"></sg-icon>';
+      mockDocument = createMockDocument(lineText);
+      (mockSvgProvider.getIcon as jest.Mock).mockReturnValue({
+        ...mockIcon,
+        name: 'star'
+      });
+
+      const position = new vscode.Position(0, 16);
+      
+      const hover = await provider.provideHover(
+        mockDocument as vscode.TextDocument,
+        position,
+        mockToken
+      );
+
+      expect(hover).not.toBeNull();
+      const content = Array.isArray(hover!.contents) 
+        ? (hover!.contents[0] as vscode.MarkdownString).value
+        : (hover!.contents as vscode.MarkdownString).value;
+      // No debe contener info de variante
+      expect(content).not.toContain('Variant:');
+    });
+
+    test('debe detectar atributo animation en el tag', async () => {
+      const lineText = '<sg-icon name="star" animation="pulse"></sg-icon>';
+      mockDocument = createMockDocument(lineText);
+      (mockSvgProvider.getIcon as jest.Mock).mockReturnValue({
+        ...mockIcon,
+        name: 'star',
+        svg: '<svg viewBox="0 0 24 24"><path fill="#fff" d="M12 2l3 7h7l-6 5 3 7-7-5-7 5 3-7-6-5h7z"/></svg>'
+      });
+
+      const position = new vscode.Position(0, 16);
+      
+      const hover = await provider.provideHover(
+        mockDocument as vscode.TextDocument,
+        position,
+        mockToken
+      );
+
+      expect(hover).not.toBeNull();
+      const content = Array.isArray(hover!.contents) 
+        ? (hover!.contents[0] as vscode.MarkdownString).value
+        : (hover!.contents as vscode.MarkdownString).value;
+      expect(content).toContain('Animation');
+      expect(content).toContain('pulse');
+    });
+
+    test('debe mostrar variante y animación juntas', async () => {
+      const lineText = '<sg-icon name="star" variant="custom" animation="spin"></sg-icon>';
+      mockDocument = createMockDocument(lineText);
+      (mockSvgProvider.getIcon as jest.Mock).mockReturnValue({
+        ...mockIcon,
+        name: 'star',
+        svg: '<svg viewBox="0 0 24 24"><path fill="#fff" d="M12 2l3 7h7l-6 5 3 7-7-5-7 5 3-7-6-5h7z"/></svg>'
+      });
+
+      const position = new vscode.Position(0, 16);
+      
+      const hover = await provider.provideHover(
+        mockDocument as vscode.TextDocument,
+        position,
+        mockToken
+      );
+
+      expect(hover).not.toBeNull();
+      const content = Array.isArray(hover!.contents) 
+        ? (hover!.contents[0] as vscode.MarkdownString).value
+        : (hover!.contents as vscode.MarkdownString).value;
+      expect(content).toContain('Variant');
+      expect(content).toContain('custom');
+      expect(content).toContain('Animation');
+      expect(content).toContain('spin');
+    });
+  });
 });
-
-

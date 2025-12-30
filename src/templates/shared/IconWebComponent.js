@@ -36,7 +36,7 @@ const animationStyles = `
     transition: opacity 0.3s ease, scale 0.3s ease;
   }
 
-  /* Animations using individual transform properties */
+  /* Basic animations */
   @keyframes icon-spin { 
     from { rotate: 0deg; } 
     to { rotate: 360deg; } 
@@ -55,37 +55,150 @@ const animationStyles = `
   }
   @keyframes icon-bounce { 
     0%, 100% { translate: 0 0; } 
-    50% { translate: 0 -4px; } 
+    50% { translate: 0 -8px; } 
   }
-  @keyframes icon-bounce-in {
-    0% { scale: 0; opacity: 0; }
-    50% { scale: 1.2; }
-    100% { scale: 1; opacity: 1; }
+  @keyframes icon-bounce-horizontal {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 8px 0; }
   }
   @keyframes icon-shake { 
     0%, 100% { translate: 0 0; } 
-    25% { translate: -2px 0; } 
-    75% { translate: 2px 0; } 
+    25% { translate: -4px 0; } 
+    75% { translate: 4px 0; } 
+  }
+  @keyframes icon-shake-vertical {
+    0%, 100% { translate: 0 0; }
+    25% { translate: 0 -4px; }
+    75% { translate: 0 4px; }
   }
   @keyframes icon-fade { 
     0%, 100% { opacity: 1; } 
     50% { opacity: 0.3; } 
   }
+  @keyframes icon-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes icon-fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
   @keyframes icon-float {
     0%, 100% { translate: 0 0; }
     50% { translate: 0 -6px; }
   }
+  @keyframes icon-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  @keyframes icon-glow {
+    0%, 100% { filter: drop-shadow(0 0 2px currentColor); }
+    50% { filter: drop-shadow(0 0 10px currentColor) drop-shadow(0 0 20px currentColor); }
+  }
+
+  /* Attention seekers */
+  @keyframes icon-swing {
+    0%, 100% { rotate: 0deg; transform-origin: top center; }
+    25% { rotate: 15deg; }
+    75% { rotate: -15deg; }
+  }
+  @keyframes icon-wobble {
+    0%, 100% { translate: 0 0; rotate: 0deg; }
+    15% { translate: -6px 0; rotate: -5deg; }
+    30% { translate: 5px 0; rotate: 3deg; }
+    45% { translate: -4px 0; rotate: -3deg; }
+    60% { translate: 3px 0; rotate: 2deg; }
+    75% { translate: -2px 0; rotate: -1deg; }
+  }
+  @keyframes icon-rubber-band {
+    0%, 100% { scale: 1 1; }
+    30% { scale: 1.25 0.75; }
+    40% { scale: 0.75 1.25; }
+    50% { scale: 1.15 0.85; }
+    65% { scale: 0.95 1.05; }
+    75% { scale: 1.05 0.95; }
+  }
+  @keyframes icon-jello {
+    0%, 11.1%, 100% { transform: skewX(0) skewY(0); }
+    22.2% { transform: skewX(-12.5deg) skewY(-12.5deg); }
+    33.3% { transform: skewX(6.25deg) skewY(6.25deg); }
+    44.4% { transform: skewX(-3.125deg) skewY(-3.125deg); }
+    55.5% { transform: skewX(1.5625deg) skewY(1.5625deg); }
+  }
+  @keyframes icon-heartbeat {
+    0%, 100% { scale: 1; }
+    14% { scale: 1.15; }
+    28% { scale: 1; }
+    42% { scale: 1.15; }
+    70% { scale: 1; }
+  }
+  @keyframes icon-tada {
+    0%, 100% { scale: 1; rotate: 0deg; }
+    10%, 20% { scale: 0.9; rotate: -3deg; }
+    30%, 50%, 70%, 90% { scale: 1.1; rotate: 3deg; }
+    40%, 60%, 80% { scale: 1.1; rotate: -3deg; }
+  }
+
+  /* Entrance/Exit animations */
+  @keyframes icon-zoom-in {
+    from { scale: 0; opacity: 0; }
+    to { scale: 1; opacity: 1; }
+  }
+  @keyframes icon-zoom-out {
+    from { scale: 1; opacity: 1; }
+    to { scale: 0; opacity: 0; }
+  }
+  @keyframes icon-slide-in-up {
+    from { translate: 0 100%; opacity: 0; }
+    to { translate: 0 0; opacity: 1; }
+  }
+  @keyframes icon-slide-in-down {
+    from { translate: 0 -100%; opacity: 0; }
+    to { translate: 0 0; opacity: 1; }
+  }
+  @keyframes icon-slide-in-left {
+    from { translate: -100% 0; opacity: 0; }
+    to { translate: 0 0; opacity: 1; }
+  }
+  @keyframes icon-slide-in-right {
+    from { translate: 100% 0; opacity: 0; }
+    to { translate: 0 0; opacity: 1; }
+  }
+  @keyframes icon-flip {
+    0% { transform: perspective(400px) rotateY(0); }
+    100% { transform: perspective(400px) rotateY(360deg); }
+  }
+  @keyframes icon-flip-x {
+    0% { transform: perspective(400px) rotateX(0); }
+    100% { transform: perspective(400px) rotateX(360deg); }
+  }
+
+  /* Draw animations (for stroke-based SVGs) */
+  @keyframes icon-draw {
+    from { stroke-dashoffset: var(--path-length, 1000); }
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes icon-draw-reverse {
+    from { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: var(--path-length, 1000); }
+  }
+  @keyframes icon-draw-loop {
+    0% { stroke-dashoffset: var(--path-length, 1000); }
+    45% { stroke-dashoffset: 0; }
+    55% { stroke-dashoffset: 0; }
+    100% { stroke-dashoffset: var(--path-length, 1000); }
+  }
+
+  /* Legacy aliases */
   @keyframes icon-wiggle {
     0%, 100% { rotate: 0deg; }
     25% { rotate: -10deg; }
     75% { rotate: 10deg; }
   }
-  @keyframes icon-heartbeat {
-    0%, 100% { scale: 1; }
-    14% { scale: 1.3; }
-    28% { scale: 1; }
-    42% { scale: 1.3; }
-    70% { scale: 1; }
+  @keyframes icon-bounce-in {
+    0% { scale: 0; opacity: 0; }
+    50% { scale: 1.2; }
+    100% { scale: 1; opacity: 1; }
   }
   
   /* Combined animations - using individual properties allows this! */
@@ -207,33 +320,61 @@ class IconElement extends HTMLElement {
     }
     
     // Use specified variant, or fall back to default Variant for this icon
-    const variantName = this.getAttribute('variant') || defaultVariants[icon.name] || null;
+    // Try both kebab-case (attribute name) and icon's stored name
+    const variantName = this.getAttribute('variant') || defaultVariants[name] || defaultVariants[icon.name] || null;
     // Use specified animation, or fall back to icon's default animation (stored in icons.js)
-    const animName = this.getAttribute('animation') || (icon.animation?.type) || null;
+    const animAttr = this.getAttribute('animation');
+    const animName = (animAttr && animAttr.trim()) ? animAttr.trim() : (icon.animation?.type) || null;
     const animConfig = icon.animation || { duration: 1, timing: 'ease', iteration: 'infinite' };
     
     // Get body with variant colors applied if variant is specified
     let body = icon.body;
     
     // Apply color mappings first (custom color changes)
-    const iconColorMappings = colorMappings[icon.name] || {};
+    // Try both kebab-case and stored name for color mappings lookup
+    const iconColorMappings = colorMappings[name] || colorMappings[icon.name] || {};
     for (const [originalColor, newColor] of Object.entries(iconColorMappings)) {
       const regex = new RegExp(originalColor.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
       body = body.replace(regex, newColor);
     }
     
     // Then apply variant colors if specified
-    const iconVariants = Variants[icon.name] || {};
+    // Try both kebab-case and stored name for variants lookup
+    const iconVariants = Variants[name] || Variants[icon.name] || {};
     if (variantName && iconVariants[variantName]) {
+      const originalColors = iconVariants['_original'] || [];
       const variantColors = iconVariants[variantName];
-      // Extract current colors from body and replace with variant colors
-      const colorPattern = /(fill|stroke)=["']([^"']+)["']/gi;
-      const matches = [...body.matchAll(colorPattern)];
-      const uniqueColors = [...new Set(matches.map(m => m[2]).filter(c => c !== 'none' && c !== 'currentColor'))];
       
-      for (let i = 0; i < Math.min(uniqueColors.length, variantColors.length); i++) {
-        const regex = new RegExp(uniqueColors[i].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-        body = body.replace(regex, variantColors[i]);
+      // Direct replacement: use _original colors to find and replace
+      if (originalColors.length > 0) {
+        for (let i = 0; i < Math.min(originalColors.length, variantColors.length); i++) {
+          const regex = new RegExp(originalColors[i].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+          body = body.replace(regex, variantColors[i]);
+        }
+      } else {
+        // Fallback: Extract colors from body (fill, stroke, stop-color, style)
+        const colorPatterns = [
+          /(fill|stroke)=["']([^"']+)["']/gi,
+          /stop-color\s*:\s*([#\w]+)/gi,
+          /stop-color\s*=\s*["']([^"']+)["']/gi
+        ];
+        
+        const foundColors = new Set();
+        for (const pattern of colorPatterns) {
+          const matches = [...body.matchAll(pattern)];
+          matches.forEach(m => {
+            const color = m[2] || m[1];
+            if (color && color !== 'none' && color !== 'currentColor' && !color.startsWith('url(')) {
+              foundColors.add(color);
+            }
+          });
+        }
+        
+        const uniqueColors = [...foundColors];
+        for (let i = 0; i < Math.min(uniqueColors.length, variantColors.length); i++) {
+          const regex = new RegExp(uniqueColors[i].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+          body = body.replace(regex, variantColors[i]);
+        }
       }
     }
 
