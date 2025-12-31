@@ -88,3 +88,60 @@ input[type="range"]:focus::-webkit-slider-thumb {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Filters toggle button */
+.filters-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  color: var(--vscode-descriptionForeground);
+  border: 2px solid var(--vscode-input-border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filters-toggle-btn:hover {
+  border-color: var(--vscode-focusBorder);
+  color: var(--vscode-foreground);
+  background: var(--vscode-list-hoverBackground);
+}
+
+.filters-toggle-btn.active {
+  background: var(--vscode-inputOption-activeBackground, rgba(0, 127, 212, 0.3));
+  color: var(--vscode-inputOption-activeForeground, #fff);
+  border-color: var(--vscode-focusBorder);
+}
+
+.filters-toggle-btn.active:hover {
+  background: var(--vscode-inputOption-activeBackground, rgba(0, 127, 212, 0.5));
+}
+
+.filters-toggle-btn .codicon {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* Filters toggle button disabled (original variant selected) */
+.filters-toggle-btn:disabled,
+.filters-toggle-btn[disabled] {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+  border-color: var(--vscode-input-border);
+  background: transparent;
+}
+
+/* Filters disabled state */
+.filters-container.filters-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.filters-container.filters-disabled input[type="range"] {
+  cursor: not-allowed;
+}

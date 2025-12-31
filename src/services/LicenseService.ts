@@ -62,22 +62,24 @@ export async function fetchCollections(): Promise<Record<string, CollectionInfo>
   return new Promise((resolve, reject) => {
     const url = 'https://api.iconify.design/collections';
 
-    https.get(url, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          if (res.statusCode === 200) {
-            collectionsCache = JSON.parse(data);
-            resolve(collectionsCache!);
-          } else {
-            reject(new Error(`Failed to fetch collections: ${res.statusCode}`));
+    https
+      .get(url, res => {
+        let data = '';
+        res.on('data', chunk => (data += chunk));
+        res.on('end', () => {
+          try {
+            if (res.statusCode === 200) {
+              collectionsCache = JSON.parse(data);
+              resolve(collectionsCache!);
+            } else {
+              reject(new Error(`Failed to fetch collections: ${res.statusCode}`));
+            }
+          } catch (parseError) {
+            reject(parseError);
           }
-        } catch (e) {
-          reject(e);
-        }
-      });
-    }).on('error', reject);
+        });
+      })
+      .on('error', reject);
   });
 }
 
@@ -97,29 +99,114 @@ export function parseIconifyName(iconName: string): { prefix: string; name: stri
   // Common Iconify prefixes - sorted by length (longest first) to match properly
   const knownPrefixes = [
     // Multi-segment prefixes (must come first)
-    'material-symbols-light', 'material-symbols',
-    'icon-park-outline', 'icon-park-solid', 'icon-park-twotone', 'icon-park',
-    'fluent-emoji-flat', 'fluent-emoji-high-contrast', 'fluent-emoji', 'fluent-color',
-    'fa-solid', 'fa-regular', 'fa-brands', 'fa6-solid', 'fa6-regular', 'fa6-brands',
-    'fa7-solid', 'fa7-regular', 'fa7-brands',
-    'simple-icons', 'skill-icons', 'circle-flags', 'game-icons',
-    'ant-design', 'eos-icons', 'grommet-icons', 'radix-icons',
-    'vscode-icons', 'akar-icons', 'system-uicons',
-    'pepicons-pop', 'pepicons-print', 'pepicons-pencil',
-    'lets-icons', 'line-md', 'mdi-light',
+    'material-symbols-light',
+    'material-symbols',
+    'icon-park-outline',
+    'icon-park-solid',
+    'icon-park-twotone',
+    'icon-park',
+    'fluent-emoji-flat',
+    'fluent-emoji-high-contrast',
+    'fluent-emoji',
+    'fluent-color',
+    'fa-solid',
+    'fa-regular',
+    'fa-brands',
+    'fa6-solid',
+    'fa6-regular',
+    'fa6-brands',
+    'fa7-solid',
+    'fa7-regular',
+    'fa7-brands',
+    'simple-icons',
+    'skill-icons',
+    'circle-flags',
+    'game-icons',
+    'ant-design',
+    'eos-icons',
+    'grommet-icons',
+    'radix-icons',
+    'vscode-icons',
+    'akar-icons',
+    'system-uicons',
+    'pepicons-pop',
+    'pepicons-print',
+    'pepicons-pencil',
+    'lets-icons',
+    'line-md',
+    'mdi-light',
     // Single-segment prefixes
-    'mdi', 'fa', 'fa6', 'fa7', 'ph', 'ri', 'bi', 'ic',
-    'tabler', 'lucide', 'heroicons', 'carbon', 'ion', 'fluent',
-    'octicon', 'codicon', 'logos', 'devicon', 'noto', 'twemoji',
-    'openmoji', 'flag', 'wi', 'healthicons',
-    'ep', 'bx', 'bxs', 'bxl', 'cil', 'cib', 'cif',
-    'iconoir', 'mingcute', 'solar', 'uil', 'uis', 'uim', 'uit',
-    'feather', 'eva', 'prime', 'gridicons', 'jam', 'ci',
-    'clarity', 'f7', 'fe', 'gg', 'la',
-    'majesticons', 'memory', 'mi', 'maki', 'mynaui', 'nimbus', 'nrk',
-    'ooui', 'pajamas', 'pixelarticons', 'proicons', 'quill',
-    'si', 'subway', 'tdesign', 'teenyicons', 'typcn',
-    'vaadin', 'whh', 'zondicons', 'streamline', 'hugeicons'
+    'mdi',
+    'fa',
+    'fa6',
+    'fa7',
+    'ph',
+    'ri',
+    'bi',
+    'ic',
+    'tabler',
+    'lucide',
+    'heroicons',
+    'carbon',
+    'ion',
+    'fluent',
+    'octicon',
+    'codicon',
+    'logos',
+    'devicon',
+    'noto',
+    'twemoji',
+    'openmoji',
+    'flag',
+    'wi',
+    'healthicons',
+    'ep',
+    'bx',
+    'bxs',
+    'bxl',
+    'cil',
+    'cib',
+    'cif',
+    'iconoir',
+    'mingcute',
+    'solar',
+    'uil',
+    'uis',
+    'uim',
+    'uit',
+    'feather',
+    'eva',
+    'prime',
+    'gridicons',
+    'jam',
+    'ci',
+    'clarity',
+    'f7',
+    'fe',
+    'gg',
+    'la',
+    'majesticons',
+    'memory',
+    'mi',
+    'maki',
+    'mynaui',
+    'nimbus',
+    'nrk',
+    'ooui',
+    'pajamas',
+    'pixelarticons',
+    'proicons',
+    'quill',
+    'si',
+    'subway',
+    'tdesign',
+    'teenyicons',
+    'typcn',
+    'vaadin',
+    'whh',
+    'zondicons',
+    'streamline',
+    'hugeicons',
   ];
 
   // Try to match known prefix (already sorted by length)
@@ -127,7 +214,7 @@ export function parseIconifyName(iconName: string): { prefix: string; name: stri
     if (iconName.startsWith(`${prefix}-`)) {
       return {
         prefix,
-        name: iconName.substring(prefix.length + 1)
+        name: iconName.substring(prefix.length + 1),
       };
     }
   }
@@ -137,7 +224,7 @@ export function parseIconifyName(iconName: string): { prefix: string; name: stri
   if (match) {
     return {
       prefix: match[1],
-      name: match[2]
+      name: match[2],
     };
   }
 
@@ -158,7 +245,7 @@ export function getIconLicenseInfoSync(prefix: string): {
     return {
       name: info.name,
       author: info.author,
-      license: info.license
+      license: info.license,
     };
   }
   return null;
@@ -180,7 +267,7 @@ export async function getIconLicenseInfo(iconName: string): Promise<{
   }
 
   const { prefix } = parsed;
-  
+
   // Check cache first
   if (collectionsCache && collectionsCache[prefix]) {
     const info = collectionsCache[prefix];
@@ -188,7 +275,7 @@ export async function getIconLicenseInfo(iconName: string): Promise<{
       isIconify: true,
       collection: info.name,
       author: info.author,
-      license: info.license
+      license: info.license,
     };
   }
 
@@ -200,7 +287,7 @@ export async function getIconLicenseInfo(iconName: string): Promise<{
         isIconify: true,
         collection: collections[prefix].name,
         author: collections[prefix].author,
-        license: collections[prefix].license
+        license: collections[prefix].license,
       };
     }
   } catch {
@@ -210,7 +297,7 @@ export async function getIconLicenseInfo(iconName: string): Promise<{
   // Unknown prefix - might be Iconify but we don't have info
   return {
     isIconify: true,
-    collection: prefix // Use prefix as collection name
+    collection: prefix, // Use prefix as collection name
   };
 }
 
@@ -219,18 +306,18 @@ export async function getIconLicenseInfo(iconName: string): Promise<{
  */
 export async function scanIconsForAttribution(iconsPath: string): Promise<IconAttribution[]> {
   const attributions: IconAttribution[] = [];
-  
+
   if (!fs.existsSync(iconsPath)) {
     return attributions;
   }
 
   const content = fs.readFileSync(iconsPath, 'utf-8');
-  
+
   // Extract icon names from the file
   const namePattern = /name:\s*['"]([^'"]+)['"]/g;
   let match;
   const iconNames: string[] = [];
-  
+
   while ((match = namePattern.exec(content)) !== null) {
     iconNames.push(match[1]);
   }
@@ -243,8 +330,8 @@ export async function scanIconsForAttribution(iconsPath: string): Promise<IconAt
     const parsed = parseIconifyName(iconName);
     if (!parsed) continue;
 
-    const { prefix, name } = parsed;
-    
+    const { prefix, name: _name } = parsed;
+
     // Skip if we already processed this prefix (for efficiency)
     if (processedPrefixes.has(prefix)) {
       const existingAttribution = attributions.find(a => a.prefix === prefix);
@@ -261,7 +348,7 @@ export async function scanIconsForAttribution(iconsPath: string): Promise<IconAt
         prefix,
         collection: collectionInfo.name,
         author: collectionInfo.author,
-        license: collectionInfo.license
+        license: collectionInfo.license,
       });
     }
   }
@@ -312,7 +399,7 @@ function generateCollectionLicense(
     content += `- **URL**: ${first.author.url}\n`;
   }
   content += `\n## Icons Used (${iconCount})\n\n`;
-  
+
   // List all icons from this collection
   const iconsFromCollection = allIconNames.filter(name => {
     const parsed = parseIconifyName(name);
@@ -337,7 +424,7 @@ export function generateCombinedLicense(
   allIconNames: string[]
 ): string {
   const grouped = groupByCollection(attributions);
-  
+
   let content = `# Icon Licenses\n\n`;
   content += `This file contains license information for icons imported from Iconify.\n\n`;
   content += `---\n\n`;
@@ -362,13 +449,13 @@ export function generateCombinedLicense(
     }
     content += `| **Icons Used** | ${iconCount} |\n`;
     content += `\n`;
-    
+
     // List icons
     const iconsFromCollection = allIconNames.filter(name => {
       const parsed = parseIconifyName(name);
       return parsed?.prefix === prefix;
     });
-    
+
     if (iconsFromCollection.length <= 10) {
       content += `**Icons**: ${iconsFromCollection.map(i => `\`${i}\``).join(', ')}\n\n`;
     } else {
@@ -378,7 +465,7 @@ export function generateCombinedLicense(
       }
       content += `\n</details>\n\n`;
     }
-    
+
     content += `---\n\n`;
   }
 
@@ -399,23 +486,24 @@ export async function generateLicenseFiles(
   } = { combined: true, perCollection: false, licensesFolder: 'icon-licenses' }
 ): Promise<{ success: boolean; files: string[]; message: string }> {
   const iconsPath = path.join(outputPath, 'icons.js');
-  
+
   if (!fs.existsSync(iconsPath)) {
     return {
       success: false,
       files: [],
-      message: 'No icons.js file found. Build your icons first.'
+      message: 'No icons.js file found. Build your icons first.',
     };
   }
 
   // Scan for Iconify icons
   const attributions = await scanIconsForAttribution(iconsPath);
-  
+
   if (attributions.length === 0) {
     return {
       success: false,
       files: [],
-      message: 'No Iconify icons detected in icons.js. License generation is only for icons imported from Iconify.'
+      message:
+        'No Iconify icons detected in icons.js. License generation is only for icons imported from Iconify.',
     };
   }
 
@@ -462,7 +550,7 @@ export async function generateLicenseFiles(
   return {
     success: true,
     files: createdFiles,
-    message: `Generated license files for ${iconCount} icons from ${collectionCount} collection(s).`
+    message: `Generated license files for ${iconCount} icons from ${collectionCount} collection(s).`,
   };
 }
 
@@ -479,7 +567,7 @@ export async function getLicenseSummary(outputPath: string): Promise<{
   totalIcons: number;
 }> {
   const iconsPath = path.join(outputPath, 'icons.js');
-  
+
   if (!fs.existsSync(iconsPath)) {
     return { collections: [], totalIcons: 0 };
   }
@@ -505,14 +593,14 @@ export async function getLicenseSummary(outputPath: string): Promise<{
       const parsed = parseIconifyName(name);
       return parsed?.prefix === prefix;
     }).length;
-    
+
     collections.push({
       prefix,
       name: first.collection,
       license: first.license.title,
-      iconCount
+      iconCount,
     });
-    
+
     totalIcons += iconCount;
   }
 

@@ -30,15 +30,17 @@ export function registerTransformCommands(
 
   // Command: Transform inline SVG (also handles IMG references)
   commands.push(
-    vscode.commands.registerCommand('iconManager.transformInlineSvg', async (item: any) => {
+    vscode.commands.registerCommand('sageboxIconStudio.transformInlineSvg', async (item: any) => {
       if (item.icon && item.icon.filePath && item.icon.svg) {
-        const document = await vscode.workspace.openTextDocument(vscode.Uri.file(item.icon.filePath));
+        const document = await vscode.workspace.openTextDocument(
+          vscode.Uri.file(item.icon.filePath)
+        );
         const editor = await vscode.window.showTextDocument(document);
 
         const text = document.getText();
         let svgStart = -1;
         let svgContent = item.icon.svg;
-        let isImgReference = item.icon.category === 'img-ref';
+        const isImgReference = item.icon.category === 'img-ref';
         let imgTagMatch: RegExpExecArray | null = null;
         let imgTagText = '';
 
@@ -47,43 +49,47 @@ export function registerTransformCommands(
           const iconName = item.icon.name;
           // Escape special regex characters in icon name
           const escapedIconName = iconName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const imgRegex = new RegExp(`<img\\s+[^>]*src=["'][^"']*${escapedIconName}\\.svg["'][^>]*>`, 'gi');
+          const imgRegex = new RegExp(
+            `<img\\s+[^>]*src=["'][^"']*${escapedIconName}\\.svg["'][^>]*>`,
+            'gi'
+          );
+
           
-          console.log('[Icon Studio] Searching for IMG ref:', iconName, 'in file:', item.icon.filePath, 'at line:', item.icon.line);
-          
+
           // Search around the recorded line
           if (item.icon.line !== undefined) {
             const searchRadius = 5;
             const startLine = Math.max(0, item.icon.line - searchRadius);
             const endLine = Math.min(document.lineCount - 1, item.icon.line + searchRadius);
-            
+
             for (let i = startLine; i <= endLine; i++) {
               const line = document.lineAt(i);
               imgTagMatch = imgRegex.exec(line.text);
               if (imgTagMatch) {
                 svgStart = document.offsetAt(line.range.start) + imgTagMatch.index;
                 imgTagText = imgTagMatch[0];
-                console.log('[Icon Studio] Found IMG tag at line', i, ':', imgTagText);
+                
                 break;
               }
               imgRegex.lastIndex = 0; // Reset regex for next line
             }
           }
-          
+
           // If not found by line, search entire document
           if (svgStart === -1) {
             imgRegex.lastIndex = 0;
             imgTagMatch = imgRegex.exec(text);
-            if (imgTagMatch) {
+              if (imgTagMatch) {
               svgStart = imgTagMatch.index;
               imgTagText = imgTagMatch[0];
-              console.log('[Icon Studio] Found IMG tag in document:', imgTagText);
             }
           }
-          
+
           if (svgStart === -1) {
-            console.log('[Icon Studio] IMG tag not found. Regex pattern:', imgRegex.source);
-            vscode.window.showWarningMessage(t('messages.couldNotFindImgRef') + ' ' + t('messages.refreshIcons'));
+            
+            vscode.window.showWarningMessage(
+              t('messages.couldNotFindImgRef') + ' ' + t('messages.refreshIcons')
+            );
             return;
           }
         } else {
@@ -97,7 +103,7 @@ export function registerTransformCommands(
               const searchRadius = 5;
               const startLine = Math.max(0, item.icon.line - searchRadius);
               const endLine = Math.min(document.lineCount - 1, item.icon.line + searchRadius);
-              
+
               for (let i = startLine; i <= endLine; i++) {
                 const line = document.lineAt(i);
                 if (line.text.includes('<svg')) {
@@ -110,13 +116,15 @@ export function registerTransformCommands(
                   }
                 }
               }
-            } catch (e) {
-              console.error('Error searching for SVG fallback:', e);
+            } catch (searchError) {
+              console.error('Error searching for SVG fallback:', searchError);
             }
           }
 
           if (svgStart === -1) {
-            vscode.window.showWarningMessage(t('messages.couldNotFindSvgInDoc') + ' ' + t('messages.refreshIcons'));
+            vscode.window.showWarningMessage(
+              t('messages.couldNotFindSvgInDoc') + ' ' + t('messages.refreshIcons')
+            );
             return;
           }
         }
@@ -153,25 +161,32 @@ export function registerTransformCommands(
           // Web Component format
           replacement = `<${webComponentName} name="${iconName}"></${webComponentName}>`;
           if (fullOutputPath) {
-            await addToIconsJs(fullOutputPath, iconName, item.icon.svg, svgTransformer);
+            await addToIconsJs({
+              outputPath: fullOutputPath,
+              iconName,
+              svgContent: item.icon.svg,
+              transformer: svgTransformer,
+            });
           }
         }
 
-        await editor.edit((editBuilder) => {
+        await editor.edit(editBuilder => {
           editBuilder.replace(range, replacement);
         });
 
         workspaceSvgProvider.refresh();
         builtIconsProvider.refresh();
         const formatName = isSprite ? 'Sprite' : 'Web Component';
-        vscode.window.showInformationMessage(t('messages.transformedToFormat', { format: formatName }));
+        vscode.window.showInformationMessage(
+          t('messages.transformedToFormat', { format: formatName })
+        );
       }
     })
   );
 
   // Command: Transform selected SVG
   commands.push(
-    vscode.commands.registerCommand('iconManager.transformSvg', async () => {
+    vscode.commands.registerCommand('sageboxIconStudio.transformSvg', async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) return;
 
@@ -192,21 +207,21 @@ export function registerTransformCommands(
 
       const componentName = await vscode.window.showInputBox({
         prompt: t('ui.prompts.enterComponentName'),
-        placeHolder: t('ui.placeholders.componentNameExample')
+        placeHolder: t('ui.placeholders.componentNameExample'),
       });
 
       if (!componentName) return;
 
-      const config = vscode.workspace.getConfiguration('iconManager');
+      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
       const nameAttr = config.get<string>('nameAttribute', 'name');
-      
+
       const result = await svgTransformer.transformToComponent(svgContent, componentName, {
         componentName: config.get<string>('componentName', 'Icon'),
         nameAttribute: nameAttr,
-        format: format as any
+        format: format as any,
       });
 
-      await editor.edit((editBuilder) => {
+      await editor.edit(editBuilder => {
         editBuilder.replace(selection, result.component);
       });
 
@@ -216,7 +231,7 @@ export function registerTransformCommands(
 
   // Command: Optimize SVG
   commands.push(
-    vscode.commands.registerCommand('iconManager.optimizeSvg', async () => {
+    vscode.commands.registerCommand('sageboxIconStudio.optimizeSvg', async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) return;
 
@@ -229,7 +244,7 @@ export function registerTransformCommands(
       }
 
       const optimized = svgTransformer.cleanSvg(svgContent);
-      await editor.edit((editBuilder) => {
+      await editor.edit(editBuilder => {
         editBuilder.replace(selection, optimized);
       });
 
@@ -239,7 +254,7 @@ export function registerTransformCommands(
 
   // Command: Insert icon at cursor
   commands.push(
-    vscode.commands.registerCommand('iconManager.insertIcon', async (item?: any) => {
+    vscode.commands.registerCommand('sageboxIconStudio.insertIcon', async (item?: any) => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) return;
 
@@ -250,7 +265,7 @@ export function registerTransformCommands(
         const icons = await workspaceSvgProvider.getAllIcons();
         const names = icons.map(i => i.name);
         const selected = await vscode.window.showQuickPick(names, {
-          placeHolder: t('ui.placeholders.selectIconToInsert')
+          placeHolder: t('ui.placeholders.selectIconToInsert'),
         });
         if (!selected) return;
         iconName = selected;
@@ -259,7 +274,7 @@ export function registerTransformCommands(
       const config = getConfig();
       const snippet = `<${config.componentName} ${config.nameAttribute}="${iconName}" />`;
 
-      await editor.edit((editBuilder) => {
+      await editor.edit(editBuilder => {
         editBuilder.insert(editor.selection.active, snippet);
       });
     })
@@ -267,4 +282,3 @@ export function registerTransformCommands(
 
   return commands;
 }
-

@@ -11,8 +11,10 @@ import { t } from '../i18n';
  * TreeDataProvider for Built Icons - separate view showing only compiled icons
  */
 export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
-  private _onDidChangeTreeData: vscode.EventEmitter<SvgItem | undefined | null | void> = new vscode.EventEmitter();
-  readonly onDidChangeTreeData: vscode.Event<SvgItem | undefined | null | void> = this._onDidChangeTreeData.event;
+  private _onDidChangeTreeData: vscode.EventEmitter<SvgItem | undefined | null | void> =
+    new vscode.EventEmitter();
+  readonly onDidChangeTreeData: vscode.Event<SvgItem | undefined | null | void> =
+    this._onDidChangeTreeData.event;
   private itemCache: Map<string, SvgItem> = new Map();
   private builtIcons: Map<string, WorkspaceIcon> = new Map();
   private spriteIcons: Set<string> = new Set();
@@ -20,7 +22,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
   private isInitialized = false;
   private isScanning = false;
 
-  constructor(private workspaceProvider: WorkspaceSvgProvider) { }
+  constructor(private workspaceProvider: WorkspaceSvgProvider) {}
 
   refresh(): void {
     this.builtIcons.clear();
@@ -76,13 +78,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
     const icon = this.builtIcons.get(iconName);
     if (icon) {
       // Create a SvgItem for this icon and fire partial refresh
-      const item = new SvgItem(
-        icon.name,
-        0,
-        vscode.TreeItemCollapsibleState.None,
-        'icon',
-        icon
-      );
+      const item = new SvgItem(icon.name, 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
       this._onDidChangeTreeData.fire(item);
     } else {
       // Icon not in cache, need full refresh
@@ -94,28 +90,32 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
    * Add a new icon to the cache and refresh the icons.js container only
    * This preserves tree expansion state when adding new icons
    */
-  addIconAndRefresh(iconName: string, svg: string, iconsFilePath: string): void {
+  addIconAndRefresh(iconName: string, svg: string, iconsFilePath: string, animation?: IconAnimation): void {
     // Create WorkspaceIcon for the new icon
     const newIcon: WorkspaceIcon = {
       name: iconName,
       path: iconsFilePath,
       source: 'library',
       svg: svg,
-      isBuilt: true
+      isBuilt: true,
+      animation: animation,
     };
 
     // Add to caches
     this.builtIcons.set(iconName, newIcon);
     this.jsIcons.add(iconName);
 
+    // Clear item cache for this icon to force recreation with animation
+    this.itemCache.delete(`built:icons.js:${iconName}`);
+
     // Get the icons.js container item from cache and refresh only that
     const containerItem = this.itemCache.get('built:icons.js');
     if (containerItem) {
       // Update the counter in the cached container before firing
       // Count icons that belong to icons.js (not sprite.svg)
-      const jsIconCount = Array.from(this.builtIcons.values())
-        .filter(icon => icon.path.endsWith('icons.js') || icon.path.endsWith('icons.ts'))
-        .length;
+      const jsIconCount = Array.from(this.builtIcons.values()).filter(
+        icon => icon.path.endsWith('icons.js') || icon.path.endsWith('icons.ts')
+      ).length;
       containerItem.description = `(${jsIconCount})`;
       this._onDidChangeTreeData.fire(containerItem);
     } else {
@@ -137,9 +137,9 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
     const containerItem = this.itemCache.get('built:icons.js');
     if (containerItem) {
       // Update the counter in the cached container before firing
-      const jsIconCount = Array.from(this.builtIcons.values())
-        .filter(icon => icon.path.endsWith('icons.js') || icon.path.endsWith('icons.ts'))
-        .length;
+      const jsIconCount = Array.from(this.builtIcons.values()).filter(
+        icon => icon.path.endsWith('icons.js') || icon.path.endsWith('icons.ts')
+      ).length;
       containerItem.description = jsIconCount > 0 ? `(${jsIconCount})` : '';
       this._onDidChangeTreeData.fire(containerItem);
     } else {
@@ -206,7 +206,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
   }
 
   private async loadBuiltIcons(): Promise<void> {
-    console.log('[Icon Studio] BuiltIconsProvider: Loading built icons...');
+    
     this.builtIcons.clear();
 
     const outputDir = getSvgConfig<string>('outputDirectory', 'bezier-svg');
@@ -231,16 +231,17 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
       await this.parseSpriteFile(spriteSvg);
     }
 
-    console.log('[Icon Studio] BuiltIconsProvider: Found', this.builtIcons.size, 'built icons');
+    
   }
 
   private async parseSpriteFile(filePath: string): Promise<void> {
     try {
       const content = fs.readFileSync(filePath, 'utf-8');
-      console.log('[Icon Studio] BuiltIconsProvider: Parsing sprite file', filePath);
+      
 
       // Extract symbols with their content
-      const symbolRegex = /<symbol[^>]*id=['"]([^'"]+)['"][^>]*viewBox=['"]([^'"]+)['"][^>]*>([\s\S]*?)<\/symbol>/gi;
+      const symbolRegex =
+        /<symbol[^>]*id=['"]([^'"]+)['"][^>]*viewBox=['"]([^'"]+)['"][^>]*>([\s\S]*?)<\/symbol>/gi;
       let match;
 
       while ((match = symbolRegex.exec(content)) !== null) {
@@ -256,19 +257,19 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
         // Create a full SVG from the symbol
         const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${body}</svg>`;
 
-        console.log('[Icon Studio] BuiltIconsProvider: Found sprite icon:', iconName);
+        
 
         this.builtIcons.set(iconName, {
           name: iconName,
           path: filePath,
           source: 'library',
           svg: svgContent,
-          isBuilt: true
+          isBuilt: true,
         });
         this.spriteIcons.add(iconName);
       }
 
-      console.log('[Icon Studio] BuiltIconsProvider: Total from sprite:', this.builtIcons.size);
+      
     } catch (error) {
       console.error('[Icon Studio] BuiltIconsProvider: Error parsing sprite file:', error);
     }
@@ -277,14 +278,15 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
   private async parseIconsFile(filePath: string): Promise<void> {
     try {
       const content = fs.readFileSync(filePath, 'utf-8');
-      console.log('[Icon Studio] BuiltIconsProvider: Parsing file', filePath);
+      
 
       // Pattern for: export const iconName = { name: '...', body: `...`, viewBox: '...', animation?: {...} }
-      const iconPattern = /export\s+const\s+(\w+)\s*=\s*\{\s*name:\s*['"]([^'"]+)['"]\s*,\s*body:\s*`([^`]*)`\s*,\s*viewBox:\s*['"]([^'"]+)['"](?:\s*,\s*animation:\s*\{([^}]*)\})?\s*\}/g;
+      const iconPattern =
+        /export\s+const\s+(\w+)\s*=\s*\{\s*name:\s*['"]([^'"]+)['"]\s*,\s*body:\s*`([^`]*)`\s*,\s*viewBox:\s*['"]([^'"]+)['"](?:\s*,\s*animation:\s*\{([^}]*)\})?\s*\}/g;
       let match;
 
       while ((match = iconPattern.exec(content)) !== null) {
-        const varName = match[1];
+        const _varName = match[1];
         const iconName = match[2];
         const body = match[3];
         const viewBox = match[4];
@@ -311,15 +313,14 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
                 timing: timingMatch ? timingMatch[1] : 'ease',
                 iteration: iterationMatch ? iterationMatch[1] : 'infinite',
                 delay: delayMatch ? parseFloat(delayMatch[1]) : undefined,
-                direction: directionMatch ? directionMatch[1] : undefined
+                direction: directionMatch ? directionMatch[1] : undefined,
               };
             }
-          } catch (e) {
-            console.warn('[Icon Studio] BuiltIconsProvider: Failed to parse animation for', iconName);
+          } catch (_e) {
           }
         }
 
-        console.log('[Icon Studio] BuiltIconsProvider: Found icon:', iconName, animation ? `with animation: ${animation.type}` : '');
+        
 
         this.builtIcons.set(iconName, {
           name: iconName,
@@ -327,12 +328,12 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
           source: 'library',
           svg: svgContent,
           isBuilt: true,
-          animation
+          animation,
         });
         this.jsIcons.add(iconName);
       }
 
-      console.log('[Icon Studio] BuiltIconsProvider: Total parsed:', this.builtIcons.size);
+      
     } catch (error) {
       console.error('[Icon Studio] BuiltIconsProvider: Error parsing icons file:', error);
     }
@@ -358,8 +359,8 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
           'configure'
         );
         setupItem.command = {
-          command: 'iconManager.showWelcome',
-          title: t('commands.openSetup')
+          command: 'sageboxIconStudio.showWelcome',
+          title: t('commands.openSetup'),
         };
         setupItem.iconPath = new vscode.ThemeIcon('gear');
         return [setupItem];
@@ -379,7 +380,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
 
     if (this.builtIcons.size === 0) {
       // Check if output directory is configured
-      const config = vscode.workspace.getConfiguration('iconManager');
+      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
       const outputDir = config.get<string>('outputDirectory', '');
 
       if (!outputDir) {
@@ -393,21 +394,23 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
           undefined
         );
         setupItem.command = {
-          command: 'iconManager.openWelcome',
-          title: t('commands.openSetup')
+          command: 'sageboxIconStudio.openWelcome',
+          title: t('commands.openSetup'),
         };
         setupItem.tooltip = t('messages.clickToConfigureOutput');
         return [setupItem];
       }
 
-      return [new SvgItem(
-        t('treeView.noBuiltIcons'),
-        0,
-        vscode.TreeItemCollapsibleState.None,
-        'action',
-        undefined,
-        undefined
-      )];
+      return [
+        new SvgItem(
+          t('treeView.noBuiltIcons'),
+          0,
+          vscode.TreeItemCollapsibleState.None,
+          'action',
+          undefined,
+          undefined
+        ),
+      ];
     }
 
     // Group by source file
@@ -449,18 +452,19 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
 
     for (const [_name, icon] of this.builtIcons) {
       if (path.basename(icon.path) === fileName) {
-        items.push(new SvgItem(
-          icon.name,
-          0,
-          vscode.TreeItemCollapsibleState.None,
-          'icon',
-          icon,
-          `built:${fileName}`
-        ));
+        items.push(
+          new SvgItem(
+            icon.name,
+            0,
+            vscode.TreeItemCollapsibleState.None,
+            'icon',
+            icon,
+            `built:${fileName}`
+          )
+        );
       }
     }
 
     return items.sort((a, b) => a.label.toString().localeCompare(b.label.toString()));
   }
 }
-

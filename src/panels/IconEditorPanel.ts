@@ -8,10 +8,14 @@ import { getColorService, ColorService } from '../services/ColorService';
 import { getVariantsService, VariantsService } from '../services/VariantsService';
 import { getIconPersistenceService } from '../services/IconPersistenceService';
 import { getIconEditorTemplateService } from '../services/IconEditorTemplateService';
-import { getSyntaxHighlighter } from '../services/SyntaxHighlighter';
 import { AnimationSettings } from '../services/AnimationService';
 import { getSvgConfig } from '../utils/config';
-import { updateIconAnimation, AnimationConfig, addToIconsJs, addToSpriteSvg } from '../utils/iconsFileManager';
+import {
+  updateIconAnimation,
+  AnimationConfig,
+  addToIconsJs,
+  addToSpriteSvg,
+} from '../utils/iconsFileManager';
 import { getConfig, getOutputPathOrWarn } from '../utils/configHelper';
 import { t } from '../i18n';
 
@@ -23,7 +27,7 @@ import {
   handleReplaceCurrentColor,
   handleAddFillColor,
   handleAddColor,
-  handleApplyFilters
+  handleApplyFilters,
 } from '../handlers/IconEditorColorHandlers';
 import {
   VariantHandlerContext,
@@ -33,7 +37,7 @@ import {
   handleGenerateAutoVariant,
   handleDeleteVariant,
   handleSetDefaultVariant,
-  handleEditVariant
+  handleEditVariant,
 } from '../handlers/IconEditorVariantHandlers';
 import {
   SvgCodeHandlerContext,
@@ -46,7 +50,7 @@ import {
   handleUpdateAnimationCode,
   handleShowMessage,
   handleInsertCodeAtCursor,
-  handleRevertOptimization
+  handleRevertOptimization,
 } from '../handlers/IconEditorSvgHandlers';
 import {
   IconHandlerContext,
@@ -54,7 +58,7 @@ import {
   handleRenameIcon,
   handleRebuild,
   handleRefresh,
-  handleSaveAnimation
+  handleSaveAnimation,
 } from '../handlers/IconEditorIconHandlers';
 import { getAnimationService } from '../services/AnimationAssignmentService';
 
@@ -107,7 +111,8 @@ export class IconEditorPanel {
           data.svg = SvgManipulationService.cleanAnimationFromSvg(data.svg);
           IconEditorPanel.currentPanel._originalSvg = data.svg;
         }
-        IconEditorPanel.currentPanel._originalColors = IconEditorPanel.currentPanel._colorService.extractColorsFromSvg(data.svg).colors;
+        IconEditorPanel.currentPanel._originalColors =
+          IconEditorPanel.currentPanel._colorService.extractColorsFromSvg(data.svg).colors;
         IconEditorPanel.currentPanel._selectedVariantIndex = -1;
         IconEditorPanel.currentPanel._ensureCustomVariant();
         IconEditorPanel.currentPanel._update();
@@ -122,7 +127,7 @@ export class IconEditorPanel {
       {
         enableScripts: true,
         localResourceRoots: [extensionUri],
-        retainContextWhenHidden: true
+        retainContextWhenHidden: true,
       }
     );
 
@@ -135,13 +140,13 @@ export class IconEditorPanel {
     this._iconData = data;
     this._colorService = getColorService();
     this._variantsService = getVariantsService();
-    
+
     // Clean embedded animations from the loaded SVG to prevent double animations in preview
     if (this._iconData?.svg) {
       this._iconData.svg = SvgManipulationService.cleanAnimationFromSvg(this._iconData.svg);
       this._originalSvg = this._iconData.svg; // Store original SVG for Build
       this._originalColors = this._colorService.extractColorsFromSvg(this._iconData.svg).colors;
-      
+
       // Ensure "custom" variant exists for every icon
       this._ensureCustomVariant();
     }
@@ -151,14 +156,23 @@ export class IconEditorPanel {
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
 
     // Reveal in tree view when panel becomes visible (tab selected)
-    this._panel.onDidChangeViewState(e => {
-      if (e.webviewPanel.visible && this._iconData) {
-        vscode.commands.executeCommand('iconManager.revealInTree', this._iconData.name, this._iconData.location?.file, this._iconData.location?.line);
-      }
-    }, null, this._disposables);
+    this._panel.onDidChangeViewState(
+      e => {
+        if (e.webviewPanel.visible && this._iconData) {
+          vscode.commands.executeCommand(
+            'sageboxIconStudio.revealInTree',
+            this._iconData.name,
+            this._iconData.location?.file,
+            this._iconData.location?.line
+          );
+        }
+      },
+      null,
+      this._disposables
+    );
 
     this._panel.webview.onDidReceiveMessage(
-      async (message) => {
+      async message => {
         await this._handleMessage(message);
       },
       null,
@@ -173,11 +187,11 @@ export class IconEditorPanel {
 
   private _sendOptimizationStats() {
     if (!this._iconData?.svg) return;
-    
+
     const optimizer = new SvgOptimizer();
     const presets = optimizer.getPresets();
     const stats: Record<string, string> = {};
-    
+
     for (const [key, options] of Object.entries(presets)) {
       const result = optimizer.optimize(this._iconData.svg, options);
       const savings = result.originalSize - result.optimizedSize;
@@ -187,20 +201,23 @@ export class IconEditorPanel {
         stats[key] = '';
       }
     }
-    
+
     this._panel.webview.postMessage({
       command: 'optimizationStats',
-      stats
+      stats,
     });
   }
 
   /**
    * Handle incoming webview messages by delegating to appropriate handlers
    */
-  private async _handleMessage(message: { command: string; [key: string]: unknown }): Promise<void> {
+  private async _handleMessage(message: {
+    command: string;
+    [key: string]: unknown;
+  }): Promise<void> {
     if (message.command === 'log') {
-        // Force a toast on first log to prove connectivity
-        // vscode.window.showInformationMessage('Webview Log: ' + (message.message as string));
+      // Force a toast on first log to prove connectivity
+      // vscode.window.showInformationMessage('Webview Log: ' + (message.message as string));
     }
 
     // Create handler contexts
@@ -227,11 +244,20 @@ export class IconEditorPanel {
         handleAddColor(colorCtx, message as { color?: string });
         break;
       case 'applyFilters':
-        handleApplyFilters(colorCtx, message as unknown as { filters: { hue: string; saturation: string; brightness: string } });
+        handleApplyFilters(
+          colorCtx,
+          message as unknown as { filters: { hue: string; saturation: string; brightness: string } }
+        );
         // If thenRebuild is true, trigger rebuild after applying filters
         if ((message as { thenRebuild?: boolean }).thenRebuild) {
-          const rebuildMsg = message as { animation?: string; animationSettings?: Record<string, unknown> };
-          await handleRebuild(iconCtx, { animation: rebuildMsg.animation, animationSettings: rebuildMsg.animationSettings });
+          const rebuildMsg = message as {
+            animation?: string;
+            animationSettings?: Record<string, unknown>;
+          };
+          await handleRebuild(iconCtx, {
+            animation: rebuildMsg.animation,
+            animationSettings: rebuildMsg.animationSettings,
+          });
         }
         break;
 
@@ -247,7 +273,10 @@ export class IconEditorPanel {
         handleApplyDefaultVariant(variantCtx);
         break;
       case 'generateAutoVariant':
-        handleGenerateAutoVariant(variantCtx, message as { type?: 'invert' | 'darken' | 'lighten' | 'muted' | 'grayscale' });
+        handleGenerateAutoVariant(
+          variantCtx,
+          message as { type?: 'invert' | 'darken' | 'lighten' | 'muted' | 'grayscale' }
+        );
         break;
       case 'deleteVariant':
         handleDeleteVariant(variantCtx, message as { index?: number });
@@ -273,7 +302,10 @@ export class IconEditorPanel {
         handleCopySvg(svgCtx, message as { svg?: string });
         break;
       case 'copyWithAnimation':
-        handleCopyWithAnimation(svgCtx, message as { animation?: string; settings?: Record<string, unknown> });
+        handleCopyWithAnimation(
+          svgCtx,
+          message as { animation?: string; settings?: Record<string, unknown> }
+        );
         break;
       case 'formatSvgCode':
         handleFormatSvgCode(svgCtx);
@@ -282,7 +314,10 @@ export class IconEditorPanel {
         handleUpdateCodeWithAnimation(svgCtx, message as { animation?: string });
         break;
       case 'updateAnimationCode':
-        handleUpdateAnimationCode(svgCtx, message as { animation?: string; settings?: Record<string, unknown> });
+        handleUpdateAnimationCode(
+          svgCtx,
+          message as { animation?: string; settings?: Record<string, unknown> }
+        );
         break;
       case 'showMessage':
         handleShowMessage(message as { message?: string });
@@ -299,10 +334,16 @@ export class IconEditorPanel {
         await handleRenameIcon(iconCtx, message as { oldName?: string; newName?: string });
         break;
       case 'rebuild':
-        await handleRebuild(iconCtx, message as { animation?: string; animationSettings?: Record<string, unknown> });
+        await handleRebuild(
+          iconCtx,
+          message as { animation?: string; animationSettings?: Record<string, unknown> }
+        );
         break;
       case 'saveAnimation':
-        handleSaveAnimation(iconCtx, message as { animation?: string; settings?: Record<string, unknown> });
+        handleSaveAnimation(
+          iconCtx,
+          message as { animation?: string; settings?: Record<string, unknown> }
+        );
         break;
       case 'refresh':
         handleRefresh();
@@ -322,10 +363,14 @@ export class IconEditorPanel {
       selectedVariantIndex: this._selectedVariantIndex,
       colorService: this._colorService,
       variantsService: this._variantsService,
-      postMessage: (msg) => this._panel.webview.postMessage(msg),
-      updateSvg: (svg) => { if (this._iconData) this._iconData.svg = svg; },
-      setSelectedVariantIndex: (index) => { this._selectedVariantIndex = index; },
-      refresh: () => this._update()
+      postMessage: msg => this._panel.webview.postMessage(msg),
+      updateSvg: svg => {
+        if (this._iconData) this._iconData.svg = svg;
+      },
+      setSelectedVariantIndex: index => {
+        this._selectedVariantIndex = index;
+      },
+      refresh: () => this._update(),
     };
   }
 
@@ -339,10 +384,15 @@ export class IconEditorPanel {
       selectedVariantIndex: this._selectedVariantIndex,
       colorService: this._colorService,
       variantsService: this._variantsService,
-      updateSvg: (svg) => { if (this._iconData) this._iconData.svg = svg; },
-      setSelectedVariantIndex: (index) => { this._selectedVariantIndex = index; },
+      postMessage: msg => this._panel.webview.postMessage(msg),
+      updateSvg: svg => {
+        if (this._iconData) this._iconData.svg = svg;
+      },
+      setSelectedVariantIndex: index => {
+        this._selectedVariantIndex = index;
+      },
       refresh: () => this._update(),
-      generateAutoVariant: (type) => this._generateAutoVariant(type)
+      generateAutoVariant: type => this._generateAutoVariant(type),
     };
   }
 
@@ -352,10 +402,12 @@ export class IconEditorPanel {
   private _createSvgCodeHandlerContext(): SvgCodeHandlerContext {
     return {
       iconData: this._iconData,
-      postMessage: (msg) => this._panel.webview.postMessage(msg),
-      processAndSaveIcon: (options) => this._processAndSaveIcon(options),
+      postMessage: msg => this._panel.webview.postMessage(msg),
+      processAndSaveIcon: options => this._processAndSaveIcon(options),
       getPreOptimizedSvg: () => this._preOptimizedSvg,
-      setPreOptimizedSvg: (svg) => { this._preOptimizedSvg = svg; }
+      setPreOptimizedSvg: svg => {
+        this._preOptimizedSvg = svg;
+      },
     };
   }
 
@@ -366,11 +418,16 @@ export class IconEditorPanel {
     return {
       iconData: this._iconData,
       panel: this._panel,
-      postMessage: (msg) => this._panel.webview.postMessage(msg),
-      updateIconName: (name) => { if (this._iconData) this._iconData.name = name; },
-      updateIconLocation: (file) => { if (this._iconData?.location) this._iconData.location.file = file; },
+      postMessage: msg => this._panel.webview.postMessage(msg),
+      updateIconName: name => {
+        if (this._iconData) this._iconData.name = name;
+      },
+      updateIconLocation: file => {
+        if (this._iconData?.location) this._iconData.location.file = file;
+      },
       refresh: () => this._update(),
-      addToIconCollection: (animation, settings) => this._addToIconCollection(animation, settings as AnimationSettings | undefined)
+      addToIconCollection: (animation, settings) =>
+        this._addToIconCollection(animation, settings as AnimationSettings | undefined),
     };
   }
 
@@ -379,14 +436,17 @@ export class IconEditorPanel {
    */
   private _generateVariantsHtml(iconName: string): string {
     const variants = this._variantsService.getSavedVariants(iconName);
-    
+
     // Original variant (read-only)
     const originalHtml = `
       <div class="variant-item default${this._selectedVariantIndex === -1 ? ' selected' : ''}"
            onclick="applyDefaultVariant()"
            title="Original colors (read-only)">
         <div class="variant-colors">
-          ${this._originalColors.slice(0, 4).map(c => `<div class="variant-color-dot" style="background:${c}" title="${c}"></div>`).join('')}
+          ${this._originalColors
+            .slice(0, 4)
+            .map(c => `<div class="variant-color-dot" style="background:${c}" title="${c}"></div>`)
+            .join('')}
         </div>
         <span class="variant-name">original</span>
         <span class="variant-badge readonly">read-only</span>
@@ -394,12 +454,17 @@ export class IconEditorPanel {
     `;
 
     // User-defined variants
-    const variantsHtml = variants.map((variant, index) => `
+    const variantsHtml = variants
+      .map(
+        (variant, index) => `
       <div class="variant-item${this._selectedVariantIndex === index ? ' selected' : ''}"
            onclick="applyVariant(${index})"
            title="${variant.name} - Click to edit">
         <div class="variant-colors">
-          ${variant.colors.slice(0, 4).map(c => `<div class="variant-color-dot" style="background:${c}" title="${c}"></div>`).join('')}
+          ${variant.colors
+            .slice(0, 4)
+            .map(c => `<div class="variant-color-dot" style="background:${c}" title="${c}"></div>`)
+            .join('')}
         </div>
         <span class="variant-name">${variant.name}</span>
         <div class="variant-actions">
@@ -411,10 +476,15 @@ export class IconEditorPanel {
           </button>
         </div>
       </div>
-    `).join('');
+    `
+      )
+      .join('');
 
     if (variants.length === 0) {
-      return originalHtml + `<div class="no-Variants">No custom variants yet. Click + to save current colors.</div>`;
+      return (
+        originalHtml +
+        `<div class="no-Variants">No custom variants yet. Click + to save current colors.</div>`
+      );
     }
 
     return originalHtml + variantsHtml;
@@ -423,20 +493,28 @@ export class IconEditorPanel {
   // Ensure icon has stored original colors and a "custom" variant for editing
   private _ensureCustomVariant(): void {
     if (!this._iconData) return;
-    
+
     // Use the service's ensureCustomVariant which handles _original and custom variant creation
-    this._originalColors = this._variantsService.ensureCustomVariant(this._iconData.name, this._originalColors);
+    this._originalColors = this._variantsService.ensureCustomVariant(
+      this._iconData.name,
+      this._originalColors
+    );
   }
 
   // ==================== Auto-generate Variants ====================
 
-  private _generateAutoVariant(type: 'invert' | 'darken' | 'lighten' | 'muted' | 'grayscale'): void {
+  private _generateAutoVariant(
+    type: 'invert' | 'darken' | 'lighten' | 'muted' | 'grayscale'
+  ): void {
     if (!this._iconData) return;
 
     const { colors } = this._colorService.extractColorsFromSvg(this._iconData.svg);
     if (colors.length === 0) return;
 
-    const { colors: newColors, variantName } = this._colorService.generateAutoVariantColors(colors, type);
+    const { colors: newColors, variantName } = this._colorService.generateAutoVariantColors(
+      colors,
+      type
+    );
     if (!variantName) return;
 
     // Check if variant already exists and add number suffix
@@ -457,7 +535,8 @@ export class IconEditorPanel {
       newSvg = this._colorService.replaceColorInSvg(newSvg, colors[i], newColors[i]);
     }
     this._iconData.svg = newSvg;
-    this._selectedVariantIndex = this._variantsService.getSavedVariants(this._iconData.name).length - 1;
+    this._selectedVariantIndex =
+      this._variantsService.getSavedVariants(this._iconData.name).length - 1;
 
     this._update();
     vscode.window.showInformationMessage(t('messages.variantGenerated', { name: finalName }));
@@ -489,13 +568,13 @@ export class IconEditorPanel {
           timing: assigned.timing || 'ease',
           iteration: assigned.iteration || 'infinite',
           delay: assigned.delay,
-          direction: assigned.direction
+          direction: assigned.direction,
         };
       }
     } catch (err) {
       console.error('[Icon Studio] Error reading from AnimationAssignmentService:', err);
     }
-    
+
     // Fallback: check the icons.js file for embedded animation
     try {
       const filePath = this._getIconsFilePath();
@@ -503,32 +582,27 @@ export class IconEditorPanel {
 
       const content = fs.readFileSync(filePath, 'utf-8');
       const varName = iconName.replace(/-([a-z0-9])/gi, (_, c) => c.toUpperCase());
-      
+
       // Pattern to find the specific icon export and extract its animation property
       // We need to be careful not to match animations from other icons
       // First, find the specific icon's definition
-      const iconStartPattern = new RegExp(
-        String.raw`export\s+const\s+${varName}\s*=\s*\{`,
-        'g'
-      );
-      
+      const iconStartPattern = new RegExp(String.raw`export\s+const\s+${varName}\s*=\s*\{`, 'g');
+
       const startMatch = iconStartPattern.exec(content);
       if (!startMatch) return undefined;
-      
+
       // Find the end of this icon definition (next export or end of file)
       const startIndex = startMatch.index;
       const nextExportMatch = content.slice(startIndex + 1).match(/\nexport\s+const\s+/);
-      const endIndex = nextExportMatch 
-        ? startIndex + 1 + nextExportMatch.index! 
-        : content.length;
-      
+      const endIndex = nextExportMatch ? startIndex + 1 + nextExportMatch.index! : content.length;
+
       // Extract just this icon's definition
       const iconDefinition = content.slice(startIndex, endIndex);
-      
+
       // Now look for animation within this specific icon only
       const animationMatch = iconDefinition.match(/animation:\s*(\{[^}]+\})/);
       if (!animationMatch) return undefined;
-      
+
       // Parse animation object
       return new Function(`return ${animationMatch[1]}`)() as AnimationConfig;
     } catch {
@@ -536,7 +610,17 @@ export class IconEditorPanel {
     }
   }
 
-  private async _saveAnimation(iconName: string, type: string, settings: { duration: number; timing: string; iteration: string; delay?: number; direction?: string }): Promise<void> {
+  private async _saveAnimation(
+    iconName: string,
+    type: string,
+    settings: {
+      duration: number;
+      timing: string;
+      iteration: string;
+      delay?: number;
+      direction?: string;
+    }
+  ): Promise<void> {
     const outputPath = this._getOutputPath();
     if (!outputPath) return;
 
@@ -546,7 +630,7 @@ export class IconEditorPanel {
       timing: settings.timing,
       iteration: settings.iteration,
       delay: settings.delay,
-      direction: settings.direction
+      direction: settings.direction,
     };
 
     await updateIconAnimation(outputPath, iconName, animation);
@@ -555,11 +639,22 @@ export class IconEditorPanel {
   private async _removeAnimation(iconName: string): Promise<void> {
     const outputPath = this._getOutputPath();
     if (!outputPath) return;
-    
+
     await updateIconAnimation(outputPath, iconName, null);
   }
 
-  private _getIconAnimation(iconName: string): { type: string; duration: number; timing: string; iteration: string; delay?: number; direction?: string } | undefined {
+  private _getIconAnimation(
+    iconName: string
+  ):
+    | {
+        type: string;
+        duration: number;
+        timing: string;
+        iteration: string;
+        delay?: number;
+        direction?: string;
+      }
+    | undefined {
     return this._readIconAnimation(iconName);
   }
 
@@ -574,34 +669,42 @@ export class IconEditorPanel {
     skipPanelUpdate?: boolean;
   }): Promise<void> {
     if (!this._iconData) {
-        return;
+      return;
     }
 
     let svgToSave = options.svg;
 
     // 1. Clean up old animations
     svgToSave = SvgManipulationService.cleanAnimationFromSvg(svgToSave);
-    
+
     // 2. Ensure namespace
     svgToSave = SvgManipulationService.ensureSvgNamespace(svgToSave);
 
     // 3. Embed animation in SVG content if requested
     if (options.includeAnimationInFile && options.animation && options.animation !== 'none') {
-      const settings = options.animationSettings || { duration: 2, timing: 'linear', iteration: 'infinite' };
+      const settings = options.animationSettings || {
+        duration: 2,
+        timing: 'linear',
+        iteration: 'infinite',
+      };
       svgToSave = SvgManipulationService.embedAnimationInSvg(
         svgToSave,
         options.animation,
         settings
       );
     }
-    
+
     // 4. Update internal state
     this._iconData.svg = svgToSave;
 
     // 5. Update animation metadata (animations.js) if requested
     if (options.updateAnimationMetadata) {
       if (options.animation && options.animation !== 'none') {
-        const settings = options.animationSettings || { duration: 2, timing: 'linear', iteration: 'infinite' };
+        const settings = options.animationSettings || {
+          duration: 2,
+          timing: 'linear',
+          iteration: 'infinite',
+        };
         await this._saveAnimation(this._iconData.name, options.animation, settings);
       } else {
         await this._removeAnimation(this._iconData.name);
@@ -618,7 +721,7 @@ export class IconEditorPanel {
       }
       // Trigger rebuild after updating sprite
       if (options.triggerFullRebuild) {
-        vscode.commands.executeCommand('iconManager.buildIcons');
+        vscode.commands.executeCommand('sageboxIconStudio.buildIcons');
       }
     } else {
       // Update icons.js directly
@@ -631,15 +734,15 @@ export class IconEditorPanel {
 
     // 7. Post-save updates
     this._originalColors = this._colorService.extractColorsFromSvg(svgToSave).colors;
-    
+
     if (!options.skipPanelUpdate) {
       this._update();
     }
-    
+
     // 8. Refresh tree view partially (preserves expansion state)
     // Use partial refresh by icon name to avoid collapsing tree branches
-    await vscode.commands.executeCommand('iconManager.refreshIconByName', this._iconData.name);
-    
+    await vscode.commands.executeCommand('sageboxIconStudio.refreshIconByName', this._iconData.name);
+
     // 9. Notify
     if (options.successMessage) {
       vscode.window.showInformationMessage(options.successMessage);
@@ -672,7 +775,7 @@ export class IconEditorPanel {
       // Use ORIGINAL SVG (without color modifications) for storage
       // Color changes are stored as colorMappings in variants.js
       let svgToAdd = this._originalSvg || this._iconData.svg;
-      
+
       // 1. Clean the SVG and ensure namespace
       svgToAdd = SvgManipulationService.cleanAnimationFromSvg(svgToAdd);
       svgToAdd = SvgManipulationService.ensureSvgNamespace(svgToAdd);
@@ -681,48 +784,73 @@ export class IconEditorPanel {
       svgToAdd = getIconPersistenceService().ensureSvgId(svgToAdd, this._iconData.name);
 
       const transformer = new SvgTransformer();
-      
+
       if (isSprite) {
         // Add to sprite.svg (no animation config for sprites)
         await addToSpriteSvg(outputPath, this._iconData.name, svgToAdd, transformer);
-        
+
         // Update internal state
         this._iconData.svg = svgToAdd;
         this._iconData.spriteFile = path.join(outputPath, 'sprite.svg');
-        
-        vscode.window.showInformationMessage(t('messages.iconAddedToSprite', { name: this._iconData.name }));
+
+        vscode.window.showInformationMessage(
+          t('messages.iconAddedToSprite', { name: this._iconData.name })
+        );
       } else {
         // Add to icons.js with optional animation
         let animConfig: AnimationConfig | undefined;
         if (animation && animation !== 'none') {
-          const settings = animationSettings || { duration: 1, timing: 'ease', iteration: 'infinite' };
+          const settings = animationSettings || {
+            duration: 1,
+            timing: 'ease',
+            iteration: 'infinite',
+          };
           animConfig = {
             type: animation,
             duration: settings.duration,
             timing: settings.timing,
             iteration: settings.iteration,
             delay: settings.delay,
-            direction: settings.direction
+            direction: settings.direction,
           };
         }
 
-        await addToIconsJs(outputPath, this._iconData.name, svgToAdd, transformer, animConfig);
+        await addToIconsJs({
+          outputPath,
+          iconName: this._iconData.name,
+          svgContent: svgToAdd,
+          transformer,
+          animation: animConfig,
+        });
 
         // Update internal state
         this._iconData.svg = svgToAdd;
         this._iconData.iconsFile = path.join(outputPath, 'icons.js');
 
         if (animConfig) {
-          vscode.window.showInformationMessage(t('messages.iconAddedWithAnimation', { name: this._iconData.name }));
+          vscode.window.showInformationMessage(
+            t('messages.iconAddedWithAnimation', { name: this._iconData.name })
+          );
         } else {
-          vscode.window.showInformationMessage(t('messages.iconAddedToIconsJs', { name: this._iconData.name }));
+          vscode.window.showInformationMessage(
+            t('messages.iconAddedToIconsJs', { name: this._iconData.name })
+          );
         }
-        
+
         // Refresh tree views without collapsing:
         // - FILES: partial refresh to update "(built)" label
         // - BUILT: add icon to cache and refresh only icons.js container
-        await vscode.commands.executeCommand('iconManager.refreshFilesItemByName', this._iconData.name);
-        await vscode.commands.executeCommand('iconManager.addIconToBuiltAndRefresh', this._iconData.name, svgToAdd, this._iconData.iconsFile);
+        await vscode.commands.executeCommand(
+          'sageboxIconStudio.refreshFilesItemByName',
+          this._iconData.name
+        );
+        await vscode.commands.executeCommand(
+          'sageboxIconStudio.addIconToBuiltAndRefresh',
+          this._iconData.name,
+          svgToAdd,
+          this._iconData.iconsFile,
+          animConfig // Pass animation config
+        );
       }
 
       // Persist cached variants to file on build
@@ -732,7 +860,6 @@ export class IconEditorPanel {
 
       // Update panel
       this._update();
-
     } catch (error: any) {
       vscode.window.showErrorMessage(t('messages.failedToAddIcon', { error: error.message }));
     }
@@ -778,7 +905,7 @@ export class IconEditorPanel {
     }
     const html = this._getHtmlForWebview();
     this._panel.webview.html = html;
-    
+
     // Re-send optimization stats after update
     if (this._iconData?.svg) {
       setTimeout(() => this._sendOptimizationStats(), 100);
@@ -790,19 +917,19 @@ export class IconEditorPanel {
       return '<html><body><p>No icon selected</p></body></html>';
     }
 
-    const { name, svg, location, isBuilt, animation } = this._iconData;
-    const defaultVariant = this._variantsService.getDefaultVariant(name);
+    const { name, svg, location: _location, isBuilt, animation } = this._iconData;
+    const _defaultVariant = this._variantsService.getDefaultVariant(name);
     const savedAnimation = this._getIconAnimation(name);
-    
+
     // Detect embedded animation in SVG
     let detectedAnimation = SvgManipulationService.detectAnimationFromSvg(svg);
     // If animation was passed (from built icon), use it
     if (!detectedAnimation && animation) {
-        detectedAnimation = { type: animation.type, settings: animation };
+      detectedAnimation = { type: animation.type, settings: animation };
     }
     // If no embedded animation and no passed animation, check the external config
     if (!detectedAnimation && savedAnimation) {
-        detectedAnimation = { type: savedAnimation.type, settings: savedAnimation };
+      detectedAnimation = { type: savedAnimation.type, settings: savedAnimation };
     }
 
     // Extract colors from SVG
@@ -844,12 +971,13 @@ export class IconEditorPanel {
     const fileSizeStr = fileSize < 1024 ? `${fileSize} B` : `${(fileSize / 1024).toFixed(1)} KB`;
 
     // Load templates from external files
-    const templatesDir = path.join(this._extensionUri.fsPath, 'src', 'templates', 'icon-editor');
+    // In bundled mode, templates are in dist/templates
+    const templatesDir = path.join(this._extensionUri.fsPath, 'dist', 'templates', 'icon-editor');
     const tabsDir = path.join(templatesDir, 'tabs');
-    
+
     let cssContent: string, jsTemplate: string, bodyTemplate: string;
     let colorTabTemplate: string, animationTabTemplate: string, codeTabTemplate: string;
-    
+
     try {
       // Load and concatenate CSS files
       const baseCss = fs.readFileSync(path.join(templatesDir, 'IconEditor.css'), 'utf-8');
@@ -857,18 +985,22 @@ export class IconEditorPanel {
       const filtersCss = fs.readFileSync(path.join(tabsDir, 'IconEditorFilters.css'), 'utf-8');
       const animationCss = fs.readFileSync(path.join(tabsDir, 'IconEditorAnimation.css'), 'utf-8');
       const codeCss = fs.readFileSync(path.join(tabsDir, 'IconEditorCode.css'), 'utf-8');
-      cssContent = baseCss + '\n' + colorCss + '\n' + filtersCss + '\n' + animationCss + '\n' + codeCss;
-      
+      cssContent =
+        baseCss + '\n' + colorCss + '\n' + filtersCss + '\n' + animationCss + '\n' + codeCss;
+
       jsTemplate = fs.readFileSync(path.join(templatesDir, 'IconEditor.js'), 'utf-8');
       bodyTemplate = fs.readFileSync(path.join(templatesDir, 'IconEditorBody.html'), 'utf-8');
       colorTabTemplate = fs.readFileSync(path.join(tabsDir, 'IconEditorColorTab.html'), 'utf-8');
-      animationTabTemplate = fs.readFileSync(path.join(tabsDir, 'IconEditorAnimationTab.html'), 'utf-8');
+      animationTabTemplate = fs.readFileSync(
+        path.join(tabsDir, 'IconEditorAnimationTab.html'),
+        'utf-8'
+      );
       codeTabTemplate = fs.readFileSync(path.join(tabsDir, 'IconEditorCodeTab.html'), 'utf-8');
     } catch (err) {
       console.error('[Icon Studio] IconEditorPanel template load error:', err);
       return '<html><body><p>Error loading templates</p></body></html>';
     }
-    
+
     // Replace template variables in JS
     const i18nObject = {
       svgWillIncludeAnimation: t('webview.js.svgWillIncludeAnimation'),
@@ -881,37 +1013,70 @@ export class IconEditorPanel {
       selectAnimationToEnable: t('webview.js.selectAnimationToEnable'),
       originalColor: t('webview.js.originalColor'),
       addFillColor: t('webview.js.addFillColor'),
-      noColorsDetected: t('webview.js.noColorsDetected')
+      noColorsDetected: t('webview.js.noColorsDetected'),
+      enableFilters: t('webview.color.enableFilters'),
+      disableFilters: t('webview.color.disableFilters'),
     };
-    
+
     const jsContent = jsTemplate
       .replace(/__I18N__/g, JSON.stringify(i18nObject))
       .replace(/__ANIMATION_TYPE__/g, JSON.stringify(detectedAnimation?.type || 'none'))
-      .replace(/__ANIMATION_DURATION__/g, JSON.stringify(detectedAnimation?.settings?.duration || 1))
-      .replace(/__ANIMATION_TIMING__/g, JSON.stringify(detectedAnimation?.settings?.timing || 'ease'))
-      .replace(/__ANIMATION_ITERATION__/g, JSON.stringify(detectedAnimation?.settings?.iteration || 'infinite'))
+      .replace(
+        /__ANIMATION_DURATION__/g,
+        JSON.stringify(detectedAnimation?.settings?.duration || 1)
+      )
+      .replace(
+        /__ANIMATION_TIMING__/g,
+        JSON.stringify(detectedAnimation?.settings?.timing || 'ease')
+      )
+      .replace(
+        /__ANIMATION_ITERATION__/g,
+        JSON.stringify(detectedAnimation?.settings?.iteration || 'infinite')
+      )
       .replace(/__ANIMATION_DELAY__/g, JSON.stringify(detectedAnimation?.settings?.delay || 0))
-      .replace(/__ANIMATION_DIRECTION__/g, JSON.stringify(detectedAnimation?.settings?.direction || 'normal'))
+      .replace(
+        /__ANIMATION_DIRECTION__/g,
+        JSON.stringify(detectedAnimation?.settings?.direction || 'normal')
+      )
       .replace(/__ORIGINAL_COLORS__/g, JSON.stringify(this._originalColors))
       .replace(/__CURRENT_COLORS__/g, JSON.stringify(svgColors));
 
     // Generate tab contents using templates (delegate to service where possible)
     const templateService = getIconEditorTemplateService();
-    const colorTabContent = this._generateColorTabHtml(colorTabTemplate, hasMoreColors, totalColorCount, svgColors, hasCurrentColor);
-    const animationTabContent = templateService.generateAnimationTabHtml(animationTabTemplate, detectedAnimation);
-    const codeTabContent = templateService.generateCodeTabHtml(codeTabTemplate, name, svg, detectedAnimation);
+    const colorTabContent = this._generateColorTabHtml(
+      colorTabTemplate,
+      hasMoreColors,
+      totalColorCount,
+      svgColors,
+      hasCurrentColor
+    );
+    const animationTabContent = templateService.generateAnimationTabHtml(
+      animationTabTemplate,
+      detectedAnimation
+    );
+    const codeTabContent = templateService.generateCodeTabHtml(
+      codeTabTemplate,
+      name,
+      svg,
+      detectedAnimation
+    );
 
     // Generate HTML body from template
     const htmlBody = templateService.generateHtmlBody(bodyTemplate, {
-      name, displaySvg, fileSizeStr, isBuilt,
-      colorTabContent, animationTabContent, codeTabContent,
-      animationName: detectedAnimation?.type
+      name,
+      displaySvg,
+      fileSizeStr,
+      isBuilt,
+      colorTabContent,
+      animationTabContent,
+      codeTabContent,
+      animationName: detectedAnimation?.type,
     });
 
     // Get webview CSP source
     const cspSource = this._panel.webview.cspSource;
+
     
-    console.log('[Icon Studio] JS Content length:', jsContent.length);
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -964,9 +1129,10 @@ ${jsContent}
       `;
     }
 
-    const colorSwatches = svgColors.map((color, index) => {
-      const escapedColor = color.replace(/'/g, "\\'").replace(/"/g, '\\"');
-      return `
+    const colorSwatches = svgColors
+      .map((color, _index) => {
+        const escapedColor = color.replace(/'/g, "\\'").replace(/"/g, '\\"');
+        return `
       <div class="color-item" title="Click to change color">
         <div class="color-swatch" style="background-color: ${color}">
           <input type="color" value="${this._colorService.toHexColor(color)}" 
@@ -977,9 +1143,11 @@ ${jsContent}
         <span class="color-label" onclick="copyToClipboard('${escapedColor}')" title="Click to copy: ${color}">${color}</span>
       </div>
     `;
-    }).join('');
+      })
+      .join('');
 
-    const currentColorHtml = hasCurrentColor ? `
+    const currentColorHtml = hasCurrentColor
+      ? `
       <div class="current-color-item">
         <div class="current-color-swatch" title="currentColor - inherits from CSS">
           <input type="color" value="#000000" 
@@ -988,31 +1156,43 @@ ${jsContent}
         </div>
         <span class="current-color-label">currentColor</span>
       </div>
-    ` : '';
+    `
+      : '';
 
     const isOriginalSelected = this._selectedVariantIndex === -1;
 
-    return template
-      .replace(/\$\{colorsDisabledClass\}/g, isOriginalSelected ? ' colors-disabled' : '')
-      .replace(/\$\{colorsHint\}/g, isOriginalSelected ? '<span class="colors-hint">(select custom to edit)</span>' : '')
-      .replace(/\$\{swatchesDisabledClass\}/g, isOriginalSelected ? ' disabled' : '')
-      .replace(/\$\{filtersDisabledClass\}/g, isOriginalSelected ? ' colors-disabled' : '')
-      .replace(/\$\{filtersHint\}/g, isOriginalSelected ? '<span class="colors-hint">(select custom)</span>' : '')
-      .replace(/\$\{filtersContainerDisabledClass\}/g, isOriginalSelected ? ' disabled' : '')
-      .replace(/\$\{filtersDisabled\}/g, isOriginalSelected ? ' disabled' : '')
-      .replace(/\$\{currentColorHtml\}/g, currentColorHtml)
-      .replace(/\$\{colorSwatches\}/g, colorSwatches)
-      .replace(/\$\{variantsHtml\}/g, this._generateVariantsHtml(this._iconData?.name || ''))
-      // i18n translations for color tab
-      .replace(/\$\{i18n_colors\}/g, t('webview.color.colors'))
-      .replace(/\$\{i18n_globalFilters\}/g, t('webview.color.globalFilters'))
-      .replace(/\$\{i18n_hueRotate\}/g, t('webview.color.hueRotate'))
-      .replace(/\$\{i18n_saturation\}/g, t('webview.color.saturation'))
-      .replace(/\$\{i18n_brightness\}/g, t('webview.color.brightness'))
-      .replace(/\$\{i18n_reset\}/g, t('webview.color.reset'))
-      .replace(/\$\{i18n_resetFilters\}/g, t('webview.color.resetFilters'))
-      .replace(/\$\{i18n_variants\}/g, t('webview.color.variants'))
-      .replace(/\$\{i18n_saveVariant\}/g, t('webview.color.saveVariant'));
+    return (
+      template
+        .replace(/\$\{colorsDisabledClass\}/g, isOriginalSelected ? ' colors-disabled' : '')
+        .replace(
+          /\$\{colorsHint\}/g,
+          isOriginalSelected ? '<span class="colors-hint">(select custom to edit)</span>' : ''
+        )
+        .replace(/\$\{swatchesDisabledClass\}/g, isOriginalSelected ? ' disabled' : '')
+        .replace(/\$\{filtersDisabledClass\}/g, isOriginalSelected ? ' colors-disabled' : '')
+        .replace(
+          /\$\{filtersHint\}/g,
+          isOriginalSelected ? '<span class="colors-hint">(select custom)</span>' : ''
+        )
+        .replace(/\$\{filtersContainerDisabledClass\}/g, isOriginalSelected ? ' disabled' : '')
+        .replace(/\$\{filtersDisabled\}/g, isOriginalSelected ? ' disabled' : '')
+        .replace(/\$\{filtersToggleActiveClass\}/g, isOriginalSelected ? '' : ' active')
+        .replace(/\$\{i18n_filtersToggleTitle\}/g, isOriginalSelected ? '' : t('webview.color.disableFilters'))
+        .replace(/\$\{currentColorHtml\}/g, currentColorHtml)
+        .replace(/\$\{colorSwatches\}/g, colorSwatches)
+        .replace(/\$\{variantsHtml\}/g, this._generateVariantsHtml(this._iconData?.name || ''))
+        // i18n translations for color tab
+        .replace(/\$\{i18n_colors\}/g, t('webview.color.colors'))
+        .replace(/\$\{i18n_globalFilters\}/g, t('webview.color.globalFilters'))
+        .replace(/\$\{i18n_hueRotate\}/g, t('webview.color.hueRotate'))
+        .replace(/\$\{i18n_saturation\}/g, t('webview.color.saturation'))
+        .replace(/\$\{i18n_brightness\}/g, t('webview.color.brightness'))
+        .replace(/\$\{i18n_reset\}/g, t('webview.color.reset'))
+        .replace(/\$\{i18n_resetFilters\}/g, t('webview.color.resetFilters'))
+        .replace(/\$\{i18n_enableFilters\}/g, t('webview.color.enableFilters'))
+        .replace(/\$\{i18n_disableFilters\}/g, t('webview.color.disableFilters'))
+        .replace(/\$\{i18n_variants\}/g, t('webview.color.variants'))
+        .replace(/\$\{i18n_saveVariant\}/g, t('webview.color.saveVariant'))
+    );
   }
 }
-

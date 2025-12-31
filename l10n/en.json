@@ -1,7 +1,7 @@
 {
   "extension": {
     "name": "Icon Studio",
-    "description": "SVG Icon Manager for VS Code",
+    "description": "SVG Icon Studio for VS Code",
     "appTitle": "Icon Studio"
   },
   "welcome": {
@@ -266,6 +266,7 @@
     "copyToClipboard": "Copy to Clipboard",
     "dismiss": "Dismiss",
     "iconImported": "Icon '{name}' imported to {targets}!",
+    "iconBuilt": "Icon '{name}' built to {format}!",
     "iconTransformed": "Icon '{name}' transformed to <{component}>!",
     "extractInlineSvg": "Extract inline SVG as \"{name}\"",
     "addedFillColor": "Added fill color: {color}",
@@ -559,6 +560,8 @@
       "brightness": "Brightness",
       "reset": "Reset",
       "resetFilters": "Reset all filters",
+      "enableFilters": "Enable global filters",
+      "disableFilters": "Disable global filters",
       "variants": "Variants",
       "saveVariant": "Save current colors as variant"
     },
@@ -572,7 +575,7 @@
       "copyUsage": "Copy usage code"
     },
     "tabs": {
-      "title": "Icon Manager",
+      "title": "Icon Studio",
       "searchPlaceholder": "Search icons...",
       "workspace": "Workspace",
       "library": "Library",
@@ -636,7 +639,8 @@
       "licenseType": "License",
       "unknownAuthor": "Unknown",
       "unknownLicense": "Unknown",
-      "licenseUnknown": "License information not available"
+      "licenseUnknown": "License information not available",
+      "download": "Download"
     },
     "spritePreview": {
       "icons": "icons",

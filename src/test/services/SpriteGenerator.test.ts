@@ -1,6 +1,6 @@
 /**
  * Tests para SpriteGenerator
- * 
+ *
  * Requisitos cubiertos:
  * - RF-6.2: Generación de sprite.svg
  * - RF-6.3: Generación de Helper Component
@@ -11,35 +11,35 @@ jest.mock('fs', () => ({
   existsSync: jest.fn().mockReturnValue(true),
   mkdirSync: jest.fn(),
   writeFileSync: jest.fn(),
-  readFileSync: jest.fn()
+  readFileSync: jest.fn(),
 }));
 
 import { SpriteGenerator, SpriteIcon, SpriteOptions } from '../../services/SpriteGenerator';
 
 describe('SpriteGenerator', () => {
   let generator: SpriteGenerator;
-  
+
   const testIcons: SpriteIcon[] = [
     {
       id: 'arrow-left',
       name: 'Arrow Left',
-      svg: '<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>'
+      svg: '<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>',
     },
     {
       id: 'arrow-right',
       name: 'Arrow Right',
-      svg: '<svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>'
+      svg: '<svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>',
     },
     {
       id: 'home',
       name: 'Home',
-      svg: '<svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9"/><path d="M9 21V9h6v12"/></svg>'
-    }
+      svg: '<svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9"/><path d="M9 21V9h6v12"/></svg>',
+    },
   ];
 
   const baseOptions: SpriteOptions = {
     outputPath: '/test/output',
-    filename: 'sprite'
+    filename: 'sprite',
   };
 
   beforeEach(() => {
@@ -73,7 +73,7 @@ describe('SpriteGenerator', () => {
     test('CA-6.2.3: debe incluir title cuando includeTitle es true', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
-        includeTitle: true
+        includeTitle: true,
       });
 
       expect(result.sprite).toContain('<title>');
@@ -82,7 +82,7 @@ describe('SpriteGenerator', () => {
     test('CA-6.2.3: debe incluir desc cuando includeDesc es true', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
-        includeDesc: true
+        includeDesc: true,
       });
 
       expect(result.sprite).toContain('<desc>');
@@ -92,7 +92,7 @@ describe('SpriteGenerator', () => {
     test('CA-6.2.4: debe generar types cuando generateTypes es true', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
-        generateTypes: true
+        generateTypes: true,
       });
 
       expect(result.typeDefinitions).toBeDefined();
@@ -149,7 +149,7 @@ describe('SpriteGenerator', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
         generateHelper: true,
-        helperFormat: 'react'
+        helperFormat: 'react',
       });
 
       expect(result.helperComponent).toBeDefined();
@@ -163,7 +163,7 @@ describe('SpriteGenerator', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
         generateHelper: true,
-        helperFormat: 'vue'
+        helperFormat: 'vue',
       });
 
       expect(result.helperComponent).toBeDefined();
@@ -176,7 +176,7 @@ describe('SpriteGenerator', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
         generateHelper: true,
-        helperFormat: 'svelte'
+        helperFormat: 'svelte',
       });
 
       expect(result.helperComponent).toBeDefined();
@@ -188,7 +188,7 @@ describe('SpriteGenerator', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
         generateHelper: true,
-        helperFormat: 'vanilla'
+        helperFormat: 'vanilla',
       });
 
       expect(result.helperComponent).toBeDefined();
@@ -200,7 +200,7 @@ describe('SpriteGenerator', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
         generateHelper: true,
-        helperFormat: 'react'
+        helperFormat: 'react',
       });
 
       expect(result.helperComponent).toContain('size');
@@ -216,17 +216,17 @@ describe('SpriteGenerator', () => {
     test('debe generar union type de iconos', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
-        generateTypes: true
+        generateTypes: true,
       });
 
-      expect(result.typeDefinitions).toContain("type IconName =");
+      expect(result.typeDefinitions).toContain('type IconName =');
       expect(result.typeDefinitions).toContain("'arrow-left' | 'arrow-right' | 'home'");
     });
 
     test('debe generar array de nombres', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
-        generateTypes: true
+        generateTypes: true,
       });
 
       expect(result.typeDefinitions).toContain('iconNames');
@@ -236,7 +236,7 @@ describe('SpriteGenerator', () => {
     test('debe incluir función de validación', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
-        generateTypes: true
+        generateTypes: true,
       });
 
       expect(result.typeDefinitions).toContain('isValidIconName');
@@ -260,8 +260,8 @@ describe('SpriteGenerator', () => {
         {
           id: 'icon with spaces',
           name: 'Icon With Spaces',
-          svg: '<svg viewBox="0 0 24 24"><path/></svg>'
-        }
+          svg: '<svg viewBox="0 0 24 24"><path/></svg>',
+        },
       ];
 
       const result = generator.generate(iconsWithSpecialChars, baseOptions);
@@ -275,8 +275,8 @@ describe('SpriteGenerator', () => {
         {
           id: 'no-viewbox',
           name: 'No ViewBox',
-          svg: '<svg><path d="M0 0"/></svg>'
-        }
+          svg: '<svg><path d="M0 0"/></svg>',
+        },
       ];
 
       const result = generator.generate(iconWithoutViewBox, baseOptions);
@@ -291,8 +291,8 @@ describe('SpriteGenerator', () => {
           id: 'custom-viewbox',
           name: 'Custom ViewBox',
           svg: '<svg viewBox="0 0 16 16"><path d="M0 0"/></svg>',
-          viewBox: '0 0 32 32'
-        }
+          viewBox: '0 0 32 32',
+        },
       ];
 
       const result = generator.generate(iconWithCustomViewBox, baseOptions);
@@ -312,13 +312,13 @@ describe('SpriteGenerator', () => {
         {
           id: 'styled',
           name: 'Styled',
-          svg: '<svg viewBox="0 0 24 24"><style>.cls{fill:red}</style><path class="cls"/></svg>'
-        }
+          svg: '<svg viewBox="0 0 24 24"><style>.cls{fill:red}</style><path class="cls"/></svg>',
+        },
       ];
 
       const result = generator.generate(iconWithStyle, {
         ...baseOptions,
-        removeStyles: true
+        removeStyles: true,
       });
 
       expect(result.sprite).not.toContain('<style>');
@@ -329,13 +329,13 @@ describe('SpriteGenerator', () => {
         {
           id: 'styled',
           name: 'Styled',
-          svg: '<svg viewBox="0 0 24 24"><style>.cls{fill:red}</style><path class="cls"/></svg>'
-        }
+          svg: '<svg viewBox="0 0 24 24"><style>.cls{fill:red}</style><path class="cls"/></svg>',
+        },
       ];
 
       const result = generator.generate(iconWithStyle, {
         ...baseOptions,
-        removeStyles: false
+        removeStyles: false,
       });
 
       expect(result.sprite).toContain('<style>');
@@ -370,7 +370,7 @@ describe('SpriteGenerator', () => {
     test('debe guardar archivo de tipos si generateTypes es true', async () => {
       await generator.generateAndSave(testIcons, {
         ...baseOptions,
-        generateTypes: true
+        generateTypes: true,
       });
 
       expect(fs.writeFileSync).toHaveBeenCalledWith(
@@ -384,7 +384,7 @@ describe('SpriteGenerator', () => {
       await generator.generateAndSave(testIcons, {
         ...baseOptions,
         generateHelper: true,
-        helperFormat: 'react'
+        helperFormat: 'react',
       });
 
       expect(fs.writeFileSync).toHaveBeenCalledWith(
@@ -399,16 +399,16 @@ describe('SpriteGenerator', () => {
         { format: 'react', ext: 'tsx' },
         { format: 'vue', ext: 'vue' },
         { format: 'svelte', ext: 'svelte' },
-        { format: 'vanilla', ext: 'js' }
+        { format: 'vanilla', ext: 'js' },
       ];
 
       for (const { format, ext } of formats) {
         fs.writeFileSync.mockClear();
-        
+
         await generator.generateAndSave(testIcons, {
           ...baseOptions,
           generateHelper: true,
-          helperFormat: format as any
+          helperFormat: format as any,
         });
 
         expect(fs.writeFileSync).toHaveBeenCalledWith(
@@ -429,7 +429,7 @@ describe('SpriteGenerator', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
         generateHelper: true,
-        helperFormat: 'react'
+        helperFormat: 'react',
       });
 
       expect(result.helperComponent).toContain('forwardRef');
@@ -439,7 +439,7 @@ describe('SpriteGenerator', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
         generateHelper: true,
-        helperFormat: 'react'
+        helperFormat: 'react',
       });
 
       expect(result.helperComponent).toContain('displayName');
@@ -449,7 +449,7 @@ describe('SpriteGenerator', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
         generateHelper: true,
-        helperFormat: 'vue'
+        helperFormat: 'vue',
       });
 
       expect(result.helperComponent).toContain('withDefaults');
@@ -459,7 +459,7 @@ describe('SpriteGenerator', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
         generateHelper: true,
-        helperFormat: 'svelte'
+        helperFormat: 'svelte',
       });
 
       expect(result.helperComponent).toContain('export const iconNames');
@@ -469,7 +469,7 @@ describe('SpriteGenerator', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
         generateHelper: true,
-        helperFormat: 'vanilla'
+        helperFormat: 'vanilla',
       });
 
       expect(result.helperComponent).toContain('connectedCallback');
@@ -479,7 +479,7 @@ describe('SpriteGenerator', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
         generateHelper: true,
-        helperFormat: 'vanilla'
+        helperFormat: 'vanilla',
       });
 
       expect(result.helperComponent).toContain('customElements.define');
@@ -491,7 +491,7 @@ describe('SpriteGenerator', () => {
         ...baseOptions,
         generateHelper: true,
         helperFormat: 'vanilla',
-        webComponentName: customName
+        webComponentName: customName,
       });
 
       expect(result.helperComponent).toContain(`customElements.define('${customName}'`);
@@ -506,7 +506,7 @@ describe('SpriteGenerator', () => {
     test('debe incluir isValidIconName function', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
-        generateTypes: true
+        generateTypes: true,
       });
 
       expect(result.typeDefinitions).toContain('isValidIconName');
@@ -515,7 +515,7 @@ describe('SpriteGenerator', () => {
     test('debe incluir IconNameTuple type', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
-        generateTypes: true
+        generateTypes: true,
       });
 
       expect(result.typeDefinitions).toContain('IconNameTuple');
@@ -524,7 +524,7 @@ describe('SpriteGenerator', () => {
     test('debe incluir comentario de auto-generación', () => {
       const result = generator.generate(testIcons, {
         ...baseOptions,
-        generateTypes: true
+        generateTypes: true,
       });
 
       expect(result.typeDefinitions).toContain('Auto-generated');
@@ -541,8 +541,8 @@ describe('SpriteGenerator', () => {
         {
           id: 'icon@2x',
           name: 'Icon 2x',
-          svg: '<svg viewBox="0 0 24 24"><path/></svg>'
-        }
+          svg: '<svg viewBox="0 0 24 24"><path/></svg>',
+        },
       ];
 
       const result = generator.generate(iconWithSpecialChars, baseOptions);
@@ -556,8 +556,8 @@ describe('SpriteGenerator', () => {
         {
           id: '-icon-name-',
           name: 'Icon Name',
-          svg: '<svg viewBox="0 0 24 24"><path/></svg>'
-        }
+          svg: '<svg viewBox="0 0 24 24"><path/></svg>',
+        },
       ];
 
       const result = generator.generate(iconWithDashes, baseOptions);
@@ -570,8 +570,8 @@ describe('SpriteGenerator', () => {
         {
           id: 'MyIcon',
           name: 'My Icon',
-          svg: '<svg viewBox="0 0 24 24"><path/></svg>'
-        }
+          svg: '<svg viewBox="0 0 24 24"><path/></svg>',
+        },
       ];
 
       const result = generator.generate(iconUppercase, baseOptions);
@@ -590,7 +590,7 @@ describe('SpriteGenerator', () => {
         ...baseOptions,
         filename: 'icons',
         generateHelper: true,
-        helperFormat: 'react'
+        helperFormat: 'react',
       });
 
       expect(result.helperComponent).toContain('/icons.svg#');
@@ -600,7 +600,7 @@ describe('SpriteGenerator', () => {
       const result = generator.generate(testIcons, {
         outputPath: '/test',
         generateHelper: true,
-        helperFormat: 'react'
+        helperFormat: 'react',
       });
 
       expect(result.helperComponent).toContain('/sprite.svg#');
@@ -614,7 +614,7 @@ describe('SpriteGenerator', () => {
   describe('getSpriteGenerator', () => {
     test('debe importar y usar el singleton', async () => {
       const { getSpriteGenerator } = await import('../../services/SpriteGenerator');
-      
+
       const generator1 = getSpriteGenerator();
       const generator2 = getSpriteGenerator();
 
@@ -622,4 +622,3 @@ describe('SpriteGenerator', () => {
     });
   });
 });
-

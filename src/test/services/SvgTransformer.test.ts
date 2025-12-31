@@ -1,6 +1,6 @@
 /**
  * Tests para SvgTransformer
- * 
+ *
  * Requisitos cubiertos:
  * - RF-2.1: Transformar SVG a Componente
  * - RF-3.2: Limpieza de SVG
@@ -19,7 +19,7 @@ describe('SvgTransformer', () => {
   // =====================================================
   // RF-2.1: Transformar SVG a Componente
   // =====================================================
-  
+
   describe('transformToComponent', () => {
     const testSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
       <path d="M12 2L2 7l10 5 10-5-10-5z"/>
@@ -30,7 +30,7 @@ describe('SvgTransformer', () => {
       const result = await transformer.transformToComponent(testSvg, 'arrow', {
         componentName: 'Icon',
         nameAttribute: 'name',
-        format: 'jsx'
+        format: 'jsx',
       });
 
       expect(result.component).toBeDefined();
@@ -42,7 +42,7 @@ describe('SvgTransformer', () => {
       const result = await transformer.transformToComponent(testSvg, 'home', {
         componentName: 'MyIcon',
         nameAttribute: 'icon',
-        format: 'jsx'
+        format: 'jsx',
       });
 
       expect(result.component).toContain('<MyIcon');
@@ -55,7 +55,7 @@ describe('SvgTransformer', () => {
         const result = await transformer.transformToComponent(testSvg, 'test', {
           componentName: 'Icon',
           nameAttribute: 'name',
-          format: 'jsx'
+          format: 'jsx',
         });
 
         expect(result.component).toContain('<Icon');
@@ -66,7 +66,7 @@ describe('SvgTransformer', () => {
         const result = await transformer.transformToComponent(testSvg, 'test', {
           componentName: 'Icon',
           nameAttribute: 'name',
-          format: 'vue'
+          format: 'vue',
         });
 
         expect(result.component).toContain('<Icon');
@@ -76,7 +76,7 @@ describe('SvgTransformer', () => {
         const result = await transformer.transformToComponent(testSvg, 'test', {
           componentName: 'Icon',
           nameAttribute: 'name',
-          format: 'svelte'
+          format: 'svelte',
         });
 
         expect(result.component).toContain('<Icon');
@@ -86,7 +86,7 @@ describe('SvgTransformer', () => {
         const result = await transformer.transformToComponent(testSvg, 'test', {
           componentName: 'Icon',
           nameAttribute: 'name',
-          format: 'html'
+          format: 'html',
         });
 
         // La implementación genera 'icon-icon' como web component
@@ -98,7 +98,7 @@ describe('SvgTransformer', () => {
   // =====================================================
   // RF-3.2: Limpieza de SVG
   // =====================================================
-  
+
   describe('cleanSvg', () => {
     // CA-3.2.1: Elimina declaración XML
     test('CA-3.2.1: debe eliminar declaración XML', () => {
@@ -156,7 +156,7 @@ describe('SvgTransformer', () => {
   // =====================================================
   // Extracción de nombre de icono
   // =====================================================
-  
+
   describe('extractIconName', () => {
     test('debe extraer nombre de path de archivo', () => {
       const result = transformer.extractIconName('/path/to/my-icon.svg');
@@ -188,7 +188,7 @@ describe('SvgTransformer', () => {
   // =====================================================
   // Extracción de cuerpo y atributos del SVG
   // =====================================================
-  
+
   describe('extractSvgBody', () => {
     test('debe extraer el contenido interno del SVG', () => {
       const input = '<svg viewBox="0 0 24 24"><path d="M0 0"/><circle cx="12" cy="12"/></svg>';
@@ -201,7 +201,8 @@ describe('SvgTransformer', () => {
     });
 
     test('debe eliminar estilos de animación icon-manager-animation', () => {
-      const input = '<svg viewBox="0 0 24 24"><style id="icon-manager-animation">@keyframes glow { ... }</style><path d="M0 0"/></svg>';
+      const input =
+        '<svg viewBox="0 0 24 24"><style id="icon-manager-animation">@keyframes glow { ... }</style><path d="M0 0"/></svg>';
       const result = transformer.extractSvgBody(input);
 
       expect(result).toContain('<path');
@@ -210,7 +211,8 @@ describe('SvgTransformer', () => {
     });
 
     test('debe eliminar grupos wrapper de animación', () => {
-      const input = '<svg viewBox="0 0 24 24"><g class="icon-anim-1234567890"><path d="M0 0"/></g></svg>';
+      const input =
+        '<svg viewBox="0 0 24 24"><g class="icon-anim-1234567890"><path d="M0 0"/></g></svg>';
       const result = transformer.extractSvgBody(input);
 
       expect(result).toContain('<path');
@@ -264,13 +266,13 @@ describe('SvgTransformer', () => {
       const files = [
         { path: '/icons/arrow.svg', content: '<svg viewBox="0 0 24 24"><path d="M1"/></svg>' },
         { path: '/icons/home.svg', content: '<svg viewBox="0 0 24 24"><path d="M2"/></svg>' },
-        { path: '/icons/user.svg', content: '<svg viewBox="0 0 24 24"><path d="M3"/></svg>' }
+        { path: '/icons/user.svg', content: '<svg viewBox="0 0 24 24"><path d="M3"/></svg>' },
       ];
 
       const results = await transformer.batchTransform(files, {
         componentName: 'Icon',
         nameAttribute: 'name',
-        format: 'jsx'
+        format: 'jsx',
       });
 
       expect(results).toHaveLength(3);
@@ -280,14 +282,12 @@ describe('SvgTransformer', () => {
     });
 
     test('debe usar opciones para cada transformación', async () => {
-      const files = [
-        { path: '/test/icon.svg', content: '<svg><path/></svg>' }
-      ];
+      const files = [{ path: '/test/icon.svg', content: '<svg><path/></svg>' }];
 
       const results = await transformer.batchTransform(files, {
         componentName: 'MyIcon',
         nameAttribute: 'icon',
-        format: 'vue'
+        format: 'vue',
       });
 
       expect(results[0].component).toContain('<MyIcon');
@@ -298,7 +298,7 @@ describe('SvgTransformer', () => {
       const results = await transformer.batchTransform([], {
         componentName: 'Icon',
         nameAttribute: 'name',
-        format: 'jsx'
+        format: 'jsx',
       });
 
       expect(results).toHaveLength(0);
@@ -312,7 +312,7 @@ describe('SvgTransformer', () => {
   describe('generateIconsFile', () => {
     const icons = [
       { name: 'arrow-right', svg: '<svg viewBox="0 0 24 24"><path d="M1"/></svg>' },
-      { name: 'home', svg: '<svg viewBox="0 0 24 24"><path d="M2"/></svg>' }
+      { name: 'home', svg: '<svg viewBox="0 0 24 24"><path d="M2"/></svg>' },
     ];
 
     test('debe generar archivo JSON', () => {
@@ -350,9 +350,7 @@ describe('SvgTransformer', () => {
     });
 
     test('debe usar viewBox por defecto si no existe', () => {
-      const iconsNoViewBox = [
-        { name: 'test', svg: '<svg><path/></svg>' }
-      ];
+      const iconsNoViewBox = [{ name: 'test', svg: '<svg><path/></svg>' }];
       const result = transformer.generateIconsFile(iconsNoViewBox, 'ts');
 
       expect(result).toContain("viewBox: '0 0 24 24'");
@@ -376,7 +374,7 @@ describe('SvgTransformer', () => {
       const result = await transformer.transformToComponent(testSvg, 'star', {
         componentName: 'Icon',
         nameAttribute: 'name',
-        format: 'astro'
+        format: 'astro',
       });
 
       expect(result.component).toContain('<Icon');
@@ -405,4 +403,3 @@ describe('SvgTransformer', () => {
     });
   });
 });
-

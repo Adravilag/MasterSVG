@@ -4,18 +4,16 @@ import { t } from '../i18n';
 /**
  * Registers navigation-related commands for icons
  */
-export function registerNavigationCommands(
-  context: vscode.ExtensionContext
-): vscode.Disposable[] {
+export function registerNavigationCommands(_context: vscode.ExtensionContext): vscode.Disposable[] {
   const commands: vscode.Disposable[] = [];
 
   // Command: Go to usage location
   commands.push(
-    vscode.commands.registerCommand('iconManager.goToUsage', async (item: any) => {
+    vscode.commands.registerCommand('sageboxIconStudio.goToUsage', async (item: any) => {
       if (item.resourceUri) {
         const document = await vscode.workspace.openTextDocument(item.resourceUri);
         const editor = await vscode.window.showTextDocument(document);
-        
+
         if (item.contextValue === 'iconUsage' && item.usage) {
           const line = item.usage.line - 1;
           const range = new vscode.Range(line, 0, line, document.lineAt(line).text.length);
@@ -28,13 +26,13 @@ export function registerNavigationCommands(
 
   // Command: Go to inline SVG
   commands.push(
-    vscode.commands.registerCommand('iconManager.goToInlineSvg', async (iconOrItem: any) => {
+    vscode.commands.registerCommand('sageboxIconStudio.goToInlineSvg', async (iconOrItem: any) => {
       // Handle both direct icon object and item with icon property
       const icon = iconOrItem?.icon || iconOrItem;
       if (icon && icon.filePath && icon.line !== undefined) {
         const document = await vscode.workspace.openTextDocument(vscode.Uri.file(icon.filePath));
         const editor = await vscode.window.showTextDocument(document);
-        
+
         // If we have full SVG position info (start and end), select the entire SVG
         if (icon.endLine !== undefined && icon.endColumn !== undefined) {
           const startPos = new vscode.Position(icon.line, icon.column || 0);
@@ -43,47 +41,110 @@ export function registerNavigationCommands(
           editor.selection = new vscode.Selection(range.start, range.end);
           editor.revealRange(range, vscode.TextEditorRevealType.InCenter);
         } else {
-          // Fallback: try to find and select the full SVG from the document text
+          // Fallback: try to find and select the element from the document text
           const text = document.getText();
           const lines = text.split('\n');
-          let svgStartLine = icon.line;
-          let svgStartCol = 0;
-          let svgEndLine = icon.line;
-          let svgEndCol = lines[icon.line]?.length || 0;
+          const startLine = icon.line;
           
-          // Find <svg on the start line or nearby
-          const lineText = lines[svgStartLine] || '';
-          const svgTagIndex = lineText.indexOf('<svg');
-          if (svgTagIndex !== -1) {
-            svgStartCol = svgTagIndex;
+          // Check if this is an IMG reference or inline SVG
+          const isImgRef = icon.category === 'img-ref';
+          
+          if (isImgRef) {
+            // For IMG references, find and select the <img> tag
+            // Search on the exact line first, then nearby lines (file may have changed)
+            let foundLine = -1;
+            let imgTagIndex = -1;
             
-            // Find closing </svg> - can be on same line or later
-            let depth = 0;
-            for (let i = svgStartLine; i < lines.length; i++) {
-              const currentLine = lines[i];
-              const startIdx = i === svgStartLine ? svgStartCol : 0;
-              
-              for (let j = startIdx; j < currentLine.length; j++) {
-                if (currentLine.substring(j, j + 4) === '<svg') {
-                  depth++;
-                } else if (currentLine.substring(j, j + 6) === '</svg>') {
-                  depth--;
-                  if (depth === 0) {
-                    svgEndLine = i;
-                    svgEndCol = j + 6;
+            // Build search pattern for this specific SVG path
+            const iconName = icon.name;
+            const searchPatterns = [
+              new RegExp(`<img[^>]*${iconName}\\.svg`, 'i'),
+              /<img[^>]*\.svg/i
+            ];
+            
+            // Search on the exact line and ±2 lines
+            for (let offset = 0; offset <= 2; offset++) {
+              for (const lineOffset of [0, -offset, offset]) {
+                if (lineOffset === 0 && offset !== 0) continue; // Skip 0 offset when offset > 0
+                
+                const checkLine = startLine + lineOffset;
+                if (checkLine < 0 || checkLine >= lines.length) continue;
+                
+                const lineText = lines[checkLine];
+                for (const pattern of searchPatterns) {
+                  const match = lineText.match(pattern);
+                  if (match) {
+                    foundLine = checkLine;
+                    imgTagIndex = lineText.indexOf(match[0]);
                     break;
                   }
                 }
+                if (foundLine !== -1) break;
               }
-              if (depth === 0 && svgEndLine !== svgStartLine) break;
+              if (foundLine !== -1) break;
             }
+            
+            if (foundLine !== -1 && imgTagIndex !== -1) {
+              const lineText = lines[foundLine];
+              // Find the closing > of the img tag
+              let endCol = lineText.indexOf('>', imgTagIndex);
+              if (endCol !== -1) {
+                endCol += 1; // Include the >
+              } else {
+                endCol = lineText.length;
+              }
+              
+              const startPos = new vscode.Position(foundLine, imgTagIndex);
+              const endPos = new vscode.Position(foundLine, endCol);
+              const range = new vscode.Range(startPos, endPos);
+              editor.selection = new vscode.Selection(range.start, range.end);
+              editor.revealRange(range, vscode.TextEditorRevealType.InCenter);
+            } else {
+              // Fallback: just position at the stored line/column
+              const column = icon.column || 0;
+              const position = new vscode.Position(startLine, column);
+              editor.selection = new vscode.Selection(position, position);
+              editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
+            }
+          } else {
+            // For inline SVGs, find <svg tag
+            const lineText = lines[startLine] || '';
+            let svgStartCol = 0;
+            let svgEndLine = startLine;
+            let svgEndCol = lineText.length;
+
+            const svgTagIndex = lineText.indexOf('<svg');
+            if (svgTagIndex !== -1) {
+              svgStartCol = svgTagIndex;
+
+              // Find closing </svg> - can be on same line or later
+              let depth = 0;
+              for (let i = startLine; i < lines.length; i++) {
+                const currentLine = lines[i];
+                const startIdx = i === startLine ? svgStartCol : 0;
+
+                for (let j = startIdx; j < currentLine.length; j++) {
+                  if (currentLine.substring(j, j + 4) === '<svg') {
+                    depth++;
+                  } else if (currentLine.substring(j, j + 6) === '</svg>') {
+                    depth--;
+                    if (depth === 0) {
+                      svgEndLine = i;
+                      svgEndCol = j + 6;
+                      break;
+                    }
+                  }
+                }
+                if (depth === 0 && svgEndLine !== startLine) break;
+              }
+            }
+
+            const startPos = new vscode.Position(startLine, svgStartCol);
+            const endPos = new vscode.Position(svgEndLine, svgEndCol);
+            const range = new vscode.Range(startPos, endPos);
+            editor.selection = new vscode.Selection(range.start, range.end);
+            editor.revealRange(range, vscode.TextEditorRevealType.InCenter);
           }
-          
-          const startPos = new vscode.Position(svgStartLine, svgStartCol);
-          const endPos = new vscode.Position(svgEndLine, svgEndCol);
-          const range = new vscode.Range(startPos, endPos);
-          editor.selection = new vscode.Selection(range.start, range.end);
-          editor.revealRange(range, vscode.TextEditorRevealType.InCenter);
         }
       }
     })
@@ -91,16 +152,16 @@ export function registerNavigationCommands(
 
   // Command: Go to Code (for items in Code view with line info)
   commands.push(
-    vscode.commands.registerCommand('iconManager.goToCode', async (iconOrItem: any) => {
+    vscode.commands.registerCommand('sageboxIconStudio.goToCode', async (iconOrItem: any) => {
       const icon = iconOrItem?.icon || iconOrItem;
       if (icon && icon.filePath && icon.line !== undefined) {
         const document = await vscode.workspace.openTextDocument(vscode.Uri.file(icon.filePath));
         const editor = await vscode.window.showTextDocument(document);
-        
+
         const line = icon.line;
         const column = icon.column || 0;
         const position = new vscode.Position(line, column);
-        
+
         editor.selection = new vscode.Selection(position, position);
         editor.revealRange(
           new vscode.Range(position, position),
@@ -116,7 +177,7 @@ export function registerNavigationCommands(
 
   // Command: Open SVG File (opens SVG as preview/image)
   commands.push(
-    vscode.commands.registerCommand('iconManager.openSvgFile', async (iconOrItem: any) => {
+    vscode.commands.registerCommand('sageboxIconStudio.openSvgFile', async (iconOrItem: any) => {
       const icon = iconOrItem?.icon || iconOrItem;
       if (icon && icon.path) {
         const uri = vscode.Uri.file(icon.path);
@@ -130,7 +191,7 @@ export function registerNavigationCommands(
 
   // Command: Copy Icon Name
   commands.push(
-    vscode.commands.registerCommand('iconManager.copyIconName', async (iconOrItem: any) => {
+    vscode.commands.registerCommand('sageboxIconStudio.copyIconName', async (iconOrItem: any) => {
       const icon = iconOrItem?.icon || iconOrItem;
       if (icon && icon.name) {
         await vscode.env.clipboard.writeText(icon.name);
@@ -141,4 +202,3 @@ export function registerNavigationCommands(
 
   return commands;
 }
-

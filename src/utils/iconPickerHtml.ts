@@ -43,7 +43,7 @@ export function generateIconCard(icon: IconSearchResult, previewColor: string = 
   const escapedName = escapeHtmlAttribute(icon.name);
   const escapedPrefix = escapeHtmlAttribute(icon.prefix);
   const encodedColor = encodeURIComponent(previewColor);
-  
+
   return `
     <div class="icon-card" data-prefix="${escapedPrefix}" data-name="${escapedName}">
       <div class="icon-preview">
@@ -62,7 +62,10 @@ export function generateIconCard(icon: IconSearchResult, previewColor: string = 
 /**
  * Generate all icon cards HTML
  */
-export function generateIconCards(icons: IconSearchResult[], previewColor: string = '#ffffff'): string {
+export function generateIconCards(
+  icons: IconSearchResult[],
+  previewColor: string = '#ffffff'
+): string {
   return icons.map(icon => generateIconCard(icon, previewColor)).join('');
 }
 
@@ -77,8 +80,13 @@ export function generateColorPresetButton(preset: ColorPreset, isActive: boolean
 /**
  * Generate color presets HTML
  */
-export function generateColorPresets(presets: ColorPreset[] = DEFAULT_COLOR_PRESETS, activeColor: string = '#ffffff'): string {
-  return presets.map(preset => generateColorPresetButton(preset, preset.color === activeColor)).join('\n      ');
+export function generateColorPresets(
+  presets: ColorPreset[] = DEFAULT_COLOR_PRESETS,
+  activeColor: string = '#ffffff'
+): string {
+  return presets
+    .map(preset => generateColorPresetButton(preset, preset.color === activeColor))
+    .join('\n      ');
 }
 
 /**
@@ -291,7 +299,11 @@ export function generateToolbarHtml(activeColor: string = '#ffffff'): string {
 /**
  * Generate complete icon picker HTML
  */
-export function getIconPickerHtml(icons: IconSearchResult[], query: string, previewColor: string = '#ffffff'): string {
+export function getIconPickerHtml(
+  icons: IconSearchResult[],
+  query: string,
+  previewColor: string = '#ffffff'
+): string {
   const escapedQuery = escapeHtmlAttribute(query);
   const iconCards = generateIconCards(icons, previewColor);
   const styles = getIconPickerStyles();
@@ -317,4 +329,3 @@ export function getIconPickerHtml(icons: IconSearchResult[], query: string, prev
 </body>
 </html>`;
 }
-

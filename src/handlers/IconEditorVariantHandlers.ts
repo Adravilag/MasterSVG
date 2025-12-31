@@ -7,14 +7,17 @@ import { t } from '../i18n';
  * Context passed to variant handlers
  */
 export interface VariantHandlerContext {
-  iconData: {
-    name: string;
-    svg: string;
-  } | undefined;
+  iconData:
+    | {
+        name: string;
+        svg: string;
+      }
+    | undefined;
   originalColors: string[];
   selectedVariantIndex: number;
   colorService: ColorService;
   variantsService: VariantsService;
+  postMessage: (message: unknown) => void;
   updateSvg: (svg: string) => void;
   setSelectedVariantIndex: (index: number) => void;
   refresh: () => void;
@@ -32,7 +35,7 @@ export async function handleSaveVariant(ctx: VariantHandlerContext): Promise<voi
 
   const variantName = await vscode.window.showInputBox({
     prompt: t('editor.enterVariantName'),
-    placeHolder: t('editor.variantPlaceholder')
+    placeHolder: t('editor.variantPlaceholder'),
   });
 
   if (variantName) {
@@ -45,10 +48,7 @@ export async function handleSaveVariant(ctx: VariantHandlerContext): Promise<voi
 /**
  * Handle applying a variant
  */
-export function handleApplyVariant(
-  ctx: VariantHandlerContext,
-  message: { index?: number }
-): void {
+export function handleApplyVariant(ctx: VariantHandlerContext, message: { index?: number }): void {
   if (!ctx.iconData || message.index === undefined) return;
 
   const variants = ctx.variantsService.getSavedVariants(ctx.iconData.name);
@@ -65,6 +65,21 @@ export function handleApplyVariant(
     ctx.updateSvg(newSvg);
     ctx.setSelectedVariantIndex(message.index);
     ctx.refresh();
+
+    // Auto-calc CSS filters to bring the variant closer to original look
+    // Only do this when both palettes have a single color (multi-color variants are skipped)
+    try {
+      const originalColors = ctx.originalColors || [];
+      const variantColors = variant.colors || [];
+      if (originalColors.length === 1 && variantColors.length === 1) {
+        const from = variantColors[0];
+        const to = originalColors[0];
+        const filters = ctx.colorService.estimateFiltersForColor(from, to);
+        ctx.postMessage({ command: 'setFilters', filters: { hue: filters.hue, saturation: filters.saturation, brightness: filters.brightness } });
+      }
+    } catch (err) {
+      // silent
+    }
   }
 }
 
@@ -102,10 +117,7 @@ export function handleGenerateAutoVariant(
 /**
  * Handle deleting a variant
  */
-export function handleDeleteVariant(
-  ctx: VariantHandlerContext,
-  message: { index?: number }
-): void {
+export function handleDeleteVariant(ctx: VariantHandlerContext, message: { index?: number }): void {
   if (!ctx.iconData || message.index === undefined) return;
 
   ctx.variantsService.deleteVariant(ctx.iconData.name, message.index);
@@ -168,7 +180,7 @@ export async function handleEditVariant(
     const newName = await vscode.window.showInputBox({
       prompt: t('editor.editVariantName'),
       value: variant.name,
-      placeHolder: t('editor.variantPlaceholder')
+      placeHolder: t('editor.variantPlaceholder'),
     });
 
     if (newName !== undefined) {
@@ -179,4 +191,3 @@ export async function handleEditVariant(
     }
   }
 }
-

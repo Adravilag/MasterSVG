@@ -9,6 +9,5 @@ export type {
   IconDetails,
   WorkspaceIconData,
   IconWithSvg,
-  SpriteIconData
+  SpriteIconData,
 } from './icons';
-

@@ -46,11 +46,15 @@ export class IconCacheService {
   /**
    * Find item in cache by icon name or path
    */
-  findItemByIconNameOrPath(iconName: string, filePath?: string, lineNumber?: number): SvgItem | undefined {
+  findItemByIconNameOrPath(
+    iconName: string,
+    filePath?: string,
+    lineNumber?: number
+  ): SvgItem | undefined {
     let exactMatchWithLine: SvgItem | undefined;
     let exactNameMatch: SvgItem | undefined;
     let pathMatch: SvgItem | undefined;
-    
+
     for (const [_id, item] of this.itemCache) {
       if (item.type === 'icon' && item.icon) {
         // Check for exact name match
@@ -73,7 +77,11 @@ export class IconCacheService {
           }
         }
         // Path match as fallback (with line number check if available)
-        if (!pathMatch && filePath && (item.icon.path === filePath || item.icon.filePath === filePath)) {
+        if (
+          !pathMatch &&
+          filePath &&
+          (item.icon.path === filePath || item.icon.filePath === filePath)
+        ) {
           if (lineNumber !== undefined && item.icon.line === lineNumber - 1) {
             pathMatch = item;
           } else if (lineNumber === undefined) {
@@ -82,7 +90,7 @@ export class IconCacheService {
         }
       }
     }
-    
+
     return exactMatchWithLine || exactNameMatch || pathMatch;
   }
 
@@ -91,24 +99,24 @@ export class IconCacheService {
    */
   createSvgItemFromIcon(icon: WorkspaceIcon): SvgItem | undefined {
     if (!icon) return undefined;
-    
+
     // First check if we have this item cached by searching through the cache
     // The cache key includes instanceCounter prefix, so we search by icon properties
     const cachedItem = this.findItemByIconNameOrPath(
-      icon.name, 
-      icon.filePath || icon.path, 
+      icon.name,
+      icon.filePath || icon.path,
       icon.line !== undefined ? icon.line + 1 : undefined
     );
     if (cachedItem) {
       return cachedItem;
     }
-    
+
     // If not cached, create a new one (though reveal might not work)
     const isBuilt = icon.isBuilt || false;
     const isImgRef = icon.category === 'img-ref';
     const isMissingRef = isImgRef && icon.exists === false;
     let contextValue: string;
-    
+
     if (isMissingRef) {
       contextValue = 'missingRef';
     } else if (isImgRef) {
@@ -120,7 +128,7 @@ export class IconCacheService {
     } else {
       contextValue = 'svgIcon';
     }
-    
+
     const item = new SvgItem(
       icon.name,
       0,
@@ -129,11 +137,10 @@ export class IconCacheService {
       icon,
       undefined
     );
-    
+
     // Manually set contextValue since constructor may set it differently
     (item as any).contextValue = contextValue;
-    
+
     return item;
   }
 }
-

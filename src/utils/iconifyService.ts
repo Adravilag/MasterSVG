@@ -8,57 +8,68 @@ export interface IconifySearchResult {
 /**
  * Search for icons on Iconify API
  */
-export async function searchIconify(query: string, limit: number = 50): Promise<IconifySearchResult[]> {
+export async function searchIconify(
+  query: string,
+  limit: number = 50
+): Promise<IconifySearchResult[]> {
   return new Promise((resolve, reject) => {
     const url = `https://api.iconify.design/search?query=${encodeURIComponent(query)}&limit=${limit}`;
 
-    https.get(url, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          const result = JSON.parse(data);
-          const icons: IconifySearchResult[] = [];
+    https
+      .get(url, res => {
+        let data = '';
+        res.on('data', chunk => (data += chunk));
+        res.on('end', () => {
+          try {
+            const result = JSON.parse(data);
+            const icons: IconifySearchResult[] = [];
 
-          if (result.icons && Array.isArray(result.icons)) {
-            for (const iconId of result.icons) {
-              const [prefix, name] = iconId.split(':');
-              if (prefix && name) {
-                icons.push({ prefix, name });
+            if (result.icons && Array.isArray(result.icons)) {
+              for (const iconId of result.icons) {
+                const [prefix, name] = iconId.split(':');
+                if (prefix && name) {
+                  icons.push({ prefix, name });
+                }
               }
             }
-          }
 
-          resolve(icons);
-        } catch (e) {
-          reject(e);
-        }
-      });
-    }).on('error', reject);
+            resolve(icons);
+          } catch (parseError) {
+            reject(parseError);
+          }
+        });
+      })
+      .on('error', reject);
   });
 }
 
 /**
  * Fetch SVG content for a specific icon from Iconify
  */
-export async function fetchIconSvg(prefix: string, name: string, color?: string): Promise<string | null> {
-  return new Promise((resolve) => {
+export async function fetchIconSvg(
+  prefix: string,
+  name: string,
+  color?: string
+): Promise<string | null> {
+  return new Promise(resolve => {
     let url = `https://api.iconify.design/${prefix}/${name}.svg`;
     if (color) {
       url += `?color=${encodeURIComponent(color)}`;
     }
 
-    https.get(url, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        if (res.statusCode === 200 && data.includes('<svg')) {
-          resolve(data);
-        } else {
-          resolve(null);
-        }
-      });
-    }).on('error', () => resolve(null));
+    https
+      .get(url, res => {
+        let data = '';
+        res.on('data', chunk => (data += chunk));
+        res.on('end', () => {
+          if (res.statusCode === 200 && data.includes('<svg')) {
+            resolve(data);
+          } else {
+            resolve(null);
+          }
+        });
+      })
+      .on('error', () => resolve(null));
   });
 }
 
@@ -76,24 +87,26 @@ export interface IconifyIconSet {
  * Get icon info from Iconify
  */
 export async function getIconInfo(prefix: string, name: string): Promise<IconifyIconSet | null> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const url = `https://api.iconify.design/${prefix}.json?icons=${name}`;
 
-    https.get(url, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          if (res.statusCode === 200) {
-            resolve(JSON.parse(data));
-          } else {
+    https
+      .get(url, res => {
+        let data = '';
+        res.on('data', chunk => (data += chunk));
+        res.on('end', () => {
+          try {
+            if (res.statusCode === 200) {
+              resolve(JSON.parse(data));
+            } else {
+              resolve(null);
+            }
+          } catch {
             resolve(null);
           }
-        } catch {
-          resolve(null);
-        }
-      });
-    }).on('error', () => resolve(null));
+        });
+      })
+      .on('error', () => resolve(null));
   });
 }
 
@@ -113,24 +126,25 @@ export interface IconifyCollection {
  * Get available icon collections from Iconify
  */
 export async function getCollections(): Promise<Record<string, IconifyCollection> | null> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const url = 'https://api.iconify.design/collections';
 
-    https.get(url, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          if (res.statusCode === 200) {
-            resolve(JSON.parse(data));
-          } else {
+    https
+      .get(url, res => {
+        let data = '';
+        res.on('data', chunk => (data += chunk));
+        res.on('end', () => {
+          try {
+            if (res.statusCode === 200) {
+              resolve(JSON.parse(data));
+            } else {
+              resolve(null);
+            }
+          } catch {
             resolve(null);
           }
-        } catch {
-          resolve(null);
-        }
-      });
-    }).on('error', () => resolve(null));
+        });
+      })
+      .on('error', () => resolve(null));
   });
 }
-

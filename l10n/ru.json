@@ -5,7 +5,7 @@
     "appTitle": "Icon Studio"
   },
   "welcome": {
-    "title": "Добро пожаловать в IconWrap",
+    "title": "Добро пожаловать в Icon Studio",
     "subtitle": "Ваше решение для управления SVG иконками",
     "getStarted": "Начать",
     "configuration": "Конфигурация",
@@ -23,10 +23,10 @@
     "saving": "Сохранение...",
     "saved": "Конфигурация сохранена!",
     "features": "Возможности",
-    "featuresDescription": "Узнайте, что IconWrap может сделать для вас",
+    "featuresDescription": "Узнайте, что Icon Studio может сделать для вас",
     "documentation": "Документация",
     "quickStart": "Быстрый старт",
-    "quickStartDescription": "Научитесь использовать IconWrap за минуты",
+    "quickStartDescription": "Научитесь использовать Icon Studio за минуты",
     "browse": "Обзор...",
     "selectFolder": "Выбрать папку",
     "jsModule": "JS Модуль",
@@ -78,7 +78,7 @@
     "preview": "Превью",
     "noIcons": "Иконки не найдены",
     "scanWorkspace": "Сканировать рабочую область на наличие SVG файлов",
-    "configureFirst": "Настроить Icon Manager",
+    "configureFirst": "Настроить Icon Studio",
     "noBuiltIcons": "Нет собранных иконок - Выполните команду Build",
     "inlineSvgs": "Встроенные SVG",
     "imgReferences": "IMG ссылки"
@@ -264,6 +264,7 @@
     "copyToClipboard": "Копировать в буфер",
     "dismiss": "Отклонить",
     "iconImported": "Иконка '{name}' импортирована в {targets}!",
+    "iconBuilt": "Иконка '{name}' скомпилирована в {format}!",
     "iconTransformed": "Иконка '{name}' преобразована в <{component}>!",
     "extractInlineSvg": "Извлечь инлайн SVG как \"{name}\"",
     "addedFillColor": "Добавлен цвет заливки: {color}",
@@ -557,6 +558,8 @@
       "brightness": "Яркость",
       "reset": "Сбросить",
       "resetFilters": "Сбросить все фильтры",
+      "enableFilters": "Включить глобальные фильтры",
+      "disableFilters": "Отключить глобальные фильтры",
       "variants": "Варианты",
       "saveVariant": "Сохранить текущие цвета как вариант"
     },
@@ -634,7 +637,8 @@
       "licenseType": "Лицензия",
       "unknownAuthor": "Неизвестно",
       "unknownLicense": "Неизвестно",
-      "licenseUnknown": "Информация о лицензии недоступна"
+      "licenseUnknown": "Информация о лицензии недоступна",
+      "download": "Скачать"
     },
     "spritePreview": {
       "icons": "иконок",

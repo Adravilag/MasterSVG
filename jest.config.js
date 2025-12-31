@@ -3,7 +3,7 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
-  testMatch: ['**/*.test.ts'],
+  testMatch: ['**/*.test.ts', '!**/*.e2e.test.ts'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   collectCoverageFrom: [
     'src/**/*.ts',
@@ -22,7 +22,8 @@ module.exports = {
   },
   testPathIgnorePatterns: [
     '/node_modules/',
-    '/out/'
+    '/out/',
+    '/src/test/e2e/'
   ],
   setupFilesAfterEnv: ['<rootDir>/src/test/setup.ts'],
   verbose: true

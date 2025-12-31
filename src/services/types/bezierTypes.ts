@@ -10,7 +10,7 @@
 /**
  * Supported animation timing functions
  */
-export type AnimationTimingFunction = 
+export type AnimationTimingFunction =
   | 'linear'
   | 'ease'
   | 'ease-in'
@@ -41,7 +41,15 @@ export type AnimationPlayState = 'running' | 'paused';
 /**
  * Animation trigger type
  */
-export type AnimationTrigger = 'hover' | 'click' | 'focus' | 'load' | 'visible' | 'manual' | 'active' | 'error';
+export type AnimationTrigger =
+  | 'hover'
+  | 'click'
+  | 'focus'
+  | 'load'
+  | 'visible'
+  | 'manual'
+  | 'active'
+  | 'error';
 
 /**
  * Keyframe definition
@@ -90,16 +98,16 @@ export interface AnimationDefinition {
 /**
  * Animation categories for organization
  */
-export type AnimationCategory = 
-  | 'rotation'    // spin, rotate
-  | 'scale'       // pulse, grow, shrink
-  | 'translate'   // bounce, shake, slide
-  | 'fade'        // fade-in, fade-out, blink
-  | 'complex'     // wobble, jello, tada
-  | 'attention'   // heartbeat, rubber-band
-  | 'entrance'    // zoom-in, slide-in
-  | 'exit'        // zoom-out, slide-out
-  | 'effect';     // glow, morph
+export type AnimationCategory =
+  | 'rotation' // spin, rotate
+  | 'scale' // pulse, grow, shrink
+  | 'translate' // bounce, shake, slide
+  | 'fade' // fade-in, fade-out, blink
+  | 'complex' // wobble, jello, tada
+  | 'attention' // heartbeat, rubber-band
+  | 'entrance' // zoom-in, slide-in
+  | 'exit' // zoom-out, slide-out
+  | 'effect'; // glow, morph
 
 /**
  * Animation instance settings (applied to an icon)
@@ -205,7 +213,7 @@ export type ColorMode = 'light' | 'dark' | 'system' | 'custom';
 /**
  * Icon state for variations
  */
-export type IconState = 
+export type IconState =
   | 'default'
   | 'hover'
   | 'active'
@@ -423,4 +431,3 @@ export interface BzIconAttributes {
   animation?: string;
   variant?: string;
 }
-

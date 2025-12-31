@@ -1,5 +1,5 @@
 /**
- * Common types for Icon Manager extension
+ * Common types for Icon Studio extension
  */
 
 /**
@@ -109,4 +109,3 @@ export interface SpriteIconData {
   svg: string;
   viewBox?: string;
 }
-

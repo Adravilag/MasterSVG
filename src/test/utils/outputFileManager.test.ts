@@ -77,7 +77,7 @@ describe('outputFileManager', () => {
   describe('generateIconEntry', () => {
     it('should generate icon entry object', () => {
       const entry = generateIconEntry('home', '<path d="M0 0"/>', '0 0 24 24');
-      
+
       expect(entry.name).toBe('home');
       expect(entry.body).toBe('<path d="M0 0"/>');
       expect(entry.viewBox).toBe('0 0 24 24');
@@ -85,7 +85,7 @@ describe('outputFileManager', () => {
 
     it('should use default viewBox', () => {
       const entry = generateIconEntry('home', '<path/>');
-      
+
       expect(entry.viewBox).toBe('0 0 24 24');
     });
   });
@@ -93,7 +93,7 @@ describe('outputFileManager', () => {
   describe('generateIconExport', () => {
     it('should generate export statement', () => {
       const result = generateIconExport('arrow-right', '<path d="M0 0"/>');
-      
+
       expect(result).toContain('export const arrowRight');
       expect(result).toContain("name: 'arrow-right'");
       expect(result).toContain('body: `<path d="M0 0"/>`');
@@ -102,7 +102,7 @@ describe('outputFileManager', () => {
 
     it('should use custom viewBox', () => {
       const result = generateIconExport('home', '<path/>', '0 0 16 16');
-      
+
       expect(result).toContain("viewBox: '0 0 16 16'");
     });
   });
@@ -131,9 +131,9 @@ describe('outputFileManager', () => {
   body: \`<circle/>\`,
   viewBox: '0 0 16 16'
 };`;
-      
+
       const result = replaceIconExportInContent(content, 'home', newExport);
-      
+
       expect(result).toContain('<circle/>');
       expect(result).not.toContain('<path/>');
     });
@@ -143,14 +143,14 @@ describe('outputFileManager', () => {
     it('should find position of icons object', () => {
       const content = `export const home = {};\n\nexport const icons = {\n  home\n};`;
       const pos = findIconsObjectPosition(content);
-      
+
       expect(pos).toBeGreaterThan(0);
     });
 
     it('should return -1 if not found', () => {
       const content = `export const home = {};`;
       const pos = findIconsObjectPosition(content);
-      
+
       expect(pos).toBe(-1);
     });
   });
@@ -159,9 +159,9 @@ describe('outputFileManager', () => {
     it('should add icon before icons object', () => {
       const content = `export const icons = {\n  home\n};`;
       const iconExport = `export const arrowRight = { name: 'arrow-right' };`;
-      
+
       const result = addIconBeforeIconsObject(content, iconExport, 'arrow-right');
-      
+
       expect(result).toContain(iconExport);
       expect(result.indexOf(iconExport)).toBeLessThan(result.indexOf('export const icons'));
     });
@@ -169,18 +169,18 @@ describe('outputFileManager', () => {
     it('should add icon to icons object', () => {
       const content = `export const icons = {\n  home\n};`;
       const iconExport = `export const arrowRight = { name: 'arrow-right' };`;
-      
+
       const result = addIconBeforeIconsObject(content, iconExport, 'arrow-right');
-      
+
       expect(result).toContain('arrowRight');
     });
 
     it('should append at end if no icons object', () => {
       const content = `const something = true;`;
       const iconExport = `export const home = { name: 'home' };`;
-      
+
       const result = addIconBeforeIconsObject(content, iconExport, 'home');
-      
+
       expect(result).toContain(iconExport);
     });
   });
@@ -189,7 +189,7 @@ describe('outputFileManager', () => {
     it('should add new icon', () => {
       const content = `export const icons = {\n};`;
       const result = updateIconsFileContent(content, 'home', '<path/>', '0 0 24 24');
-      
+
       expect(result).toContain('export const home');
     });
 
@@ -199,9 +199,9 @@ describe('outputFileManager', () => {
   body: \`<path/>\`,
   viewBox: '0 0 24 24'
 };\n\nexport const icons = {\n  home\n};`;
-      
+
       const result = updateIconsFileContent(content, 'home', '<circle/>', '0 0 16 16');
-      
+
       expect(result).toContain('<circle/>');
       expect(result).not.toContain('<path/>');
     });
@@ -210,7 +210,7 @@ describe('outputFileManager', () => {
   describe('generateNewIconsFileContent', () => {
     it('should generate complete icons.js file', () => {
       const result = generateNewIconsFileContent('home', '<path/>');
-      
+
       expect(result).toContain('// Auto-generated');
       expect(result).toContain('export const home');
       expect(result).toContain('export const icons');
@@ -220,7 +220,7 @@ describe('outputFileManager', () => {
   describe('generateSpriteSymbol', () => {
     it('should generate symbol element', () => {
       const result = generateSpriteSymbol('home', '<path/>', '0 0 24 24');
-      
+
       expect(result).toContain('<symbol id="home"');
       expect(result).toContain('viewBox="0 0 24 24"');
       expect(result).toContain('<path/>');
@@ -249,9 +249,9 @@ describe('outputFileManager', () => {
     it('should replace existing symbol', () => {
       const content = `<svg><symbol id="home"><path/></symbol></svg>`;
       const newSymbol = `  <symbol id="home" viewBox="0 0 24 24">\n    <circle/>\n  </symbol>`;
-      
+
       const result = replaceSymbolInSprite(content, 'home', newSymbol);
-      
+
       expect(result).toContain('<circle/>');
       expect(result).not.toContain('<path/>');
     });
@@ -261,9 +261,9 @@ describe('outputFileManager', () => {
     it('should add symbol before closing svg', () => {
       const content = `<svg></svg>`;
       const symbol = `  <symbol id="home"><path/></symbol>`;
-      
+
       const result = addSymbolToSprite(content, symbol);
-      
+
       expect(result).toContain('<symbol id="home"');
       expect(result.indexOf('symbol')).toBeLessThan(result.indexOf('</svg>'));
     });
@@ -273,14 +273,14 @@ describe('outputFileManager', () => {
     it('should add new symbol', () => {
       const content = `<svg></svg>`;
       const result = updateSpriteContent(content, 'home', '<path/>');
-      
+
       expect(result).toContain('<symbol id="home"');
     });
 
     it('should replace existing symbol', () => {
       const content = `<svg><symbol id="home"><path/></symbol></svg>`;
       const result = updateSpriteContent(content, 'home', '<circle/>');
-      
+
       expect(result).toContain('<circle/>');
     });
   });
@@ -288,7 +288,7 @@ describe('outputFileManager', () => {
   describe('generateNewSpriteContent', () => {
     it('should generate complete sprite file', () => {
       const result = generateNewSpriteContent('home', '<path/>');
-      
+
       expect(result).toContain('xmlns="http://www.w3.org/2000/svg"');
       expect(result).toContain('<symbol id="home"');
       expect(result).toContain('</svg>');
@@ -298,7 +298,7 @@ describe('outputFileManager', () => {
   describe('generateDefaultVariantsContent', () => {
     it('should generate variants.js content', () => {
       const result = generateDefaultVariantsContent();
-      
+
       expect(result).toContain('Auto-generated');
       expect(result).toContain('defaultVariants');
       expect(result).toContain('Variants');
@@ -308,7 +308,7 @@ describe('outputFileManager', () => {
   describe('generateDefaultAnimationsContent', () => {
     it('should generate animations.js content', () => {
       const result = generateDefaultAnimationsContent();
-      
+
       expect(result).toContain('Auto-generated');
       expect(result).toContain('animations');
       expect(result).toContain('spin');
@@ -326,9 +326,9 @@ describe('outputFileManager', () => {
 export const icons = {
   home
 };`;
-      
+
       const result = removeIconExportFromContent(content, 'home');
-      
+
       expect(result).not.toContain('export const home');
       expect(result).toContain('export const icons');
     });
@@ -341,9 +341,9 @@ export const icons = {
   home,
   arrow
 };`;
-      
+
       const result = removeIconExportFromContent(content, 'home');
-      
+
       expect(result).toContain('arrow');
       expect(result).not.toMatch(/\bhome\b/);
     });
@@ -363,9 +363,9 @@ export const icons = {
 
 export const icons = {// Icons will be added here,
   hexagon};`;
-      
+
       const result = removeIconExportFromContent(content, 'hexagon');
-      
+
       expect(result).not.toContain('export const hexagon');
       expect(result).toContain('export const icons');
       expect(result).toContain('}');
@@ -383,9 +383,9 @@ export const icons = {// Icons will be added here,
 export const icons = {
   home
 };`;
-      
+
       const result = removeIconExportFromContent(content, 'home');
-      
+
       // The icons object should still be valid with empty content
       expect(result).toMatch(/export const icons = \{\s*\}/);
     });
@@ -399,9 +399,9 @@ export const icons = {
 
 export const icons = {// Icons will be added here,
   hexagon};`;
-      
+
       const result = removeIconExportFromContent(content, 'hexagon');
-      
+
       // Should have valid empty icons object
       expect(result).toMatch(/export const icons = \{\s*\}/);
       // Should not have orphaned comment
@@ -424,13 +424,13 @@ export const icon2 = {
 export const icons = {// Icons will be added here,
   icon1,
   icon2};`;
-      
+
       // Remove first icon
       content = removeIconExportFromContent(content, 'icon1');
       expect(content).toContain('icon2');
       expect(content).not.toContain('icon1');
       expect(content).toMatch(/export const icons = \{[\s\S]*icon2[\s\S]*\}/);
-      
+
       // Remove second icon
       content = removeIconExportFromContent(content, 'icon2');
       expect(content).not.toContain('icon1');
@@ -456,9 +456,9 @@ export const hexagon = {
 
 export const icons = {// Icons will be added here,
   hexagon};`;
-      
+
       const result = removeIconExportFromContent(content, 'hexagon');
-      
+
       // Should not have syntax errors - verify structure
       expect(result).toMatch(/export const icons = \{\s*\};?/);
       expect(result).not.toContain('hexagon');
@@ -496,11 +496,11 @@ export const icons = {
       content = removeIconExportFromContent(content, 'star');
       expect(content).toMatch(/export const icons = \{[\s\S]*heart[\s\S]*moon[\s\S]*\}/);
       expect(content).not.toContain('export const star');
-      
+
       content = removeIconExportFromContent(content, 'heart');
       expect(content).toMatch(/export const icons = \{[\s\S]*moon[\s\S]*\}/);
       expect(content).not.toContain('export const heart');
-      
+
       content = removeIconExportFromContent(content, 'moon');
       expect(content).toMatch(/export const icons = \{\s*\}/);
       expect(content).not.toContain('export const moon');
@@ -519,7 +519,7 @@ export const icons = {
 };`;
 
       const result = removeIconExportFromContent(content, 'spinner');
-      
+
       expect(result).not.toContain('spinner');
       expect(result).toMatch(/export const icons = \{\s*\}/);
     });
@@ -545,7 +545,7 @@ export const icons = {// Icons will be added here,
   complexIcon};`;
 
       const result = removeIconExportFromContent(content, 'complex-icon');
-      
+
       expect(result).not.toContain('complexIcon');
       expect(result).not.toContain('complex-icon');
       expect(result).toMatch(/export const icons = \{\s*\}/);
@@ -576,7 +576,7 @@ export const icons = {
       let result = removeIconExportFromContent(content, 'icon1');
       expect(result).toContain('icon2');
       expect(result).not.toMatch(/\bicon1\b/);
-      
+
       result = removeIconExportFromContent(result, 'icon2');
       expect(result).toMatch(/export const icons = \{\s*\}/);
     });
@@ -600,7 +600,7 @@ export const icons = {
 };`;
 
       const result = removeIconExportFromContent(content, 'home');
-      
+
       expect(result).not.toMatch(/export const home\s*=/);
       expect(result).toContain('homeOutline');
       expect(result).toMatch(/export const icons = \{[\s\S]*homeOutline[\s\S]*\}/);
@@ -625,7 +625,7 @@ export const icons = {
 };`;
 
       const result = removeIconExportFromContent(content, 'arrow-right');
-      
+
       expect(result).not.toContain('arrowRight');
       expect(result).toContain('arrowLeft');
       expect(result).toMatch(/export const icons = \{[\s\S]*arrowLeft[\s\S]*\}/);
@@ -643,7 +643,7 @@ export const icons = {
 };`;
 
       const result = removeIconExportFromContent(content, 'test');
-      
+
       // The result should be valid JS - at minimum check basic structure
       expect(result).toMatch(/export const icons = \{\s*\};?/);
       // No dangling commas before closing brace
@@ -657,9 +657,9 @@ export const icons = {
   <symbol id="home"><path/></symbol>
   <symbol id="arrow"><circle/></symbol>
 </svg>`;
-      
+
       const result = removeSymbolFromSpriteContent(content, 'home');
-      
+
       expect(result).not.toContain('id="home"');
       expect(result).toContain('id="arrow"');
     });
@@ -668,17 +668,17 @@ export const icons = {
   describe('buildIconsFileContent', () => {
     const mockTransformer: SvgTransformerInterface = {
       extractSvgBody: (svg: string) => svg.replace(/<\/?svg[^>]*>/g, ''),
-      extractSvgAttributes: () => ({ viewBox: '0 0 24 24' })
+      extractSvgAttributes: () => ({ viewBox: '0 0 24 24' }),
     };
 
     it('should build content from multiple icons', () => {
       const icons = [
         { name: 'home', svg: '<svg><path/></svg>' },
-        { name: 'arrow', svg: '<svg><circle/></svg>' }
+        { name: 'arrow', svg: '<svg><circle/></svg>' },
       ];
-      
+
       const result = buildIconsFileContent(icons, mockTransformer);
-      
+
       expect(result).toContain('export const home');
       expect(result).toContain('export const arrow');
       expect(result).toContain('export const icons');
@@ -687,11 +687,11 @@ export const icons = {
     it('should skip icons without svg', () => {
       const icons = [
         { name: 'home', svg: '<svg><path/></svg>' },
-        { name: 'arrow', svg: '' }
+        { name: 'arrow', svg: '' },
       ];
-      
+
       const result = buildIconsFileContent(icons, mockTransformer);
-      
+
       expect(result).toContain('home');
       expect(result).not.toContain('arrow');
     });
@@ -700,17 +700,17 @@ export const icons = {
   describe('buildSpriteFileContent', () => {
     const mockTransformer: SvgTransformerInterface = {
       extractSvgBody: (svg: string) => svg.replace(/<\/?svg[^>]*>/g, ''),
-      extractSvgAttributes: () => ({ viewBox: '0 0 24 24' })
+      extractSvgAttributes: () => ({ viewBox: '0 0 24 24' }),
     };
 
     it('should build sprite from multiple icons', () => {
       const icons = [
         { name: 'home', svg: '<svg><path/></svg>' },
-        { name: 'arrow', svg: '<svg><circle/></svg>' }
+        { name: 'arrow', svg: '<svg><circle/></svg>' },
       ];
-      
+
       const result = buildSpriteFileContent(icons, mockTransformer);
-      
+
       expect(result).toContain('<?xml version="1.0"');
       expect(result).toContain('<symbol id="home"');
       expect(result).toContain('<symbol id="arrow"');
@@ -762,7 +762,7 @@ export const icons = {
 export const home = { name: 'home' };
 export const arrow = { name: 'arrow' };
 export const icons = {};`;
-      
+
       expect(countIconsInContent(content)).toBe(2);
     });
 
@@ -777,7 +777,7 @@ export const icons = {};`;
   <symbol id="home"></symbol>
   <symbol id="arrow"></symbol>
 </svg>`;
-      
+
       expect(countSymbolsInSprite(content)).toBe(2);
     });
 
@@ -791,9 +791,9 @@ export const icons = {};`;
       const content = `
 export const home = { name: 'home', body: '' };
 export const arrowRight = { name: 'arrow-right', body: '' };`;
-      
+
       const names = extractIconNamesFromContent(content);
-      
+
       expect(names).toContain('home');
       expect(names).toContain('arrow-right');
     });
@@ -811,9 +811,9 @@ export const arrowRight = { name: 'arrow-right', body: '' };`;
   <symbol id="home"></symbol>
   <symbol id="arrow-right"></symbol>
 </svg>`;
-      
+
       const ids = extractSymbolIdsFromSprite(content);
-      
+
       expect(ids).toContain('home');
       expect(ids).toContain('arrow-right');
     });
@@ -839,13 +839,13 @@ export const icons = {
 
       const oldName = 'material-symbols-house';
       const newName = 'house';
-      
+
       // Pattern to match name: 'iconName' or name: "iconName"
       const escapedOldName = oldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const namePattern = new RegExp(`(name:\\s*['"])${escapedOldName}(['"])`, 'g');
-      
+
       const newContent = content.replace(namePattern, `$1${newName}$2`);
-      
+
       expect(newContent).toContain(`name: 'house'`);
       expect(newContent).not.toContain(`name: 'material-symbols-house'`);
     });
@@ -859,10 +859,10 @@ export const icons = {
 
       const oldName = 'material-symbols-house';
       const escapedOldName = oldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      
+
       // Test pattern (non-global)
       const testPattern = new RegExp(`name:\\s*['"]${escapedOldName}['"]`);
-      
+
       expect(testPattern.test(content)).toBe(true);
     });
 
@@ -875,15 +875,14 @@ export const icons = {
 
       const oldName = 'material-symbols-house';
       const newName = 'house';
-      
+
       const escapedOldName = oldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const symbolPattern = new RegExp(`(<symbol[^>]*id=["'])${escapedOldName}(["'])`, 'g');
-      
+
       const newContent = content.replace(symbolPattern, `$1${newName}$2`);
-      
+
       expect(newContent).toContain(`id="house"`);
       expect(newContent).not.toContain(`id="material-symbols-house"`);
     });
   });
 });
-

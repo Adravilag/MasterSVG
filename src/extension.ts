@@ -1,33 +1,38 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs';
-import { IconManagerPanel } from './panels/IconManagerPanel';
-import { IconDetailsPanel } from './panels/IconDetailsPanel';
-import { IconEditorPanel } from './panels/IconEditorPanel';
-import { WelcomePanel } from './panels/WelcomePanel';
-import { WorkspaceSvgProvider, SvgItem, WorkspaceIcon, initIgnoreFileWatcher, BuiltIconsProvider, SvgFilesProvider } from './providers/WorkspaceSvgProvider';
+import {
+  WorkspaceSvgProvider,
+  SvgItem,
+  initIgnoreFileWatcher,
+  BuiltIconsProvider,
+  SvgFilesProvider,
+} from './providers/WorkspaceSvgProvider';
 import { SvgTransformer } from './services/SvgTransformer';
 import { IconCompletionProvider } from './providers/IconCompletionProvider';
 import { IconHoverProvider } from './providers/IconHoverProvider';
-import { SvgToIconCodeActionProvider, MissingIconCodeActionProvider, SvgImgDiagnosticProvider, TransformOptions } from './providers/SvgToIconCodeActionProvider';
+import {
+  SvgToIconCodeActionProvider,
+  MissingIconCodeActionProvider,
+  SvgImgDiagnosticProvider,
+} from './providers/SvgToIconCodeActionProvider';
 import { IconPreviewProvider } from './providers/IconPreviewProvider';
-import { getComponentExporter } from './services/ComponentExporter';
-import { getSpriteGenerator, SpriteIcon } from './services/SpriteGenerator';
-import { toVariableName } from './utils/extensionHelpers';
-import { searchIconify, fetchIconSvg, IconifySearchResult } from './utils/iconifyService';
-import { addToIconsJs, addToSpriteSvg, removeFromIconsJs, cleanSpriteSvg, generateWebComponent } from './utils/iconsFileManager';
-import { getConfig, getFullOutputPath, getOutputPathOrWarn, ensureOutputDirectory, updateIconsJsContext } from './utils/configHelper';
+import { WelcomePanel } from './panels/WelcomePanel';
+import {
+  updateIconsJsContext,
+} from './utils/configHelper';
 import { registerTreeViewCommands } from './commands/treeViewCommands';
 import { registerRefreshCommands } from './commands/refreshCommands';
 import { registerBuildCommands } from './commands/buildCommands';
 import { registerNavigationCommands } from './commands/navigationCommands';
 import { registerPanelCommands } from './commands/panelCommands';
+import { registerReferenceCommands } from './commands/referenceCommands';
 import { registerConfigCommands } from './commands/configCommands';
 import { registerIconCommands } from './commands/iconCommands';
 import { registerTransformCommands } from './commands/transformCommands';
-import { registerIconifyCommands, showIconifyReplacementPicker, showIconPickerPanel } from './commands/iconifyCommands';
+import {
+  registerIconifyCommands,
+} from './commands/iconifyCommands';
 import { registerEditorCommands } from './commands/editorCommands';
-import { registerSpriteCommands, getSpritePreviewHtml } from './commands/spriteCommands';
+import { registerSpriteCommands } from './commands/spriteCommands';
 import { registerMiscCommands } from './commands/miscCommands';
 import { registerImportCommands } from './commands/importCommands';
 import { registerLicenseCommands } from './commands/licenseCommands';
@@ -43,7 +48,7 @@ const SUPPORTED_LANGUAGES: vscode.DocumentSelector = [
   { language: 'typescriptreact' },
   { language: 'vue' },
   { language: 'svelte' },
-  { language: 'html' }
+  { language: 'html' },
 ];
 
 /**
@@ -56,7 +61,7 @@ const SUPPORTED_LANGUAGES_WITH_SCHEME: vscode.DocumentSelector = [
   { language: 'typescriptreact', scheme: '*' },
   { language: 'vue', scheme: '*' },
   { language: 'svelte', scheme: '*' },
-  { language: 'html', scheme: '*' }
+  { language: 'html', scheme: '*' },
 ];
 
 let workspaceSvgProvider: WorkspaceSvgProvider;
@@ -68,19 +73,10 @@ let svgFilesTreeView: vscode.TreeView<SvgItem>;
 let svgWatcher: vscode.FileSystemWatcher | undefined;
 
 /**
- * Write file using VS Code API to avoid conflicts with open editors
- */
-async function writeFileWithVSCode(filePath: string, content: string): Promise<void> {
-  const uri = vscode.Uri.file(filePath);
-  const encoder = new TextEncoder();
-  await vscode.workspace.fs.writeFile(uri, encoder.encode(content));
-}
-
-/**
  * Shows onboarding wizard for first-time users
  */
 async function showOnboardingWizard(context: vscode.ExtensionContext): Promise<void> {
-  const config = vscode.workspace.getConfiguration('iconManager');
+  const config = vscode.workspace.getConfiguration('sageboxIconStudio');
   const outputDir = config.get<string>('outputDirectory', '');
 
   // Skip if already configured
@@ -98,7 +94,7 @@ async function showOnboardingWizard(context: vscode.ExtensionContext): Promise<v
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('Icon Manager extension is now active!');
+  
 
   // Show onboarding for first-time users
   showOnboardingWizard(context);
@@ -115,9 +111,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register the SVG Files tree view
   svgFilesProvider = new SvgFilesProvider(workspaceSvgProvider);
-  svgFilesTreeView = vscode.window.createTreeView('iconManager.svgFiles', {
+  svgFilesTreeView = vscode.window.createTreeView('sageboxIconStudio.svgFiles', {
     treeDataProvider: svgFilesProvider,
-    showCollapseAll: false
+    showCollapseAll: false,
   });
   context.subscriptions.push(svgFilesTreeView);
 
@@ -142,10 +138,10 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register the Built Icons tree view
   builtIconsProvider = new BuiltIconsProvider(workspaceSvgProvider);
-  const builtIconsTreeView = vscode.window.createTreeView('iconManager.builtIcons', {
+  const builtIconsTreeView = vscode.window.createTreeView('sageboxIconStudio.builtIcons', {
     treeDataProvider: builtIconsProvider,
     showCollapseAll: false,
-    canSelectMany: true
+    canSelectMany: true,
   });
   context.subscriptions.push(builtIconsTreeView);
 
@@ -174,17 +170,14 @@ export function activate(context: vscode.ExtensionContext) {
   // Register the preview panel in sidebar
   iconPreviewProvider = new IconPreviewProvider(context.extensionUri);
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(
-      IconPreviewProvider.viewType,
-      iconPreviewProvider
-    )
+    vscode.window.registerWebviewViewProvider(IconPreviewProvider.viewType, iconPreviewProvider)
   );
 
   // Update preview when tree item is selected
-  const treeView = vscode.window.createTreeView('iconManager.workspaceIcons', {
+  const treeView = vscode.window.createTreeView('sageboxIconStudio.workspaceIcons', {
     treeDataProvider: workspaceSvgProvider,
     showCollapseAll: false,
-    canSelectMany: true
+    canSelectMany: true,
   });
   workspaceTreeView = treeView;
 
@@ -194,12 +187,12 @@ export function activate(context: vscode.ExtensionContext) {
     {
       workspace: treeView,
       builtIcons: builtIconsTreeView,
-      svgFiles: svgFilesTreeView
+      svgFiles: svgFilesTreeView,
     },
     {
       workspaceSvgProvider,
       builtIconsProvider,
-      svgFilesProvider
+      svgFilesProvider,
     }
   );
   context.subscriptions.push(...treeViewCommands);
@@ -207,7 +200,11 @@ export function activate(context: vscode.ExtensionContext) {
   treeView.onDidChangeSelection(e => {
     if (e.selection.length > 0) {
       const item = e.selection[0] as SvgItem;
-      if (item.contextValue === 'inlineSvg' || item.contextValue === 'builtIcon' || item.contextValue === 'svgIcon') {
+      if (
+        item.contextValue === 'inlineSvg' ||
+        item.contextValue === 'builtIcon' ||
+        item.contextValue === 'svgIcon'
+      ) {
         const svgData = workspaceSvgProvider.getSvgData(item);
         if (svgData) {
           iconPreviewProvider.updatePreview(
@@ -227,6 +224,10 @@ export function activate(context: vscode.ExtensionContext) {
   const navigationCommands = registerNavigationCommands(context);
   context.subscriptions.push(...navigationCommands);
 
+  // Register reference commands (removeReference, findAndReplace, revealInTree)
+  const referenceCommands = registerReferenceCommands(context, { workspaceSvgProvider, workspaceTreeView });
+  context.subscriptions.push(...referenceCommands);
+
   // Register panel commands (openPanel, openWelcome, scanWorkspace, scanUsages)
   const panelCommands = registerPanelCommands(context, workspaceSvgProvider);
   context.subscriptions.push(...panelCommands);
@@ -239,7 +240,7 @@ export function activate(context: vscode.ExtensionContext) {
   const iconCommands = registerIconCommands(context, {
     workspaceSvgProvider,
     builtIconsProvider,
-    svgFilesProvider
+    svgFilesProvider,
   });
   context.subscriptions.push(...iconCommands);
 
@@ -255,7 +256,7 @@ export function activate(context: vscode.ExtensionContext) {
   const refreshCommands = registerRefreshCommands({
     workspaceSvgProvider,
     builtIconsProvider,
-    svgFilesProvider
+    svgFilesProvider,
   });
   context.subscriptions.push(...refreshCommands);
 
@@ -265,7 +266,7 @@ export function activate(context: vscode.ExtensionContext) {
     {
       workspaceSvgProvider,
       builtIconsProvider,
-      svgFilesProvider
+      svgFilesProvider,
     },
     svgTransformer
   );
@@ -275,20 +276,20 @@ export function activate(context: vscode.ExtensionContext) {
   registerIconifyCommands(context, {
     workspaceSvgProvider,
     builtIconsProvider,
-    svgTransformer
+    svgTransformer,
   });
 
   // Register editor commands (from module)
   const editorCommands = registerEditorCommands(context, {
     workspaceSvgProvider,
-    iconPreviewProvider
+    iconPreviewProvider,
   });
   context.subscriptions.push(...editorCommands);
 
   // Register sprite commands (from module)
   const spriteCommands = registerSpriteCommands(context, {
     workspaceSvgProvider,
-    builtIconsProvider
+    builtIconsProvider,
   });
   context.subscriptions.push(...spriteCommands);
 
@@ -298,7 +299,7 @@ export function activate(context: vscode.ExtensionContext) {
     builtIconsProvider,
     svgFilesProvider,
     svgTransformer,
-    workspaceTreeView
+    workspaceTreeView,
   });
   context.subscriptions.push(...miscCommands);
 
@@ -307,7 +308,7 @@ export function activate(context: vscode.ExtensionContext) {
     workspaceSvgProvider,
     builtIconsProvider,
     svgFilesProvider,
-    svgTransformer
+    svgTransformer,
   });
   context.subscriptions.push(...importCommands);
 
@@ -319,7 +320,9 @@ export function activate(context: vscode.ExtensionContext) {
   const completionDisposable = vscode.languages.registerCompletionItemProvider(
     SUPPORTED_LANGUAGES,
     new IconCompletionProvider(workspaceSvgProvider),
-    '<', '"', "'"
+    '<',
+    '"',
+    "'"
   );
 
   // Register hover provider
@@ -340,7 +343,7 @@ export function activate(context: vscode.ExtensionContext) {
     SUPPORTED_LANGUAGES_WITH_SCHEME,
     new SvgToIconCodeActionProvider(),
     {
-      providedCodeActionKinds: SvgToIconCodeActionProvider.providedCodeActionKinds
+      providedCodeActionKinds: SvgToIconCodeActionProvider.providedCodeActionKinds,
     }
   );
 
@@ -349,14 +352,14 @@ export function activate(context: vscode.ExtensionContext) {
     SUPPORTED_LANGUAGES,
     new MissingIconCodeActionProvider(workspaceSvgProvider),
     {
-      providedCodeActionKinds: MissingIconCodeActionProvider.providedCodeActionKinds
+      providedCodeActionKinds: MissingIconCodeActionProvider.providedCodeActionKinds,
     }
   );
 
   // Enable diagnostic provider to show hints for SVG img references
   // This creates the diagnostic hints that trigger the code action provider
   const diagnosticProvider = new SvgImgDiagnosticProvider();
-  
+
   // Update diagnostics when documents change
   vscode.workspace.onDidChangeTextDocument(e => {
     diagnosticProvider.updateDiagnostics(e.document);
@@ -435,4 +438,3 @@ export function deactivate() {
 
 // getSpritePreviewHtml
 // -> Now provided by ./commands/spriteCommands
-

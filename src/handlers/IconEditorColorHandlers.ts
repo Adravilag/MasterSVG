@@ -1,17 +1,18 @@
 import * as vscode from 'vscode';
 import { ColorService } from '../services/ColorService';
 import { VariantsService } from '../services/VariantsService';
-import { SvgManipulationService } from '../services/SvgManipulationService';
 import { t } from '../i18n';
 
 /**
  * Context passed to color handlers
  */
 export interface ColorHandlerContext {
-  iconData: {
-    name: string;
-    svg: string;
-  } | undefined;
+  iconData:
+    | {
+        name: string;
+        svg: string;
+      }
+    | undefined;
   selectedVariantIndex: number;
   colorService: ColorService;
   variantsService: VariantsService;
@@ -37,14 +38,19 @@ export function handlePreviewColor(
   );
   ctx.postMessage({
     command: 'previewUpdated',
-    svg: updatedSvg
+    svg: updatedSvg,
   });
-  
+
   // Extract colors from updated SVG for custom variant display
   const { colors } = ctx.colorService.extractColorsFromSvg(updatedSvg);
-  
+
   // Update TreeView preview in real-time with current colors
-  vscode.commands.executeCommand('iconManager.updateTreeViewPreview', ctx.iconData.name, updatedSvg, colors);
+  vscode.commands.executeCommand(
+    'sageboxIconStudio.updateTreeViewPreview',
+    ctx.iconData.name,
+    updatedSvg,
+    colors
+  );
 }
 
 /**
@@ -74,9 +80,14 @@ export function handleChangeColor(
 
   // Use filtered extraction - only save editable colors (excludes SMIL secondary)
   const { colors } = ctx.colorService.extractColorsFromSvg(updatedSvg);
-  
+
   // Update TreeView preview with current colors for real-time custom variant display
-  vscode.commands.executeCommand('iconManager.updateTreeViewPreview', ctx.iconData.name, updatedSvg, colors);
+  vscode.commands.executeCommand(
+    'sageboxIconStudio.updateTreeViewPreview',
+    ctx.iconData.name,
+    updatedSvg,
+    colors
+  );
 
   // If in "original" (read-only), switch to "custom" automatically
   let targetVariantIndex = ctx.selectedVariantIndex;
@@ -96,7 +107,7 @@ export function handleChangeColor(
   ctx.postMessage({
     command: 'variantColorsUpdated',
     variantIndex: targetVariantIndex,
-    colors: colors
+    colors: colors,
   });
 
   ctx.refresh();
@@ -137,7 +148,7 @@ export function handleReplaceCurrentColor(
   ctx.postMessage({
     command: 'variantColorsUpdated',
     variantIndex: targetVariantIndex,
-    colors: colors
+    colors: colors,
   });
 
   ctx.refresh();
@@ -146,10 +157,7 @@ export function handleReplaceCurrentColor(
 /**
  * Handle adding fill color to elements without one
  */
-export function handleAddFillColor(
-  ctx: ColorHandlerContext,
-  message: { color?: string }
-): void {
+export function handleAddFillColor(ctx: ColorHandlerContext, message: { color?: string }): void {
   if (!ctx.iconData?.svg || !message.color) return;
 
   let updatedSvg = ctx.iconData.svg;
@@ -171,10 +179,7 @@ export function handleAddFillColor(
 /**
  * Handle adding color to SVG root
  */
-export function handleAddColor(
-  ctx: ColorHandlerContext,
-  message: { color?: string }
-): void {
+export function handleAddColor(ctx: ColorHandlerContext, message: { color?: string }): void {
   if (!ctx.iconData?.svg || !message.color) return;
 
   let updatedSvg = ctx.iconData.svg;
@@ -212,11 +217,11 @@ export function handleApplyFilters(
 
   // Get current colors from SVG
   const { colors: currentColors } = ctx.colorService.extractColorsFromSvg(ctx.iconData.svg);
-  
+
   // Apply filters to each color and replace in SVG
   let updatedSvg = ctx.iconData.svg;
   const newColors: string[] = [];
-  
+
   for (const color of currentColors) {
     const filteredColor = applyColorFilters(color, hue, saturation, brightness);
     newColors.push(filteredColor);
@@ -224,12 +229,20 @@ export function handleApplyFilters(
   }
 
   // Remove any CSS filter that might have been added
-  updatedSvg = updatedSvg.replace(/filter:\s*hue-rotate\([^)]+\)\s*saturate\([^)]+\)\s*brightness\([^)]+\);?\s*/gi, '');
-  
+  updatedSvg = updatedSvg.replace(
+    /filter:\s*hue-rotate\([^)]+\)\s*saturate\([^)]+\)\s*brightness\([^)]+\);?\s*/gi,
+    ''
+  );
+
   ctx.updateSvg(updatedSvg);
-  
+
   // Update TreeView preview with current colors
-  vscode.commands.executeCommand('iconManager.updateTreeViewPreview', ctx.iconData.name, updatedSvg, newColors);
+  vscode.commands.executeCommand(
+    'sageboxIconStudio.updateTreeViewPreview',
+    ctx.iconData.name,
+    updatedSvg,
+    newColors
+  );
 
   // Update the selected variant with new colors
   let targetVariantIndex = ctx.selectedVariantIndex;
@@ -250,7 +263,7 @@ export function handleApplyFilters(
   ctx.postMessage({
     command: 'variantColorsUpdated',
     variantIndex: targetVariantIndex,
-    colors: newColors
+    colors: newColors,
   });
 
   ctx.refresh();
@@ -258,12 +271,19 @@ export function handleApplyFilters(
 }
 
 /**
- * Apply HSB filters to a hex color and return the result
+ * Apply CSS-like filters to a color and return the result
+ * This mimics the behavior of CSS hue-rotate(), saturate(), brightness()
  */
-function applyColorFilters(hexColor: string, hue: number, saturation: number, brightness: number): string {
+function applyColorFilters(
+  hexColor: string,
+  hueRotate: number,
+  saturatePercent: number,
+  brightnessPercent: number
+): string {
   // Convert hex to RGB
   let r: number, g: number, b: number;
-  
+  let alpha: number | null = null; // Track alpha for RGBA colors
+
   if (hexColor.startsWith('#')) {
     const hex = hexColor.slice(1);
     if (hex.length === 3) {
@@ -278,11 +298,15 @@ function applyColorFilters(hexColor: string, hue: number, saturation: number, br
       return hexColor; // Can't process
     }
   } else if (hexColor.startsWith('rgb')) {
-    const match = hexColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    // Match both rgb() and rgba() with optional alpha
+    const match = hexColor.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\s*\)/);
     if (match) {
       r = parseInt(match[1]);
       g = parseInt(match[2]);
       b = parseInt(match[3]);
+      if (match[4] !== undefined) {
+        alpha = parseFloat(match[4]);
+      }
     } else {
       return hexColor;
     }
@@ -290,54 +314,46 @@ function applyColorFilters(hexColor: string, hue: number, saturation: number, br
     return hexColor; // Named color or other format
   }
 
-  // Convert to HSL
-  r /= 255; g /= 255; b /= 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  let h = 0, s = 0;
-  const l = (max + min) / 2;
+  // Step 1: Apply hue-rotate (CSS hue-rotate uses a color matrix)
+  const angle = (hueRotate * Math.PI) / 180;
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
 
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
-      case g: h = ((b - r) / d + 2) / 6; break;
-      case b: h = ((r - g) / d + 4) / 6; break;
-    }
+  // Hue rotation matrix (approximation of CSS hue-rotate)
+  const r1 =
+    r * (0.213 + cos * 0.787 - sin * 0.213) +
+    g * (0.715 - cos * 0.715 - sin * 0.715) +
+    b * (0.072 - cos * 0.072 + sin * 0.928);
+  const g1 =
+    r * (0.213 - cos * 0.213 + sin * 0.143) +
+    g * (0.715 + cos * 0.285 + sin * 0.14) +
+    b * (0.072 - cos * 0.072 - sin * 0.283);
+  const b1 =
+    r * (0.213 - cos * 0.213 - sin * 0.787) +
+    g * (0.715 - cos * 0.715 + sin * 0.715) +
+    b * (0.072 + cos * 0.928 + sin * 0.072);
+
+  // Step 2: Apply saturate (CSS saturate uses a color matrix)
+  const sat = saturatePercent / 100;
+  const r2 = r1 * (0.213 + 0.787 * sat) + g1 * (0.715 - 0.715 * sat) + b1 * (0.072 - 0.072 * sat);
+  const g2 = r1 * (0.213 - 0.213 * sat) + g1 * (0.715 + 0.285 * sat) + b1 * (0.072 - 0.072 * sat);
+  const b2 = r1 * (0.213 - 0.213 * sat) + g1 * (0.715 - 0.715 * sat) + b1 * (0.072 + 0.928 * sat);
+
+  // Step 3: Apply brightness (simple multiplication)
+  const bright = brightnessPercent / 100;
+  const r3 = r2 * bright;
+  const g3 = g2 * bright;
+  const b3 = b2 * bright;
+
+  // Clamp values
+  const clamp = (x: number): number => Math.max(0, Math.min(255, Math.round(x)));
+  
+  // If original was RGBA, preserve alpha
+  if (alpha !== null) {
+    return `rgba(${clamp(r3)},${clamp(g3)},${clamp(b3)},${alpha})`;
   }
-
-  // Apply hue rotation
-  let newH = (h + hue / 360) % 1;
-  if (newH < 0) newH += 1;
-
-  // Apply saturation (as multiplier, 100% = no change)
-  const newS = Math.min(1, Math.max(0, s * (saturation / 100)));
-
-  // Apply brightness (as multiplier, 100% = no change)
-  const newL = Math.min(1, Math.max(0, l * (brightness / 100)));
-
-  // Convert back to RGB
-  let r2: number, g2: number, b2: number;
-  if (newS === 0) {
-    r2 = g2 = b2 = newL;
-  } else {
-    const hue2rgb = (p: number, q: number, t: number): number => {
-      if (t < 0) t += 1;
-      if (t > 1) t -= 1;
-      if (t < 1/6) return p + (q - p) * 6 * t;
-      if (t < 1/2) return q;
-      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-      return p;
-    };
-    const q = newL < 0.5 ? newL * (1 + newS) : newL + newS - newL * newS;
-    const p = 2 * newL - q;
-    r2 = hue2rgb(p, q, newH + 1/3);
-    g2 = hue2rgb(p, q, newH);
-    b2 = hue2rgb(p, q, newH - 1/3);
-  }
-
-  // Convert to hex
-  const toHex = (x: number): string => Math.round(x * 255).toString(16).padStart(2, '0');
-  return `#${toHex(r2)}${toHex(g2)}${toHex(b2)}`;
+  
+  // Otherwise return hex
+  const toHex = (x: number): string => clamp(x).toString(16).padStart(2, '0');
+  return `#${toHex(r3)}${toHex(g3)}${toHex(b3)}`;
 }
-

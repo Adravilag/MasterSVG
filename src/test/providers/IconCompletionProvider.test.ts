@@ -1,6 +1,6 @@
 /**
  * Tests para IconCompletionProvider
- * 
+ *
  * Requisitos cubiertos:
  * - RF-4.1: Autocompletado de nombres de iconos
  * - RF-4.2: Autocompletado de variantes
@@ -12,7 +12,7 @@ import * as fs from 'node:fs';
 // Mock de vscode y fs - IconCompletionProvider uses 'fs' not 'node:fs'
 jest.mock('fs', () => ({
   existsSync: jest.fn().mockReturnValue(true),
-  readFileSync: jest.fn()
+  readFileSync: jest.fn(),
 }));
 
 const mockFs = fs as jest.Mocked<typeof fs>;
@@ -48,22 +48,22 @@ const mockIcons = [
     path: '/icons/arrow-left.svg',
     source: 'workspace',
     category: 'navigation',
-    svg: '<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>'
+    svg: '<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>',
   },
   {
     name: 'home',
     path: '/icons/home.svg',
     source: 'workspace',
     category: 'ui',
-    svg: '<svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9"/></svg>'
+    svg: '<svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9"/></svg>',
   },
   {
     name: 'mdi:account',
     path: '',
     source: 'iconify',
     category: 'people',
-    svg: '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/></svg>'
-  }
+    svg: '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/></svg>',
+  },
 ];
 
 // Mock de WorkspaceSvgProvider
@@ -71,7 +71,7 @@ const mockSvgProvider: Partial<WorkspaceSvgProvider> = {
   getAllIcons: jest.fn().mockResolvedValue(mockIcons),
   getIcon: jest.fn().mockImplementation((name: string) => {
     return mockIcons.find(icon => icon.name === name);
-  })
+  }),
 };
 
 describe('IconCompletionProvider', () => {
@@ -88,11 +88,14 @@ describe('IconCompletionProvider', () => {
     jest.clearAllMocks();
   });
 
-  const createMockDocument = (lineText: string, character: number): Partial<vscode.TextDocument> => ({
+  const createMockDocument = (
+    lineText: string,
+    character: number
+  ): Partial<vscode.TextDocument> => ({
     lineAt: jest.fn().mockReturnValue({
-      text: lineText
+      text: lineText,
     }),
-    languageId: 'typescriptreact'
+    languageId: 'typescriptreact',
   });
 
   // =====================================================
@@ -149,7 +152,7 @@ describe('IconCompletionProvider', () => {
       // Los items del workspace deben tener sortText que empieza con "0"
       const workspaceItems = items.filter(item => (item.sortText as string).startsWith('0'));
       const iconifyItems = items.filter(item => (item.sortText as string).startsWith('1'));
-      
+
       expect(workspaceItems.length).toBeGreaterThan(0);
       expect(workspaceItems[0].sortText! < iconifyItems[0].sortText!).toBeTruthy();
     });
@@ -194,7 +197,7 @@ describe('IconCompletionProvider', () => {
 
   // =====================================================
   // RF-4.2: Autocompletado de variantes
-  // NOTE: These tests require filesystem integration. 
+  // NOTE: These tests require filesystem integration.
   // Skipped until proper integration test setup is available.
   // =====================================================
 
@@ -312,7 +315,7 @@ describe('IconCompletionProvider', () => {
     // Test sin archivo de variantes
     test('debe retornar array vacío sin archivo de variantes', async () => {
       mockFs.existsSync.mockReturnValue(false);
-      
+
       const lineText = '<Icon name="arrow-left" variant="';
       mockDocument = createMockDocument(lineText, lineText.length);
       mockPosition = new vscode.Position(0, lineText.length);
@@ -372,7 +375,7 @@ describe('IconCompletionProvider', () => {
       expect(animationNames).toContain('fade');
       expect(animationNames).toContain('float');
       expect(animationNames).toContain('none');
-      // Attention animations  
+      // Attention animations
       expect(animationNames).toContain('wobble');
       expect(animationNames).toContain('heartbeat');
       expect(animationNames).toContain('tada');
@@ -381,7 +384,7 @@ describe('IconCompletionProvider', () => {
       expect(animationNames).toContain('zoom-in');
       // Draw animations
       expect(animationNames).toContain('draw');
-      
+
       // Should have all 32 animations
       expect(animationNames.length).toBeGreaterThanOrEqual(30);
     });
@@ -401,10 +404,10 @@ describe('IconCompletionProvider', () => {
 
       const spinItem = items.find(i => i.label === 'spin');
       expect(spinItem!.detail).toContain('rotation');
-      
+
       const floatItem = items.find(i => i.label === 'float');
       expect(floatItem!.detail).toContain('floating');
-      
+
       const heartbeatItem = items.find(i => i.label === 'heartbeat');
       expect(heartbeatItem!.detail).toContain('heartbeat');
     });
@@ -426,7 +429,7 @@ describe('IconCompletionProvider', () => {
       const spinItem = items.find(i => i.label === 'spin');
       const tadaItem = items.find(i => i.label === 'tada'); // attention category
       const drawItem = items.find(i => i.label === 'draw'); // draw category
-      
+
       expect(spinItem!.sortText! < tadaItem!.sortText!).toBeTruthy();
       expect(tadaItem!.sortText! < drawItem!.sortText!).toBeTruthy();
     });
@@ -505,5 +508,3 @@ describe('IconCompletionProvider', () => {
     });
   });
 });
-
-

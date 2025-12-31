@@ -14,11 +14,13 @@ interface IconLocation {
  * Context passed to icon handlers
  */
 export interface IconHandlerContext {
-  iconData: {
-    name: string;
-    svg: string;
-    location?: IconLocation;
-  } | undefined;
+  iconData:
+    | {
+        name: string;
+        svg: string;
+        location?: IconLocation;
+      }
+    | undefined;
   panel: vscode.WebviewPanel;
   postMessage: (message: unknown) => void;
   updateIconName: (name: string) => void;
@@ -40,7 +42,7 @@ export async function handleRequestRename(
     prompt: t('editor.renamePrompt'),
     value: message.currentName,
     placeHolder: 'icon-name',
-    validateInput: (value) => {
+    validateInput: value => {
       if (!value || value.trim() === '') {
         return t('editor.nameCannotBeEmpty');
       }
@@ -51,20 +53,22 @@ export async function handleRequestRename(
         return t('editor.nameValidation');
       }
       return undefined;
-    }
+    },
   });
 
   if (newName) {
     try {
-      const result = await vscode.commands.executeCommand<{ newName: string; newPath?: string } | undefined>(
-        'iconManager.renameIcon',
+      const result = await vscode.commands.executeCommand<
+        { newName: string; newPath?: string } | undefined
+      >(
+        'sageboxIconStudio.renameIcon',
         {
           icon: {
             name: message.currentName,
             path: ctx.iconData.location?.file,
-            svg: ctx.iconData.svg
+            svg: ctx.iconData.svg,
           },
-          contextValue: ctx.iconData.location ? 'svgIcon' : 'builtIcon'
+          contextValue: ctx.iconData.location ? 'svgIcon' : 'builtIcon',
         },
         newName
       );
@@ -81,7 +85,7 @@ export async function handleRequestRename(
         vscode.window.showInformationMessage(t('messages.renamedTo', { name: result.newName }));
 
         vscode.commands.executeCommand(
-          'iconManager.revealInTree',
+          'sageboxIconStudio.revealInTree',
           result.newName,
           result.newPath || ctx.iconData.location?.file,
           ctx.iconData.location?.line
@@ -103,15 +107,17 @@ export async function handleRenameIcon(
   if (!ctx.iconData || !message.oldName || !message.newName) return;
 
   try {
-    const result = await vscode.commands.executeCommand<{ newName: string; newPath?: string } | undefined>(
-      'iconManager.renameIcon',
+    const result = await vscode.commands.executeCommand<
+      { newName: string; newPath?: string } | undefined
+    >(
+      'sageboxIconStudio.renameIcon',
       {
         icon: {
           name: message.oldName,
           path: ctx.iconData.location?.file,
-          svg: ctx.iconData.svg
+          svg: ctx.iconData.svg,
         },
-        contextValue: ctx.iconData.location ? 'svgIcon' : 'builtIcon'
+        contextValue: ctx.iconData.location ? 'svgIcon' : 'builtIcon',
       },
       message.newName
     );
@@ -128,7 +134,7 @@ export async function handleRenameIcon(
       vscode.window.showInformationMessage(t('messages.renamedTo', { name: result.newName }));
 
       vscode.commands.executeCommand(
-        'iconManager.revealInTree',
+        'sageboxIconStudio.revealInTree',
         result.newName,
         result.newPath || ctx.iconData.location?.file,
         ctx.iconData.location?.line
@@ -144,8 +150,8 @@ export async function handleRenameIcon(
  */
 export async function handleRebuild(
   ctx: IconHandlerContext,
-  message: { 
-    animation?: string; 
+  message: {
+    animation?: string;
     animationSettings?: Record<string, unknown>;
     applyOptimization?: boolean;
   }
@@ -156,7 +162,7 @@ export async function handleRebuild(
   if (message.applyOptimization) {
     ctx.postMessage({ command: 'applyOptimizationBeforeRebuild' });
   }
-  
+
   await ctx.addToIconCollection(message.animation, message.animationSettings);
 }
 
@@ -168,13 +174,15 @@ export function handleSaveAnimation(
   message: { animation?: string; settings?: Record<string, unknown> }
 ): void {
   if (!ctx.iconData?.name) return;
-  
+
   const animService = getAnimationService();
   const animationType = message.animation || 'none';
-  
+
   if (animationType === 'none') {
     animService.removeAnimation(ctx.iconData.name);
-    vscode.window.showInformationMessage(t('messages.animationRemoved', { name: ctx.iconData.name }));
+    vscode.window.showInformationMessage(
+      t('messages.animationRemoved', { name: ctx.iconData.name })
+    );
   } else {
     animService.setAnimation(ctx.iconData.name, {
       type: animationType,
@@ -182,9 +190,11 @@ export function handleSaveAnimation(
       timing: message.settings?.timing as string | undefined,
       iteration: message.settings?.iteration as string | undefined,
       delay: message.settings?.delay as number | undefined,
-      direction: message.settings?.direction as string | undefined
+      direction: message.settings?.direction as string | undefined,
     });
-    vscode.window.showInformationMessage(t('messages.animationSaved', { name: ctx.iconData.name, animation: animationType }));
+    vscode.window.showInformationMessage(
+      t('messages.animationSaved', { name: ctx.iconData.name, animation: animationType })
+    );
   }
 }
 
@@ -192,6 +202,5 @@ export function handleSaveAnimation(
  * Handle refresh icons command
  */
 export function handleRefresh(): void {
-  vscode.commands.executeCommand('iconManager.refreshIcons');
+  vscode.commands.executeCommand('sageboxIconStudio.refreshIcons');
 }
-

@@ -34,19 +34,19 @@ export function registerTreeViewCommands(
   const state: TreeViewState = {
     workspaceExpanded: false,
     builtExpanded: false,
-    svgFilesExpanded: false
+    svgFilesExpanded: false,
   };
 
   // Set initial context
-  vscode.commands.executeCommand('setContext', 'iconManager.workspaceExpanded', false);
-  vscode.commands.executeCommand('setContext', 'iconManager.builtExpanded', false);
-  vscode.commands.executeCommand('setContext', 'iconManager.svgFilesExpanded', false);
+  vscode.commands.executeCommand('setContext', 'sageboxIconStudio.workspaceExpanded', false);
+  vscode.commands.executeCommand('setContext', 'sageboxIconStudio.builtExpanded', false);
+  vscode.commands.executeCommand('setContext', 'sageboxIconStudio.svgFilesExpanded', false);
 
   const disposables: vscode.Disposable[] = [];
 
   // Expand All (workspace icons - Code view)
   disposables.push(
-    vscode.commands.registerCommand('iconManager.expandAll', async () => {
+    vscode.commands.registerCommand('sageboxIconStudio.expandAll', async () => {
       const roots = await providers.workspaceSvgProvider.getChildren();
       for (const root of roots) {
         try {
@@ -56,22 +56,24 @@ export function registerTreeViewCommands(
         }
       }
       state.workspaceExpanded = true;
-      vscode.commands.executeCommand('setContext', 'iconManager.workspaceExpanded', true);
+      vscode.commands.executeCommand('setContext', 'sageboxIconStudio.workspaceExpanded', true);
     })
   );
 
   // Collapse All (workspace icons - Code view)
   disposables.push(
-    vscode.commands.registerCommand('iconManager.collapseAll', async () => {
-      await vscode.commands.executeCommand('workbench.actions.treeView.iconManager.workspaceIcons.collapseAll');
+    vscode.commands.registerCommand('sageboxIconStudio.collapseAll', async () => {
+      await vscode.commands.executeCommand(
+        'workbench.actions.treeView.sageboxIconStudio.workspaceIcons.collapseAll'
+      );
       state.workspaceExpanded = false;
-      vscode.commands.executeCommand('setContext', 'iconManager.workspaceExpanded', false);
+      vscode.commands.executeCommand('setContext', 'sageboxIconStudio.workspaceExpanded', false);
     })
   );
 
   // Expand All SVG Files
   disposables.push(
-    vscode.commands.registerCommand('iconManager.expandSvgFiles', async () => {
+    vscode.commands.registerCommand('sageboxIconStudio.expandSvgFiles', async () => {
       const roots = await providers.svgFilesProvider.getChildren();
       for (const root of roots) {
         try {
@@ -81,22 +83,24 @@ export function registerTreeViewCommands(
         }
       }
       state.svgFilesExpanded = true;
-      vscode.commands.executeCommand('setContext', 'iconManager.svgFilesExpanded', true);
+      vscode.commands.executeCommand('setContext', 'sageboxIconStudio.svgFilesExpanded', true);
     })
   );
 
   // Collapse All SVG Files
   disposables.push(
-    vscode.commands.registerCommand('iconManager.collapseSvgFiles', async () => {
-      await vscode.commands.executeCommand('workbench.actions.treeView.iconManager.svgFiles.collapseAll');
+    vscode.commands.registerCommand('sageboxIconStudio.collapseSvgFiles', async () => {
+      await vscode.commands.executeCommand(
+        'workbench.actions.treeView.sageboxIconStudio.svgFiles.collapseAll'
+      );
       state.svgFilesExpanded = false;
-      vscode.commands.executeCommand('setContext', 'iconManager.svgFilesExpanded', false);
+      vscode.commands.executeCommand('setContext', 'sageboxIconStudio.svgFilesExpanded', false);
     })
   );
 
   // Expand All Built Icons
   disposables.push(
-    vscode.commands.registerCommand('iconManager.expandBuiltIcons', async () => {
+    vscode.commands.registerCommand('sageboxIconStudio.expandBuiltIcons', async () => {
       const roots = await providers.builtIconsProvider.getChildren();
       for (const root of roots) {
         try {
@@ -106,19 +110,20 @@ export function registerTreeViewCommands(
         }
       }
       state.builtExpanded = true;
-      vscode.commands.executeCommand('setContext', 'iconManager.builtExpanded', true);
+      vscode.commands.executeCommand('setContext', 'sageboxIconStudio.builtExpanded', true);
     })
   );
 
   // Collapse All Built Icons
   disposables.push(
-    vscode.commands.registerCommand('iconManager.collapseBuiltIcons', async () => {
-      await vscode.commands.executeCommand('workbench.actions.treeView.iconManager.builtIcons.collapseAll');
+    vscode.commands.registerCommand('sageboxIconStudio.collapseBuiltIcons', async () => {
+      await vscode.commands.executeCommand(
+        'workbench.actions.treeView.sageboxIconStudio.builtIcons.collapseAll'
+      );
       state.builtExpanded = false;
-      vscode.commands.executeCommand('setContext', 'iconManager.builtExpanded', false);
+      vscode.commands.executeCommand('setContext', 'sageboxIconStudio.builtExpanded', false);
     })
   );
 
   return disposables;
 }
-

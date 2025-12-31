@@ -3,7 +3,7 @@
  * Launches VS Code with the extension and runs e2e tests
  */
 
-import * as path from 'path';
+import * as path from 'node:path';
 import { runTests } from '@vscode/test-electron';
 
 async function main() {
@@ -24,8 +24,8 @@ async function main() {
       launchArgs: [
         testWorkspacePath, // Open test workspace
         '--disable-extensions', // Disable other extensions for clean tests
-        '--disable-gpu'
-      ]
+        '--disable-gpu',
+      ],
     });
   } catch (err) {
     console.error('Failed to run tests:', err);

@@ -39,7 +39,7 @@ export class SvgContentCache {
    */
   getContent(filePath: string): string | undefined {
     const cached = this.cache.get(filePath);
-    
+
     if (cached) {
       // Check if file was modified
       try {
@@ -64,7 +64,7 @@ export class SvgContentCache {
   getContentHash(filePath: string): string | undefined {
     const content = this.getContent(filePath);
     if (!content) return undefined;
-    
+
     const cached = this.cache.get(filePath);
     return cached?.hash;
   }
@@ -144,7 +144,7 @@ export class SvgContentCache {
   hasTempPath(hash: string): boolean {
     const path = this.tempPathCache.get(hash);
     if (!path) return false;
-    
+
     // Verify file still exists
     try {
       return fs.existsSync(path);
@@ -160,7 +160,7 @@ export class SvgContentCache {
   preloadBatch(filePaths: string[]): void {
     // Use setImmediate to not block the event loop
     const batch = filePaths.slice(0, 50); // Limit batch size
-    
+
     for (const filePath of batch) {
       if (!this.cache.has(filePath)) {
         this.loadAndCache(filePath);
@@ -208,7 +208,7 @@ export class SvgContentCache {
       this.cache.set(filePath, {
         content,
         hash,
-        lastModified: stats.mtimeMs
+        lastModified: stats.mtimeMs,
       });
 
       return content;
@@ -224,7 +224,7 @@ export class SvgContentCache {
     // Remove 20% of entries (oldest first by insertion order)
     const entriesToRemove = Math.floor(this.maxCacheSize * 0.2);
     const keys = Array.from(this.cache.keys());
-    
+
     for (let i = 0; i < Math.min(entriesToRemove, keys.length); i++) {
       this.cache.delete(keys[i]);
     }
@@ -234,7 +234,8 @@ export class SvgContentCache {
    * Count unique colors in SVG
    */
   private countColors(svg: string): number {
-    const colorRegex = /#(?:[0-9a-fA-F]{3,4}){1,2}\b|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\)/gi;
+    const colorRegex =
+      /#(?:[0-9a-fA-F]{3,4}){1,2}\b|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\)/gi;
     const colors = new Set<string>();
     let match;
     while ((match = colorRegex.exec(svg)) !== null) {
@@ -250,7 +251,7 @@ export class SvgContentCache {
     // Check for CSS animations
     const hasStyleAnimation = /<style[^>]*>[\s\S]*@keyframes[\s\S]*<\/style>/i.test(svg);
     const hasInlineAnimation = /animation\s*:/i.test(svg);
-    
+
     // Check for SMIL animations
     const hasAnimate = /<animate\b/i.test(svg);
     const hasAnimateTransform = /<animateTransform\b/i.test(svg);
@@ -274,4 +275,3 @@ export class SvgContentCache {
     return null;
   }
 }
-

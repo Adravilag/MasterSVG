@@ -22,35 +22,42 @@ export class UsageFinderService {
 
     // Build search patterns for the icon name
     const patterns = this.buildSearchPatterns(iconName);
-    
+
     // Search in common file types that might contain icon references
     const filePatterns = [
-      '**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx',
-      '**/*.vue', '**/*.svelte',
-      '**/*.html', '**/*.css', '**/*.scss', '**/*.less',
-      '**/*.json'
+      '**/*.ts',
+      '**/*.tsx',
+      '**/*.js',
+      '**/*.jsx',
+      '**/*.vue',
+      '**/*.svelte',
+      '**/*.html',
+      '**/*.css',
+      '**/*.scss',
+      '**/*.less',
+      '**/*.json',
     ];
 
     for (const filePattern of filePatterns) {
       const files = await vscode.workspace.findFiles(filePattern, '**/node_modules/**');
-      
+
       for (const file of files) {
         try {
           const document = await vscode.workspace.openTextDocument(file);
           const text = document.getText();
-          
+
           for (const pattern of patterns) {
             const matches = this.findMatches(text, pattern);
-            
+
             for (const match of matches) {
               const position = document.positionAt(match.index);
               const lineText = document.lineAt(position.line).text;
-              
+
               // Avoid duplicates
               const existingUsage = usages.find(
                 u => u.file === file.fsPath && u.line === position.line + 1
               );
-              
+
               if (!existingUsage) {
                 usages.push({
                   file: file.fsPath,
@@ -58,12 +65,12 @@ export class UsageFinderService {
                   line: position.line + 1,
                   column: position.character + 1,
                   text: lineText.trim(),
-                  context: this.getContext(document, position.line)
+                  context: this.getContext(document, position.line),
                 });
               }
             }
           }
-        } catch (error) {
+        } catch (_error) {
           // Skip files that can't be read
           continue;
         }
@@ -82,24 +89,24 @@ export class UsageFinderService {
    */
   private buildSearchPatterns(iconName: string): string[] {
     const patterns: string[] = [];
-    
+
     // Exact match (case sensitive)
     patterns.push(iconName);
-    
+
     // With quotes (for string references)
     patterns.push(`"${iconName}"`);
     patterns.push(`'${iconName}'`);
-    
+
     // Common prefix patterns
     patterns.push(`icon-${iconName}`);
     patterns.push(`icon:${iconName}`);
-    
+
     // As a component or identifier
     const pascalCase = this.toPascalCase(iconName);
     if (pascalCase !== iconName) {
       patterns.push(pascalCase);
     }
-    
+
     return patterns;
   }
 
@@ -109,12 +116,12 @@ export class UsageFinderService {
   private findMatches(text: string, pattern: string): { index: number }[] {
     const matches: { index: number }[] = [];
     let index = 0;
-    
+
     while ((index = text.indexOf(pattern, index)) !== -1) {
       matches.push({ index });
       index += pattern.length;
     }
-    
+
     return matches;
   }
 
@@ -125,11 +132,11 @@ export class UsageFinderService {
     const lines: string[] = [];
     const start = Math.max(0, line - 1);
     const end = Math.min(document.lineCount - 1, line + 1);
-    
+
     for (let i = start; i <= end; i++) {
       lines.push(document.lineAt(i).text);
     }
-    
+
     return lines.join('\n');
   }
 
@@ -152,4 +159,3 @@ export function getUsageFinderService(): UsageFinderService {
   }
   return usageFinderInstance;
 }
-

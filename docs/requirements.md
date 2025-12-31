@@ -1,6 +1,6 @@
-# 📋 Requisitos Funcionales - Icon Manager
+# 📋 Requisitos Funcionales - Icon Studio
 
-Este documento define los requisitos funcionales de la extensión Icon Manager para VS Code.
+Este documento define los requisitos funcionales de la extensión Icon Studio para VS Code.
 
 ---
 
@@ -15,6 +15,7 @@ Este documento define los requisitos funcionales de la extensión Icon Manager p
 7. [Catálogo e Iconify](#7-catálogo-e-iconify)
 8. [Gestión de Imágenes](#8-gestión-de-imágenes)
 9. [Configuración](#9-configuración)
+10. [Rendimiento](#10-rendimiento)
 
 ---
 
@@ -30,11 +31,16 @@ Este documento define los requisitos funcionales de la extensión Icon Manager p
 | **Casos de Uso** | UC-1, UC-4 |
 
 **Criterios de Aceptación:**
-- [ ] CA-1.1.1: Escanea carpetas definidas en `iconManager.svgFolders`
-- [ ] CA-1.1.2: Detecta archivos con extensión `.svg`
-- [ ] CA-1.1.3: Excluye carpetas según patrones de exclusión
-- [ ] CA-1.1.4: Se ejecuta al abrir el workspace
-- [ ] CA-1.1.5: Actualiza el árbol de iconos tras el escaneo
+- [x] CA-1.1.1: Escanea carpetas definidas en `sageboxIconStudio.svgFolders`
+- [x] CA-1.1.2: Detecta archivos con extensión `.svg`
+- [x] CA-1.1.3: Excluye carpetas según patrones de exclusión
+- [x] CA-1.1.4: Se ejecuta al abrir el workspace
+- [x] CA-1.1.5: Actualiza el árbol de iconos tras el escaneo
+- [x] CA-1.1.6: Usa operaciones asíncronas (no bloquea el event loop)
+- [x] CA-1.1.7: Procesamiento concurrente de subdirectorios (máx. 10 workers)
+- [x] CA-1.1.8: Límite configurable de profundidad (default: 20 niveles)
+- [x] CA-1.1.9: Límite configurable de archivos (default: 5000)
+- [x] CA-1.1.10: Muestra indicador de progreso durante el escaneo
 
 ---
 
@@ -48,10 +54,13 @@ Este documento define los requisitos funcionales de la extensión Icon Manager p
 | **Casos de Uso** | UC-2, UC-11 |
 
 **Criterios de Aceptación:**
-- [ ] CA-1.2.1: Detecta `<svg>...</svg>` en archivos HTML, JSX, TSX, Vue, Svelte, Astro
-- [ ] CA-1.2.2: Extrae nombre del icono de atributos `id` o `title`
-- [ ] CA-1.2.3: Registra ubicación (archivo, línea, columna)
-- [ ] CA-1.2.4: Muestra en el panel como "Inline SVGs"
+- [x] CA-1.2.1: Detecta `<svg>...</svg>` en archivos HTML, JSX, TSX, Vue, Svelte, Astro
+- [x] CA-1.2.2: Extrae nombre del icono de atributos `id` o `title`
+- [x] CA-1.2.3: Registra ubicación (archivo, línea, columna)
+- [x] CA-1.2.4: Muestra en el panel como "Inline SVGs"
+- [x] CA-1.2.5: Lectura directa de archivos (bypassing VS Code API para mejor rendimiento)
+- [x] CA-1.2.6: Regex pre-compilados para detección eficiente
+- [x] CA-1.2.7: Procesamiento por lotes (batchSize: 50 archivos)
 
 ---
 
@@ -82,10 +91,13 @@ Este documento define los requisitos funcionales de la extensión Icon Manager p
 | **Casos de Uso** | UC-11, UC-17, UC-19 |
 
 **Criterios de Aceptación:**
-- [ ] CA-1.4.1: Detecta `<Icon name="..." />`
-- [ ] CA-1.4.2: Detecta `<iconify-icon icon="..." />`
-- [ ] CA-1.4.3: Cuenta número de usos por icono
-- [ ] CA-1.4.4: Permite navegar a cada uso
+- [x] CA-1.4.1: Detecta `<Icon name="..." />`
+- [x] CA-1.4.2: Detecta `<iconify-icon icon="..." />`
+- [x] CA-1.4.3: Cuenta número de usos por icono
+- [x] CA-1.4.4: Permite navegar a cada uso
+- [x] CA-1.4.5: Patrón regex combinado para búsqueda O(n) en lugar de O(n×m)
+- [x] CA-1.4.6: Procesamiento concurrente de archivos
+- [x] CA-1.4.7: Muestra progreso durante escaneo de usos
 
 ---
 
@@ -415,7 +427,7 @@ Este documento define los requisitos funcionales de la extensión Icon Manager p
 | Campo | Valor |
 |-------|-------|
 | **ID** | RF-5.5 |
-| **Nombre** | Panel principal de Icon Manager |
+| **Nombre** | Panel principal de Icon Studio |
 | **Descripción** | El sistema debe mostrar panel completo para gestión de iconos |
 | **Prioridad** | Media |
 | **Casos de Uso** | UC-1, UC-7 |
@@ -683,7 +695,7 @@ Este documento define los requisitos funcionales de la extensión Icon Manager p
 | Campo | Valor |
 |-------|-------|
 | **ID** | RF-9.3 |
-| **Nombre** | Sincronización con Icon Manager App |
+| **Nombre** | Sincronización con Icon Studio App |
 | **Descripción** | El sistema debe leer iconos desde archivo externo |
 | **Prioridad** | Baja |
 | **Casos de Uso** | UC-20, UC-28 |
@@ -692,6 +704,82 @@ Este documento define los requisitos funcionales de la extensión Icon Manager p
 - [ ] CA-9.3.1: Lee `icons.json` desde `libraryPath`
 - [ ] CA-9.3.2: Combina con iconos del workspace
 - [ ] CA-9.3.3: Permite importar a librería global
+
+---
+
+## 10. Rendimiento
+
+### RF-10.1: Escaneo Optimizado para Proyectos Grandes
+| Campo | Valor |
+|-------|-------|
+| **ID** | RF-10.1 |
+| **Nombre** | Algoritmo de escaneo optimizado |
+| **Descripción** | El sistema debe escanear eficientemente proyectos con miles de archivos |
+| **Prioridad** | Alta |
+| **Casos de Uso** | UC-1, UC-4, UC-11 |
+
+**Criterios de Aceptación:**
+- [x] CA-10.1.1: Operaciones de sistema de archivos asíncronas (fs/promises)
+- [x] CA-10.1.2: Procesamiento concurrente con pool de workers (máx. 10)
+- [x] CA-10.1.3: Procesamiento por lotes para gestión de memoria (batchSize: 50)
+- [x] CA-10.1.4: Límite de profundidad configurable (default: 20 niveles)
+- [x] CA-10.1.5: Límite de archivos configurable (default: 5000)
+- [x] CA-10.1.6: Sets para lookups O(1) en directorios a omitir
+- [x] CA-10.1.7: Regex pre-compilados (estáticos) para patrones de búsqueda
+
+---
+
+### RF-10.2: Complejidad Algorítmica Optimizada
+| Campo | Valor |
+|-------|-------|
+| **ID** | RF-10.2 |
+| **Nombre** | Búsqueda de usos con complejidad lineal |
+| **Descripción** | El sistema debe buscar referencias a iconos en tiempo lineal |
+| **Prioridad** | Alta |
+| **Casos de Uso** | UC-11, UC-17 |
+
+**Criterios de Aceptación:**
+- [x] CA-10.2.1: Patrón regex combinado `name=["'\`](icon1|icon2|...)` para una sola pasada
+- [x] CA-10.2.2: Complejidad O(n) por archivo en lugar de O(n×m) donde m = número de iconos
+- [x] CA-10.2.3: Escape seguro de caracteres especiales en nombres de iconos
+- [x] CA-10.2.4: Fallback a búsqueda individual si el patrón combinado es muy grande
+
+---
+
+### RF-10.3: Feedback de Progreso
+| Campo | Valor |
+|-------|-------|
+| **ID** | RF-10.3 |
+| **Nombre** | Indicadores de progreso durante operaciones largas |
+| **Descripción** | El sistema debe mostrar progreso durante escaneos extensos |
+| **Prioridad** | Media |
+| **Casos de Uso** | UC-1, UC-11 |
+
+**Criterios de Aceptación:**
+- [x] CA-10.3.1: Barra de progreso con `vscode.window.withProgress`
+- [x] CA-10.3.2: Mensaje descriptivo de la operación en curso
+- [x] CA-10.3.3: Porcentaje de completado cuando es calculable
+- [x] CA-10.3.4: Callbacks de progreso propagados a través de la cadena de escaneo
+
+---
+
+### RF-10.4: Configuración de Rendimiento
+| Campo | Valor |
+|-------|-------|
+| **ID** | RF-10.4 |
+| **Nombre** | Parámetros configurables de rendimiento |
+| **Descripción** | El sistema debe permitir ajustar parámetros de rendimiento |
+| **Prioridad** | Baja |
+| **Casos de Uso** | UC-24 |
+
+**Configuración de ScannerConfig:**
+
+| Parámetro | Tipo | Default | Descripción |
+|-----------|------|---------|-------------|
+| `concurrencyLimit` | number | `10` | Número máximo de operaciones concurrentes |
+| `maxDepth` | number | `20` | Profundidad máxima de escaneo de directorios |
+| `maxFiles` | number | `5000` | Número máximo de archivos a procesar |
+| `batchSize` | number | `50` | Tamaño de lote para procesamiento por batches |
 
 ---
 
@@ -736,6 +824,10 @@ Este documento define los requisitos funcionales de la extensión Icon Manager p
 | RF-9.1 | UC-4 |
 | RF-9.2 | UC-4, UC-24 |
 | RF-9.3 | UC-20, UC-28 |
+| RF-10.1 | UC-1, UC-4, UC-11 |
+| RF-10.2 | UC-11, UC-17 |
+| RF-10.3 | UC-1, UC-11 |
+| RF-10.4 | UC-24 |
 
 ---
 
@@ -744,3 +836,4 @@ Este documento define los requisitos funcionales de la extensión Icon Manager p
 | Versión | Fecha | Cambios |
 |---------|-------|---------|
 | 1.0 | 2024-12-24 | Versión inicial |
+| 1.1 | 2024-12-31 | Añadida sección 10. Rendimiento (RF-10.1 a RF-10.4). Actualizados RF-1.1, RF-1.2, RF-1.4 con criterios de rendimiento. Marcados como completados los criterios implementados. |

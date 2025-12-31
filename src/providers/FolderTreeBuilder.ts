@@ -18,25 +18,25 @@ export class FolderTreeBuilder {
    */
   static buildFolderTree(paths: string[]): Map<string, FolderTreeNode> {
     const tree = new Map<string, FolderTreeNode>();
-    
+
     for (const p of paths) {
       const parts = p.split('/');
       let currentPath = '';
-      
+
       for (let i = 0; i < parts.length - 1; i++) {
         const parentPath = currentPath;
         currentPath = currentPath ? `${currentPath}/${parts[i]}` : parts[i];
-        
+
         if (!tree.has(parentPath)) {
           tree.set(parentPath, { subfolders: new Set(), files: [] });
         }
         tree.get(parentPath)!.subfolders.add(currentPath);
-        
+
         if (!tree.has(currentPath)) {
           tree.set(currentPath, { subfolders: new Set(), files: [] });
         }
       }
-      
+
       // Add file to its parent directory
       const parentDir = parts.slice(0, -1).join('/');
       if (!tree.has(parentDir)) {
@@ -44,7 +44,7 @@ export class FolderTreeBuilder {
       }
       tree.get(parentDir)!.files.push(p);
     }
-    
+
     return tree;
   }
 
@@ -104,4 +104,3 @@ export class FolderTreeBuilder {
     return count;
   }
 }
-

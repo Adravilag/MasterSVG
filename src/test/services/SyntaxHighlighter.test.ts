@@ -1,6 +1,6 @@
 /**
  * Tests for SyntaxHighlighter
- * 
+ *
  * Tests syntax highlighting for SVG, CSS, HTML, and JavaScript code
  */
 
@@ -35,8 +35,9 @@ describe('SyntaxHighlighter', () => {
     });
 
     test('should escape all special characters', () => {
-      expect(highlighter.escapeHtml('<a href="test">Link & Text</a>'))
-        .toBe('&lt;a href=&quot;test&quot;&gt;Link &amp; Text&lt;/a&gt;');
+      expect(highlighter.escapeHtml('<a href="test">Link & Text</a>')).toBe(
+        '&lt;a href=&quot;test&quot;&gt;Link &amp; Text&lt;/a&gt;'
+      );
     });
 
     test('should handle empty string', () => {
@@ -57,7 +58,8 @@ describe('SyntaxHighlighter', () => {
     });
 
     test('should format nested rules', () => {
-      const css = '@keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }';
+      const css =
+        '@keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }';
       const result = highlighter.formatCss(css);
       expect(result).toContain('@keyframes spin');
       expect(result).toContain('from');
@@ -318,7 +320,7 @@ describe('SyntaxHighlighter', () => {
     test('should handle multiple lines', () => {
       const result = highlighter.highlightUsageCode([
         "import { Icon } from './components'",
-        '<Icon name="arrow" />'
+        '<Icon name="arrow" />',
       ]);
       expect(result).toContain('<div class="ln">1</div>');
       expect(result).toContain('<div class="ln">2</div>');
@@ -370,4 +372,3 @@ describe('SyntaxHighlighter', () => {
     });
   });
 });
-

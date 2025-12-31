@@ -188,7 +188,7 @@ export class VariantsService {
     // Normalize colors to lowercase
     const normOrig = originalColor.toLowerCase();
     const normNew = newColor.toLowerCase();
-    
+
     if (normOrig === normNew) {
       // Remove mapping if same color
       delete allMappings[iconName][normOrig];
@@ -378,8 +378,9 @@ export class VariantsService {
         const remainingVisible = Object.keys(allVariants[iconName]).filter(n => !n.startsWith('_'));
         if (remainingVisible.length === 0) {
           // Keep internal variants like _original
-          const internalVariants = Object.entries(allVariants[iconName])
-            .filter(([n]) => n.startsWith('_'));
+          const internalVariants = Object.entries(allVariants[iconName]).filter(([n]) =>
+            n.startsWith('_')
+          );
           if (internalVariants.length === 0) {
             delete allVariants[iconName];
           }
@@ -434,9 +435,9 @@ export class VariantsService {
     const allVariants = this.getAllVariants(iconName);
     const hasCustom = allVariants.some(v => v.name === 'custom');
     const savedOriginal = allVariants.find(v => v.name === '_original');
-    
+
     let originalColors = currentColors;
-    
+
     // If we have saved original colors, use those
     if (savedOriginal) {
       originalColors = [...savedOriginal.colors];
@@ -444,12 +445,12 @@ export class VariantsService {
       // Save original colors for the first time (hidden variant)
       this.saveVariant(iconName, '_original', [...currentColors]);
     }
-    
+
     if (!hasCustom && originalColors.length > 0) {
       // Create "custom" variant with the original colors
       this.saveVariant(iconName, 'custom', [...originalColors]);
     }
-    
+
     return originalColors;
   }
 }
@@ -463,4 +464,3 @@ export function getVariantsService(): VariantsService {
   }
   return variantsServiceInstance;
 }
-

@@ -1,6 +1,6 @@
 /**
  * Tests para SvgToIconCodeActionProvider
- * 
+ *
  * Requisitos cubiertos:
  * - RF-4.5: Code Actions para transformar referencias SVG
  * - RF-4.6: Diagnósticos para referencias SVG
@@ -9,11 +9,14 @@
 // Mock de vscode, path y fs
 jest.mock('fs', () => ({
   existsSync: jest.fn().mockReturnValue(true),
-  readFileSync: jest.fn()
+  readFileSync: jest.fn(),
 }));
 
 import * as vscode from 'vscode';
-import { SvgToIconCodeActionProvider, SvgImgDiagnosticProvider } from '../../providers/SvgToIconCodeActionProvider';
+import {
+  SvgToIconCodeActionProvider,
+  SvgImgDiagnosticProvider,
+} from '../../providers/SvgToIconCodeActionProvider';
 
 describe('SvgToIconCodeActionProvider', () => {
   let provider: SvgToIconCodeActionProvider;
@@ -24,24 +27,24 @@ describe('SvgToIconCodeActionProvider', () => {
 
   beforeEach(() => {
     provider = new SvgToIconCodeActionProvider();
-    mockContext = { 
+    mockContext = {
       diagnostics: [],
       triggerKind: 1,
-      only: undefined
+      only: undefined,
     };
     mockToken = { isCancellationRequested: false } as vscode.CancellationToken;
     jest.clearAllMocks();
   });
 
   const createMockDocument = (
-    lineText: string, 
+    lineText: string,
     languageId: string = 'typescriptreact'
   ): Partial<vscode.TextDocument> => ({
     lineAt: jest.fn().mockReturnValue({
-      text: lineText
+      text: lineText,
     }),
     languageId,
-    uri: { fsPath: '/test/file.tsx' } as vscode.Uri
+    uri: { fsPath: '/test/file.tsx' } as vscode.Uri,
   });
 
   // =====================================================
@@ -79,8 +82,10 @@ describe('SvgToIconCodeActionProvider', () => {
         mockToken
       );
 
-      const transformAction = actions!.find(a => 
-        a.title.includes('Transform') && (a.title.includes('Web Component') || a.title.includes('SVG Sprite'))
+      const transformAction = actions!.find(
+        a =>
+          a.title.includes('Transform') &&
+          (a.title.includes('Web Component') || a.title.includes('SVG Sprite'))
       );
       expect(transformAction).toBeDefined();
       expect(transformAction!.kind).toEqual(vscode.CodeActionKind.QuickFix);
@@ -102,7 +107,7 @@ describe('SvgToIconCodeActionProvider', () => {
       const transformAction = actions!.find(a => a.title.includes('Transform'));
       expect(transformAction).toBeDefined();
       expect(transformAction!.command).toBeDefined();
-      expect(transformAction!.command!.command).toBe('iconManager.transformSvgReference');
+      expect(transformAction!.command!.command).toBe('sageboxIconStudio.transformSvgReference');
     });
 
     // CA-4.5.4: Extrae nombre de icono correctamente
@@ -254,7 +259,7 @@ describe('SvgToIconCodeActionProvider', () => {
       languageId: string = 'html'
     ): Partial<vscode.TextDocument> => ({
       lineAt: jest.fn().mockReturnValue({
-        text: lineText
+        text: lineText,
       }),
       getText: jest.fn().mockReturnValue(fullText),
       offsetAt: jest.fn().mockImplementation((pos: vscode.Position) => {
@@ -279,11 +284,12 @@ describe('SvgToIconCodeActionProvider', () => {
         return new vscode.Position(0, 0);
       }),
       languageId,
-      uri: { fsPath: '/test/file.html' } as vscode.Uri
+      uri: { fsPath: '/test/file.html' } as vscode.Uri,
     });
 
     test('debe detectar SVG inline simple', () => {
-      const lineText = '<svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>';
+      const lineText =
+        '<svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>';
       const fullText = lineText;
       mockDocument = createMockDocumentWithFullText(lineText, fullText);
       mockRange = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0));
@@ -335,7 +341,8 @@ describe('SvgToIconCodeActionProvider', () => {
     });
 
     test('debe extraer nombre de icono desde aria-label', () => {
-      const lineText = '<svg aria-label="Settings Icon" viewBox="0 0 24 24"><path d="M10 20"/></svg>';
+      const lineText =
+        '<svg aria-label="Settings Icon" viewBox="0 0 24 24"><path d="M10 20"/></svg>';
       const fullText = lineText;
       mockDocument = createMockDocumentWithFullText(lineText, fullText);
       mockRange = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0));
@@ -420,7 +427,7 @@ describe('SvgImgDiagnosticProvider', () => {
   });
 
   const createMockDocumentWithText = (
-    text: string, 
+    text: string,
     languageId: string = 'typescriptreact'
   ): Partial<vscode.TextDocument> => ({
     getText: jest.fn().mockReturnValue(text),
@@ -428,7 +435,7 @@ describe('SvgImgDiagnosticProvider', () => {
       return new vscode.Position(0, offset);
     }),
     languageId,
-    uri: { fsPath: '/test/file.tsx' } as vscode.Uri
+    uri: { fsPath: '/test/file.tsx' } as vscode.Uri,
   });
 
   describe('RF-4.6: Diagnósticos', () => {
@@ -460,7 +467,7 @@ describe('SvgImgDiagnosticProvider', () => {
         'SVG image "arrow" can be converted to Icon component',
         vscode.DiagnosticSeverity.Hint
       );
-      
+
       expect(mockDiagnostic.message).toContain('arrow');
     });
 
@@ -472,7 +479,7 @@ describe('SvgImgDiagnosticProvider', () => {
         vscode.DiagnosticSeverity.Hint
       );
       mockDiagnostic.code = 'svg-to-icon';
-      
+
       expect(mockDiagnostic.code).toBe('svg-to-icon');
     });
   });
@@ -481,7 +488,7 @@ describe('SvgImgDiagnosticProvider', () => {
     test('debe analizar archivos HTML', () => {
       const text = '<img src="icon.svg" />';
       mockDocument = createMockDocumentWithText(text, 'html');
-      
+
       // No debe lanzar error
       expect(() => provider.updateDiagnostics(mockDocument as vscode.TextDocument)).not.toThrow();
     });
@@ -489,35 +496,35 @@ describe('SvgImgDiagnosticProvider', () => {
     test('debe analizar archivos JSX', () => {
       const text = '<img src="icon.svg" />';
       mockDocument = createMockDocumentWithText(text, 'javascriptreact');
-      
+
       expect(() => provider.updateDiagnostics(mockDocument as vscode.TextDocument)).not.toThrow();
     });
 
     test('debe analizar archivos Vue', () => {
       const text = '<img src="icon.svg" />';
       mockDocument = createMockDocumentWithText(text, 'vue');
-      
+
       expect(() => provider.updateDiagnostics(mockDocument as vscode.TextDocument)).not.toThrow();
     });
 
     test('debe analizar archivos Svelte', () => {
       const text = '<img src="icon.svg" />';
       mockDocument = createMockDocumentWithText(text, 'svelte');
-      
+
       expect(() => provider.updateDiagnostics(mockDocument as vscode.TextDocument)).not.toThrow();
     });
 
     test('debe analizar archivos Astro', () => {
       const text = '<img src="icon.svg" />';
       mockDocument = createMockDocumentWithText(text, 'astro');
-      
+
       expect(() => provider.updateDiagnostics(mockDocument as vscode.TextDocument)).not.toThrow();
     });
 
     test('no debe analizar archivos JSON', () => {
       const text = '{ "icon": "icon.svg" }';
       mockDocument = createMockDocumentWithText(text, 'json');
-      
+
       // Debe ejecutar sin problemas pero no crear diagnósticos
       expect(() => provider.updateDiagnostics(mockDocument as vscode.TextDocument)).not.toThrow();
     });
@@ -529,5 +536,3 @@ describe('SvgImgDiagnosticProvider', () => {
     });
   });
 });
-
-

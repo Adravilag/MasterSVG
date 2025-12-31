@@ -9,13 +9,13 @@ export class IconUsageSearchService {
    */
   static getSearchPatterns(iconName: string): string[] {
     return [
-      `name="${iconName}"`,           // <sg-icon name="icon-name">
-      `name='${iconName}'`,           // <sg-icon name='icon-name'>
-      `"${iconName}"`,                // General string reference
-      `'${iconName}'`,                // General string reference
-      `icon-${iconName}`,             // CSS class pattern
-      `.${iconName}`,                 // Class selector
-      `#${iconName}`,                 // ID selector
+      `name="${iconName}"`, // <sg-icon name="icon-name">
+      `name='${iconName}'`, // <sg-icon name='icon-name'>
+      `"${iconName}"`, // General string reference
+      `'${iconName}'`, // General string reference
+      `icon-${iconName}`, // CSS class pattern
+      `.${iconName}`, // Class selector
+      `#${iconName}`, // ID selector
     ];
   }
 
@@ -60,26 +60,26 @@ export class IconUsageSearchService {
         this.EXCLUDE_PATTERN,
         this.MAX_FILES
       );
-      
+
       for (const file of files) {
         try {
           const document = await vscode.workspace.openTextDocument(file);
           const text = document.getText();
-          
+
           for (const pattern of patterns) {
             let index = 0;
             while ((index = text.indexOf(pattern, index)) !== -1) {
               const position = document.positionAt(index);
               const line = position.line;
               const lineText = document.lineAt(line).text.trim();
-              
+
               // Avoid duplicates on same line
               const existing = usages.find(u => u.file === file.fsPath && u.line === line + 1);
               if (!existing) {
                 usages.push({
                   file: file.fsPath,
                   line: line + 1,
-                  preview: lineText.substring(0, 80) + (lineText.length > 80 ? '...' : '')
+                  preview: lineText.substring(0, 80) + (lineText.length > 80 ? '...' : ''),
                 });
               }
               index += pattern.length;
@@ -95,7 +95,7 @@ export class IconUsageSearchService {
 
       return {
         usages: usages.slice(0, this.MAX_RESULTS),
-        total: usages.length
+        total: usages.length,
       };
     } catch {
       return { usages: [], total: 0 };
@@ -110,8 +110,7 @@ export class IconUsageSearchService {
     const position = new vscode.Position(line - 1, 0);
     await vscode.window.showTextDocument(uri, {
       selection: new vscode.Range(position, position),
-      preview: true
+      preview: true,
     });
   }
 }
-

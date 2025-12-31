@@ -11,10 +11,12 @@ const svgOptimizer = new SvgOptimizer();
  * Context passed to SVG/code handlers
  */
 export interface SvgCodeHandlerContext {
-  iconData: {
-    name: string;
-    svg: string;
-  } | undefined;
+  iconData:
+    | {
+        name: string;
+        svg: string;
+      }
+    | undefined;
   postMessage: (message: unknown) => void;
   processAndSaveIcon: (options: {
     svg: string;
@@ -31,10 +33,7 @@ export interface SvgCodeHandlerContext {
 /**
  * Handle SVG optimization request
  */
-export function handleOptimizeSvg(
-  ctx: SvgCodeHandlerContext,
-  message: { preset?: string }
-): void {
+export function handleOptimizeSvg(ctx: SvgCodeHandlerContext, message: { preset?: string }): void {
   if (!ctx.iconData?.svg) return;
 
   const preset = message.preset || 'safe';
@@ -45,7 +44,7 @@ export function handleOptimizeSvg(
     command: 'optimizeResult',
     ...result,
     originalSizeStr: svgOptimizer.formatSize(result.originalSize),
-    optimizedSizeStr: svgOptimizer.formatSize(result.optimizedSize)
+    optimizedSizeStr: svgOptimizer.formatSize(result.optimizedSize),
   });
 }
 
@@ -69,22 +68,20 @@ export async function handleApplyOptimizedSvg(
     updateAnimationMetadata: false,
     triggerFullRebuild: false,
     skipPanelUpdate: true,
-    successMessage: 'Optimized SVG applied (session only)'
+    successMessage: 'Optimized SVG applied (session only)',
   });
 
   ctx.postMessage({
     command: 'optimizedSvgApplied',
     svg: ctx.iconData.svg,
-    code: getSyntaxHighlighter().highlightSvg(ctx.iconData.svg)
+    code: getSyntaxHighlighter().highlightSvg(ctx.iconData.svg),
   });
 }
 
 /**
  * Handle reverting optimization
  */
-export async function handleRevertOptimization(
-  ctx: SvgCodeHandlerContext
-): Promise<void> {
+export async function handleRevertOptimization(ctx: SvgCodeHandlerContext): Promise<void> {
   const preOptimizedSvg = ctx.getPreOptimizedSvg();
   if (!ctx.iconData || !preOptimizedSvg) return;
 
@@ -94,7 +91,7 @@ export async function handleRevertOptimization(
     updateAnimationMetadata: false,
     triggerFullRebuild: false,
     skipPanelUpdate: true,
-    successMessage: 'Optimization reverted'
+    successMessage: 'Optimization reverted',
   });
 
   ctx.setPreOptimizedSvg(undefined);
@@ -102,17 +99,14 @@ export async function handleRevertOptimization(
   ctx.postMessage({
     command: 'optimizationReverted',
     svg: ctx.iconData.svg,
-    code: getSyntaxHighlighter().highlightSvg(ctx.iconData.svg)
+    code: getSyntaxHighlighter().highlightSvg(ctx.iconData.svg),
   });
 }
 
 /**
  * Handle copying SVG to clipboard
  */
-export function handleCopySvg(
-  ctx: SvgCodeHandlerContext,
-  message: { svg?: string }
-): void {
+export function handleCopySvg(ctx: SvgCodeHandlerContext, message: { svg?: string }): void {
   const svgToCopy = message.svg || ctx.iconData?.svg;
   if (svgToCopy) {
     vscode.env.clipboard.writeText(svgToCopy);
@@ -150,7 +144,7 @@ export function handleFormatSvgCode(ctx: SvgCodeHandlerContext): void {
 
   ctx.postMessage({
     command: 'updateCodeTab',
-    code: getSyntaxHighlighter().highlightSvg(ctx.iconData.svg)
+    code: getSyntaxHighlighter().highlightSvg(ctx.iconData.svg),
   });
 }
 
@@ -167,7 +161,7 @@ export function handleUpdateCodeWithAnimation(
     command: 'updateCodeTab',
     code: getSyntaxHighlighter().highlightSvg(ctx.iconData.svg),
     size: Buffer.byteLength(ctx.iconData.svg, 'utf8'),
-    hasAnimation: message.animation && message.animation !== 'none'
+    hasAnimation: message.animation && message.animation !== 'none',
   });
 }
 
@@ -183,10 +177,18 @@ export function handleUpdateAnimationCode(
   ctx.postMessage({
     command: 'animationCodeUpdated',
     code: getIconEditorTemplateService().generateAnimationCodeHtml(
-      message.animation, 
-      message.settings as { duration?: number; timing?: string; iteration?: string; delay?: number; direction?: string } | undefined
+      message.animation,
+      message.settings as
+        | {
+            duration?: number;
+            timing?: string;
+            iteration?: string;
+            delay?: number;
+            direction?: string;
+          }
+        | undefined
     ),
-    animationType: message.animation
+    animationType: message.animation,
   });
 }
 
@@ -207,16 +209,17 @@ export function handleInsertCodeAtCursor(message: { code?: string }): void {
 
   const editor = vscode.window.activeTextEditor;
   if (editor) {
-    editor.edit(editBuilder => {
-      editBuilder.insert(editor.selection.active, message.code!);
-    }).then(success => {
-      if (success) {
-        vscode.window.showInformationMessage(t('messages.codeInsertedAtCursor'));
-      }
-    });
+    editor
+      .edit(editBuilder => {
+        editBuilder.insert(editor.selection.active, message.code!);
+      })
+      .then(success => {
+        if (success) {
+          vscode.window.showInformationMessage(t('messages.codeInsertedAtCursor'));
+        }
+      });
   } else {
     vscode.env.clipboard.writeText(message.code);
     vscode.window.showInformationMessage(t('messages.noActiveEditorCodeCopied'));
   }
 }
-

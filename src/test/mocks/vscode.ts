@@ -8,52 +8,54 @@ export const workspace = {
     {
       uri: { fsPath: '/test/workspace' },
       name: 'test-workspace',
-      index: 0
-    }
+      index: 0,
+    },
   ],
-  
+
   getConfiguration: jest.fn().mockReturnValue({
     get: jest.fn((key: string, defaultValue?: any) => {
       const config: Record<string, any> = {
-        'componentName': 'Icon',
-        'componentImport': '@/components/ui/Icon',
-        'svgFolders': ['src/assets/icons'],
-        'outputFormat': 'jsx',
-        'iconNameAttribute': 'name',
-        'autoImport': true,
-        'libraryPath': '',
-        'outputDirectory': 'src/generated'
+        componentName: 'Icon',
+        componentImport: '@/components/ui/Icon',
+        svgFolders: ['src/assets/icons'],
+        outputFormat: 'jsx',
+        iconNameAttribute: 'name',
+        autoImport: true,
+        libraryPath: '',
+        outputDirectory: 'src/generated',
       };
       return config[key] ?? defaultValue;
     }),
-    update: jest.fn().mockResolvedValue(undefined)
+    update: jest.fn().mockResolvedValue(undefined),
   }),
 
   createFileSystemWatcher: jest.fn().mockReturnValue({
     onDidCreate: jest.fn(),
     onDidChange: jest.fn(),
     onDidDelete: jest.fn(),
-    dispose: jest.fn()
+    dispose: jest.fn(),
   }),
 
   fs: {
     readFile: jest.fn(),
     writeFile: jest.fn(),
-    stat: jest.fn()
+    stat: jest.fn(),
   },
 
-  openTextDocument: jest.fn().mockImplementation(() => Promise.resolve({
-    getText: jest.fn().mockReturnValue(''),
-    lineAt: jest.fn().mockReturnValue({ text: '' }),
-    positionAt: jest.fn().mockReturnValue({ line: 0, character: 0 }),
-    save: jest.fn().mockResolvedValue(true)
-  })),
-  
+  openTextDocument: jest.fn().mockImplementation(() =>
+    Promise.resolve({
+      getText: jest.fn().mockReturnValue(''),
+      lineAt: jest.fn().mockReturnValue({ text: '' }),
+      positionAt: jest.fn().mockReturnValue({ line: 0, character: 0 }),
+      save: jest.fn().mockResolvedValue(true),
+    })
+  ),
+
   applyEdit: jest.fn().mockResolvedValue(true),
-  
+
   findFiles: jest.fn().mockResolvedValue([]),
-  
-  textDocuments: []
+
+  textDocuments: [],
 };
 
 export const window = {
@@ -64,10 +66,10 @@ export const window = {
   showInputBox: jest.fn().mockResolvedValue(undefined),
   showOpenDialog: jest.fn().mockResolvedValue(undefined),
   showSaveDialog: jest.fn().mockResolvedValue(undefined),
-  
+
   createTreeView: jest.fn().mockReturnValue({
     onDidChangeSelection: jest.fn(),
-    dispose: jest.fn()
+    dispose: jest.fn(),
   }),
 
   createWebviewPanel: jest.fn().mockReturnValue({
@@ -75,14 +77,14 @@ export const window = {
       html: '',
       postMessage: jest.fn().mockResolvedValue(true),
       onDidReceiveMessage: jest.fn(),
-      asWebviewUri: jest.fn((uri: any) => uri)
+      asWebviewUri: jest.fn((uri: any) => uri),
     },
     reveal: jest.fn(),
     dispose: jest.fn(),
     onDidDispose: jest.fn().mockReturnValue({ dispose: jest.fn() }),
     onDidChangeViewState: jest.fn().mockReturnValue({ dispose: jest.fn() }),
     visible: true,
-    viewColumn: 1
+    viewColumn: 1,
   }),
 
   registerTreeDataProvider: jest.fn(),
@@ -91,17 +93,17 @@ export const window = {
   activeTextEditor: undefined as any,
   showTextDocument: jest.fn().mockResolvedValue({
     selection: null,
-    revealRange: jest.fn()
+    revealRange: jest.fn(),
   }),
 
   withProgress: jest.fn().mockImplementation(async (options, task) => {
     return await task({ report: jest.fn() });
-  })
+  }),
 };
 
 export const commands = {
   registerCommand: jest.fn().mockReturnValue({ dispose: jest.fn() }),
-  executeCommand: jest.fn().mockResolvedValue(undefined)
+  executeCommand: jest.fn().mockResolvedValue(undefined),
 };
 
 export const languages = {
@@ -112,24 +114,24 @@ export const languages = {
     set: jest.fn(),
     delete: jest.fn(),
     clear: jest.fn(),
-    dispose: jest.fn()
-  })
+    dispose: jest.fn(),
+  }),
 };
 
 export const env = {
   clipboard: {
     writeText: jest.fn().mockResolvedValue(undefined),
-    readText: jest.fn().mockResolvedValue('')
+    readText: jest.fn().mockResolvedValue(''),
   },
   openExternal: jest.fn().mockResolvedValue(true),
-  language: 'en'
+  language: 'en',
 };
 
 export class Uri {
   static file(path: string) {
     return { fsPath: path, scheme: 'file', path };
   }
-  
+
   static parse(uri: string) {
     return { fsPath: uri, scheme: 'file', path: uri };
   }
@@ -142,14 +144,22 @@ export class Uri {
 }
 
 export class Position {
-  constructor(public line: number, public character: number) {}
+  constructor(
+    public line: number,
+    public character: number
+  ) {}
 }
 
 export class Range {
   public start: Position;
   public end: Position;
 
-  constructor(startLine: number | Position, startChar: number | Position, endLine?: number, endChar?: number) {
+  constructor(
+    startLine: number | Position,
+    startChar: number | Position,
+    endLine?: number,
+    endChar?: number
+  ) {
     // Soporta ambas firmas: Range(Position, Position) y Range(number, number, number, number)
     if (typeof startLine === 'number' && typeof startChar === 'number') {
       this.start = new Position(startLine, startChar);
@@ -159,7 +169,7 @@ export class Range {
       this.end = startChar as Position;
     }
   }
-  
+
   static create(startLine: number, startChar: number, endLine: number, endChar: number) {
     return new Range(startLine, startChar, endLine, endChar);
   }
@@ -174,8 +184,7 @@ export class Selection extends Range {
   }
 
   get isEmpty() {
-    return this.anchor.line === this.active.line && 
-           this.anchor.character === this.active.character;
+    return this.anchor.line === this.active.line && this.anchor.character === this.active.character;
   }
 }
 
@@ -184,7 +193,7 @@ export class CompletionItem {
     public label: string,
     public kind?: CompletionItemKind
   ) {}
-  
+
   detail?: string;
   documentation?: MarkdownString | string;
   sortText?: string;
@@ -202,7 +211,7 @@ export enum ViewColumn {
   Six = 6,
   Seven = 7,
   Eight = 8,
-  Nine = 9
+  Nine = 9,
 }
 
 export enum CompletionItemKind {
@@ -230,20 +239,20 @@ export enum CompletionItemKind {
   Struct = 21,
   Event = 22,
   Operator = 23,
-  TypeParameter = 24
+  TypeParameter = 24,
 }
 
 export class MarkdownString {
   constructor(public value: string = '') {}
-  
+
   supportHtml = false;
   isTrusted = false;
-  
+
   appendMarkdown(value: string) {
     this.value += value;
     return this;
   }
-  
+
   appendText(value: string) {
     this.value += value;
     return this;
@@ -262,7 +271,7 @@ export class CodeAction {
     public title: string,
     public kind?: CodeActionKind
   ) {}
-  
+
   command?: any;
   edit?: WorkspaceEdit;
   diagnostics?: any[];
@@ -313,7 +322,7 @@ export class CodeActionKind {
   static readonly RefactorRewrite = new CodeActionKind('refactor.rewrite');
   static readonly Source = new CodeActionKind('source');
   static readonly SourceOrganizeImports = new CodeActionKind('source.organizeImports');
-  
+
   constructor(public value: string) {}
 }
 
@@ -323,7 +332,7 @@ export class Diagnostic {
     public message: string,
     public severity?: DiagnosticSeverity
   ) {}
-  
+
   source?: string;
   code?: string | number;
 }
@@ -332,7 +341,7 @@ export enum DiagnosticSeverity {
   Error = 0,
   Warning = 1,
   Information = 2,
-  Hint = 3
+  Hint = 3,
 }
 
 export class TreeItem {
@@ -340,7 +349,7 @@ export class TreeItem {
     public label: string,
     public collapsibleState?: TreeItemCollapsibleState
   ) {}
-  
+
   contextValue?: string;
   iconPath?: any;
   description?: string;
@@ -351,14 +360,17 @@ export class TreeItem {
 export enum TreeItemCollapsibleState {
   None = 0,
   Collapsed = 1,
-  Expanded = 2
+  Expanded = 2,
 }
 
 export class ThemeIcon {
   static readonly File = new ThemeIcon('file');
   static readonly Folder = new ThemeIcon('folder');
-  
-  constructor(public id: string, public color?: ThemeColor) {}
+
+  constructor(
+    public id: string,
+    public color?: ThemeColor
+  ) {}
 }
 
 export class ThemeColor {
@@ -367,16 +379,16 @@ export class ThemeColor {
 
 export class EventEmitter<T> {
   private listeners: Array<(e: T) => void> = [];
-  
+
   event = (listener: (e: T) => void) => {
     this.listeners.push(listener);
-    return { dispose: () => this.listeners = this.listeners.filter(l => l !== listener) };
+    return { dispose: () => (this.listeners = this.listeners.filter(l => l !== listener)) };
   };
-  
+
   fire(data: T) {
     this.listeners.forEach(l => l(data));
   }
-  
+
   dispose() {
     this.listeners = [];
   }
@@ -384,12 +396,12 @@ export class EventEmitter<T> {
 
 export class SnippetString {
   constructor(public value: string = '') {}
-  
+
   appendText(value: string) {
     this.value += value;
     return this;
   }
-  
+
   appendPlaceholder(value: string | ((snippet: SnippetString) => void), number?: number) {
     if (typeof value === 'string') {
       this.value += `\${${number ?? 1}:${value}}`;
@@ -401,20 +413,20 @@ export class SnippetString {
 export enum ConfigurationTarget {
   Global = 1,
   Workspace = 2,
-  WorkspaceFolder = 3
+  WorkspaceFolder = 3,
 }
 
 export enum ProgressLocation {
   SourceControl = 1,
   Window = 10,
-  Notification = 15
+  Notification = 15,
 }
 
 export enum TextEditorRevealType {
   Default = 0,
   InCenter = 1,
   InCenterIfOutsideViewport = 2,
-  AtTop = 3
+  AtTop = 3,
 }
 
 // Mock para ExtensionContext
@@ -425,21 +437,21 @@ export const createMockExtensionContext = () => ({
   globalState: {
     get: jest.fn(),
     update: jest.fn(),
-    keys: jest.fn().mockReturnValue([])
+    keys: jest.fn().mockReturnValue([]),
   },
   workspaceState: {
     get: jest.fn(),
     update: jest.fn(),
-    keys: jest.fn().mockReturnValue([])
+    keys: jest.fn().mockReturnValue([]),
   },
   secrets: {
     get: jest.fn(),
     store: jest.fn(),
-    delete: jest.fn()
+    delete: jest.fn(),
   },
   storageUri: Uri.file('/test/storage'),
   globalStorageUri: Uri.file('/test/global-storage'),
-  logUri: Uri.file('/test/logs')
+  logUri: Uri.file('/test/logs'),
 });
 
 // Helper para resetear todos los mocks
@@ -474,6 +486,5 @@ export default {
   SnippetString,
   ConfigurationTarget,
   ProgressLocation,
-  TextEditorRevealType
+  TextEditorRevealType,
 };
-

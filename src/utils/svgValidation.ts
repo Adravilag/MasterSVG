@@ -41,7 +41,7 @@ export const SVG_PATTERNS = {
   // Title element
   titleElement: /<title[^>]*>([^<]*)<\/title>/i,
   // Desc element
-  descElement: /<desc[^>]*>([^<]*)<\/desc>/i
+  descElement: /<desc[^>]*>([^<]*)<\/desc>/i,
 };
 
 /**
@@ -57,7 +57,8 @@ export const COLOR_PATTERNS = {
   // HSL colors
   hsl: /hsl\(\s*\d+\s*,\s*[\d.]+%?\s*,\s*[\d.]+%?\s*\)/gi,
   // Named colors (common ones)
-  named: /\b(black|white|red|green|blue|yellow|orange|purple|pink|gray|grey|cyan|magenta|transparent|currentColor|none)\b/gi
+  named:
+    /\b(black|white|red|green|blue|yellow|orange|purple|pink|gray|grey|cyan|magenta|transparent|currentColor|none)\b/gi,
 };
 
 /**
@@ -77,7 +78,7 @@ export const INVALID_CONTENT_PATTERNS = {
   // Meta tag
   metaTag: /<meta\b/i,
   // Link tag (stylesheet)
-  linkTag: /<link\b[^>]*rel=["']stylesheet["']/i
+  linkTag: /<link\b[^>]*rel=["']stylesheet["']/i,
 };
 
 /**
@@ -102,12 +103,12 @@ export function isValidSvg(content: string): boolean {
   if (!content || typeof content !== 'string') {
     return false;
   }
-  
+
   // First check if it's HTML - reject if so
   if (isHtmlContent(content)) {
     return false;
   }
-  
+
   return SVG_PATTERNS.openingTag.test(content) && SVG_PATTERNS.closingTag.test(content);
 }
 
@@ -118,19 +119,19 @@ export function validateSvgContent(content: string): { valid: boolean; error?: s
   if (!content || typeof content !== 'string') {
     return { valid: false, error: 'Content is empty or not a string' };
   }
-  
+
   if (isHtmlContent(content)) {
     return { valid: false, error: 'Content appears to be HTML, not SVG' };
   }
-  
+
   if (!SVG_PATTERNS.openingTag.test(content)) {
     return { valid: false, error: 'Missing <svg> opening tag' };
   }
-  
+
   if (!SVG_PATTERNS.closingTag.test(content)) {
     return { valid: false, error: 'Missing </svg> closing tag' };
   }
-  
+
   return { valid: true };
 }
 
@@ -247,23 +248,23 @@ export function countShapes(svg: string): number {
  */
 export function extractColors(svg: string): string[] {
   const colors = new Set<string>();
-  
+
   // Extract hex colors
   const hexMatches = svg.match(COLOR_PATTERNS.hex) || [];
   hexMatches.forEach(c => colors.add(c.toLowerCase()));
-  
+
   // Extract rgb colors
   const rgbMatches = svg.match(COLOR_PATTERNS.rgb) || [];
   rgbMatches.forEach(c => colors.add(c.toLowerCase()));
-  
+
   // Extract rgba colors
   const rgbaMatches = svg.match(COLOR_PATTERNS.rgba) || [];
   rgbaMatches.forEach(c => colors.add(c.toLowerCase()));
-  
+
   // Extract named colors
   const namedMatches = svg.match(COLOR_PATTERNS.named) || [];
   namedMatches.forEach(c => colors.add(c.toLowerCase()));
-  
+
   return Array.from(colors);
 }
 
@@ -271,8 +272,8 @@ export function extractColors(svg: string): string[] {
  * Checks if SVG is monochrome (single color)
  */
 export function isMonochrome(svg: string): boolean {
-  const colors = extractColors(svg).filter(c => 
-    c !== 'none' && c !== 'transparent' && c !== 'currentcolor'
+  const colors = extractColors(svg).filter(
+    c => c !== 'none' && c !== 'transparent' && c !== 'currentcolor'
   );
   return colors.length <= 1;
 }
@@ -310,30 +311,30 @@ export function extractStrokeColors(svg: string): string[] {
  */
 export function validateSvg(svg: string): { valid: boolean; issues: string[] } {
   const issues: string[] = [];
-  
+
   if (!svg || typeof svg !== 'string') {
     return { valid: false, issues: ['SVG content is empty or invalid'] };
   }
-  
+
   if (!SVG_PATTERNS.openingTag.test(svg)) {
     issues.push('Missing <svg> opening tag');
   }
-  
+
   if (!SVG_PATTERNS.closingTag.test(svg)) {
     issues.push('Missing </svg> closing tag');
   }
-  
+
   if (!hasViewBox(svg) && !hasDimensions(svg)) {
     issues.push('Missing viewBox or dimensions');
   }
-  
+
   if (!hasNamespace(svg)) {
     issues.push('Missing xmlns namespace');
   }
-  
+
   return {
     valid: issues.length === 0,
-    issues
+    issues,
   };
 }
 
@@ -342,20 +343,20 @@ export function validateSvg(svg: string): { valid: boolean; issues: string[] } {
  */
 export function calculateComplexity(svg: string): number {
   let score = 0;
-  
+
   // Count shapes
   score += countShapes(svg) * 1;
-  
+
   // Gradients add complexity
   if (hasGradient(svg)) score += 5;
-  
+
   // Style elements add complexity
   if (hasStyleElement(svg)) score += 3;
-  
+
   // Multiple colors add complexity
   const colors = extractColors(svg);
   score += colors.length;
-  
+
   return score;
 }
 
@@ -364,7 +365,7 @@ export function calculateComplexity(svg: string): number {
  */
 export function categorizeIcon(svg: string): 'simple' | 'medium' | 'complex' {
   const complexity = calculateComplexity(svg);
-  
+
   if (complexity <= 3) return 'simple';
   if (complexity <= 10) return 'medium';
   return 'complex';
@@ -375,10 +376,16 @@ export function categorizeIcon(svg: string): 'simple' | 'medium' | 'complex' {
  */
 export function normalizeHexColor(color: string): string {
   if (!color.startsWith('#')) return color;
-  
+
   const hex = color.slice(1);
   if (hex.length === 3) {
-    return '#' + hex.split('').map(c => c + c).join('');
+    return (
+      '#' +
+      hex
+        .split('')
+        .map(c => c + c)
+        .join('')
+    );
   }
   return color.toLowerCase();
 }
@@ -400,9 +407,9 @@ export function namedColorToHex(name: string): string | null {
     gray: '#808080',
     grey: '#808080',
     cyan: '#00ffff',
-    magenta: '#ff00ff'
+    magenta: '#ff00ff',
   };
-  
+
   return colors[name.toLowerCase()] || null;
 }
 
@@ -411,27 +418,27 @@ export function namedColorToHex(name: string): string | null {
  */
 export function isValidColor(color: string): boolean {
   if (!color) return false;
-  
+
   // Check special values
   if (['none', 'transparent', 'currentColor', 'inherit'].includes(color)) {
     return true;
   }
-  
+
   // Check hex
   if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(color)) {
     return true;
   }
-  
+
   // Check rgb/rgba
   if (/^rgba?\(.+\)$/.test(color)) {
     return true;
   }
-  
+
   // Check named color
   if (namedColorToHex(color) !== null) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -447,11 +454,10 @@ export function estimateSize(svg: string): number {
  */
 export function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
-  
+
   const k = 1024;
   const sizes = ['B', 'KB', 'MB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
-

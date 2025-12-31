@@ -1,6 +1,6 @@
 /**
  * Tests para utils/config
- * 
+ *
  * Requisitos cubiertos:
  * - RF-9.1: Configuración de la extensión
  */
@@ -22,7 +22,7 @@ describe('config utils', () => {
     test('debe obtener valor de configuración', () => {
       const result = getSvgConfig<string>('componentName', 'DefaultIcon');
 
-      expect(vscode.workspace.getConfiguration).toHaveBeenCalledWith('iconManager');
+      expect(vscode.workspace.getConfiguration).toHaveBeenCalledWith('sageboxIconStudio');
       expect(result).toBeDefined();
     });
 
@@ -59,13 +59,13 @@ describe('config utils', () => {
     test('debe actualizar configuración del workspace', async () => {
       await updateSvgConfig('componentName', 'MyIcon', false);
 
-      expect(vscode.workspace.getConfiguration).toHaveBeenCalledWith('iconManager');
+      expect(vscode.workspace.getConfiguration).toHaveBeenCalledWith('sageboxIconStudio');
     });
 
     test('debe actualizar configuración global', async () => {
       await updateSvgConfig('componentName', 'GlobalIcon', true);
 
-      expect(vscode.workspace.getConfiguration).toHaveBeenCalledWith('iconManager');
+      expect(vscode.workspace.getConfiguration).toHaveBeenCalledWith('sageboxIconStudio');
     });
   });
 
@@ -95,5 +95,3 @@ describe('config utils', () => {
     });
   });
 });
-
-

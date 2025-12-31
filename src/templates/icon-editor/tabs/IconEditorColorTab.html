@@ -33,6 +33,9 @@
       <span class="codicon codicon-settings"></span> ${i18n_globalFilters}
       ${filtersHint}
       <div class="variants-actions">
+        <button class="filters-toggle-btn${filtersToggleActiveClass}" id="filtersToggleBtn" onclick="toggleFiltersEnabled()" title="${i18n_filtersToggleTitle}"${filtersDisabled}>
+          <span class="codicon codicon-check"></span>
+        </button>
         <button class="reset-filters-btn" onclick="resetFilters()" title="${i18n_resetFilters}"${filtersDisabled}>
           <span class="codicon codicon-refresh"></span> ${i18n_reset}
         </button>

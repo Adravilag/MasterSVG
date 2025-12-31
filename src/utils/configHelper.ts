@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { t } from '../i18n';
 
-export interface IconManagerConfig {
+export interface IconStudioConfig {
   outputDirectory: string;
   componentName: string;
   nameAttribute: string;
@@ -16,16 +16,16 @@ export interface IconManagerConfig {
 /**
  * Get icon manager configuration
  */
-export function getConfig(): IconManagerConfig {
-  const config = vscode.workspace.getConfiguration('iconManager');
+export function getConfig(): IconStudioConfig {
+  const config = vscode.workspace.getConfiguration('sageboxIconStudio');
   return {
-    outputDirectory: config.get<string>('outputDirectory', 'iconwrap-icons'),
+    outputDirectory: config.get<string>('outputDirectory', 'sagebox-icons'),
     componentName: config.get<string>('componentName', 'Icon'),
     nameAttribute: config.get<string>('nameAttribute', 'name'),
     defaultSize: config.get<number>('defaultSize', 24),
     defaultColor: config.get<string>('defaultColor', 'currentColor'),
     webComponentName: config.get<string>('webComponentName', 'icon-wrap'),
-    buildFormat: config.get<'icons.ts' | 'sprite.svg'>('buildFormat', 'icons.ts')
+    buildFormat: config.get<'icons.ts' | 'sprite.svg'>('buildFormat', 'icons.ts'),
   };
 }
 
@@ -42,11 +42,11 @@ export function getOutputDirectory(): string {
 export function getFullOutputPath(): string | undefined {
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   const outputDir = getOutputDirectory();
-  
+
   if (!workspaceFolder || !outputDir) {
     return undefined;
   }
-  
+
   return path.join(workspaceFolder.uri.fsPath, outputDir);
 }
 
@@ -72,7 +72,7 @@ export function iconsJsExists(): boolean {
  */
 export function updateIconsJsContext(): void {
   const exists = iconsJsExists();
-  vscode.commands.executeCommand('setContext', 'iconManager.iconsJsExists', exists);
+  vscode.commands.executeCommand('setContext', 'sageboxIconStudio.iconsJsExists', exists);
 }
 
 /**
@@ -80,15 +80,15 @@ export function updateIconsJsContext(): void {
  */
 export function ensureOutputDirectory(): string | undefined {
   const fullPath = getFullOutputPath();
-  
+
   if (!fullPath) {
     return undefined;
   }
-  
+
   if (!fs.existsSync(fullPath)) {
     fs.mkdirSync(fullPath, { recursive: true });
   }
-  
+
   return fullPath;
 }
 
@@ -96,7 +96,7 @@ export function ensureOutputDirectory(): string | undefined {
  * Update output directory configuration
  */
 export async function setOutputDirectory(dir: string): Promise<void> {
-  const config = vscode.workspace.getConfiguration('iconManager');
+  const config = vscode.workspace.getConfiguration('sageboxIconStudio');
   await config.update('outputDirectory', dir, vscode.ConfigurationTarget.Workspace);
 }
 
@@ -137,13 +137,12 @@ export function getOutputPathOrWarn(): string | undefined {
   if (!checkConfigOrWarn()) {
     return undefined;
   }
-  
+
   const fullPath = getFullOutputPath();
   if (!fullPath) {
     vscode.window.showWarningMessage(t('messages.noWorkspace'));
     return undefined;
   }
-  
+
   return fullPath;
 }
-

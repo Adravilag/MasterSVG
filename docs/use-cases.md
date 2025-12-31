@@ -1,6 +1,6 @@
-# 📚 Casos de Uso - Icon Manager
+# 📚 Casos de Uso - Icon Studio
 
-Esta guía presenta casos de uso prácticos para aprovechar al máximo la extensión Icon Manager en tu flujo de trabajo diario.
+Esta guía presenta casos de uso prácticos para aprovechar al máximo la extensión Icon Studio en tu flujo de trabajo diario.
 
 ---
 
@@ -25,7 +25,7 @@ Esta guía presenta casos de uso prácticos para aprovechar al máximo la extens
 17. [Navegación Rápida entre Iconos y Usos](#17-navegación-rápida-entre-iconos-y-usos)
 18. [Build de Iconos para Producción](#18-build-de-iconos-para-producción)
 19. [Limpiar Iconos No Utilizados](#19-limpiar-iconos-no-utilizados)
-20. [Integración con Icon Manager App](#20-integración-con-icon-manager-app)
+20. [Integración con Icon Studio App](#20-integración-con-icon-manager-app)
 21. [Exportar a React Native](#21-exportar-a-react-native)
 22. [Usar Code Actions para SVGs](#22-usar-code-actions-para-svgs)
 23. [Descargar SVGs desde el Panel](#23-descargar-svgs-desde-el-panel)
@@ -54,7 +54,7 @@ Estás comenzando un nuevo proyecto y necesitas organizar todos los iconos SVG q
    ```json
    // settings.json
    {
-     "iconManager.svgFolders": [
+     "sageboxIconStudio.svgFolders": [
        "src/assets/icons",
        "public/icons"
      ]
@@ -63,10 +63,10 @@ Estás comenzando un nuevo proyecto y necesitas organizar todos los iconos SVG q
 
 2. **Escanea el workspace**
    - Abre la paleta de comandos (`Ctrl+Shift+P`)
-   - Ejecuta: `Icon Manager: Scan Workspace SVGs`
+   - Ejecuta: `Icon Studio: Scan Workspace SVGs`
 
 3. **Abre el panel de iconos**
-   - Comando: `Icon Manager: Open Panel`
+   - Comando: `Icon Studio: Open Panel`
    - Visualiza todos los iconos detectados
    - Usa el buscador para encontrar iconos específicos
 
@@ -87,10 +87,10 @@ Tienes SVGs inline en tu código y quieres convertirlos a componentes reutilizab
 1. **Configura tu componente de iconos**
    ```json
    {
-     "iconManager.componentName": "Icon",
-     "iconManager.componentImport": "@/components/ui/Icon",
-     "iconManager.iconNameAttribute": "name",
-     "iconManager.autoImport": true
+     "sageboxIconStudio.componentName": "Icon",
+     "sageboxIconStudio.componentImport": "@/components/ui/Icon",
+     "sageboxIconStudio.iconNameAttribute": "name",
+     "sageboxIconStudio.autoImport": true
    }
    ```
 
@@ -105,7 +105,7 @@ Tienes SVGs inline en tu código y quieres convertirlos a componentes reutilizab
 3. **Transforma el SVG**
    - Selecciona todo el código SVG
    - Clic derecho → `Transform SVG to Icon Component`
-   - O usa el comando: `Icon Manager: Transform SVG to Icon Component`
+   - O usa el comando: `Icon Studio: Transform SVG to Icon Component`
 
 4. **Resultado**
    ```jsx
@@ -130,7 +130,7 @@ Tienes SVGs exportados de Figma/Illustrator con metadatos innecesarios que aumen
 
 1. **Optimización individual**
    - Abre un archivo SVG
-   - Comando: `Icon Manager: Optimize SVG (SVGO)`
+   - Comando: `Icon Studio: Optimize SVG (SVGO)`
    - Elige el preset:
      - **Minimal**: Cambios conservadores, máxima compatibilidad
      - **Safe**: Balance entre optimización y seguridad
@@ -179,13 +179,13 @@ Quieres establecer un sistema de iconos uniforme para todo tu equipo.
    ```
 
 2. **Configura el proyecto**
-   - Comando: `Icon Manager: Configure Project`
+   - Comando: `Icon Studio: Configure Project`
    - Define convenciones de nombres
    - Establece el formato de salida por defecto
 
 3. **Exporta como componentes**
    - Selecciona iconos en el panel
-   - Comando: `Icon Manager: Export as Component`
+   - Comando: `Icon Studio: Export as Component`
    - Elige el framework: React, Vue, Svelte, Astro
 
 4. **Genera documentación**
@@ -275,7 +275,7 @@ Necesitas un icono específico y quieres buscarlo en librerías populares como I
 ### Pasos
 
 1. **Abre el catálogo**
-   - Comando: `Icon Manager: Browse Icon Catalog`
+   - Comando: `Icon Studio: Browse Icon Catalog`
 
 2. **Busca iconos**
    - Usa el buscador para encontrar por nombre
@@ -305,7 +305,7 @@ Quieres combinar múltiples iconos en un sprite SVG para reducir peticiones HTTP
    - O marca una carpeta completa
 
 2. **Genera el sprite**
-   - Comando: `Icon Manager: Generate SVG Sprite`
+   - Comando: `Icon Studio: Generate SVG Sprite`
    - Elige la carpeta de salida
 
 3. **Resultado**
@@ -363,7 +363,7 @@ Necesitas cumplir con los requisitos de atribución de las librerías de iconos 
 ### Pasos
 
 1. **Genera archivo de licencias**
-   - Comando: `Icon Manager: Generate License Files`
+   - Comando: `Icon Studio: Generate License Files`
 
 2. **Revisa el resultado**
    - Se crea un archivo con todas las licencias
@@ -383,7 +383,7 @@ Quieres saber qué iconos se están usando realmente en tu código y cuáles no.
 ### Pasos
 
 1. **Escanea los usos**
-   - Comando: `Icon Manager: Scan Icon Usages`
+   - Comando: `Icon Studio: Scan Icon Usages`
    - O haz clic en el icono de referencias en el panel
 
 2. **Revisa el reporte**
@@ -412,43 +412,43 @@ Tu proyecto usa diferentes frameworks o necesitas generar componentes para vario
 **React/JSX**
 ```json
 {
-  "iconManager.outputFormat": "jsx",
-  "iconManager.componentName": "Icon",
-  "iconManager.componentImport": "@/components/Icon"
+  "sageboxIconStudio.outputFormat": "jsx",
+  "sageboxIconStudio.componentName": "Icon",
+  "sageboxIconStudio.componentImport": "@/components/Icon"
 }
 ```
 
 **Vue**
 ```json
 {
-  "iconManager.outputFormat": "vue",
-  "iconManager.componentName": "BaseIcon",
-  "iconManager.componentImport": "@/components/BaseIcon.vue"
+  "sageboxIconStudio.outputFormat": "vue",
+  "sageboxIconStudio.componentName": "BaseIcon",
+  "sageboxIconStudio.componentImport": "@/components/BaseIcon.vue"
 }
 ```
 
 **Svelte**
 ```json
 {
-  "iconManager.outputFormat": "svelte",
-  "iconManager.componentName": "Icon",
-  "iconManager.componentImport": "$lib/components/Icon.svelte"
+  "sageboxIconStudio.outputFormat": "svelte",
+  "sageboxIconStudio.componentName": "Icon",
+  "sageboxIconStudio.componentImport": "$lib/components/Icon.svelte"
 }
 ```
 
 **Astro**
 ```json
 {
-  "iconManager.outputFormat": "astro",
-  "iconManager.componentName": "Icon",
-  "iconManager.componentImport": "@/components/Icon.astro"
+  "sageboxIconStudio.outputFormat": "astro",
+  "sageboxIconStudio.componentName": "Icon",
+  "sageboxIconStudio.componentImport": "@/components/Icon.astro"
 }
 ```
 
 **HTML (Iconify)**
 ```json
 {
-  "iconManager.outputFormat": "html"
+  "sageboxIconStudio.outputFormat": "html"
 }
 ```
 
@@ -637,7 +637,7 @@ Estás revisando código y quieres saltar rápidamente al archivo SVG o vicevers
    - Salta directamente al archivo SVG
 
 3. **Comando Preview**
-   - `Icon Manager: Preview Icon at Cursor`
+   - `Icon Studio: Preview Icon at Cursor`
    - Abre el panel de detalles
 
 ### Desde el SVG al Código
@@ -668,8 +668,8 @@ Necesitas generar archivos optimizados para producción.
 
 ```json
 {
-  "iconManager.outputDirectory": "src/generated",
-  "iconManager.outputFormat": "both"  // "icons.ts", "sprite.svg", o "both"
+  "sageboxIconStudio.outputDirectory": "src/generated",
+  "sageboxIconStudio.outputFormat": "both"  // "icons.ts", "sprite.svg", o "both"
 }
 ```
 
@@ -680,7 +680,7 @@ Necesitas generar archivos optimizados para producción.
    - Elige el formato (TypeScript, Sprite, o ambos)
 
 2. **Ejecuta el build**
-   - Comando: `Icon Manager: Build Icons`
+   - Comando: `Icon Studio: Build Icons`
    - Se generan los archivos optimizados
 
 3. **Resultado**
@@ -715,7 +715,7 @@ Tu proyecto ha crecido y tienes muchos iconos que ya no usas.
 ### Pasos
 
 1. **Escanea usos**
-   - Comando: `Icon Manager: Scan Icon Usages`
+   - Comando: `Icon Studio: Scan Icon Usages`
    - Identifica iconos sin referencias
 
 2. **Revisa los candidatos**
@@ -745,16 +745,16 @@ Tu proyecto ha crecido y tienes muchos iconos que ya no usas.
 
 ---
 
-## 20. Integración con Icon Manager App
+## 20. Integración con Icon Studio App
 
 ### Escenario
-Usas la aplicación Icon Manager de escritorio/web y quieres sincronizar con VS Code.
+Usas la aplicación Icon Studio de escritorio/web y quieres sincronizar con VS Code.
 
 ### Configuración
 
 ```json
 {
-  "iconManager.libraryPath": "./icons.json"
+  "sageboxIconStudio.libraryPath": "./icons.json"
 }
 ```
 
@@ -913,13 +913,13 @@ Tu componente de iconos usa atributos diferentes a los estándar.
 ```json
 {
   // Nombre del atributo para el identificador del icono
-  "iconManager.iconNameAttribute": "icon",
+  "sageboxIconStudio.iconNameAttribute": "icon",
   
   // Nombre del componente
-  "iconManager.componentName": "SvgIcon",
+  "sageboxIconStudio.componentName": "SvgIcon",
   
   // Path de import
-  "iconManager.componentImport": "@acme/ui/SvgIcon"
+  "sageboxIconStudio.componentImport": "@acme/ui/SvgIcon"
 }
 ```
 
@@ -1063,7 +1063,7 @@ Necesitas encontrar iconos específicos de las más de 150,000 opciones disponib
 ### Pasos
 
 1. **Abre la búsqueda**
-   - Comando: `Icon Manager: Search Icons (Iconify)`
+   - Comando: `Icon Studio: Search Icons (Iconify)`
    - O haz clic en el icono 🔍 en el panel
 
 2. **Busca por palabra clave**
@@ -1293,7 +1293,7 @@ Quieres generar un sprite SVG junto con un componente helper para usarlo fácilm
 ### Pasos
 
 1. **Ejecuta el comando**
-   - `Icon Manager: Generate SVG Sprite`
+   - `Icon Studio: Generate SVG Sprite`
 
 2. **Elige el formato del helper**
    - React
@@ -1362,7 +1362,7 @@ No requiere configuración adicional. El watcher se activa automáticamente.
 ### Tip
 
 Para forzar un refresh manual:
-- Comando: `Icon Manager: Refresh Icons`
+- Comando: `Icon Studio: Refresh Icons`
 - O haz clic en el icono 🔄 del panel
 
 ---
@@ -1374,7 +1374,7 @@ Quieres usar tus iconos como Web Components nativos sin dependencia de framework
 
 ### Build Automático
 
-Al ejecutar `Icon Manager: Build Icons` se genera:
+Al ejecutar `Icon Studio: Build Icons` se genera:
 
 **sg-icon.js** (Web Component)
 ```javascript
@@ -1423,11 +1423,11 @@ Configura atajos para las acciones más frecuentes:
 ```json
 {
   "key": "ctrl+shift+i",
-  "command": "iconManager.openPanel"
+  "command": "sageboxIconStudio.openPanel"
 },
 {
   "key": "ctrl+alt+t",
-  "command": "iconManager.transformSvgToIcon"
+  "command": "sageboxIconStudio.transformSvgToIcon"
 }
 ```
 
@@ -1439,7 +1439,7 @@ Configura atajos para las acciones más frecuentes:
 ### Integración con el Workflow
 1. Diseñador exporta SVGs desde Figma
 2. Desarrollador importa al proyecto
-3. Icon Manager optimiza automáticamente
+3. Icon Studio optimiza automáticamente
 4. Se transforman a componentes
 5. Se generan sprites para producción
 

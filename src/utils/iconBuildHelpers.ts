@@ -1,12 +1,11 @@
 /**
  * Icon Build Helpers
- * 
+ *
  * Helper functions for building and importing icons to the library.
  * Extracted from miscCommands.ts to reduce duplication.
  */
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
 import { SvgTransformer } from '../services/SvgTransformer';
 import { addToIconsJs, addToSpriteSvg } from '../utils/iconsFileManager';
 import { getConfig, getOutputPathOrWarn, getFullOutputPath } from '../utils/configHelper';
@@ -31,7 +30,7 @@ export interface BuildIconOptions {
   iconName: string;
   svgContent: string;
   svgTransformer: SvgTransformer;
-  outputPath?: string;  // If not provided, uses configured output path
+  outputPath?: string; // If not provided, uses configured output path
 }
 
 /**
@@ -40,7 +39,7 @@ export interface BuildIconOptions {
  */
 export async function buildIcon(options: BuildIconOptions): Promise<BuildResult> {
   const { iconName, svgContent, svgTransformer, outputPath: customPath } = options;
-  
+
   const outputPath = customPath || getOutputPathOrWarn();
   if (!outputPath) {
     return {
@@ -48,7 +47,7 @@ export async function buildIcon(options: BuildIconOptions): Promise<BuildResult>
       iconName,
       outputPath: '',
       format: 'icons',
-      error: 'No output path configured'
+      error: 'No output path configured',
     };
   }
 
@@ -59,14 +58,19 @@ export async function buildIcon(options: BuildIconOptions): Promise<BuildResult>
     if (isSprite) {
       await addToSpriteSvg(outputPath, iconName, svgContent, svgTransformer);
     } else {
-      await addToIconsJs(outputPath, iconName, svgContent, svgTransformer);
+      await addToIconsJs({
+        outputPath,
+        iconName,
+        svgContent,
+        transformer: svgTransformer,
+      });
     }
 
     return {
       success: true,
       iconName,
       outputPath,
-      format: isSprite ? 'sprite' : 'icons'
+      format: isSprite ? 'sprite' : 'icons',
     };
   } catch (error: any) {
     return {
@@ -74,7 +78,7 @@ export async function buildIcon(options: BuildIconOptions): Promise<BuildResult>
       iconName,
       outputPath,
       format: isSprite ? 'sprite' : 'icons',
-      error: error.message
+      error: error.message,
     };
   }
 }
@@ -96,23 +100,29 @@ export interface DeletePromptOptions {
 export async function showDeleteOriginalPrompt(options?: DeletePromptOptions): Promise<boolean> {
   const config = getConfig();
   const isSprite = config.buildFormat === 'sprite.svg';
-  const defaultDelete = vscode.workspace.getConfiguration('iconManager').get<boolean>('deleteAfterBuild', false);
-  
-  const choice = await vscode.window.showQuickPick([
-    { 
-      label: `$(trash) ${t('editor.deleteOriginalSvg')}`, 
-      description: t('editor.deleteOriginalSvgDesc'),
-      value: true 
-    },
-    { 
-      label: `$(file) ${t('editor.keepOriginalSvg')}`, 
-      description: t('editor.keepOriginalSvgDesc'),
-      value: false 
+  const defaultDelete = vscode.workspace
+    .getConfiguration('iconStudio')
+    .get<boolean>('deleteAfterBuild', false);
+
+  const choice = await vscode.window.showQuickPick(
+    [
+      {
+        label: `$(trash) ${t('editor.deleteOriginalSvg')}`,
+        description: t('editor.deleteOriginalSvgDesc'),
+        value: true,
+      },
+      {
+        label: `$(file) ${t('editor.keepOriginalSvg')}`,
+        description: t('editor.keepOriginalSvgDesc'),
+        value: false,
+      },
+    ],
+    {
+      placeHolder: t('editor.whatToDoWithOriginal'),
+      title:
+        options?.title || `${t('editor.addTo')} ${isSprite ? 'Sprite' : t('editor.iconsLibrary')}`,
     }
-  ], {
-    placeHolder: t('editor.whatToDoWithOriginal'),
-    title: options?.title || `${t('editor.addTo')} ${isSprite ? 'Sprite' : t('editor.iconsLibrary')}`
-  });
+  );
 
   return choice?.value ?? options?.defaultValue ?? defaultDelete;
 }
@@ -133,7 +143,7 @@ export function generateReplacement(iconName: string, languageId: string): strin
   if (['javascriptreact', 'typescriptreact', 'vue', 'svelte', 'astro'].includes(languageId)) {
     return `<${componentName} name="${iconName}" />`;
   }
-  
+
   return `<${componentName} name="${iconName}"></${componentName}>`;
 }
 
@@ -146,16 +156,16 @@ export async function checkScriptImport(
 ): Promise<void> {
   const config = getConfig();
   const isSprite = config.buildFormat === 'sprite.svg';
-  
+
   // Only needed for web component format and HTML files
   if (isSprite) return;
-  
+
   const ext = path.extname(documentUri).slice(1).toLowerCase();
   if (!['html', 'htm'].includes(ext)) return;
 
   const fullText = document.getText();
   const hasIconScript = fullText.includes('icon.js') || fullText.includes('icons.js');
-  
+
   if (!hasIconScript) {
     const outputDir = config.outputDirectory || 'icon-studio-icons';
     const addScript = await vscode.window.showWarningMessage(
@@ -163,7 +173,7 @@ export async function checkScriptImport(
       t('messages.copyToClipboard'),
       t('messages.dismiss')
     );
-    
+
     if (addScript === t('messages.copyToClipboard')) {
       const scriptTag = `<script type="module" src="./${outputDir}/icon.js"></script>`;
       await vscode.env.clipboard.writeText(scriptTag);
@@ -186,7 +196,7 @@ export function createBuiltIcon(
     svg: svgContent,
     path: outputPath || sourcePath || '',
     source: 'library',
-    isBuilt: true
+    isBuilt: true,
   };
 }
 
@@ -196,6 +206,7 @@ export function createBuiltIcon(
 export function showBuildSuccess(result: BuildResult, extras?: string[]): void {
   const formatName = result.format === 'sprite' ? 'sprite' : t('editor.iconsLibrary');
   const targets = extras ? [formatName, ...extras].join(' & ') : formatName;
-  vscode.window.showInformationMessage(t('messages.iconImported', { name: result.iconName, targets }));
+  vscode.window.showInformationMessage(
+    t('messages.iconImported', { name: result.iconName, targets })
+  );
 }
-

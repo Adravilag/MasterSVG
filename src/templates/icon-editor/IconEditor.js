@@ -20,6 +20,12 @@
     
     // Track if filters were calculated (informative) or manually changed
     let filtersAreCalculated = false;
+    // Filters enabled state (UI toggle)
+    let filtersEnabled = true;
+    // Current filter values (for re-applying after SVG changes)
+    let currentHue = 0;
+    let currentSaturation = 100;
+    let currentBrightness = 100;
     
     window.revertOptimized = function() {
       vscode.postMessage({
@@ -54,6 +60,11 @@
       const saturation = parseInt(document.getElementById('saturationSlider').value);
       const brightness = parseInt(document.getElementById('brightnessSlider').value);
       
+      // Store current values for re-applying after SVG changes
+      currentHue = hue;
+      currentSaturation = saturation;
+      currentBrightness = brightness;
+      
       document.getElementById('hueValue').textContent = hue + 'deg';
       document.getElementById('saturationValue').textContent = saturation + '%';
       document.getElementById('brightnessValue').textContent = brightness + '%';
@@ -61,11 +72,29 @@
       const filterString = `hue-rotate(${hue}deg) saturate(${saturation}%) brightness(${brightness}%)`;
       const hasFilters = hue !== 0 || saturation !== 100 || brightness !== 100;
 
+      // If filters are disabled by the user, force no filters
+      if (!filtersEnabled) {
+        if (container) {
+          const svg = container.querySelector('svg');
+          if (svg) svg.style.filter = '';
+        }
+      }
+
       const container = document.getElementById('zoomContainer');
       if (container) {
         const svg = container.querySelector('svg');
         if (svg) {
-          svg.style.filter = filterString;
+          // Don't use CSS filter - instead, transform colors directly in SVG
+          // This ensures preview matches what the build will produce
+          svg.style.filter = '';
+          
+          if (hasFilters && filtersEnabled) {
+            // Get all color attributes and transform them
+            updateSvgColorsWithFilters(svg, hue, saturation, brightness);
+          } else {
+            // Restore original colors
+            restoreSvgOriginalColors(svg);
+          }
         }
       }
 
@@ -78,7 +107,7 @@
         const swatch = item.querySelector('.color-swatch');
         if (label && input && swatch) {
           const originalColor = input.dataset.originalColor || input.value;
-          if (hasFilters) {
+          if (hasFilters && filtersEnabled) {
             const filteredColor = applyColorFilters(originalColor, hue, saturation, brightness);
             filteredColors.push(filteredColor);
             // Update label
@@ -118,10 +147,52 @@
       }
     };
 
-    // Apply HSB filters to a color and return the result
-    function applyColorFilters(colorStr, hue, saturation, brightness) {
+    // Toggle filters enabled/disabled from UI
+    window.toggleFiltersEnabled = function() {
+      filtersEnabled = !filtersEnabled;
+      const btn = document.getElementById('filtersToggleBtn');
+      if (btn) {
+        if (filtersEnabled) {
+          btn.classList.add('active');
+          btn.title = i18n?.disableFilters || 'Disable global filters';
+        } else {
+          btn.classList.remove('active');
+          btn.title = i18n?.enableFilters || 'Enable global filters';
+        }
+      }
+      // Disable/enable inputs
+      const controls = ['hueSlider','saturationSlider','brightnessSlider'];
+      controls.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = !filtersEnabled;
+      });
+      // Update visual feedback on filters container
+      const filtersContainer = document.querySelector('.filters-container');
+      if (filtersContainer) {
+        if (filtersEnabled) {
+          filtersContainer.classList.remove('filters-disabled');
+        } else {
+          filtersContainer.classList.add('filters-disabled');
+        }
+      }
+      // If disabling, reset visual filters
+      if (!filtersEnabled) {
+        document.getElementById('hueValue').textContent = '0deg';
+        document.getElementById('saturationValue').textContent = '100%';
+        document.getElementById('brightnessValue').textContent = '100%';
+        updateFilters(false);
+      } else {
+        // Re-apply current slider values
+        updateFilters(false);
+      }
+    };
+
+    // Apply CSS-like filters to a color and return the result
+    // This mimics the behavior of CSS hue-rotate(), saturate(), brightness()
+    function applyColorFilters(colorStr, hueRotate, saturatePercent, brightnessPercent) {
       // Convert color to RGB values
       let r, g, b;
+      let alpha = null; // Track alpha for RGBA colors
       
       if (colorStr.startsWith('#')) {
         const hex = colorStr.slice(1);
@@ -137,12 +208,15 @@
           return colorStr;
         }
       } else if (colorStr.startsWith('rgb')) {
-        // Handle rgb() and rgba()
-        const match = colorStr.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+        // Handle rgb() and rgba() with optional alpha
+        const match = colorStr.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\s*\)/i);
         if (match) {
           r = parseInt(match[1]);
           g = parseInt(match[2]);
           b = parseInt(match[3]);
+          if (match[4] !== undefined) {
+            alpha = parseFloat(match[4]);
+          }
         } else {
           return colorStr;
         }
@@ -150,60 +224,127 @@
         return colorStr; // Can't process named colors easily
       }
 
-      // Convert to HSL
-      r /= 255; g /= 255; b /= 255;
-      const max = Math.max(r, g, b), min = Math.min(r, g, b);
-      let h, s, l = (max + min) / 2;
+      // Step 1: Apply hue-rotate (CSS hue-rotate uses a color matrix)
+      // Convert degrees to radians
+      const angle = (hueRotate * Math.PI) / 180;
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      
+      // Hue rotation matrix (approximation of CSS hue-rotate)
+      const r1 = r * (0.213 + cos * 0.787 - sin * 0.213) +
+                 g * (0.715 - cos * 0.715 - sin * 0.715) +
+                 b * (0.072 - cos * 0.072 + sin * 0.928);
+      const g1 = r * (0.213 - cos * 0.213 + sin * 0.143) +
+                 g * (0.715 + cos * 0.285 + sin * 0.140) +
+                 b * (0.072 - cos * 0.072 - sin * 0.283);
+      const b1 = r * (0.213 - cos * 0.213 - sin * 0.787) +
+                 g * (0.715 - cos * 0.715 + sin * 0.715) +
+                 b * (0.072 + cos * 0.928 + sin * 0.072);
 
-      if (max === min) {
-        h = s = 0;
-      } else {
-        const d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch (max) {
-          case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
-          case g: h = ((b - r) / d + 2) / 6; break;
-          case b: h = ((r - g) / d + 4) / 6; break;
+      // Step 2: Apply saturate (CSS saturate uses a color matrix)
+      const sat = saturatePercent / 100;
+      const r2 = r1 * (0.213 + 0.787 * sat) + g1 * (0.715 - 0.715 * sat) + b1 * (0.072 - 0.072 * sat);
+      const g2 = r1 * (0.213 - 0.213 * sat) + g1 * (0.715 + 0.285 * sat) + b1 * (0.072 - 0.072 * sat);
+      const b2 = r1 * (0.213 - 0.213 * sat) + g1 * (0.715 - 0.715 * sat) + b1 * (0.072 + 0.928 * sat);
+
+      // Step 3: Apply brightness (simple multiplication)
+      const bright = brightnessPercent / 100;
+      const r3 = r2 * bright;
+      const g3 = g2 * bright;
+      const b3 = b2 * bright;
+
+      // Clamp values
+      const clamp = x => Math.max(0, Math.min(255, Math.round(x)));
+      
+      // If original was RGBA, preserve alpha
+      if (alpha !== null) {
+        return `rgba(${clamp(r3)},${clamp(g3)},${clamp(b3)},${alpha})`;
+      }
+      
+      // Otherwise return hex
+      const toHex = x => clamp(x).toString(16).padStart(2, '0');
+      return `#${toHex(r3)}${toHex(g3)}${toHex(b3)}`;
+    }
+
+    // Store for original SVG colors to restore when filters are reset
+    let svgOriginalColors = new Map();
+
+    /**
+     * Update SVG element colors with filters applied
+     * This ensures preview matches what build will produce
+     */
+    function updateSvgColorsWithFilters(svg, hue, saturation, brightness) {
+      const colorAttrs = ['fill', 'stroke', 'stop-color', 'flood-color', 'lighting-color'];
+      
+      // Process all elements with color attributes
+      const elements = svg.querySelectorAll('*');
+      elements.forEach(el => {
+        colorAttrs.forEach(attr => {
+          const color = el.getAttribute(attr);
+          if (color && color !== 'none' && color !== 'transparent' && !color.startsWith('url(')) {
+            // Store original if not already stored
+            const key = el.tagName + '_' + attr + '_' + Array.from(elements).indexOf(el);
+            if (!svgOriginalColors.has(key)) {
+              svgOriginalColors.set(key, { element: el, attr, color });
+            }
+            // Apply filter
+            const filtered = applyColorFilters(color, hue, saturation, brightness);
+            el.setAttribute(attr, filtered);
+          }
+        });
+        
+        // Also handle style attribute
+        const style = el.getAttribute('style');
+        if (style) {
+          let newStyle = style;
+          colorAttrs.forEach(attr => {
+            const regex = new RegExp(`(${attr})\\s*:\\s*([^;]+)`, 'gi');
+            newStyle = newStyle.replace(regex, (match, prop, color) => {
+              color = color.trim();
+              if (color !== 'none' && color !== 'transparent' && !color.startsWith('url(')) {
+                const key = el.tagName + '_style_' + attr + '_' + Array.from(elements).indexOf(el);
+                if (!svgOriginalColors.has(key)) {
+                  svgOriginalColors.set(key, { element: el, attr: 'style', prop, color });
+                }
+                const filtered = applyColorFilters(color, hue, saturation, brightness);
+                return `${prop}: ${filtered}`;
+              }
+              return match;
+            });
+          });
+          el.setAttribute('style', newStyle);
         }
-      }
+      });
+    }
 
-      // Apply hue rotation
-      h = (h + hue / 360) % 1;
-      if (h < 0) h += 1;
+    /**
+     * Restore original SVG colors when filters are reset
+     */
+    function restoreSvgOriginalColors(svg) {
+      svgOriginalColors.forEach((data, key) => {
+        if (data.attr === 'style') {
+          const style = data.element.getAttribute('style');
+          if (style) {
+            const regex = new RegExp(`(${data.prop})\\s*:\\s*([^;]+)`, 'gi');
+            const newStyle = style.replace(regex, `${data.prop}: ${data.color}`);
+            data.element.setAttribute('style', newStyle);
+          }
+        } else {
+          data.element.setAttribute(data.attr, data.color);
+        }
+      });
+    }
 
-      // Apply saturation (as multiplier, 100% = no change)
-      s = Math.min(1, Math.max(0, s * (saturation / 100)));
-
-      // Apply brightness (as multiplier, 100% = no change)
-      l = Math.min(1, Math.max(0, l * (brightness / 100)));
-
-      // Convert back to RGB
-      let r2, g2, b2;
-      if (s === 0) {
-        r2 = g2 = b2 = l;
-      } else {
-        const hue2rgb = (p, q, t) => {
-          if (t < 0) t += 1;
-          if (t > 1) t -= 1;
-          if (t < 1/6) return p + (q - p) * 6 * t;
-          if (t < 1/2) return q;
-          if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-          return p;
-        };
-        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-        const p = 2 * l - q;
-        r2 = hue2rgb(p, q, h + 1/3);
-        g2 = hue2rgb(p, q, h);
-        b2 = hue2rgb(p, q, h - 1/3);
-      }
-
-      // Convert to hex
-      const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
-      return `#${toHex(r2)}${toHex(g2)}${toHex(b2)}`;
+    /**
+     * Clear stored original colors (call when SVG changes)
+     */
+    function clearSvgOriginalColors() {
+      svgOriginalColors.clear();
     }
 
     window.resetFilters = function() {
       document.getElementById('hueSlider').value = 0;
+
       document.getElementById('saturationSlider').value = 100;
       document.getElementById('brightnessSlider').value = 100;
       updateFilters();
@@ -319,21 +460,26 @@
     // Initialize saved animation UI on load and apply to preview
     document.addEventListener('DOMContentLoaded', () => {
       // Calculate filters from color difference between original and current
-      const calculatedFilters = calculateFiltersFromColors(originalColors, currentColors);
-      
-      if (calculatedFilters.hue !== 0 || calculatedFilters.saturation !== 100 || calculatedFilters.brightness !== 100) {
-        document.getElementById('hueSlider').value = calculatedFilters.hue;
-        document.getElementById('hueValue').textContent = calculatedFilters.hue + 'deg';
-        document.getElementById('saturationSlider').value = calculatedFilters.saturation;
-        document.getElementById('saturationValue').textContent = calculatedFilters.saturation + '%';
-        document.getElementById('brightnessSlider').value = calculatedFilters.brightness;
-        document.getElementById('brightnessValue').textContent = calculatedFilters.brightness + '%';
-        
-        // Mark filters as calculated (informative only, colors already transformed)
-        filtersAreCalculated = true;
-        
-        // Don't apply CSS filter - colors are already transformed
-        // Just update the swatches display
+      // Only apply initial filters when the current palette differs from original (i.e. not original)
+      function arraysEqual(a, b) {
+        if (!a || !b) return false;
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+        return true;
+      }
+
+      if (!arraysEqual(originalColors, currentColors)) {
+        const calculatedFilters = calculateFiltersFromColors(originalColors, currentColors);
+        if (calculatedFilters.hue !== 0 || calculatedFilters.saturation !== 100 || calculatedFilters.brightness !== 100) {
+          document.getElementById('hueSlider').value = calculatedFilters.hue;
+          document.getElementById('hueValue').textContent = calculatedFilters.hue + 'deg';
+          document.getElementById('saturationSlider').value = calculatedFilters.saturation;
+          document.getElementById('saturationValue').textContent = calculatedFilters.saturation + '%';
+          document.getElementById('brightnessSlider').value = calculatedFilters.brightness;
+          document.getElementById('brightnessValue').textContent = calculatedFilters.brightness + '%';
+          // Mark filters as calculated (informative only, colors already transformed)
+          filtersAreCalculated = true;
+        }
       }
       
       // Also check for inline CSS filter (fallback)
@@ -595,6 +741,42 @@
         clearTimeout(colorChangeTimeout);
         colorChangeTimeout = null;
       }
+      // When user manually changes a color, reset filters to neutral
+      // because the color no longer reflects the filter values
+      document.getElementById('hueSlider').value = 0;
+      document.getElementById('saturationSlider').value = 100;
+      document.getElementById('brightnessSlider').value = 100;
+      document.getElementById('hueValue').textContent = '0deg';
+      document.getElementById('saturationValue').textContent = '100%';
+      document.getElementById('brightnessValue').textContent = '100%';
+      // Remove CSS filter from preview
+      const container = document.getElementById('zoomContainer');
+      if (container) {
+        const svg = container.querySelector('svg');
+        if (svg) svg.style.filter = '';
+      }
+      // Mark filters as calculated (informative only) so they won't be re-applied on build
+      filtersAreCalculated = true;
+      
+      // Update the data-original-color to the new color so future filter calculations use this as base
+      const colorItems = document.querySelectorAll('.color-item');
+      colorItems.forEach(item => {
+        const input = item.querySelector('input[type="color"]');
+        const label = item.querySelector('.color-label');
+        const swatch = item.querySelector('.color-swatch');
+        if (input && input.dataset.originalColor === oldColor) {
+          input.dataset.originalColor = newColor;
+          if (label) {
+            label.textContent = newColor;
+            label.style.color = '';
+            label.title = '';
+          }
+          if (swatch) {
+            swatch.style.backgroundColor = newColor;
+          }
+        }
+      });
+      
       vscode.postMessage({ command: 'changeColor', oldColor, newColor });
     };
     
@@ -632,16 +814,13 @@
     // Variant functions
     function saveVariant() {
       try {
-        console.log('[IconWrap IconEditor JS] saveVariant called');
         vscode.postMessage({ command: 'saveVariant' });
-        console.log('[IconWrap IconEditor JS] postMessage sent');
       } catch (e) {
-        console.error('[IconWrap IconEditor JS] Error in saveVariant:', e);
+        console.error('[Icon Studio IconEditor JS] Error in saveVariant:', e);
       }
     }
     
     function generateAutoVariant(type) {
-      console.log('[IconWrap IconEditor JS] generateAutoVariant called:', type);
       vscode.postMessage({ command: 'generateAutoVariant', type });
     }
     
@@ -765,8 +944,14 @@
       
       if (message.command === 'previewUpdated') {
         // Only update SVG preview, don't touch swatches (picker is open)
+        clearSvgOriginalColors();
         const container = document.getElementById('zoomContainer');
         if (container) container.innerHTML = message.svg;
+        // Re-apply filters if enabled
+        const svg = container.querySelector('svg');
+        if (svg && filtersEnabled) {
+          updateSvgColorsWithFilters(svg, currentHue, currentSaturation, currentBrightness);
+        }
       }
       
       if (message.command === 'nameUpdated') {
@@ -776,9 +961,15 @@
       
       if (message.command === 'colorChanged') {
         resetOptimizationButtons();
+        clearSvgOriginalColors();
         // Update preview
         const container = document.getElementById('zoomContainer');
         if (container) container.innerHTML = message.svg;
+        // Re-apply filters if enabled
+        const svg = container.querySelector('svg');
+        if (svg && filtersEnabled) {
+          updateSvgColorsWithFilters(svg, currentHue, currentSaturation, currentBrightness);
+        }
         
         // Update color swatches
         if (message.colors) {
@@ -798,26 +989,22 @@
             if (message.colors.length > 0) {
               message.colors.forEach(color => {
                 const hexColor = toHexColor(color);
+                const escapedColor = color.replace(/'/g, "\\'").replace(/"/g, '\\"');
                 swatchesHtml += `
-                  <div class="color-item">
-                    <div class="color-swatch" style="background-color: \${color}" title="\${color}">
-                      <input type="color" value="\${hexColor}" 
-                        oninput="previewColor('\${color}', this.value)" 
-                        onchange="applyColor('\${color}', this.value)" 
-                        data-original="\${color}" />
+                  <div class="color-item" title="Click to change color">
+                    <div class="color-swatch" style="background-color: ${color}">
+                      <input type="color" value="${hexColor}" 
+                        data-original-color="${escapedColor}"
+                        onchange="changeColor('${escapedColor}', this.value)"
+                        oninput="previewColor('${escapedColor}', this.value)" />
                     </div>
+                    <span class="color-label" onclick="copyToClipboard('${escapedColor}')" title="Click to copy: ${color}">${color}</span>
                   </div>
                 `;
               });
             } else if (!message.hasCurrentColor) {
-              swatchesHtml += '<span class="no-colors">' + i18n.noColorsDetected + '</span>';
+              swatchesHtml += '<span class="no-colors">' + (i18n.noColorsDetected || 'No colors detected') + '</span>';
             }
-            
-            swatchesHtml += `
-              <button class="add-color-btn" onclick="addColor()" title="${i18n.addFillColor}">
-                <span class="codicon codicon-add"></span>
-              </button>
-            `;
             
             swatchesContainer.innerHTML = swatchesHtml;
           }
@@ -870,10 +1057,16 @@
       if (message.command === 'optimizedSvgApplied') {
         // Clear pending optimization
         optimizedSvg = null;
+        clearSvgOriginalColors();
         
         // Update preview
         const container = document.getElementById('zoomContainer');
         if (container) container.innerHTML = message.svg;
+        // Re-apply filters if enabled
+        const svg = container.querySelector('svg');
+        if (svg && filtersEnabled) {
+          updateSvgColorsWithFilters(svg, currentHue, currentSaturation, currentBrightness);
+        }
         
         // Update code tab
         const codeEl = document.getElementById('svgCodeTab');
@@ -911,9 +1104,15 @@
       }
       
       if (message.command === 'optimizationReverted') {
+        clearSvgOriginalColors();
         // Update preview
         const container = document.getElementById('zoomContainer');
         if (container) container.innerHTML = message.svg;
+        // Re-apply filters if enabled
+        const svg = container.querySelector('svg');
+        if (svg && filtersEnabled) {
+          updateSvgColorsWithFilters(svg, currentHue, currentSaturation, currentBrightness);
+        }
         
         // Update code tab
         const codeEl = document.getElementById('svgCodeTab');
@@ -967,7 +1166,55 @@
           }
         }
       }
+        // Also attempt to calculate filters based on originalColors vs new variant colors
+        try {
+          // message.variantIndex === -1 means "original" variant -> never enable filters
+          if (typeof variantIndex !== 'number' || variantIndex === -1) {
+            // ensure sliders are reset for original
+            document.getElementById('hueSlider').value = 0;
+            document.getElementById('hueValue').textContent = '0deg';
+            document.getElementById('saturationSlider').value = 100;
+            document.getElementById('saturationValue').textContent = '100%';
+            document.getElementById('brightnessSlider').value = 100;
+            document.getElementById('brightnessValue').textContent = '100%';
+            filtersAreCalculated = false;
+          } else {
+            const calculated = calculateFiltersFromColors(originalColors, colors);
+            if (calculated.hue !== 0 || calculated.saturation !== 100 || calculated.brightness !== 100) {
+              document.getElementById('hueSlider').value = calculated.hue;
+              document.getElementById('hueValue').textContent = calculated.hue + 'deg';
+              document.getElementById('saturationSlider').value = calculated.saturation;
+              document.getElementById('saturationValue').textContent = calculated.saturation + '%';
+              document.getElementById('brightnessSlider').value = calculated.brightness;
+              document.getElementById('brightnessValue').textContent = calculated.brightness + '%';
+              filtersAreCalculated = true;
+              updateFilters(false);
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
       
+
+        if (message.command === 'setFilters') {
+          try {
+            const f = message.filters || {};
+            const hue = parseInt(f.hue) || 0;
+            const saturation = parseInt(f.saturation) || 100;
+            const brightness = parseInt(f.brightness) || 100;
+            document.getElementById('hueSlider').value = hue;
+            document.getElementById('hueValue').textContent = hue + 'deg';
+            document.getElementById('saturationSlider').value = saturation;
+            document.getElementById('saturationValue').textContent = saturation + '%';
+            document.getElementById('brightnessSlider').value = brightness;
+            document.getElementById('brightnessValue').textContent = brightness + '%';
+            // Mark that filters were calculated by the extension
+            filtersAreCalculated = true;
+            updateFilters(false);
+          } catch (e) {
+            // ignore
+          }
+        }
       if (message.command === 'updateCodeTab') {
         // Update SVG code tab
         const codeEl = document.getElementById('svgCodeTab');

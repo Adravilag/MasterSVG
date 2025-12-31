@@ -11,7 +11,7 @@
   "command.goToUsage": "Ir al Uso",
   "command.transformInlineSvg": "Transformar SVG a Componente de Icono",
   "command.configureProject": "Icon Studio: Configurar Proyecto",
-  "command.editIgnoreFile": "Icon Studio: Editar Archivo de Ignorados (.iconwrapignore)",
+  "command.editIgnoreFile": "Icon Studio: Editar Archivo de Ignorados (.sageboxignore)",
   "command.refreshIcons": "Icon Studio: Actualizar Todas las Vistas",
   "command.refreshFiles": "Icon Studio: Actualizar Archivos",
   "command.refreshCode": "Icon Studio: Actualizar Código",
@@ -31,6 +31,7 @@
   "command.exportComponent": "Exportar como Componente",
   "command.generateSprite": "Icon Studio: Generar Sprite SVG",
   "command.addSvgToCollection": "Agregar a Colección de Iconos",
+  "command.importMissingIcon": "Importar desde Iconify",
   "command.removeReference": "Eliminar Referencia",
   "command.findAndReplace": "Buscar y Reemplazar Ruta",
   "command.renameIcon": "Renombrar Icono",
@@ -38,6 +39,7 @@
   "command.viewIconsFile": "Ver Archivo de Iconos",
   "command.deleteBuiltFile": "Eliminar Archivo",
   "command.buildAllReferences": "Construir Todas las Referencias",
+  "command.buildSingleIcon": "Compilar Icono",
   "command.buildAllFiles": "Construir Todos los Archivos SVG",
   "command.cleanSprite": "Icon Studio: Limpiar Sprite (Eliminar Entradas Inválidas)",
   "command.generateLicenses": "Icon Studio: Generar Licencias de Iconos",
@@ -59,9 +61,9 @@
   "config.licenseFormat.description": "Formato por defecto para archivos de licencia: combined (archivo único), perCollection (uno por colección), o both (ambos)",
   "config.autoGenerateLicenses.description": "Generar automáticamente archivos de licencia al construir iconos",
   "config.licensesFolder.description": "Nombre de carpeta para archivos de licencia generados (relativo al directorio de salida)",
-  "view.iconwrapFiles.title": "Archivos",
-  "view.iconwrapCode.title": "Código",
-  "view.iconwrapBuilt.title": "Construidos",
-  "view.iconwrapPreview.title": "Vista Previa"
+  "view.sageboxFiles.title": "Archivos",
+  "view.sageboxCode.title": "Código",
+  "view.sageboxBuilt.title": "Construidos",
+  "view.sageboxPreview.title": "Vista Previa"
 }
 

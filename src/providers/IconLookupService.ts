@@ -22,11 +22,12 @@ export interface IconStorageMaps {
 export class IconLookupService {
   /**
    * Get an icon by name, checking all sources
+   * Priority: library (built) > svg files > inline SVGs
    */
   static getIcon(name: string, storage: IconStorageMaps): WorkspaceIcon | undefined {
-    // First check svg files and library
-    let found = storage.svgFiles.get(name) || storage.libraryIcons.get(name);
-    
+    // First check library (built icons), then svg files
+    const found = storage.libraryIcons.get(name) || storage.svgFiles.get(name);
+
     // If found but no SVG content, try to load it from file
     if (found && !found.svg && found.path && fs.existsSync(found.path)) {
       try {
@@ -35,16 +36,16 @@ export class IconLookupService {
         console.error('[Icon Studio] Error reading SVG for hover:', found.path, err);
       }
     }
-    
+
     if (found) return found;
-    
+
     // Then check inline SVGs by name
     for (const icon of storage.inlineSvgs.values()) {
       if (icon.name === name || icon.name.toLowerCase() === name.toLowerCase()) {
         return icon;
       }
     }
-    
+
     return undefined;
   }
 
@@ -53,11 +54,10 @@ export class IconLookupService {
    */
   static getIconByName(name: string, storage: IconStorageMaps): WorkspaceIcon | undefined {
     // Check library icons, SVG files, and inline SVGs first
-    const found = storage.libraryIcons.get(name) || 
-           storage.svgFiles.get(name) || 
-           storage.inlineSvgs.get(name);
+    const found =
+      storage.libraryIcons.get(name) || storage.svgFiles.get(name) || storage.inlineSvgs.get(name);
     if (found) return found;
-    
+
     // Also check IMG references (svgReferences)
     for (const icons of storage.svgReferences.values()) {
       for (const icon of icons) {
@@ -101,20 +101,18 @@ export class IconLookupService {
    */
   static getSvgData(item: SvgItem): SvgDataResult | undefined {
     if (!item.icon) return undefined;
-    
+
     const icon = item.icon;
-    
+
     if (icon.svg) {
       return {
         name: icon.name,
         svg: icon.svg,
-        location: icon.filePath && icon.line 
-          ? { file: icon.filePath, line: icon.line }
-          : undefined,
-        animation: icon.animation
+        location: icon.filePath && icon.line ? { file: icon.filePath, line: icon.line } : undefined,
+        animation: icon.animation,
       };
     }
-    
+
     // For file-based SVGs, read the file
     if (icon.path && fs.existsSync(icon.path)) {
       try {
@@ -122,13 +120,13 @@ export class IconLookupService {
         return {
           name: icon.name,
           svg,
-          location: { file: icon.path, line: 1 }
+          location: { file: icon.path, line: 1 },
         };
       } catch {
         return undefined;
       }
     }
-    
+
     return undefined;
   }
 
@@ -158,7 +156,7 @@ export class IconLookupService {
    */
   static getAllIcons(storage: Pick<IconStorageMaps, 'svgFiles' | 'libraryIcons'>): WorkspaceIcon[] {
     const all: WorkspaceIcon[] = [];
-    
+
     // Add workspace icons
     for (const icon of storage.svgFiles.values()) {
       all.push(icon);
@@ -195,8 +193,10 @@ export class IconLookupService {
   /**
    * Get inline SVG by key
    */
-  static getInlineSvgByKey(key: string, inlineSvgs: Map<string, WorkspaceIcon>): WorkspaceIcon | undefined {
+  static getInlineSvgByKey(
+    key: string,
+    inlineSvgs: Map<string, WorkspaceIcon>
+  ): WorkspaceIcon | undefined {
     return inlineSvgs.get(key);
   }
 }
-

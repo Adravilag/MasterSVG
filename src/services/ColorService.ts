@@ -5,11 +5,15 @@ export class ColorService {
   /**
    * Extract colors from SVG, filtering out SMIL secondary colors for UI display
    */
-  extractColorsFromSvg(svg: string): { colors: string[]; hasCurrentColor: boolean; hasSmil: boolean } {
+  extractColorsFromSvg(svg: string): {
+    colors: string[];
+    hasCurrentColor: boolean;
+    hasSmil: boolean;
+  } {
     const { colors, hasCurrentColor, hasSmil } = this.extractAllColorsFromSvg(svg);
-    
+
     let filteredColors = colors;
-    
+
     // For SMIL SVGs, only show the primary color (currentColor or first non-black color)
     // Secondary colors like #000000 are typically used for animation effects
     if (hasSmil && colors.length > 1) {
@@ -32,16 +36,21 @@ export class ColorService {
   /**
    * Extract ALL colors from SVG without filtering (for saving variants)
    */
-  extractAllColorsFromSvg(svg: string): { colors: string[]; hasCurrentColor: boolean; hasSmil: boolean } {
+  extractAllColorsFromSvg(svg: string): {
+    colors: string[];
+    hasCurrentColor: boolean;
+    hasSmil: boolean;
+  } {
     const colorRegex = /(fill|stroke|stop-color)=["']([^"']+)["']/gi;
     const styleColorRegex = /(fill|stroke|stop-color)\s*:\s*([^;"'\s]+)/gi;
     const colorsSet = new Set<string>();
     let hasCurrentColor = false;
-    
+
     // Detect SMIL animations
-    const hasSmil = /<animate[^>]*>/i.test(svg) || 
-                    /<animateTransform[^>]*>/i.test(svg) || 
-                    /<animateMotion[^>]*>/i.test(svg);
+    const hasSmil =
+      /<animate[^>]*>/i.test(svg) ||
+      /<animateTransform[^>]*>/i.test(svg) ||
+      /<animateMotion[^>]*>/i.test(svg);
 
     let colorMatch;
     while ((colorMatch = colorRegex.exec(svg)) !== null) {
@@ -80,23 +89,30 @@ export class ColorService {
       return color;
     };
 
+    // Escape special regex characters in color strings
+    const escapeRegex = (str: string): string => {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    };
+
     const oldNorm = normalizeColor(oldColor);
     const newNorm = normalizeColor(newColor);
+    const oldEscaped = escapeRegex(oldNorm);
+    const oldColorEscaped = escapeRegex(oldColor);
 
     let result = svg;
 
     result = result.replace(
-      new RegExp(`(fill|stroke|stop-color|flood-color|lighting-color)=["']${oldNorm}["']`, 'gi'),
+      new RegExp(`(fill|stroke|stop-color|flood-color|lighting-color)=["']${oldEscaped}["']`, 'gi'),
       `$1="${newNorm}"`
     );
 
     result = result.replace(
-      new RegExp(`(fill|stroke|stop-color|flood-color|lighting-color)=["']${oldColor}["']`, 'gi'),
+      new RegExp(`(fill|stroke|stop-color|flood-color|lighting-color)=["']${oldColorEscaped}["']`, 'gi'),
       `$1="${newNorm}"`
     );
 
     result = result.replace(
-      new RegExp(`(fill|stroke|stop-color)\\s*:\\s*${oldNorm}`, 'gi'),
+      new RegExp(`(fill|stroke|stop-color)\\s*:\\s*${oldEscaped}`, 'gi'),
       `$1: ${newNorm}`
     );
 
@@ -116,29 +132,29 @@ export class ColorService {
     }
     // Handle named colors
     const namedColors: Record<string, string> = {
-      'black': '#000000',
-      'white': '#ffffff',
-      'red': '#ff0000',
-      'green': '#00ff00',
-      'blue': '#0000ff',
-      'yellow': '#ffff00',
-      'cyan': '#00ffff',
-      'magenta': '#ff00ff',
-      'gray': '#808080',
-      'grey': '#808080',
-      'orange': '#ffa500',
-      'purple': '#800080',
-      'pink': '#ffc0cb',
-      'brown': '#a52a2a',
-      'navy': '#000080',
-      'teal': '#008080',
-      'olive': '#808000',
-      'maroon': '#800000',
-      'aqua': '#00ffff',
-      'lime': '#00ff00',
-      'silver': '#c0c0c0',
-      'fuchsia': '#ff00ff',
-      'currentcolor': 'currentColor'
+      black: '#000000',
+      white: '#ffffff',
+      red: '#ff0000',
+      green: '#00ff00',
+      blue: '#0000ff',
+      yellow: '#ffff00',
+      cyan: '#00ffff',
+      magenta: '#ff00ff',
+      gray: '#808080',
+      grey: '#808080',
+      orange: '#ffa500',
+      purple: '#800080',
+      pink: '#ffc0cb',
+      brown: '#a52a2a',
+      navy: '#000080',
+      teal: '#008080',
+      olive: '#808000',
+      maroon: '#800000',
+      aqua: '#00ffff',
+      lime: '#00ff00',
+      silver: '#c0c0c0',
+      fuchsia: '#ff00ff',
+      currentcolor: 'currentColor',
     };
     const lowerColor = color.toLowerCase();
     if (namedColors[lowerColor]) {
@@ -159,11 +175,13 @@ export class ColorService {
 
   hexToRgb(hex: string): { r: number; g: number; b: number } | null {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : null;
+    return result
+      ? {
+          r: parseInt(result[1], 16),
+          g: parseInt(result[2], 16),
+          b: parseInt(result[3], 16),
+        }
+      : null;
   }
 
   rgbToHex(r: number, g: number, b: number): string {
@@ -180,11 +198,7 @@ export class ColorService {
   darkenColor(hex: string, amount: number = 0.3): string {
     const rgb = this.hexToRgb(hex);
     if (!rgb) return hex;
-    return this.rgbToHex(
-      rgb.r * (1 - amount),
-      rgb.g * (1 - amount),
-      rgb.b * (1 - amount)
-    );
+    return this.rgbToHex(rgb.r * (1 - amount), rgb.g * (1 - amount), rgb.b * (1 - amount));
   }
 
   lightenColor(hex: string, amount: number = 0.3): string {
@@ -209,10 +223,80 @@ export class ColorService {
   }
 
   /**
+   * Convert hex color to HSL
+   */
+  hexToHsl(hex: string): { h: number; s: number; l: number } | null {
+    const rgb = this.hexToRgb(hex);
+    if (!rgb) return null;
+    let { r, g, b } = rgb;
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r:
+          h = (g - b) / d + (g < b ? 6 : 0);
+          break;
+        case g:
+          h = (b - r) / d + 2;
+          break;
+        case b:
+          h = (r - g) / d + 4;
+          break;
+      }
+      h = h / 6;
+    }
+    return { h: Math.round((h % 1) * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+  }
+
+  /**
+   * Estimate CSS filter values (hue-rotate deg, saturate %, brightness %) to transform
+   * fromColor -> toColor. Returns defaults when calculation isn't possible.
+   */
+  estimateFiltersForColor(fromColor: string, toColor: string): {
+    hue: number;
+    saturation: number;
+    brightness: number;
+  } {
+    try {
+      const fromHex = this.toHexColor(fromColor);
+      const toHex = this.toHexColor(toColor);
+      const fromHsl = this.hexToHsl(fromHex);
+      const toHsl = this.hexToHsl(toHex);
+      if (!fromHsl || !toHsl) return { hue: 0, saturation: 100, brightness: 100 };
+
+      // Hue difference (shortest direction)
+      let deltaHue = toHsl.h - fromHsl.h;
+      if (deltaHue > 180) deltaHue -= 360;
+      if (deltaHue < -180) deltaHue += 360;
+
+      // Saturation multiplier relative to source (100 = same)
+      const sat = fromHsl.s === 0 ? 100 : Math.round((toHsl.s / Math.max(1, fromHsl.s)) * 100);
+
+      // Brightness multiplier relative to source (100 = same)
+      const bri = fromHsl.l === 0 ? 100 : Math.round((toHsl.l / Math.max(1, fromHsl.l)) * 100);
+
+      // Clamp values to reasonable ranges
+      const hue = Math.round(deltaHue);
+      const saturation = Math.min(250, Math.max(0, sat));
+      const brightness = Math.min(250, Math.max(0, bri));
+
+      return { hue, saturation, brightness };
+    } catch (err) {
+      return { hue: 0, saturation: 100, brightness: 100 };
+    }
+  }
+
+  /**
    * Generate auto variant colors based on transformation type
    */
   generateAutoVariantColors(
-    colors: string[], 
+    colors: string[],
     type: 'invert' | 'darken' | 'lighten' | 'muted' | 'grayscale'
   ): { colors: string[]; variantName: string } {
     let newColors: string[];
@@ -256,4 +340,3 @@ export function getColorService(): ColorService {
   }
   return colorServiceInstance;
 }
-

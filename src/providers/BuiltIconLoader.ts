@@ -18,7 +18,7 @@ export class BuiltIconLoader {
       // Try default AppData location
       const appDataPath = process.env.APPDATA || process.env.HOME || '';
       const defaultPath = path.join(appDataPath, 'icon-manager', 'icons.json');
-      
+
       if (fs.existsSync(defaultPath)) {
         this.loadIconsFromJson(defaultPath, libraryIcons);
       }
@@ -30,7 +30,10 @@ export class BuiltIconLoader {
   /**
    * Load icons from JSON file
    */
-  private static loadIconsFromJson(jsonPath: string, libraryIcons: Map<string, WorkspaceIcon>): void {
+  private static loadIconsFromJson(
+    jsonPath: string,
+    libraryIcons: Map<string, WorkspaceIcon>
+  ): void {
     try {
       const content = fs.readFileSync(jsonPath, 'utf-8');
       const icons = JSON.parse(content);
@@ -42,7 +45,7 @@ export class BuiltIconLoader {
             path: jsonPath,
             source: 'library',
             category: icon.name.includes(':') ? icon.name.split(':')[0] : 'custom',
-            svg: icon.svg || icon.body
+            svg: icon.svg || icon.body,
           });
         }
       }
@@ -59,30 +62,36 @@ export class BuiltIconLoader {
     builtIcons: Set<string>
   ): Promise<void> {
     builtIcons.clear();
-    
+
     const outputDir = getSvgConfig<string>('outputDirectory', '');
-    
+
     if (!outputDir) return;
-    
+
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) return;
-    
+
     const fullOutputPath = path.join(workspaceFolders[0].uri.fsPath, outputDir);
-    
+
     // Try to load from icons.js (or legacy icons.js/icons.ts)
     const iconsBzJs = path.join(fullOutputPath, 'icons.js');
     const iconsJs = path.join(fullOutputPath, 'icons.js');
     const iconsTs = path.join(fullOutputPath, 'icons.ts');
-    const iconsFile = fs.existsSync(iconsBzJs) ? iconsBzJs : (fs.existsSync(iconsJs) ? iconsJs : (fs.existsSync(iconsTs) ? iconsTs : null));
+    const iconsFile = fs.existsSync(iconsBzJs)
+      ? iconsBzJs
+      : fs.existsSync(iconsJs)
+        ? iconsJs
+        : fs.existsSync(iconsTs)
+          ? iconsTs
+          : null;
+
     
-    console.log('[Icon Studio] Looking for icons in:', fullOutputPath);
-    
+
     if (iconsFile) {
       await this.loadIconsFromJsFile(iconsFile, libraryIcons, builtIcons);
     } else {
-      console.log('[Icon Studio] No icons file found in output directory');
+      
     }
-    
+
     // Try to load from sprite.svg
     const spriteSvg = path.join(fullOutputPath, 'sprite.svg');
     if (fs.existsSync(spriteSvg)) {
@@ -103,27 +112,28 @@ export class BuiltIconLoader {
       const uri = vscode.Uri.file(iconsFile);
       const fileContent = await vscode.workspace.fs.readFile(uri);
       const content = Buffer.from(fileContent).toString('utf-8');
+
       
-      console.log('[Icon Studio] Reading icons file, length:', content.length);
-      
+
       // Regex to match icon exports - capture everything including optional animation
-      const iconRegex = /export\s+const\s+(\w+)\s*=\s*\{\s*name:\s*['"]([^'"]+)['"]\s*,\s*body:\s*`([\s\S]*?)`\s*,\s*viewBox:\s*['"]([^'"]+)['"](?:\s*,\s*animation:\s*\{([^}]*)\})?\s*\}/g;
+      const iconRegex =
+        /export\s+const\s+(\w+)\s*=\s*\{\s*name:\s*['"]([^'"]+)['"]\s*,\s*body:\s*`([\s\S]*?)`\s*,\s*viewBox:\s*['"]([^'"]+)['"](?:\s*,\s*animation:\s*\{([^}]*)\})?\s*\}/g;
       let match;
-      
+
       while ((match = iconRegex.exec(content)) !== null) {
         const iconName = match[2];
         const body = match[3];
         const viewBox = match[4];
         const animationStr = match[5];
-        
+
         builtIcons.add(iconName);
-        
+
         // Create a full SVG from the body
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${body}</svg>`;
-        
+
         // Parse animation if present
         const animation = this.parseAnimation(animationStr);
-        
+
         // Add to library icons so hover can find it
         libraryIcons.set(iconName, {
           name: iconName,
@@ -132,13 +142,13 @@ export class BuiltIconLoader {
           category: 'built',
           svg: svg,
           isBuilt: true,
-          animation
+          animation,
         });
+
         
-        console.log('[Icon Studio] Loaded icon:', iconName, animation ? `with animation: ${animation.type}` : '');
       }
+
       
-      console.log('[Icon Studio] Total built icons loaded:', builtIcons.size);
     } catch (error) {
       console.error('Error loading built icons:', error);
     }
@@ -149,7 +159,7 @@ export class BuiltIconLoader {
    */
   static parseAnimation(animationStr: string | undefined): IconAnimation | undefined {
     if (!animationStr) return undefined;
-    
+
     try {
       const typeMatch = animationStr.match(/type:\s*['"]([^'"]+)['"]/);
       const durationMatch = animationStr.match(/duration:\s*([\d.]+)/);
@@ -157,7 +167,7 @@ export class BuiltIconLoader {
       const iterationMatch = animationStr.match(/iteration:\s*['"]([^'"]+)['"]/);
       const delayMatch = animationStr.match(/delay:\s*([\d.]+)/);
       const directionMatch = animationStr.match(/direction:\s*['"]([^'"]+)['"]/);
-      
+
       if (typeMatch) {
         return {
           type: typeMatch[1],
@@ -165,11 +175,11 @@ export class BuiltIconLoader {
           timing: timingMatch ? timingMatch[1] : 'ease',
           iteration: iterationMatch ? iterationMatch[1] : 'infinite',
           delay: delayMatch ? parseFloat(delayMatch[1]) : undefined,
-          direction: directionMatch ? directionMatch[1] : undefined
+          direction: directionMatch ? directionMatch[1] : undefined,
         };
       }
-    } catch (e) {
-      console.warn('[Icon Studio] Failed to parse animation');
+    } catch (_e) {
+      
     }
     return undefined;
   }
@@ -185,18 +195,19 @@ export class BuiltIconLoader {
     try {
       const content = fs.readFileSync(spriteSvg, 'utf-8');
       // Extract symbols with their content
-      const symbolRegex = /<symbol[^>]*id=['"]([^'"]+)['"][^>]*viewBox=['"]([^'"]+)['"][^>]*>([\s\S]*?)<\/symbol>/gi;
+      const symbolRegex =
+        /<symbol[^>]*id=['"]([^'"]+)['"][^>]*viewBox=['"]([^'"]+)['"][^>]*>([\s\S]*?)<\/symbol>/gi;
       let match;
       while ((match = symbolRegex.exec(content)) !== null) {
         const iconName = match[1];
         const viewBox = match[2];
         const body = match[3];
-        
+
         builtIcons.add(iconName);
-        
+
         // Create a full SVG from the symbol
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${body}</svg>`;
-        
+
         // Add to library icons if not already there
         if (!libraryIcons.has(iconName)) {
           libraryIcons.set(iconName, {
@@ -205,14 +216,13 @@ export class BuiltIconLoader {
             source: 'library',
             category: 'built',
             svg: svg,
-            isBuilt: true
+            isBuilt: true,
           });
         }
       }
-      console.log('[Icon Studio] Loaded built icons from sprite.svg:', builtIcons.size);
+      
     } catch (error) {
       console.error('Error loading built icons from sprite.svg:', error);
     }
   }
 }
-

@@ -1,6 +1,6 @@
 /**
  * Tests para SvgOptimizer
- * 
+ *
  * Requisitos cubiertos:
  * - RF-3.1: Optimización con SVGO
  */
@@ -169,5 +169,3 @@ describe('SvgOptimizer', () => {
     });
   });
 });
-
-

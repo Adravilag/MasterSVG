@@ -13,8 +13,10 @@ import type { BuiltIconsProvider } from './BuiltIconsProvider';
  * TreeDataProvider for SVG Files - separate view showing only SVG files in workspace
  */
 export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
-  private _onDidChangeTreeData: vscode.EventEmitter<SvgItem | undefined | null | void> = new vscode.EventEmitter();
-  readonly onDidChangeTreeData: vscode.Event<SvgItem | undefined | null | void> = this._onDidChangeTreeData.event;
+  private _onDidChangeTreeData: vscode.EventEmitter<SvgItem | undefined | null | void> =
+    new vscode.EventEmitter();
+  readonly onDidChangeTreeData: vscode.Event<SvgItem | undefined | null | void> =
+    this._onDidChangeTreeData.event;
   private folderCache: Map<string, SvgItem> = new Map();
   private svgFiles: Map<string, WorkspaceIcon> = new Map();
   private isInitialized = false;
@@ -92,13 +94,7 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
     const icon = this.svgFiles.get(iconName);
     if (icon) {
       // Create a SvgItem for this icon and fire partial refresh
-      const item = new SvgItem(
-        icon.name,
-        0,
-        vscode.TreeItemCollapsibleState.None,
-        'icon',
-        icon
-      );
+      const item = new SvgItem(icon.name, 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
       this._onDidChangeTreeData.fire(item);
     }
   }
@@ -123,7 +119,7 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
       await this.scanPromise;
       return;
     }
-    
+
     if (!this.isInitialized && !this.isScanning) {
       this.isScanning = true;
       // Ensure BuiltIconsProvider is also initialized to get build status
@@ -183,14 +179,14 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
           await this.scanDirectory(fullPath, `${category}/${entry.name}`);
         } else if (entry.isFile() && entry.name.endsWith('.svg')) {
           if (shouldIgnorePath(fullPath)) continue;
-          
+
           const iconName = path.basename(entry.name, '.svg');
           this.svgFiles.set(iconName, {
             name: iconName,
             path: fullPath,
             source: 'workspace',
             category: category,
-            svg: undefined
+            svg: undefined,
           });
         }
       }
@@ -202,7 +198,16 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
   private async scanAllSvgs(folderPath: string, relativePath: string = ''): Promise<void> {
     if (!fs.existsSync(folderPath) || shouldIgnorePath(folderPath)) return;
 
-    const skipDirs = ['node_modules', '.git', 'dist', 'build', '.next', '.nuxt', 'coverage', '.svelte-kit'];
+    const skipDirs = [
+      'node_modules',
+      '.git',
+      'dist',
+      'build',
+      '.next',
+      '.nuxt',
+      'coverage',
+      '.svelte-kit',
+    ];
 
     try {
       const entries = fs.readdirSync(folderPath, { withFileTypes: true });
@@ -217,16 +222,16 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
           }
         } else if (entry.isFile() && entry.name.endsWith('.svg')) {
           if (shouldIgnorePath(fullPath)) continue;
-          
+
           const iconName = path.basename(entry.name, '.svg');
           const category = path.dirname(relPath) || 'root';
-          
+
           this.svgFiles.set(iconName, {
             name: iconName,
             path: fullPath,
             source: 'workspace',
             category: category === '.' ? 'root' : category,
-            svg: undefined
+            svg: undefined,
           });
         }
       }
@@ -247,7 +252,7 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
       const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
       const relativePath = path.relative(workspaceRoot, element.icon.path);
       const parts = relativePath.split(path.sep);
-      
+
       if (parts.length > 1) {
         const parentPath = path.dirname(element.icon.path);
         const folderName = path.basename(parentPath);
@@ -277,8 +282,8 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
           'configure'
         );
         configureItem.command = {
-          command: 'iconManager.showWelcome',
-          title: 'Configurar Icon Studio'
+          command: 'sageboxIconStudio.showWelcome',
+          title: 'Configurar Icon Studio',
         };
         configureItem.iconPath = new vscode.ThemeIcon('gear');
         return [configureItem];
@@ -297,14 +302,16 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
     }
 
     if (this.svgFiles.size === 0) {
-      return [new SvgItem(
-        'No SVG files found',
-        0,
-        vscode.TreeItemCollapsibleState.None,
-        'action',
-        undefined,
-        undefined
-      )];
+      return [
+        new SvgItem(
+          'No SVG files found',
+          0,
+          vscode.TreeItemCollapsibleState.None,
+          'action',
+          undefined,
+          undefined
+        ),
+      ];
     }
 
     return this.buildFolderHierarchy();
@@ -320,7 +327,7 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
       const filePath = icon.path;
       const relativePath = path.relative(workspaceRoot, filePath).replace(/\\/g, '/');
       const parts = relativePath.split('/');
-      
+
       if (parts.length === 1) {
         rootFiles.push(icon);
       } else {
@@ -329,17 +336,21 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
       }
     }
 
-    const sortedFolders = Array.from(topLevelFolders.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+    const sortedFolders = Array.from(topLevelFolders.entries()).sort((a, b) =>
+      a[0].localeCompare(b[0])
+    );
     for (const [folderName, count] of sortedFolders) {
       const folderPath = path.join(workspaceRoot, folderName);
-      items.push(new SvgItem(
-        folderName,
-        count,
-        vscode.TreeItemCollapsibleState.Collapsed,
-        'category',
-        undefined,
-        `folder:${folderPath}`
-      ));
+      items.push(
+        new SvgItem(
+          folderName,
+          count,
+          vscode.TreeItemCollapsibleState.Collapsed,
+          'category',
+          undefined,
+          `folder:${folderPath}`
+        )
+      );
     }
 
     for (const icon of rootFiles.sort((a, b) => a.name.localeCompare(b.name))) {
@@ -355,12 +366,12 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
   private createIconItem(icon: WorkspaceIcon): SvgItem {
     const statusLabel = this.builtIconsProvider?.getBuildStatusLabel(icon.name) || '';
     const displayName = statusLabel ? `${icon.name} ${statusLabel}` : icon.name;
-    
+
     // Update icon's isBuilt status from BuiltIconsProvider
     if (this.builtIconsProvider) {
       icon.isBuilt = this.builtIconsProvider.isIconBuilt(icon.name);
     }
-    
+
     const item = new SvgItem(
       displayName,
       0,
@@ -369,12 +380,12 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
       icon,
       undefined
     );
-    
+
     // Set description for additional info
     if (statusLabel) {
       item.description = '';
     }
-    
+
     return item;
   }
 
@@ -386,7 +397,7 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
 
     for (const [_iconName, icon] of this.svgFiles) {
       const iconPath = icon.path.replace(/\\/g, '/');
-      
+
       if (!iconPath.startsWith(normalizedFolderPath + '/')) {
         continue;
       }
@@ -411,14 +422,16 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
     const sortedFolders = Array.from(subFolders.entries()).sort((a, b) => a[0].localeCompare(b[0]));
     for (const [folderName, count] of sortedFolders) {
       const subFolderPath = path.join(folderPath, folderName);
-      items.push(new SvgItem(
-        folderName,
-        count,
-        vscode.TreeItemCollapsibleState.Collapsed,
-        'category',
-        undefined,
-        `folder:${subFolderPath}`
-      ));
+      items.push(
+        new SvgItem(
+          folderName,
+          count,
+          vscode.TreeItemCollapsibleState.Collapsed,
+          'category',
+          undefined,
+          `folder:${subFolderPath}`
+        )
+      );
     }
 
     for (const icon of filesInFolder.sort((a, b) => a.name.localeCompare(b.name))) {
@@ -428,4 +441,3 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
     return items;
   }
 }
-

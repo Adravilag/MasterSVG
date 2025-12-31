@@ -1,43 +1,41 @@
 /**
  * Tests for iconBuildHelpers
- * 
+ *
  * Tests helper functions for building and importing icons to the library
  */
 
 import * as vscode from 'vscode';
-import { 
-  BuildResult, 
-  BuildIconOptions, 
+import {
+  BuildResult,
+  BuildIconOptions,
   generateReplacement,
-  createBuiltIcon
+  createBuiltIcon,
 } from '../../utils/iconBuildHelpers';
 
 // Mock vscode
 jest.mock('vscode', () => ({
   workspace: {
-    workspaceFolders: [
-      { uri: { fsPath: '/workspace' } }
-    ],
+    workspaceFolders: [{ uri: { fsPath: '/workspace' } }],
     getConfiguration: jest.fn().mockReturnValue({
-      get: jest.fn().mockReturnValue(false)
-    })
+      get: jest.fn().mockReturnValue(false),
+    }),
   },
   window: {
     showQuickPick: jest.fn(),
     showWarningMessage: jest.fn(),
-    showInformationMessage: jest.fn()
+    showInformationMessage: jest.fn(),
   },
   env: {
     language: 'en',
     clipboard: {
-      writeText: jest.fn()
-    }
+      writeText: jest.fn(),
+    },
   },
   EventEmitter: jest.fn().mockImplementation(() => ({
     event: jest.fn(),
     fire: jest.fn(),
-    dispose: jest.fn()
-  }))
+    dispose: jest.fn(),
+  })),
 }));
 
 // Mock fs
@@ -45,7 +43,7 @@ jest.mock('fs', () => ({
   existsSync: jest.fn().mockReturnValue(true),
   mkdirSync: jest.fn(),
   writeFileSync: jest.fn(),
-  readFileSync: jest.fn().mockReturnValue('')
+  readFileSync: jest.fn().mockReturnValue(''),
 }));
 
 // Mock configHelper
@@ -53,16 +51,16 @@ jest.mock('../../utils/configHelper', () => ({
   getConfig: jest.fn().mockReturnValue({
     buildFormat: 'icons.js',
     webComponentName: 'sg-icon',
-    outputDirectory: 'iconwrap-icons'
+    outputDirectory: 'sagebox-icons',
   }),
-  getOutputPathOrWarn: jest.fn().mockReturnValue('/workspace/iconwrap-icons'),
-  getFullOutputPath: jest.fn().mockReturnValue('/workspace/iconwrap-icons')
+  getOutputPathOrWarn: jest.fn().mockReturnValue('/workspace/sagebox-icons'),
+  getFullOutputPath: jest.fn().mockReturnValue('/workspace/sagebox-icons'),
 }));
 
 // Mock iconsFileManager
 jest.mock('../../utils/iconsFileManager', () => ({
   addToIconsJs: jest.fn().mockResolvedValue(undefined),
-  addToSpriteSvg: jest.fn().mockResolvedValue(undefined)
+  addToSpriteSvg: jest.fn().mockResolvedValue(undefined),
 }));
 
 describe('iconBuildHelpers', () => {
@@ -76,7 +74,7 @@ describe('iconBuildHelpers', () => {
         success: true,
         iconName: 'test-icon',
         outputPath: '/output',
-        format: 'icons'
+        format: 'icons',
       };
 
       expect(result.success).toBe(true);
@@ -91,7 +89,7 @@ describe('iconBuildHelpers', () => {
         iconName: 'test-icon',
         outputPath: '/output',
         format: 'icons',
-        error: 'Build failed'
+        error: 'Build failed',
       };
 
       expect(result.error).toBe('Build failed');
@@ -102,7 +100,7 @@ describe('iconBuildHelpers', () => {
         success: true,
         iconName: 'test-icon',
         outputPath: '/output',
-        format: 'sprite'
+        format: 'sprite',
       };
 
       expect(result.format).toBe('sprite');
@@ -114,7 +112,7 @@ describe('iconBuildHelpers', () => {
       const options: BuildIconOptions = {
         iconName: 'arrow',
         svgContent: '<svg></svg>',
-        svgTransformer: {} as any
+        svgTransformer: {} as any,
       };
 
       expect(options.iconName).toBe('arrow');
@@ -126,7 +124,7 @@ describe('iconBuildHelpers', () => {
         iconName: 'arrow',
         svgContent: '<svg></svg>',
         svgTransformer: {} as any,
-        outputPath: '/custom/path'
+        outputPath: '/custom/path',
       };
 
       expect(options.outputPath).toBe('/custom/path');
@@ -140,7 +138,7 @@ describe('iconBuildHelpers', () => {
       getConfig.mockReturnValue({
         buildFormat: 'icons.js',
         webComponentName: 'sg-icon',
-        outputDirectory: 'iconwrap-icons'
+        outputDirectory: 'sagebox-icons',
       });
     });
 
@@ -182,7 +180,7 @@ describe('iconBuildHelpers', () => {
     test('should generate sprite reference for sprite format', () => {
       getConfig.mockReturnValue({
         buildFormat: 'sprite.svg',
-        webComponentName: 'sg-icon'
+        webComponentName: 'sg-icon',
       });
 
       const result = generateReplacement('arrow', 'html');
@@ -193,7 +191,7 @@ describe('iconBuildHelpers', () => {
     test('should use custom component name', () => {
       getConfig.mockReturnValue({
         buildFormat: 'icons.js',
-        webComponentName: 'my-icon'
+        webComponentName: 'my-icon',
       });
 
       const result = generateReplacement('arrow', 'html');
@@ -214,7 +212,7 @@ describe('iconBuildHelpers', () => {
   describe('createBuiltIcon', () => {
     test('should create WorkspaceIcon with basic properties', () => {
       const icon = createBuiltIcon('arrow', '<svg></svg>');
-      
+
       expect(icon.name).toBe('arrow');
       expect(icon.svg).toBe('<svg></svg>');
       expect(icon.source).toBe('library');
@@ -223,8 +221,8 @@ describe('iconBuildHelpers', () => {
 
     test('should use output path', () => {
       const icon = createBuiltIcon('arrow', '<svg></svg>');
-      
-      expect(icon.path).toBe('/workspace/iconwrap-icons');
+
+      expect(icon.path).toBe('/workspace/sagebox-icons');
     });
 
     test('should use source path as fallback', () => {
@@ -232,7 +230,7 @@ describe('iconBuildHelpers', () => {
       getFullOutputPath.mockReturnValue(undefined);
 
       const icon = createBuiltIcon('arrow', '<svg></svg>', '/source/icon.svg');
-      
+
       expect(icon.path).toBe('/source/icon.svg');
     });
 
@@ -241,19 +239,19 @@ describe('iconBuildHelpers', () => {
       getFullOutputPath.mockReturnValue(undefined);
 
       const icon = createBuiltIcon('arrow', '<svg></svg>');
-      
+
       expect(icon.path).toBe('');
     });
 
     test('should always set source to library', () => {
       const icon = createBuiltIcon('test', '<svg></svg>');
-      
+
       expect(icon.source).toBe('library');
     });
 
     test('should always set isBuilt to true', () => {
       const icon = createBuiltIcon('test', '<svg></svg>');
-      
+
       expect(icon.isBuilt).toBe(true);
     });
   });
@@ -265,7 +263,7 @@ describe('iconBuildHelpers', () => {
         iconName: 'failed-icon',
         outputPath: '',
         format: 'icons',
-        error: 'No output path configured'
+        error: 'No output path configured',
       };
 
       expect(result.success).toBe(false);
@@ -273,4 +271,3 @@ describe('iconBuildHelpers', () => {
     });
   });
 });
-

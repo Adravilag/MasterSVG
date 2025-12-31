@@ -1,16 +1,15 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { getSvgConfig, isFullyConfigured } from '../utils/config';
+import { isFullyConfigured } from '../utils/config';
 import { WorkspaceIcon, IconUsage, IconAnimation } from '../types/icons';
-import { removeIconExportFromContent } from '../utils/outputFileManager';
 
 // Re-export types for backward compatibility
 export { WorkspaceIcon, IconUsage, IconAnimation };
 
 // Re-export utilities from separate modules
 export { initIgnoreFileWatcher, shouldIgnorePath } from './IgnorePatterns';
-export { clearTempIcons, saveTempSvgIcon } from './TempIconManager';
+export { clearTempIcons, saveTempSvgIcon } from './TempIconStudio';
 
 // Re-export classes from separate modules
 export { SvgItem } from './SvgItem';
@@ -20,17 +19,21 @@ export { SvgContentCache } from './SvgContentCache';
 
 // Import SvgItem for use in this file
 import { SvgItem } from './SvgItem';
-import { clearTempIcons } from './TempIconManager';
+import { clearTempIcons } from './TempIconStudio';
 import { SvgScanner } from './SvgScanner';
 import { TreeNavigationHelper } from './TreeNavigationHelper';
 import { IconCacheService } from './IconCacheService';
 import { IconLookupService, SvgDataResult, IconStorageMaps } from './IconLookupService';
 import { IconCategoryService } from './IconCategoryService';
 import { SvgContentCache } from './SvgContentCache';
+import { TreeParentResolver } from './TreeParentResolver';
+import { IconRemovalService, IconRemovalResult } from './IconRemovalService';
 
 export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
-  private _onDidChangeTreeData: vscode.EventEmitter<SvgItem | undefined | null | void> = new vscode.EventEmitter();
-  readonly onDidChangeTreeData: vscode.Event<SvgItem | undefined | null | void> = this._onDidChangeTreeData.event;
+  private _onDidChangeTreeData: vscode.EventEmitter<SvgItem | undefined | null | void> =
+    new vscode.EventEmitter();
+  readonly onDidChangeTreeData: vscode.Event<SvgItem | undefined | null | void> =
+    this._onDidChangeTreeData.event;
 
   private svgFiles: Map<string, WorkspaceIcon> = new Map();
   private libraryIcons: Map<string, WorkspaceIcon> = new Map();
@@ -94,10 +97,10 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
   updateSvgFileContent(filePath: string): void {
     const iconName = path.basename(filePath, '.svg');
     const existingIcon = this.svgFiles.get(iconName);
-    
+
     // Invalidate SVG content cache for this file
     SvgContentCache.getInstance().invalidate(filePath);
-    
+
     if (existingIcon && fs.existsSync(filePath)) {
       try {
         // Use cache to get fresh content
@@ -132,23 +135,26 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
     if (icon) {
       // Update the icon's name property
       icon.name = newName;
-      
+
       // Move in libraryIcons map
       this.libraryIcons.delete(oldName);
       this.libraryIcons.set(newName, icon);
-      
+
       // Update builtIcons set
       this.builtIcons.delete(oldName);
       this.builtIcons.add(newName);
-      
+
       // Clear ALL cached items for built section to force full re-render
-      this.cacheService.deleteMatching((key, item) => 
-        key.includes(oldName) || key.includes('built:') || (item.category?.startsWith('built:') ?? false)
+      this.cacheService.deleteMatching(
+        (key, item) =>
+          key.includes(oldName) ||
+          key.includes('built:') ||
+          (item.category?.startsWith('built:') ?? false)
       );
-      
+
       // Clear temp icons to force reload
       clearTempIcons();
-      
+
       // Fire update - use undefined to refresh entire tree
       this._onDidChangeTreeData.fire(undefined);
     }
@@ -163,19 +169,22 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
       // Update icon properties
       icon.name = newName;
       icon.path = newPath;
-      
+
       // Move in svgFiles map
       this.svgFiles.delete(oldName);
       this.svgFiles.set(newName, icon);
-      
+
       // Clear ALL cached items for files section
-      this.cacheService.deleteMatching((key, item) => 
-        key.includes(oldName) || key.includes('folder:') || (item.category?.startsWith('folder:') ?? false)
+      this.cacheService.deleteMatching(
+        (key, item) =>
+          key.includes(oldName) ||
+          key.includes('folder:') ||
+          (item.category?.startsWith('folder:') ?? false)
       );
-      
+
       // Clear temp icons
       clearTempIcons();
-      
+
       // Fire update
       this._onDidChangeTreeData.fire(undefined);
     }
@@ -189,150 +198,7 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
 
   // Required for TreeView.reveal() to work with hierarchical structures
   getParent(element: SvgItem): SvgItem | undefined {
-    if (!element) return undefined;
-    
-    // Icons at root level (no parent section)
-    if (!element.category && element.type === 'icon') {
-      return undefined;
-    }
-    
-    // Section items have no parent
-    if (element.type === 'section') {
-      return undefined;
-    }
-    
-    // Category/folder items
-    if (element.type === 'category' && element.category) {
-      // Built library folders
-      if (element.category.startsWith('built:')) {
-        return new SvgItem(
-          'Built Library',
-          0,
-          vscode.TreeItemCollapsibleState.Collapsed,
-          'section',
-          undefined,
-          'built'
-        );
-      }
-      
-      // SVG Files folders
-      if (element.category.startsWith('folder:')) {
-        const folderPath = element.category.replace('folder:', '');
-        const parentDir = folderPath.substring(0, folderPath.lastIndexOf('/'));
-        if (parentDir) {
-          return new SvgItem(
-            parentDir.split('/').pop() || parentDir,
-            0,
-            vscode.TreeItemCollapsibleState.Collapsed,
-            'category',
-            undefined,
-            `folder:${parentDir}`
-          );
-        }
-        return new SvgItem(
-          'SVG Files',
-          0,
-          vscode.TreeItemCollapsibleState.Collapsed,
-          'section',
-          undefined,
-          'files'
-        );
-      }
-      
-      // Inline folders/files
-      if (element.category.startsWith('inlinedir:') || element.category.startsWith('inline:')) {
-        return new SvgItem(
-          'Inline SVGs',
-          0,
-          vscode.TreeItemCollapsibleState.Collapsed,
-          'section',
-          undefined,
-          'inline'
-        );
-      }
-      
-      // Reference folders/files
-      if (element.category.startsWith('refsdir:') || element.category.startsWith('refs:')) {
-        return new SvgItem(
-          'IMG References',
-          0,
-          vscode.TreeItemCollapsibleState.Collapsed,
-          'section',
-          undefined,
-          'references'
-        );
-      }
-    }
-    
-    // Icon items - find their parent category
-    if (element.type === 'icon' && element.icon) {
-      const icon = element.icon;
-      
-      // Built icon - the path property contains the source file path
-      if (icon.isBuilt && icon.path) {
-        const fileName = path.basename(icon.path);
-        return new SvgItem(
-          fileName,
-          0,
-          vscode.TreeItemCollapsibleState.Collapsed,
-          'category',
-          undefined,
-          `built:${fileName}`
-        );
-      }
-      
-      // SVG file icon - parent is its folder
-      if (icon.path && !icon.filePath) {
-        const relativePath = vscode.workspace.asRelativePath(icon.path);
-        const dir = relativePath.substring(0, relativePath.lastIndexOf('/'));
-        if (dir) {
-          return new SvgItem(
-            dir.split('/').pop() || dir,
-            0,
-            vscode.TreeItemCollapsibleState.Collapsed,
-            'category',
-            undefined,
-            `folder:${dir}`
-          );
-        }
-        return new SvgItem(
-          'SVG Files',
-          0,
-          vscode.TreeItemCollapsibleState.Collapsed,
-          'section',
-          undefined,
-          'files'
-        );
-      }
-      
-      // Inline SVG - parent is the file
-      if (icon.source === 'inline' && icon.filePath) {
-        const fileName = icon.filePath.split(/[/\\]/).pop() || icon.filePath;
-        return new SvgItem(
-          fileName,
-          0,
-          vscode.TreeItemCollapsibleState.Collapsed,
-          'category',
-          undefined,
-          `inline:${icon.filePath}`
-        );
-      }
-      
-      // IMG Reference - parent is the file containing the reference
-      if (icon.category === 'img-ref' && icon.filePath) {
-        const fileName = icon.filePath.split(/[/\\]/).pop() || icon.filePath;
-        return new SvgItem(
-          fileName,
-          0,
-          vscode.TreeItemCollapsibleState.Collapsed,
-          'category',
-          undefined,
-          `refs:${icon.filePath}`
-        );
-      }
-    }
-    
-    return undefined;
+    return TreeParentResolver.getParent(element);
   }
 
   // Ensure the provider is initialized (call before searching for icons)
@@ -358,8 +224,8 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
           'configure'
         );
         configureItem.command = {
-          command: 'iconManager.showWelcome',
-          title: 'Configurar Icon Studio'
+          command: 'sageboxIconStudio.showWelcome',
+          title: 'Configurar Icon Studio',
         };
         configureItem.iconPath = new vscode.ThemeIcon('gear');
         return [configureItem];
@@ -391,22 +257,22 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
       if (element.category?.startsWith('folder:')) {
         return this.getFolderChildren(element.category.replace('folder:', ''));
       }
-      
+
       // Inline SVGs folder hierarchy
       if (element.category?.startsWith('inlinedir:')) {
         return this.getInlineDirChildren(element.category.replace('inlinedir:', ''));
       }
-      
+
       // Inline SVGs file → show icons
       if (element.category?.startsWith('inline:')) {
         return this.getInlineFileChildren(element.category.replace('inline:', ''));
       }
-      
+
       // IMG References folder hierarchy
       if (element.category?.startsWith('refsdir:')) {
         return this.getRefsDirChildren(element.category.replace('refsdir:', ''));
       }
-      
+
       // IMG References file → show icons
       if (element.category?.startsWith('refs:')) {
         return this.getRefsFileChildren(element.category.replace('refs:', ''));
@@ -421,7 +287,7 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
       if (element.category?.startsWith('usages:')) {
         return this.getUsagesFileChildren(element.category.replace('usages:', ''));
       }
-      
+
       // Built icons by file
       if (element.category?.startsWith('built:')) {
         const icons = this.getIconsByCategory(element.category);
@@ -430,14 +296,16 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
           return new SvgItem(
             icon.name,
             0,
-            hasUsages ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None,
+            hasUsages
+              ? vscode.TreeItemCollapsibleState.Collapsed
+              : vscode.TreeItemCollapsibleState.None,
             'icon',
             icon,
             element.category
           );
         });
       }
-      
+
       // Default: get icons by category
       const icons = this.getIconsByCategory(element.category!);
       return icons.map(icon => {
@@ -445,7 +313,9 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
         return new SvgItem(
           icon.name,
           0,
-          hasUsages ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None,
+          hasUsages
+            ? vscode.TreeItemCollapsibleState.Collapsed
+            : vscode.TreeItemCollapsibleState.None,
           'icon',
           icon,
           element.category
@@ -522,54 +392,65 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
 
     // 1. Inline SVGs section (files with <svg> elements)
     if (this.inlineSvgs.size > 0) {
-      sections.push(new SvgItem(
-        'Inline SVGs',
-        this.inlineSvgs.size,
-        vscode.TreeItemCollapsibleState.Collapsed,
-        'section',
-        undefined,
-        'inline'
-      ));
+      sections.push(
+        new SvgItem(
+          'Inline SVGs',
+          this.inlineSvgs.size,
+          vscode.TreeItemCollapsibleState.Collapsed,
+          'section',
+          undefined,
+          'inline'
+        )
+      );
     }
 
     // 2. SVG References section (files with <img src="...svg">)
     if (this.svgReferences.size > 0) {
-      const totalRefs = Array.from(this.svgReferences.values()).reduce((sum, refs) => sum + refs.length, 0);
-      sections.push(new SvgItem(
-        'IMG References',
-        totalRefs,
-        vscode.TreeItemCollapsibleState.Collapsed,
-        'section',
-        undefined,
-        'references'
-      ));
+      const totalRefs = Array.from(this.svgReferences.values()).reduce(
+        (sum, refs) => sum + refs.length,
+        0
+      );
+      sections.push(
+        new SvgItem(
+          'IMG References',
+          totalRefs,
+          vscode.TreeItemCollapsibleState.Collapsed,
+          'section',
+          undefined,
+          'references'
+        )
+      );
     }
 
     // 3. Icon Component usages section (show if there are built icons)
     const hasBuiltIcons = Array.from(this.libraryIcons.values()).some(icon => icon.isBuilt);
     if (hasBuiltIcons) {
-      const totalUsages = this.usagesScanned 
+      const totalUsages = this.usagesScanned
         ? Array.from(this.iconUsages.values()).reduce((sum, usages) => sum + usages.length, 0)
         : undefined;
-      sections.push(new SvgItem(
-        'Icon Component',
-        totalUsages ?? 0,
-        vscode.TreeItemCollapsibleState.Collapsed,
-        'section',
-        undefined,
-        'icon_usages_section'
-      ));
+      sections.push(
+        new SvgItem(
+          'Icon Component',
+          totalUsages ?? 0,
+          vscode.TreeItemCollapsibleState.Collapsed,
+          'section',
+          undefined,
+          'icon_usages_section'
+        )
+      );
     }
 
     if (sections.length === 0) {
-      return [new SvgItem(
-        'No SVGs in code - Click to scan',
-        0,
-        vscode.TreeItemCollapsibleState.None,
-        'action',
-        undefined,
-        undefined
-      )];
+      return [
+        new SvgItem(
+          'No SVGs in code - Click to scan',
+          0,
+          vscode.TreeItemCollapsibleState.None,
+          'action',
+          undefined,
+          undefined
+        ),
+      ];
     }
 
     return sections;
@@ -588,14 +469,16 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
           }
         }
         for (const [fileName, count] of byFile) {
-          items.push(new SvgItem(
-            fileName,
-            count,
-            vscode.TreeItemCollapsibleState.Collapsed,
-            'category',
-            undefined,
-            `built:${fileName}`
-          ));
+          items.push(
+            new SvgItem(
+              fileName,
+              count,
+              vscode.TreeItemCollapsibleState.Collapsed,
+              'category',
+              undefined,
+              `built:${fileName}`
+            )
+          );
         }
         return items;
       }
@@ -629,15 +512,43 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
     this.scanner.loadLibraryIcons(this.libraryIcons);
     // Load built icons from output file
     await this.scanner.loadBuiltIcons(this.libraryIcons, this.builtIcons);
-    // Then scan workspace (slower, on demand)
-    await this.scanWorkspace();
-    // Scan inline SVGs in code files
-    await this.scanner.scanInlineSvgs(this.inlineSvgs, this.svgReferences, this.builtIcons);
-    // Scan icon usages if there are built icons
-    const hasBuiltIcons = Array.from(this.libraryIcons.values()).some(icon => icon.isBuilt);
-    if (hasBuiltIcons) {
-      await this.scanIconUsages();
-    }
+
+    // Scan workspace with progress for large projects
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: 'Icon Studio: Scanning workspace',
+        cancellable: false,
+      },
+      async progress => {
+        // Scan workspace folders
+        progress.report({ message: 'Scanning SVG files...' });
+        await this.scanWorkspaceWithProgress(progress);
+
+        // Scan inline SVGs in code files
+        progress.report({ message: 'Scanning inline SVGs...' });
+        await this.scanner.scanInlineSvgs(
+          this.inlineSvgs,
+          this.svgReferences,
+          this.builtIcons,
+          scanProgress => {
+            if (scanProgress.percentage !== undefined) {
+              progress.report({
+                message: `Scanning inline SVGs... ${scanProgress.percentage}%`,
+                increment: scanProgress.percentage > 0 ? 1 : 0,
+              });
+            }
+          }
+        );
+
+        // Scan icon usages if there are built icons
+        const hasBuiltIcons = Array.from(this.libraryIcons.values()).some(icon => icon.isBuilt);
+        if (hasBuiltIcons) {
+          progress.report({ message: 'Scanning icon usages...' });
+          await this.scanIconUsagesWithProgress(progress);
+        }
+      }
+    );
   }
 
   async scanFolder(folderPath: string): Promise<void> {
@@ -658,67 +569,73 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
     }
   }
 
+  private async scanWorkspaceWithProgress(
+    progress: vscode.Progress<{ message?: string; increment?: number }>
+  ): Promise<void> {
+    this.svgFiles.clear();
+
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+      return;
+    }
+
+    for (let i = 0; i < workspaceFolders.length; i++) {
+      const folder = workspaceFolders[i];
+      progress.report({
+        message: `Scanning ${folder.name}...`,
+        increment: 100 / workspaceFolders.length,
+      });
+
+      await this.scanner.scanFolder(folder.uri.fsPath, this.svgFiles, scanProgress => {
+        if (scanProgress.currentFile) {
+          const fileName = path.basename(scanProgress.currentFile);
+          progress.report({ message: `Found: ${fileName}` });
+        }
+      });
+    }
+  }
+
+  private async scanIconUsagesWithProgress(
+    progress: vscode.Progress<{ message?: string; increment?: number }>
+  ): Promise<void> {
+    if (this.usagesScanned) return;
+
+    await this.scanner.scanIconUsages(this.libraryIcons, this.iconUsages, scanProgress => {
+      if (scanProgress.percentage !== undefined) {
+        progress.report({
+          message: `Scanning icon usages... ${scanProgress.percentage}%`,
+        });
+      }
+    });
+    this.usagesScanned = true;
+  }
+
   // Check if an icon is built
   isIconBuilt(iconName: string): boolean {
     return this.builtIcons.has(iconName);
   }
 
   // Remove icons from the icons.js file
-  async removeIcons(iconNames: string[]): Promise<{ success: boolean; removed: string[]; errors: string[] }> {
-    const outputDir = getSvgConfig<string>('outputDirectory', '');
-    const removed: string[] = [];
-    const errors: string[] = [];
+  async removeIcons(iconNames: string[]): Promise<IconRemovalResult> {
+    const result = await IconRemovalService.removeIcons(
+      iconNames,
+      this.builtIcons,
+      this.libraryIcons
+    );
 
-    if (!outputDir) {
-      return { success: false, removed, errors: ['No output directory configured'] };
-    }
-
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (!workspaceFolders) {
-      return { success: false, removed, errors: ['No workspace folder found'] };
-    }
-
-    const fullOutputPath = path.join(workspaceFolders[0].uri.fsPath, outputDir);
-    const iconsJs = path.join(fullOutputPath, 'icons.js');
-
-    if (!fs.existsSync(iconsJs)) {
-      return { success: false, removed, errors: ['icons.js not found'] };
-    }
-
-    try {
-      let content = fs.readFileSync(iconsJs, 'utf-8');
-      
-      for (const iconName of iconNames) {
-        const originalContent = content;
-        
-        // Use the proper removal function that handles both export and icons object
-        content = removeIconExportFromContent(content, iconName);
-        
-        if (content !== originalContent) {
-          removed.push(iconName);
-          this.builtIcons.delete(iconName);
-          this.libraryIcons.delete(iconName);
-        } else {
-          errors.push(`Could not find icon: ${iconName}`);
-        }
-      }
-
-      // Clean up extra blank lines
-      content = content.replace(/\n{3,}/g, '\n\n');
-      
-      fs.writeFileSync(iconsJs, content);
-      
+    if (result.success) {
       // Refresh the tree view
       this._onDidChangeTreeData.fire();
-      
-      return { success: removed.length > 0, removed, errors };
-    } catch (error) {
-      return { success: false, removed, errors: [`Error: ${error}`] };
     }
+
+    return result;
   }
 
   async getAllIcons(): Promise<WorkspaceIcon[]> {
-    return IconLookupService.getAllIcons({ svgFiles: this.svgFiles, libraryIcons: this.libraryIcons });
+    return IconLookupService.getAllIcons({
+      svgFiles: this.svgFiles,
+      libraryIcons: this.libraryIcons,
+    });
   }
 
   /**
@@ -738,7 +655,7 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
   /**
    * Get the hierarchical structure of SVG file folders
    */
-  getSvgFilesFolderStructure(): { folders: Map<string, string[]>, rootFiles: string[] } {
+  getSvgFilesFolderStructure(): { folders: Map<string, string[]>; rootFiles: string[] } {
     const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
     const folders = new Map<string, string[]>();
     const rootFiles: string[] = [];
@@ -746,7 +663,7 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
     for (const [filePath] of this.svgFiles) {
       const relativePath = path.relative(workspaceRoot, filePath);
       const parts = relativePath.split(path.sep);
-      
+
       if (parts.length === 1) {
         rootFiles.push(filePath);
       } else {
@@ -778,7 +695,7 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
       svgFiles: this.svgFiles,
       libraryIcons: this.libraryIcons,
       inlineSvgs: this.inlineSvgs,
-      svgReferences: this.svgReferences
+      svgReferences: this.svgReferences,
     };
   }
 
@@ -792,7 +709,28 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
 
   // Scan all code files for inline <svg> elements and <img src="...svg"> references
   async scanInlineSvgs(): Promise<void> {
-    await this.scanner.scanInlineSvgs(this.inlineSvgs, this.svgReferences, this.builtIcons);
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: 'Icon Studio: Scanning inline SVGs',
+        cancellable: false,
+      },
+      async progress => {
+        await this.scanner.scanInlineSvgs(
+          this.inlineSvgs,
+          this.svgReferences,
+          this.builtIcons,
+          scanProgress => {
+            if (scanProgress.percentage !== undefined) {
+              progress.report({
+                message: `${scanProgress.percentage}% complete`,
+                increment: scanProgress.percentage > 0 ? 1 : 0,
+              });
+            }
+          }
+        );
+      }
+    );
     this._onDidChangeTreeData.fire();
   }
 
@@ -812,10 +750,25 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
   // Scan workspace for icon usages
   async scanIconUsages(): Promise<void> {
     if (this.usagesScanned) return;
-    
-    await this.scanner.scanIconUsages(this.libraryIcons, this.iconUsages);
+
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: 'Icon Studio: Scanning icon usages',
+        cancellable: false,
+      },
+      async progress => {
+        await this.scanner.scanIconUsages(this.libraryIcons, this.iconUsages, scanProgress => {
+          if (scanProgress.percentage !== undefined) {
+            progress.report({
+              message: `${scanProgress.percentage}% complete`,
+            });
+          }
+        });
+      }
+    );
     this.usagesScanned = true;
-    
+
     // Refresh tree to show usage counts
     this._onDidChangeTreeData.fire();
   }
@@ -846,7 +799,11 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
   }
 
   // Find item in cache by icon name or path
-  findItemByIconNameOrPath(iconName: string, filePath?: string, lineNumber?: number): SvgItem | undefined {
+  findItemByIconNameOrPath(
+    iconName: string,
+    filePath?: string,
+    lineNumber?: number
+  ): SvgItem | undefined {
     return this.cacheService.findItemByIconNameOrPath(iconName, filePath, lineNumber);
   }
 
@@ -855,4 +812,3 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
     return this.cacheService.createSvgItemFromIcon(icon);
   }
 }
-

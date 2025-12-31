@@ -1,11 +1,15 @@
 /**
  * Tests for IconCategoryService
- * 
+ *
  * Tests icon categorization and grouping functionality
  */
 
 import * as path from 'path';
-import { IconCategoryService, IconStorageMapsForCategory, CategoryInfo } from '../../providers/IconCategoryService';
+import {
+  IconCategoryService,
+  IconStorageMapsForCategory,
+  CategoryInfo,
+} from '../../providers/IconCategoryService';
 import { WorkspaceIcon } from '../../types/icons';
 
 // Mock path module
@@ -15,7 +19,7 @@ jest.mock('path', () => ({
     const parts = p.split(/[\\/]/);
     const name = parts[parts.length - 1] || '';
     return ext ? name.replace(ext, '') : name;
-  }
+  },
 }));
 
 describe('IconCategoryService', () => {
@@ -30,7 +34,7 @@ describe('IconCategoryService', () => {
       svgFiles: options?.svgFiles || new Map(),
       libraryIcons: options?.libraryIcons || new Map(),
       inlineSvgs: options?.inlineSvgs || new Map(),
-      svgReferences: options?.svgReferences || new Map()
+      svgReferences: options?.svgReferences || new Map(),
     };
   }
 
@@ -40,7 +44,7 @@ describe('IconCategoryService', () => {
       name,
       path: `/icons/${name}.svg`,
       source: 'workspace',
-      ...options
+      ...options,
     };
   }
 
@@ -48,7 +52,7 @@ describe('IconCategoryService', () => {
     test('should return empty array for empty storage', () => {
       const storage = createStorage();
       const categories = IconCategoryService.getCategories(storage);
-      
+
       expect(categories).toEqual([]);
     });
 
@@ -62,10 +66,10 @@ describe('IconCategoryService', () => {
       const categories = IconCategoryService.getCategories(storage);
 
       expect(categories.length).toBe(2);
-      
+
       const iconsCategory = categories.find(c => c.name === 'icons');
       const assetsCategory = categories.find(c => c.name === 'assets');
-      
+
       expect(iconsCategory?.count).toBe(2);
       expect(assetsCategory?.count).toBe(1);
     });
@@ -84,25 +88,34 @@ describe('IconCategoryService', () => {
 
     test('should categorize library icons by source file', () => {
       const libraryIcons = new Map<string, WorkspaceIcon>();
-      libraryIcons.set('arrow', createIcon('arrow', { 
-        path: '/output/icons.js',
-        source: 'library' 
-      }));
-      libraryIcons.set('check', createIcon('check', { 
-        path: '/output/icons.js',
-        source: 'library' 
-      }));
-      libraryIcons.set('close', createIcon('close', { 
-        path: '/output/sprite.svg',
-        source: 'library' 
-      }));
+      libraryIcons.set(
+        'arrow',
+        createIcon('arrow', {
+          path: '/output/icons.js',
+          source: 'library',
+        })
+      );
+      libraryIcons.set(
+        'check',
+        createIcon('check', {
+          path: '/output/icons.js',
+          source: 'library',
+        })
+      );
+      libraryIcons.set(
+        'close',
+        createIcon('close', {
+          path: '/output/sprite.svg',
+          source: 'library',
+        })
+      );
 
       const storage = createStorage({ libraryIcons });
       const categories = IconCategoryService.getCategories(storage);
 
       const iconsJsCategory = categories.find(c => c.name === '📦 icons.js');
       const spriteCategory = categories.find(c => c.name === '📦 sprite.svg');
-      
+
       expect(iconsJsCategory?.count).toBe(2);
       expect(iconsJsCategory?.type).toBe('library');
       expect(spriteCategory?.count).toBe(1);
@@ -110,25 +123,34 @@ describe('IconCategoryService', () => {
 
     test('should categorize inline SVGs by file', () => {
       const inlineSvgs = new Map<string, WorkspaceIcon>();
-      inlineSvgs.set('inline1', createIcon('inline1', { 
-        filePath: '/src/App.tsx',
-        source: 'inline'
-      }));
-      inlineSvgs.set('inline2', createIcon('inline2', { 
-        filePath: '/src/App.tsx',
-        source: 'inline'
-      }));
-      inlineSvgs.set('inline3', createIcon('inline3', { 
-        filePath: '/src/Nav.tsx',
-        source: 'inline'
-      }));
+      inlineSvgs.set(
+        'inline1',
+        createIcon('inline1', {
+          filePath: '/src/App.tsx',
+          source: 'inline',
+        })
+      );
+      inlineSvgs.set(
+        'inline2',
+        createIcon('inline2', {
+          filePath: '/src/App.tsx',
+          source: 'inline',
+        })
+      );
+      inlineSvgs.set(
+        'inline3',
+        createIcon('inline3', {
+          filePath: '/src/Nav.tsx',
+          source: 'inline',
+        })
+      );
 
       const storage = createStorage({ inlineSvgs });
       const categories = IconCategoryService.getCategories(storage);
 
       const appCategory = categories.find(c => c.name === '📄 App.tsx');
       const navCategory = categories.find(c => c.name === '📄 Nav.tsx');
-      
+
       expect(appCategory?.count).toBe(2);
       expect(appCategory?.type).toBe('file');
       expect(navCategory?.count).toBe(1);
@@ -136,20 +158,15 @@ describe('IconCategoryService', () => {
 
     test('should categorize SVG references by file', () => {
       const svgReferences = new Map<string, WorkspaceIcon[]>();
-      svgReferences.set('/src/page.html', [
-        createIcon('ref1'),
-        createIcon('ref2')
-      ]);
-      svgReferences.set('/src/other.html', [
-        createIcon('ref3')
-      ]);
+      svgReferences.set('/src/page.html', [createIcon('ref1'), createIcon('ref2')]);
+      svgReferences.set('/src/other.html', [createIcon('ref3')]);
 
       const storage = createStorage({ svgReferences });
       const categories = IconCategoryService.getCategories(storage);
 
       const pageCategory = categories.find(c => c.name === '🔗 page.html');
       const otherCategory = categories.find(c => c.name === '🔗 other.html');
-      
+
       expect(pageCategory?.count).toBe(2);
       expect(pageCategory?.type).toBe('file');
       expect(otherCategory?.count).toBe(1);
@@ -157,16 +174,22 @@ describe('IconCategoryService', () => {
 
     test('should sort categories: library first, then alphabetically', () => {
       const libraryIcons = new Map<string, WorkspaceIcon>();
-      libraryIcons.set('lib', createIcon('lib', { 
-        path: '/output/icons.js',
-        source: 'library' 
-      }));
+      libraryIcons.set(
+        'lib',
+        createIcon('lib', {
+          path: '/output/icons.js',
+          source: 'library',
+        })
+      );
 
       const inlineSvgs = new Map<string, WorkspaceIcon>();
-      inlineSvgs.set('inline', createIcon('inline', { 
-        filePath: '/src/App.tsx',
-        source: 'inline'
-      }));
+      inlineSvgs.set(
+        'inline',
+        createIcon('inline', {
+          filePath: '/src/App.tsx',
+          source: 'inline',
+        })
+      );
 
       const svgFiles = new Map<string, WorkspaceIcon>();
       svgFiles.set('file', createIcon('file', { category: 'assets' }));
@@ -184,28 +207,37 @@ describe('IconCategoryService', () => {
     test('should return empty array for non-existent category', () => {
       const storage = createStorage();
       const icons = IconCategoryService.getIconsByCategory('nonexistent', storage);
-      
+
       expect(icons).toEqual([]);
     });
 
     describe('built: prefix', () => {
       test('should get built icons by file', () => {
         const libraryIcons = new Map<string, WorkspaceIcon>();
-        libraryIcons.set('arrow', createIcon('arrow', { 
-          path: '/output/icons.js',
-          source: 'library',
-          isBuilt: true
-        }));
-        libraryIcons.set('check', createIcon('check', { 
-          path: '/output/icons.js',
-          source: 'library',
-          isBuilt: true
-        }));
-        libraryIcons.set('close', createIcon('close', { 
-          path: '/output/sprite.svg',
-          source: 'library',
-          isBuilt: true
-        }));
+        libraryIcons.set(
+          'arrow',
+          createIcon('arrow', {
+            path: '/output/icons.js',
+            source: 'library',
+            isBuilt: true,
+          })
+        );
+        libraryIcons.set(
+          'check',
+          createIcon('check', {
+            path: '/output/icons.js',
+            source: 'library',
+            isBuilt: true,
+          })
+        );
+        libraryIcons.set(
+          'close',
+          createIcon('close', {
+            path: '/output/sprite.svg',
+            source: 'library',
+            isBuilt: true,
+          })
+        );
 
         const storage = createStorage({ libraryIcons });
         const icons = IconCategoryService.getIconsByCategory('built:icons.js', storage);
@@ -216,16 +248,22 @@ describe('IconCategoryService', () => {
 
       test('should only return built icons', () => {
         const libraryIcons = new Map<string, WorkspaceIcon>();
-        libraryIcons.set('built', createIcon('built', { 
-          path: '/output/icons.js',
-          source: 'library',
-          isBuilt: true
-        }));
-        libraryIcons.set('notbuilt', createIcon('notbuilt', { 
-          path: '/output/icons.js',
-          source: 'library',
-          isBuilt: false
-        }));
+        libraryIcons.set(
+          'built',
+          createIcon('built', {
+            path: '/output/icons.js',
+            source: 'library',
+            isBuilt: true,
+          })
+        );
+        libraryIcons.set(
+          'notbuilt',
+          createIcon('notbuilt', {
+            path: '/output/icons.js',
+            source: 'library',
+            isBuilt: false,
+          })
+        );
 
         const storage = createStorage({ libraryIcons });
         const icons = IconCategoryService.getIconsByCategory('built:icons.js', storage);
@@ -236,16 +274,22 @@ describe('IconCategoryService', () => {
 
       test('should sort by name', () => {
         const libraryIcons = new Map<string, WorkspaceIcon>();
-        libraryIcons.set('zebra', createIcon('zebra', { 
-          path: '/output/icons.js',
-          source: 'library',
-          isBuilt: true
-        }));
-        libraryIcons.set('alpha', createIcon('alpha', { 
-          path: '/output/icons.js',
-          source: 'library',
-          isBuilt: true
-        }));
+        libraryIcons.set(
+          'zebra',
+          createIcon('zebra', {
+            path: '/output/icons.js',
+            source: 'library',
+            isBuilt: true,
+          })
+        );
+        libraryIcons.set(
+          'alpha',
+          createIcon('alpha', {
+            path: '/output/icons.js',
+            source: 'library',
+            isBuilt: true,
+          })
+        );
 
         const storage = createStorage({ libraryIcons });
         const icons = IconCategoryService.getIconsByCategory('built:icons.js', storage);
@@ -282,20 +326,29 @@ describe('IconCategoryService', () => {
     describe('inline: prefix', () => {
       test('should get inline SVGs by file path', () => {
         const inlineSvgs = new Map<string, WorkspaceIcon>();
-        inlineSvgs.set('inline1', createIcon('inline1', { 
-          filePath: '/src/App.tsx',
-          source: 'inline',
-          line: 10
-        }));
-        inlineSvgs.set('inline2', createIcon('inline2', { 
-          filePath: '/src/App.tsx',
-          source: 'inline',
-          line: 20
-        }));
-        inlineSvgs.set('inline3', createIcon('inline3', { 
-          filePath: '/src/Nav.tsx',
-          source: 'inline'
-        }));
+        inlineSvgs.set(
+          'inline1',
+          createIcon('inline1', {
+            filePath: '/src/App.tsx',
+            source: 'inline',
+            line: 10,
+          })
+        );
+        inlineSvgs.set(
+          'inline2',
+          createIcon('inline2', {
+            filePath: '/src/App.tsx',
+            source: 'inline',
+            line: 20,
+          })
+        );
+        inlineSvgs.set(
+          'inline3',
+          createIcon('inline3', {
+            filePath: '/src/Nav.tsx',
+            source: 'inline',
+          })
+        );
 
         const storage = createStorage({ inlineSvgs });
         const icons = IconCategoryService.getIconsByCategory('inline:/src/App.tsx', storage);
@@ -305,16 +358,22 @@ describe('IconCategoryService', () => {
 
       test('should sort by line number', () => {
         const inlineSvgs = new Map<string, WorkspaceIcon>();
-        inlineSvgs.set('inline1', createIcon('inline1', { 
-          filePath: '/src/App.tsx',
-          source: 'inline',
-          line: 50
-        }));
-        inlineSvgs.set('inline2', createIcon('inline2', { 
-          filePath: '/src/App.tsx',
-          source: 'inline',
-          line: 10
-        }));
+        inlineSvgs.set(
+          'inline1',
+          createIcon('inline1', {
+            filePath: '/src/App.tsx',
+            source: 'inline',
+            line: 50,
+          })
+        );
+        inlineSvgs.set(
+          'inline2',
+          createIcon('inline2', {
+            filePath: '/src/App.tsx',
+            source: 'inline',
+            line: 10,
+          })
+        );
 
         const storage = createStorage({ inlineSvgs });
         const icons = IconCategoryService.getIconsByCategory('inline:/src/App.tsx', storage);
@@ -329,7 +388,7 @@ describe('IconCategoryService', () => {
         const svgReferences = new Map<string, WorkspaceIcon[]>();
         svgReferences.set('/src/page.html', [
           createIcon('ref1', { line: 10 }),
-          createIcon('ref2', { line: 20 })
+          createIcon('ref2', { line: 20 }),
         ]);
 
         const storage = createStorage({ svgReferences });
@@ -342,7 +401,7 @@ describe('IconCategoryService', () => {
         const svgReferences = new Map<string, WorkspaceIcon[]>();
         svgReferences.set('/src/page.html', [
           createIcon('ref1', { line: 50 }),
-          createIcon('ref2', { line: 10 })
+          createIcon('ref2', { line: 10 }),
         ]);
 
         const storage = createStorage({ svgReferences });
@@ -365,10 +424,13 @@ describe('IconCategoryService', () => {
     describe('legacy emoji prefixes', () => {
       test('should handle 📦 prefix for library icons', () => {
         const libraryIcons = new Map<string, WorkspaceIcon>();
-        libraryIcons.set('arrow', createIcon('arrow', { 
-          path: '/output/icons.js',
-          source: 'library'
-        }));
+        libraryIcons.set(
+          'arrow',
+          createIcon('arrow', {
+            path: '/output/icons.js',
+            source: 'library',
+          })
+        );
 
         const storage = createStorage({ libraryIcons });
         const icons = IconCategoryService.getIconsByCategory('📦 icons.js', storage);
@@ -378,10 +440,13 @@ describe('IconCategoryService', () => {
 
       test('should handle 📄 prefix for inline SVGs', () => {
         const inlineSvgs = new Map<string, WorkspaceIcon>();
-        inlineSvgs.set('inline1', createIcon('inline1', { 
-          filePath: '/src/App.tsx',
-          source: 'inline'
-        }));
+        inlineSvgs.set(
+          'inline1',
+          createIcon('inline1', {
+            filePath: '/src/App.tsx',
+            source: 'inline',
+          })
+        );
 
         const storage = createStorage({ inlineSvgs });
         const icons = IconCategoryService.getIconsByCategory('📄 App.tsx', storage);
@@ -391,9 +456,7 @@ describe('IconCategoryService', () => {
 
       test('should handle 🔗 prefix for SVG references', () => {
         const svgReferences = new Map<string, WorkspaceIcon[]>();
-        svgReferences.set('/src/page.html', [
-          createIcon('ref1')
-        ]);
+        svgReferences.set('/src/page.html', [createIcon('ref1')]);
 
         const storage = createStorage({ svgReferences });
         const icons = IconCategoryService.getIconsByCategory('🔗 page.html', storage);
@@ -434,7 +497,7 @@ describe('IconCategoryService', () => {
       const category: CategoryInfo = {
         name: 'icons',
         count: 5,
-        type: 'folder'
+        type: 'folder',
       };
 
       expect(category.name).toBe('icons');
@@ -453,4 +516,3 @@ describe('IconCategoryService', () => {
     });
   });
 });
-

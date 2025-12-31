@@ -1,6 +1,6 @@
 /**
  * Tests for CodeFormatterService
- * 
+ *
  * Tests code formatting and syntax highlighting functionality
  */
 
@@ -83,8 +83,9 @@ describe('CodeFormatterService', () => {
     });
 
     test('should escape multiple characters', () => {
-      expect(formatter.escapeHtml('<a href="test.html">Link & Text</a>'))
-        .toBe('&lt;a href=&quot;test.html&quot;&gt;Link &amp; Text&lt;/a&gt;');
+      expect(formatter.escapeHtml('<a href="test.html">Link & Text</a>')).toBe(
+        '&lt;a href=&quot;test.html&quot;&gt;Link &amp; Text&lt;/a&gt;'
+      );
     });
 
     test('should handle empty string', () => {
@@ -272,4 +273,3 @@ describe('CodeFormatterService', () => {
     });
   });
 });
-

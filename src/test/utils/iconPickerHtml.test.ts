@@ -62,7 +62,7 @@ describe('iconPickerHtml', () => {
     });
 
     it('should escape single quotes', () => {
-      expect(escapeHtmlAttribute("it's")).toBe("it&#39;s");
+      expect(escapeHtmlAttribute("it's")).toBe('it&#39;s');
     });
 
     it('should escape less than', () => {
@@ -74,7 +74,9 @@ describe('iconPickerHtml', () => {
     });
 
     it('should escape multiple special characters', () => {
-      expect(escapeHtmlAttribute('<"test" & \'value\'>')).toBe('&lt;&quot;test&quot; &amp; &#39;value&#39;&gt;');
+      expect(escapeHtmlAttribute('<"test" & \'value\'>')).toBe(
+        '&lt;&quot;test&quot; &amp; &#39;value&#39;&gt;'
+      );
     });
 
     it('should handle empty string', () => {
@@ -403,4 +405,3 @@ describe('iconPickerHtml', () => {
     });
   });
 });
-

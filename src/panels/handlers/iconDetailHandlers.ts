@@ -48,7 +48,7 @@ export async function handleGoToLocation(ctx: PanelContext): Promise<void> {
     const position = new vscode.Position(ctx.iconDetails.location.line - 1, 0);
     await vscode.window.showTextDocument(uri, {
       selection: new vscode.Range(position, position),
-      preview: false
+      preview: false,
     });
   }
 }
@@ -59,7 +59,7 @@ export async function handleGoToUsage(message: { file: string; line: number }): 
     const position = new vscode.Position(message.line - 1, 0);
     await vscode.window.showTextDocument(uri, {
       selection: new vscode.Range(position, position),
-      preview: true
+      preview: true,
     });
   }
 }
@@ -71,7 +71,9 @@ export async function handleGoToUsage(message: { file: string; line: number }): 
 export async function handleCopyName(ctx: PanelContext): Promise<void> {
   if (ctx.iconDetails?.name) {
     await vscode.env.clipboard.writeText(ctx.iconDetails.name);
-    vscode.window.showInformationMessage(t('messages.copiedNameToClipboard', { name: ctx.iconDetails.name }));
+    vscode.window.showInformationMessage(
+      t('messages.copiedNameToClipboard', { name: ctx.iconDetails.name })
+    );
   }
 }
 
@@ -89,14 +91,14 @@ export async function handleCopySvg(ctx: PanelContext, message: { svg?: string }
 
 export async function handleOpenEditor(ctx: PanelContext): Promise<void> {
   if (ctx.iconDetails) {
-    await vscode.commands.executeCommand('iconManager.colorEditor', {
+    await vscode.commands.executeCommand('sageboxIconStudio.colorEditor', {
       icon: {
         name: ctx.iconDetails.name,
         svg: ctx.iconDetails.svg,
         path: ctx.iconDetails.location?.file,
         line: ctx.iconDetails.location?.line,
-        isBuilt: ctx.iconDetails.isBuilt
-      }
+        isBuilt: ctx.iconDetails.isBuilt,
+      },
     });
   }
 }
@@ -105,19 +107,22 @@ export async function handleOpenEditor(ctx: PanelContext): Promise<void> {
 // Optimization Handlers
 // =====================================================
 
-export async function handleOptimizeSvg(ctx: PanelContext, message: { preset?: string }): Promise<void> {
+export async function handleOptimizeSvg(
+  ctx: PanelContext,
+  message: { preset?: string }
+): Promise<void> {
   if (ctx.iconDetails?.svg) {
     const preset = message.preset || 'safe';
     const presets = svgOptimizer.getPresets();
     const result = svgOptimizer.optimize(ctx.iconDetails.svg, presets[preset] || presets.safe);
-    
+
     await ctx.panel.webview.postMessage({
       command: 'optimizeResult',
       ...result,
       originalSizeStr: svgOptimizer.formatSize(result.originalSize),
-      optimizedSizeStr: svgOptimizer.formatSize(result.optimizedSize)
+      optimizedSizeStr: svgOptimizer.formatSize(result.optimizedSize),
     });
-    
+
     if (result.savingsPercent > 0) {
       vscode.window.showInformationMessage(
         `SVG optimized! Saved ${svgOptimizer.formatSize(result.savings)} (${result.savingsPercent.toFixed(1)}%)`
@@ -139,13 +144,20 @@ export function handleApplyOptimizedSvg(ctx: PanelContext, message: { svg: strin
 // Color Handlers
 // =====================================================
 
-export async function handleChangeColor(ctx: PanelContext, message: { oldColor: string; newColor: string }): Promise<void> {
+export async function handleChangeColor(
+  ctx: PanelContext,
+  message: { oldColor: string; newColor: string }
+): Promise<void> {
   if (ctx.iconDetails?.svg && message.oldColor && message.newColor) {
-    const updatedSvg = colorService.replaceColorInSvg(ctx.iconDetails.svg, message.oldColor, message.newColor);
+    const updatedSvg = colorService.replaceColorInSvg(
+      ctx.iconDetails.svg,
+      message.oldColor,
+      message.newColor
+    );
     ctx.setIconDetails({ ...ctx.iconDetails, svg: updatedSvg });
     await ctx.panel.webview.postMessage({
       command: 'colorChanged',
-      svg: updatedSvg
+      svg: updatedSvg,
     });
   }
 }
@@ -154,7 +166,10 @@ export function handleAddColorToSvg(ctx: PanelContext, message: { color: string 
   if (ctx.iconDetails?.svg && message.color) {
     let updatedSvg = ctx.iconDetails.svg;
     if (updatedSvg.includes('fill=')) {
-      updatedSvg = updatedSvg.replace(/<svg([^>]*)fill=["'][^"']*["']/, `<svg$1fill="${message.color}"`);
+      updatedSvg = updatedSvg.replace(
+        /<svg([^>]*)fill=["'][^"']*["']/,
+        `<svg$1fill="${message.color}"`
+      );
     } else {
       updatedSvg = updatedSvg.replace(/<svg/, `<svg fill="${message.color}"`);
     }
@@ -173,15 +188,15 @@ export function handleApplyVariant(ctx: PanelContext, message: { index: number }
     const variantsService = getVariantsService();
     const variants = variantsService.getSavedVariants(ctx.iconDetails.name);
     const variant = variants[message.index];
-    
+
     if (variant) {
       const { colors: currentColors } = colorService.extractAllColorsFromSvg(ctx.iconDetails.svg);
       let newSvg = ctx.iconDetails.svg;
-      
+
       for (let i = 0; i < Math.min(currentColors.length, variant.colors.length); i++) {
         newSvg = colorService.replaceColorInSvg(newSvg, currentColors[i], variant.colors[i]);
       }
-      
+
       ctx.setIconDetails({ ...ctx.iconDetails, svg: newSvg });
       ctx.setSelectedVariantIndex(message.index);
       ctx.update();
@@ -193,11 +208,11 @@ export function handleApplyDefaultVariant(ctx: PanelContext): void {
   if (ctx.iconDetails && ctx.originalColors.length > 0) {
     const { colors: currentColors } = colorService.extractAllColorsFromSvg(ctx.iconDetails.svg);
     let newSvg = ctx.iconDetails.svg;
-    
+
     for (let i = 0; i < Math.min(currentColors.length, ctx.originalColors.length); i++) {
       newSvg = colorService.replaceColorInSvg(newSvg, currentColors[i], ctx.originalColors[i]);
     }
-    
+
     ctx.setIconDetails({ ...ctx.iconDetails, svg: newSvg });
     ctx.setSelectedVariantIndex(-1);
     ctx.update();
@@ -208,9 +223,9 @@ export async function handleSaveVariant(ctx: PanelContext): Promise<void> {
   if (ctx.iconDetails) {
     const variantName = await vscode.window.showInputBox({
       prompt: t('editor.enterVariantName'),
-      placeHolder: t('editor.variantPlaceholder')
+      placeHolder: t('editor.variantPlaceholder'),
     });
-    
+
     if (variantName) {
       const { colors } = colorService.extractAllColorsFromSvg(ctx.iconDetails.svg);
       const variantsService = getVariantsService();
@@ -226,39 +241,49 @@ export function handleDeleteVariant(ctx: PanelContext, message: { index: number 
   if (ctx.iconDetails && message.index !== undefined) {
     const variantsService = getVariantsService();
     variantsService.deleteVariant(ctx.iconDetails.name, message.index);
-    
+
     // If deleted variant was the default, clear default
     const variants = variantsService.getSavedVariants(ctx.iconDetails.name);
     const variantNames = variants.map(s => s.name);
     const currentDefault = variantsService.getDefaultVariant(ctx.iconDetails.name);
-    
+
     if (currentDefault && !variantNames.includes(currentDefault)) {
       variantsService.setDefaultVariant(ctx.iconDetails.name, null);
     }
-    
+
     variantsService.persistToFile();
-    
+
     if (ctx.selectedVariantIndex === message.index) {
       ctx.setSelectedVariantIndex(-1);
     } else if (ctx.selectedVariantIndex > message.index) {
       ctx.setSelectedVariantIndex(ctx.selectedVariantIndex - 1);
     }
-    
+
     ctx.update();
   }
 }
 
-export function handleSetDefaultVariant(ctx: PanelContext, message: { variantName: string | null }): void {
+export function handleSetDefaultVariant(
+  ctx: PanelContext,
+  message: { variantName: string | null }
+): void {
   if (ctx.iconDetails) {
     const variantsService = getVariantsService();
     variantsService.setDefaultVariant(ctx.iconDetails.name, message.variantName);
     variantsService.persistToFile();
     ctx.update();
-    
+
     if (message.variantName) {
-      vscode.window.showInformationMessage(t('messages.variantSetAsDefault', { name: message.variantName, iconName: ctx.iconDetails.name }));
+      vscode.window.showInformationMessage(
+        t('messages.variantSetAsDefault', {
+          name: message.variantName,
+          iconName: ctx.iconDetails.name,
+        })
+      );
     } else {
-      vscode.window.showInformationMessage(t('messages.defaultVariantCleared', { iconName: ctx.iconDetails.name }));
+      vscode.window.showInformationMessage(
+        t('messages.defaultVariantCleared', { iconName: ctx.iconDetails.name })
+      );
     }
   }
 }
@@ -319,4 +344,3 @@ export async function handleMessage(ctx: PanelContext, message: any): Promise<vo
       break;
   }
 }
-

@@ -1,4 +1,4 @@
-// Auto-generated Web Component by Icon Manager
+// Auto-generated Web Component by Icon Studio
 // Usage: <${TAG_NAME} name="icon-name"></${TAG_NAME}>
 // With variant: <${TAG_NAME} name="icon-name" variant="dark-theme"></${TAG_NAME}>
 // With animation: <${TAG_NAME} name="icon-name" animation="spin"></${TAG_NAME}>
@@ -31,49 +31,49 @@ const animationStyles = `
       scale: 0.8;
     }
   }
-  
+
   ${TAG_NAME} svg {
     transition: opacity 0.3s ease, scale 0.3s ease;
   }
 
   /* Basic animations */
-  @keyframes icon-spin { 
-    from { rotate: 0deg; } 
-    to { rotate: 360deg; } 
+  @keyframes icon-spin {
+    from { rotate: 0deg; }
+    to { rotate: 360deg; }
   }
-  @keyframes icon-spin-reverse { 
-    from { rotate: 360deg; } 
-    to { rotate: 0deg; } 
+  @keyframes icon-spin-reverse {
+    from { rotate: 360deg; }
+    to { rotate: 0deg; }
   }
-  @keyframes icon-pulse { 
-    0%, 100% { scale: 1; opacity: 1; } 
-    50% { scale: 1.1; opacity: 0.8; } 
+  @keyframes icon-pulse {
+    0%, 100% { scale: 1; opacity: 1; }
+    50% { scale: 1.1; opacity: 0.8; }
   }
-  @keyframes icon-pulse-grow { 
-    0%, 100% { scale: 1; } 
-    50% { scale: 1.3; } 
+  @keyframes icon-pulse-grow {
+    0%, 100% { scale: 1; }
+    50% { scale: 1.3; }
   }
-  @keyframes icon-bounce { 
-    0%, 100% { translate: 0 0; } 
-    50% { translate: 0 -8px; } 
+  @keyframes icon-bounce {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -8px; }
   }
   @keyframes icon-bounce-horizontal {
     0%, 100% { translate: 0 0; }
     50% { translate: 8px 0; }
   }
-  @keyframes icon-shake { 
-    0%, 100% { translate: 0 0; } 
-    25% { translate: -4px 0; } 
-    75% { translate: 4px 0; } 
+  @keyframes icon-shake {
+    0%, 100% { translate: 0 0; }
+    25% { translate: -4px 0; }
+    75% { translate: 4px 0; }
   }
   @keyframes icon-shake-vertical {
     0%, 100% { translate: 0 0; }
     25% { translate: 0 -4px; }
     75% { translate: 0 4px; }
   }
-  @keyframes icon-fade { 
-    0%, 100% { opacity: 1; } 
-    50% { opacity: 0.3; } 
+  @keyframes icon-fade {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
   }
   @keyframes icon-fade-in {
     from { opacity: 0; }
@@ -200,7 +200,7 @@ const animationStyles = `
     50% { scale: 1.2; }
     100% { scale: 1; opacity: 1; }
   }
-  
+
   /* Combined animations - using individual properties allows this! */
   .icon-combo-spin-pulse svg {
     animation: icon-spin 2s linear infinite, icon-pulse 1s ease infinite;
@@ -229,7 +229,7 @@ class IconElement extends HTMLElement {
     this._mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     this._mediaQuery.addEventListener('change', () => this.render());
   }
-  
+
   disconnectedCallback() {
     if (this._mediaQuery) {
       this._mediaQuery.removeEventListener('change', () => this.render());
@@ -247,25 +247,25 @@ class IconElement extends HTMLElement {
     let h = hex.replace('#', '');
     if (h.length === 3) h = h.split('').map(c => c + c).join('');
     if (h.length !== 6) return null;
-    
+
     const r = parseInt(h.substr(0, 2), 16);
     const g = parseInt(h.substr(2, 2), 16);
     const b = parseInt(h.substr(4, 2), 16);
-    
+
     // Calculate relative luminance
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
     const isLight = luminance > 0.5;
-    
+
     // Invert: light colors get dark contrast, dark colors get light contrast
     const factor = isLight ? 0.2 : 0.8;
     const nr = Math.round(r + (255 - r) * (isLight ? -0.7 : 0.7));
     const ng = Math.round(g + (255 - g) * (isLight ? -0.7 : 0.7));
     const nb = Math.round(b + (255 - b) * (isLight ? -0.7 : 0.7));
-    
+
     const clamp = v => Math.max(0, Math.min(255, v));
     return `#${[nr, ng, nb].map(v => clamp(v).toString(16).padStart(2, '0')).join('')}`;
   }
-  
+
   // Helper: get luminance of a color (0-1)
   getColorLuminance(hex) {
     if (!hex || hex === 'currentColor') return 0.5;
@@ -287,18 +287,17 @@ class IconElement extends HTMLElement {
     const icon = icons[camelName];
 
     if (!icon) {
-      console.warn(`[Icon] Icon "${name}" not found in icons.js`);
       this.innerHTML = '';
       return;
     }
 
     const size = this.getAttribute('size') || '1em';
-    
+
     // Light/Dark color support (CSS light-dark() function - 2024)
     let lightColor = this.getAttribute('light-color');
     let darkColor = this.getAttribute('dark-color');
     let color = this.getAttribute('color') || 'currentColor';
-    
+
     // Auto-generate contrasting color if only one is specified
     if (lightColor && !darkColor) {
       darkColor = this.getContrastColor(lightColor) || lightColor;
@@ -313,12 +312,12 @@ class IconElement extends HTMLElement {
         darkColor = luminance > 0.5 ? color : contrast;
       }
     }
-    
+
     // If light/dark colors available, use light-dark() CSS function
     if (lightColor && darkColor) {
       color = `light-dark(${lightColor}, ${darkColor})`;
     }
-    
+
     // Use specified variant, or fall back to default Variant for this icon
     // Try both kebab-case (attribute name) and icon's stored name
     const variantName = this.getAttribute('variant') || defaultVariants[name] || defaultVariants[icon.name] || null;
@@ -326,10 +325,10 @@ class IconElement extends HTMLElement {
     const animAttr = this.getAttribute('animation');
     const animName = (animAttr && animAttr.trim()) ? animAttr.trim() : (icon.animation?.type) || null;
     const animConfig = icon.animation || { duration: 1, timing: 'ease', iteration: 'infinite' };
-    
+
     // Get body with variant colors applied if variant is specified
     let body = icon.body;
-    
+
     // Apply color mappings first (custom color changes)
     // Try both kebab-case and stored name for color mappings lookup
     const iconColorMappings = colorMappings[name] || colorMappings[icon.name] || {};
@@ -337,14 +336,14 @@ class IconElement extends HTMLElement {
       const regex = new RegExp(originalColor.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
       body = body.replace(regex, newColor);
     }
-    
+
     // Then apply variant colors if specified
     // Try both kebab-case and stored name for variants lookup
     const iconVariants = Variants[name] || Variants[icon.name] || {};
     if (variantName && iconVariants[variantName]) {
       const originalColors = iconVariants['_original'] || [];
       const variantColors = iconVariants[variantName];
-      
+
       // Direct replacement: use _original colors to find and replace
       if (originalColors.length > 0) {
         for (let i = 0; i < Math.min(originalColors.length, variantColors.length); i++) {
@@ -358,7 +357,7 @@ class IconElement extends HTMLElement {
           /stop-color\s*:\s*([#\w]+)/gi,
           /stop-color\s*=\s*["']([^"']+)["']/gi
         ];
-        
+
         const foundColors = new Set();
         for (const pattern of colorPatterns) {
           const matches = [...body.matchAll(pattern)];
@@ -369,7 +368,7 @@ class IconElement extends HTMLElement {
             }
           });
         }
-        
+
         const uniqueColors = [...foundColors];
         for (let i = 0; i < Math.min(uniqueColors.length, variantColors.length); i++) {
           const regex = new RegExp(uniqueColors[i].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
@@ -388,8 +387,8 @@ class IconElement extends HTMLElement {
     }
 
     this.innerHTML = `
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
         viewBox="${icon.viewBox}"
         width="${size}"
         height="${size}"

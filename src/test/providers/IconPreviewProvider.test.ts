@@ -1,6 +1,6 @@
 /**
  * Tests para IconPreviewProvider
- * 
+ *
  * Requisitos cubiertos:
  * - RF-5.6: Vista de preview en sidebar
  */
@@ -12,8 +12,8 @@ import { IconPreviewProvider } from '../../providers/IconPreviewProvider';
 // Mock de svgo
 jest.mock('svgo', () => ({
   optimize: jest.fn((svg: string) => ({
-    data: svg.replace(/\s+/g, ' ').trim()
-  }))
+    data: svg.replace(/\s+/g, ' ').trim(),
+  })),
 }));
 
 // Mock de fs
@@ -24,7 +24,7 @@ jest.mock('fs', () => ({
       return '/* Mock CSS */';
     }
     return jest.requireActual('fs').readFileSync(filePath, encoding);
-  })
+  }),
 }));
 
 describe('IconPreviewProvider', () => {
@@ -35,7 +35,7 @@ describe('IconPreviewProvider', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockExtensionUri = vscode.Uri.file('/test/extension');
     provider = new IconPreviewProvider(mockExtensionUri);
 
@@ -48,8 +48,8 @@ describe('IconPreviewProvider', () => {
         onDidReceiveMessage: jest.fn((handler: any) => {
           messageHandler = handler;
           return { dispose: jest.fn() };
-        })
-      }
+        }),
+      },
     };
   });
 
@@ -62,8 +62,8 @@ describe('IconPreviewProvider', () => {
   // =====================================================
 
   describe('propiedades estáticas', () => {
-    test('viewType debe ser "iconManager.preview"', () => {
-      expect(IconPreviewProvider.viewType).toBe('iconManager.preview');
+    test('viewType debe ser "sageboxIconStudio.preview"', () => {
+      expect(IconPreviewProvider.viewType).toBe('sageboxIconStudio.preview');
     });
   });
 
@@ -167,23 +167,23 @@ describe('IconPreviewProvider', () => {
     });
 
     test('comando optimizeSvg debe optimizar y enviar resultado', async () => {
-      await messageHandler({ 
-        command: 'optimizeSvg', 
-        svg: '<svg>  <path/>  </svg>' 
+      await messageHandler({
+        command: 'optimizeSvg',
+        svg: '<svg>  <path/>  </svg>',
       });
 
       expect(mockWebviewView.webview.postMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          command: 'svgOptimized'
+          command: 'svgOptimized',
         })
       );
     });
 
     test('comando goToUsage debe abrir archivo en posición especificada', async () => {
-      await messageHandler({ 
-        command: 'goToUsage', 
+      await messageHandler({
+        command: 'goToUsage',
         file: '/test/component.tsx',
-        line: 25
+        line: 25,
       });
 
       expect(vscode.window.showTextDocument).toHaveBeenCalled();
@@ -219,22 +219,16 @@ describe('IconPreviewProvider', () => {
     });
 
     test('debe actualizar con location', () => {
-      provider.updatePreview(
-        'test-icon',
-        '<svg><path/></svg>', 
-        { file: '/test/icons.tsx', line: 15 }
-      );
+      provider.updatePreview('test-icon', '<svg><path/></svg>', {
+        file: '/test/icons.tsx',
+        line: 15,
+      });
 
       expect((provider as any)._currentLocation).toEqual({ file: '/test/icons.tsx', line: 15 });
     });
 
     test('debe actualizar con isBuilt flag', () => {
-      provider.updatePreview(
-        'test-icon',
-        '<svg><path/></svg>', 
-        undefined,
-        true
-      );
+      provider.updatePreview('test-icon', '<svg><path/></svg>', undefined, true);
 
       expect((provider as any)._isBuilt).toBe(true);
     });
@@ -256,7 +250,7 @@ describe('IconPreviewProvider', () => {
     test('debe limpiar el preview', () => {
       (provider as any)._currentSvg = '<svg/>';
       (provider as any)._currentName = 'test';
-      
+
       provider.clearPreview();
 
       expect((provider as any)._currentSvg).toBeUndefined();
@@ -264,4 +258,3 @@ describe('IconPreviewProvider', () => {
     });
   });
 });
-

@@ -1,16 +1,20 @@
 /**
  * Tests para ComponentExporter
- * 
+ *
  * Requisitos cubiertos:
  * - RF-2.3: Exportar como Componente Individual
  */
 
 // Mock de vscode antes de importar el módulo
-import { ComponentExporter, ComponentFormat, ExportOptions } from '../../services/ComponentExporter';
+import {
+  ComponentExporter,
+  ComponentFormat,
+  ExportOptions,
+} from '../../services/ComponentExporter';
 
 describe('ComponentExporter', () => {
   let exporter: ComponentExporter;
-  
+
   const testSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
     <path d="M12 2L2 7l10 5 10-5-10-5z" fill="currentColor"/>
   </svg>`;
@@ -21,7 +25,7 @@ describe('ComponentExporter', () => {
     iconName: 'arrow-right',
     svg: testSvg,
     defaultSize: 24,
-    defaultColor: 'currentColor'
+    defaultColor: 'currentColor',
   };
 
   beforeEach(() => {
@@ -63,7 +67,7 @@ describe('ComponentExporter', () => {
       const result = exporter.export({
         ...baseOptions,
         format: 'react',
-        typescript: true
+        typescript: true,
       });
 
       expect(result.filename).toMatch(/\.tsx$/);
@@ -78,7 +82,7 @@ describe('ComponentExporter', () => {
       const result = exporter.export({
         ...baseOptions,
         format: 'react',
-        typescript: false
+        typescript: false,
       });
 
       expect(result.filename).toMatch(/\.jsx$/);
@@ -89,7 +93,7 @@ describe('ComponentExporter', () => {
     test('debe incluir props size y color', () => {
       const result = exporter.export({
         ...baseOptions,
-        format: 'react'
+        format: 'react',
       });
 
       expect(result.code).toContain('size');
@@ -100,7 +104,7 @@ describe('ComponentExporter', () => {
       const result = exporter.export({
         ...baseOptions,
         format: 'react',
-        iconName: 'arrow-right'
+        iconName: 'arrow-right',
       });
 
       expect(result.code).toContain('ArrowRight');
@@ -113,7 +117,7 @@ describe('ComponentExporter', () => {
       const result = exporter.export({
         ...baseOptions,
         format: 'react-native',
-        typescript: true
+        typescript: true,
       });
 
       expect(result.code).toContain('react-native-svg');
@@ -123,7 +127,7 @@ describe('ComponentExporter', () => {
     test('debe importar componentes de react-native-svg', () => {
       const result = exporter.export({
         ...baseOptions,
-        format: 'react-native'
+        format: 'react-native',
       });
 
       expect(result.code).toMatch(/import.*from\s+['"]react-native-svg['"]/);
@@ -136,7 +140,7 @@ describe('ComponentExporter', () => {
       const result = exporter.export({
         ...baseOptions,
         format: 'vue',
-        typescript: true
+        typescript: true,
       });
 
       expect(result.filename).toMatch(/\.vue$/);
@@ -147,7 +151,7 @@ describe('ComponentExporter', () => {
     test('debe generar Vue SFC', () => {
       const result = exporter.export({
         ...baseOptions,
-        format: 'vue-sfc'
+        format: 'vue-sfc',
       });
 
       expect(result.filename).toMatch(/\.vue$/);
@@ -160,7 +164,7 @@ describe('ComponentExporter', () => {
     test('debe generar componente Svelte', () => {
       const result = exporter.export({
         ...baseOptions,
-        format: 'svelte'
+        format: 'svelte',
       });
 
       expect(result.filename).toMatch(/\.svelte$/);
@@ -172,7 +176,7 @@ describe('ComponentExporter', () => {
     test('debe incluir props exportadas', () => {
       const result = exporter.export({
         ...baseOptions,
-        format: 'svelte'
+        format: 'svelte',
       });
 
       expect(result.code).toContain('export let size');
@@ -186,7 +190,7 @@ describe('ComponentExporter', () => {
       const result = exporter.export({
         ...baseOptions,
         format: 'angular',
-        typescript: true
+        typescript: true,
       });
 
       expect(result.filename).toMatch(/\.component\.ts$/);
@@ -198,7 +202,7 @@ describe('ComponentExporter', () => {
       const result = exporter.export({
         ...baseOptions,
         format: 'angular',
-        iconName: 'arrow-right'
+        iconName: 'arrow-right',
       });
 
       // La implementación usa el nombre sin prefijo 'app-'
@@ -212,7 +216,7 @@ describe('ComponentExporter', () => {
       const result = exporter.export({
         ...baseOptions,
         format: 'solid',
-        typescript: true
+        typescript: true,
       });
 
       expect(result.filename).toMatch(/\.tsx$/);
@@ -223,7 +227,7 @@ describe('ComponentExporter', () => {
     test('debe usar splitProps', () => {
       const result = exporter.export({
         ...baseOptions,
-        format: 'solid'
+        format: 'solid',
       });
 
       expect(result.code).toContain('splitProps');
@@ -236,7 +240,7 @@ describe('ComponentExporter', () => {
       const result = exporter.export({
         ...baseOptions,
         format: 'qwik',
-        typescript: true
+        typescript: true,
       });
 
       expect(result.filename).toMatch(/\.tsx$/);
@@ -251,7 +255,7 @@ describe('ComponentExporter', () => {
       const result = exporter.export({
         ...baseOptions,
         format: 'preact',
-        typescript: true
+        typescript: true,
       });
 
       expect(result.filename).toMatch(/\.tsx$/);
@@ -269,7 +273,7 @@ describe('ComponentExporter', () => {
         const result = exporter.export({
           ...baseOptions,
           format,
-          typescript: true
+          typescript: true,
         });
 
         expect(result.filename).toMatch(/\.tsx$/);
@@ -280,7 +284,7 @@ describe('ComponentExporter', () => {
         const result = exporter.export({
           ...baseOptions,
           format,
-          typescript: false
+          typescript: false,
         });
 
         expect(result.filename).toMatch(/\.jsx$/);
@@ -298,7 +302,7 @@ describe('ComponentExporter', () => {
       const result = exporter.export({
         ...baseOptions,
         format: 'react',
-        forwardRef: true
+        forwardRef: true,
       });
 
       expect(result.code).toContain('forwardRef');
@@ -308,7 +312,7 @@ describe('ComponentExporter', () => {
       const result = exporter.export({
         ...baseOptions,
         format: 'react',
-        memo: true
+        memo: true,
       });
 
       expect(result.code).toContain('memo');
@@ -318,7 +322,7 @@ describe('ComponentExporter', () => {
       const result = exporter.export({
         ...baseOptions,
         format: 'react',
-        exportType: 'default'
+        exportType: 'default',
       });
 
       expect(result.code).toContain('export default');
@@ -328,7 +332,7 @@ describe('ComponentExporter', () => {
       const result = exporter.export({
         ...baseOptions,
         format: 'react',
-        exportType: 'named'
+        exportType: 'named',
       });
 
       // La implementación usa: export  { ComponentName };
@@ -344,7 +348,7 @@ describe('ComponentExporter', () => {
     test('debe convertir kebab-case a PascalCase', () => {
       const result = exporter.export({
         ...baseOptions,
-        iconName: 'arrow-up-right'
+        iconName: 'arrow-up-right',
       });
 
       expect(result.code).toContain('ArrowUpRight');
@@ -353,7 +357,7 @@ describe('ComponentExporter', () => {
     test('debe convertir snake_case a PascalCase', () => {
       const result = exporter.export({
         ...baseOptions,
-        iconName: 'arrow_up_right'
+        iconName: 'arrow_up_right',
       });
 
       expect(result.code).toContain('ArrowUpRight');
@@ -362,12 +366,10 @@ describe('ComponentExporter', () => {
     test('debe manejar nombres con números', () => {
       const result = exporter.export({
         ...baseOptions,
-        iconName: 'icon-24px'
+        iconName: 'icon-24px',
       });
 
       expect(result.code).toContain('Icon24px');
     });
   });
 });
-
-

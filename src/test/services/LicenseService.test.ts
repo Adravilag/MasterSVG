@@ -2,11 +2,11 @@
  * Tests for LicenseService
  */
 
-import { 
-  parseIconifyName, 
+import {
+  parseIconifyName,
   groupByCollection,
   generateCombinedLicense,
-  IconAttribution 
+  IconAttribution,
 } from '../../services/LicenseService';
 
 describe('LicenseService', () => {
@@ -14,14 +14,23 @@ describe('LicenseService', () => {
     it('should parse common Iconify prefixes', () => {
       expect(parseIconifyName('mdi-home')).toEqual({ prefix: 'mdi', name: 'home' });
       expect(parseIconifyName('fa-star')).toEqual({ prefix: 'fa', name: 'star' });
-      expect(parseIconifyName('lucide-arrow-right')).toEqual({ prefix: 'lucide', name: 'arrow-right' });
+      expect(parseIconifyName('lucide-arrow-right')).toEqual({
+        prefix: 'lucide',
+        name: 'arrow-right',
+      });
       expect(parseIconifyName('tabler-user')).toEqual({ prefix: 'tabler', name: 'user' });
     });
 
     it('should parse multi-segment prefixes', () => {
-      expect(parseIconifyName('material-symbols-home')).toEqual({ prefix: 'material-symbols', name: 'home' });
+      expect(parseIconifyName('material-symbols-home')).toEqual({
+        prefix: 'material-symbols',
+        name: 'home',
+      });
       expect(parseIconifyName('fa-solid-star')).toEqual({ prefix: 'fa-solid', name: 'star' });
-      expect(parseIconifyName('icon-park-outline-add')).toEqual({ prefix: 'icon-park-outline', name: 'add' });
+      expect(parseIconifyName('icon-park-outline-add')).toEqual({
+        prefix: 'icon-park-outline',
+        name: 'add',
+      });
     });
 
     it('should fallback to generic parsing for unknown prefixes', () => {
@@ -43,26 +52,26 @@ describe('LicenseService', () => {
           prefix: 'mdi',
           collection: 'Material Design Icons',
           author: { name: 'Pictogrammers' },
-          license: { title: 'Apache 2.0', spdx: 'Apache-2.0' }
+          license: { title: 'Apache 2.0', spdx: 'Apache-2.0' },
         },
         {
           iconName: 'mdi-star',
           prefix: 'mdi',
           collection: 'Material Design Icons',
           author: { name: 'Pictogrammers' },
-          license: { title: 'Apache 2.0', spdx: 'Apache-2.0' }
+          license: { title: 'Apache 2.0', spdx: 'Apache-2.0' },
         },
         {
           iconName: 'lucide-arrow',
           prefix: 'lucide',
           collection: 'Lucide',
           author: { name: 'Lucide Contributors' },
-          license: { title: 'ISC', spdx: 'ISC' }
-        }
+          license: { title: 'ISC', spdx: 'ISC' },
+        },
       ];
 
       const grouped = groupByCollection(attributions);
-      
+
       expect(grouped.size).toBe(2);
       expect(grouped.get('mdi')?.length).toBe(2);
       expect(grouped.get('lucide')?.length).toBe(1);
@@ -82,8 +91,8 @@ describe('LicenseService', () => {
           prefix: 'mdi',
           collection: 'Material Design Icons',
           author: { name: 'Pictogrammers', url: 'https://github.com/Templarian/MaterialDesign' },
-          license: { title: 'Apache 2.0', spdx: 'Apache-2.0', url: 'https://apache.org/licenses' }
-        }
+          license: { title: 'Apache 2.0', spdx: 'Apache-2.0', url: 'https://apache.org/licenses' },
+        },
       ];
 
       const allIconNames = ['mdi-home', 'mdi-star', 'local-icon'];
@@ -106,8 +115,12 @@ describe('LicenseService', () => {
           prefix: 'fa',
           collection: 'Font Awesome',
           author: { name: 'Font Awesome', url: 'https://fontawesome.com' },
-          license: { title: 'CC BY 4.0', spdx: 'CC-BY-4.0', url: 'https://creativecommons.org/licenses/by/4.0/' }
-        }
+          license: {
+            title: 'CC BY 4.0',
+            spdx: 'CC-BY-4.0',
+            url: 'https://creativecommons.org/licenses/by/4.0/',
+          },
+        },
       ];
 
       const content = generateCombinedLicense(attributions, ['fa-star']);
@@ -123,8 +136,8 @@ describe('LicenseService', () => {
           prefix: 'mdi',
           collection: 'Material Design Icons',
           author: { name: 'Pictogrammers' },
-          license: { title: 'Apache 2.0', spdx: 'Apache-2.0' }
-        }
+          license: { title: 'Apache 2.0', spdx: 'Apache-2.0' },
+        },
       ];
 
       // Create more than 10 icons

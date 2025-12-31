@@ -12,7 +12,6 @@ export { FolderTreeNode };
  * This is now a facade that delegates to specialized builders.
  */
 export class TreeNavigationHelper {
-  
   /**
    * Build a tree structure from paths
    * @deprecated Use FolderTreeBuilder.buildFolderTree instead
@@ -32,20 +31,14 @@ export class TreeNavigationHelper {
   /**
    * Get children for SVG Files folder hierarchy
    */
-  static getFolderChildren(
-    folderPath: string,
-    svgFiles: Map<string, WorkspaceIcon>
-  ): SvgItem[] {
+  static getFolderChildren(folderPath: string, svgFiles: Map<string, WorkspaceIcon>): SvgItem[] {
     return SectionChildrenBuilder.getFolderChildren(folderPath, svgFiles);
   }
 
   /**
    * Get children for Inline SVGs folder hierarchy
    */
-  static getInlineDirChildren(
-    dirPath: string,
-    inlineSvgs: Map<string, WorkspaceIcon>
-  ): SvgItem[] {
+  static getInlineDirChildren(dirPath: string, inlineSvgs: Map<string, WorkspaceIcon>): SvgItem[] {
     return SectionChildrenBuilder.getInlineDirChildren(dirPath, inlineSvgs);
   }
 
@@ -82,10 +75,7 @@ export class TreeNavigationHelper {
   /**
    * Get children for Icon Component usages folder hierarchy
    */
-  static getUsagesDirChildren(
-    dirPath: string,
-    iconUsages: Map<string, IconUsage[]>
-  ): SvgItem[] {
+  static getUsagesDirChildren(dirPath: string, iconUsages: Map<string, IconUsage[]>): SvgItem[] {
     return SectionChildrenBuilder.getUsagesDirChildren(dirPath, iconUsages);
   }
 
@@ -137,4 +127,3 @@ export class TreeNavigationHelper {
     return CategorySectionBuilder.buildUsagesSectionChildren(iconUsages);
   }
 }
-

@@ -27,11 +27,12 @@ import {
   namedColorToHex,
   isValidColor,
   estimateSize,
-  formatBytes
+  formatBytes,
 } from '../../utils/svgValidation';
 
 describe('svgValidation', () => {
-  const simpleSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20"/></svg>';
+  const simpleSvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20"/></svg>';
   const complexSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
     <defs>
       <linearGradient id="grad1">
@@ -209,7 +210,9 @@ describe('svgValidation', () => {
 
   describe('extractDescription', () => {
     it('should extract description', () => {
-      expect(extractDescription('<svg><desc>Icon description</desc></svg>')).toBe('Icon description');
+      expect(extractDescription('<svg><desc>Icon description</desc></svg>')).toBe(
+        'Icon description'
+      );
     });
 
     it('should return null if no desc', () => {
@@ -454,4 +457,3 @@ describe('svgValidation', () => {
     });
   });
 });
-

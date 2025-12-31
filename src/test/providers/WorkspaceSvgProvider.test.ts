@@ -1,6 +1,6 @@
 /**
  * Tests para WorkspaceSvgProvider
- * 
+ *
  * Requisitos cubiertos:
  * - RF-1.1: Escaneo de SVGs en workspace
  * - RF-1.2: Categorización de iconos
@@ -18,7 +18,7 @@ jest.mock('fs', () => ({
   mkdirSync: jest.fn(),
   writeFileSync: jest.fn(),
   readFileSync: jest.fn().mockReturnValue(''),
-  readdirSync: jest.fn().mockReturnValue([])
+  readdirSync: jest.fn().mockReturnValue([]),
 }));
 
 // Mock path module partially
@@ -37,12 +37,12 @@ jest.mock('path', () => ({
   extname: (p: string) => {
     const match = /\.[^.]+$/.exec(p);
     return match ? match[0] : '';
-  }
+  },
 }));
 
 // Mock os module
 jest.mock('os', () => ({
-  tmpdir: () => '/tmp'
+  tmpdir: () => '/tmp',
 }));
 
 describe('WorkspaceSvgProvider', () => {
@@ -54,7 +54,7 @@ describe('WorkspaceSvgProvider', () => {
       const icon: WorkspaceIcon = {
         name: 'test-icon',
         path: '/icons/test.svg',
-        source: 'workspace'
+        source: 'workspace',
       };
 
       expect(icon.name).toBe('test-icon');
@@ -70,7 +70,7 @@ describe('WorkspaceSvgProvider', () => {
         category: 'navigation',
         svg: '<svg></svg>',
         isBuilt: true,
-        usageCount: 5
+        usageCount: 5,
       };
 
       expect(icon.category).toBe('navigation');
@@ -98,9 +98,9 @@ describe('WorkspaceSvgProvider', () => {
         source: 'workspace',
         usages: [
           { file: '/src/App.tsx', line: 10, preview: '<Icon name="arrow" />' },
-          { file: '/src/Nav.tsx', line: 5, preview: '<Icon name="arrow" />' }
+          { file: '/src/Nav.tsx', line: 5, preview: '<Icon name="arrow" />' },
         ],
-        usageCount: 2
+        usageCount: 2,
       };
 
       expect(icon.usages).toHaveLength(2);
@@ -121,7 +121,7 @@ describe('WorkspaceSvgProvider', () => {
         column: 10,
         endLine: 30,
         endColumn: 12,
-        svg: '<svg viewBox="0 0 24 24"><path/></svg>'
+        svg: '<svg viewBox="0 0 24 24"><path/></svg>',
       };
 
       expect(inlineIcon.source).toBe('inline');
@@ -138,14 +138,23 @@ describe('WorkspaceSvgProvider', () => {
 describe('WorkspaceSvgProvider - Comportamiento esperado', () => {
   describe('RF-1.1: Escaneo de SVGs', () => {
     test('CA-1.1.1: debe escanear carpetas configuradas en svgFolders', () => {
-      // El provider lee la configuración 'iconManager.svgFolders'
+      // El provider lee la configuración 'sageboxIconStudio.svgFolders'
       // y escanea esas carpetas en busca de archivos .svg
       expect(true).toBeTruthy();
     });
 
     test('CA-1.1.3: debe ignorar node_modules y carpetas de build', () => {
       // Las carpetas node_modules, .git, dist, build, etc. son ignoradas
-      const ignoredDirs = ['node_modules', '.git', 'dist', 'build', '.next', '.nuxt', 'coverage', '.svelte-kit'];
+      const ignoredDirs = [
+        'node_modules',
+        '.git',
+        'dist',
+        'build',
+        '.next',
+        '.nuxt',
+        'coverage',
+        '.svelte-kit',
+      ];
       expect(ignoredDirs).toContain('node_modules');
     });
   });
@@ -175,7 +184,7 @@ describe('SVG normalization logic', () => {
   describe('color detection', () => {
     test('debe identificar SVGs monocromáticos', () => {
       const blackColors = ['#000', '#000000', 'black', 'rgb(0,0,0)', 'rgb(0, 0, 0)'];
-      
+
       blackColors.forEach(color => {
         expect(color.toLowerCase()).toMatch(/^(#000|#000000|black|rgb\(0,?\s*0,?\s*0\))$/i);
       });
@@ -183,9 +192,11 @@ describe('SVG normalization logic', () => {
 
     test('debe identificar colores que NO son negro', () => {
       const nonBlackColors = ['#ff0000', 'red', '#333', 'rgb(255,0,0)', 'currentColor', 'none'];
-      
+
       nonBlackColors.forEach(color => {
-        const isBlack = ['#000', '#000000', 'black', 'rgb(0,0,0)', 'rgb(0, 0, 0)'].includes(color.toLowerCase());
+        const isBlack = ['#000', '#000000', 'black', 'rgb(0,0,0)', 'rgb(0, 0, 0)'].includes(
+          color.toLowerCase()
+        );
         expect(isBlack).toBeFalsy();
       });
     });
@@ -193,7 +204,8 @@ describe('SVG normalization logic', () => {
 
   describe('gradient detection', () => {
     test('debe detectar gradientes en SVG', () => {
-      const svgWithGradient = '<svg><defs><linearGradient id="grad1"/></defs><rect fill="url(#grad1)"/></svg>';
+      const svgWithGradient =
+        '<svg><defs><linearGradient id="grad1"/></defs><rect fill="url(#grad1)"/></svg>';
       const hasGradient = /url\(#/.test(svgWithGradient);
       expect(hasGradient).toBeTruthy();
     });
@@ -210,7 +222,7 @@ describe('SVG normalization logic', () => {
       const svgNoDimensions = '<svg viewBox="0 0 24 24"><path/></svg>';
       const hasWidth = svgNoDimensions.includes('width=');
       const hasHeight = svgNoDimensions.includes('height=');
-      
+
       expect(hasWidth).toBeFalsy();
       expect(hasHeight).toBeFalsy();
     });
@@ -219,7 +231,7 @@ describe('SVG normalization logic', () => {
       const svgWithDimensions = '<svg width="24" height="24" viewBox="0 0 24 24"><path/></svg>';
       const hasWidth = svgWithDimensions.includes('width=');
       const hasHeight = svgWithDimensions.includes('height=');
-      
+
       expect(hasWidth).toBeTruthy();
       expect(hasHeight).toBeTruthy();
     });
@@ -236,7 +248,7 @@ describe('Icon categorization', () => {
       { path: 'src/icons/navigation/arrow.svg', expectedCategory: 'navigation' },
       { path: 'src/icons/ui/button.svg', expectedCategory: 'ui' },
       { path: 'assets/icons/home.svg', expectedCategory: 'icons' },
-      { path: 'arrow.svg', expectedCategory: 'root' }
+      { path: 'arrow.svg', expectedCategory: 'root' },
     ];
 
     paths.forEach(({ path, expectedCategory }) => {
@@ -250,7 +262,7 @@ describe('Icon categorization', () => {
     const iconName = 'lucide:arrow-left';
     const hasPrefix = iconName.includes(':');
     const prefix = hasPrefix ? iconName.split(':')[0] : 'custom';
-    
+
     expect(hasPrefix).toBeTruthy();
     expect(prefix).toBe('lucide');
   });
@@ -266,7 +278,7 @@ describe('Icon usage patterns', () => {
     { pattern: "name='arrow'", expected: 'single quote name' },
     { pattern: 'icon="lucide:arrow"', expected: 'icon attribute with prefix' },
     { pattern: '<Icon name="home" />', expected: 'JSX component' },
-    { pattern: '<sg-icon name="home"></sg-icon>', expected: 'custom element' }
+    { pattern: '<sg-icon name="home"></sg-icon>', expected: 'custom element' },
   ];
 
   usagePatterns.forEach(({ pattern, expected }) => {
@@ -278,9 +290,9 @@ describe('Icon usage patterns', () => {
 
   test('debe ignorar patrones no válidos', () => {
     const invalidPatterns = [
-      'name=arrow',  // sin comillas
-      'className="icon"',  // atributo diferente
-      '// name="arrow"'  // comentario
+      'name=arrow', // sin comillas
+      'className="icon"', // atributo diferente
+      '// name="arrow"', // comentario
     ];
 
     invalidPatterns.forEach(pattern => {
@@ -309,12 +321,12 @@ describe('WorkspaceSvgProvider class', () => {
       extensionUri: vscode.Uri.file('/test/extension'),
       globalState: {
         get: jest.fn(),
-        update: jest.fn()
+        update: jest.fn(),
       },
       workspaceState: {
         get: jest.fn(),
-        update: jest.fn()
-      }
+        update: jest.fn(),
+      },
     } as unknown as vscode.ExtensionContext;
 
     provider = new WorkspaceSvgProvider(mockContext);
@@ -334,9 +346,9 @@ describe('WorkspaceSvgProvider class', () => {
     test('debe limpiar datos y disparar evento', () => {
       const listener = jest.fn();
       provider.onDidChangeTreeData(listener);
-      
+
       provider.refresh();
-      
+
       expect(listener).toHaveBeenCalled();
     });
   });
@@ -417,11 +429,11 @@ describe('WorkspaceSvgProvider class', () => {
         name: 'test-icon',
         path: '/test/icon.svg',
         source: 'library',
-        svg: '<svg viewBox="0 0 24 24"><path/></svg>'
+        svg: '<svg viewBox="0 0 24 24"><path/></svg>',
       };
       const item = new SvgItem('test', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
       const data = provider.getSvgData(item);
-      
+
       expect(data).toBeDefined();
       expect(data?.name).toBe('test-icon');
       expect(data?.svg).toBe('<svg viewBox="0 0 24 24"><path/></svg>');
@@ -434,11 +446,11 @@ describe('WorkspaceSvgProvider class', () => {
         source: 'inline',
         svg: '<svg><path/></svg>',
         filePath: '/test/Component.tsx',
-        line: 10
+        line: 10,
       };
       const item = new SvgItem('test', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
       const data = provider.getSvgData(item);
-      
+
       expect(data?.location).toBeDefined();
       expect(data?.location?.file).toBe('/test/Component.tsx');
       expect(data?.location?.line).toBe(10);
@@ -461,7 +473,7 @@ describe('SvgItem class', () => {
         undefined,
         'navigation'
       );
-      
+
       expect(item.label).toBe('navigation');
       expect(item.description).toBe('5');
       expect(item.contextValue).toBe('svgCategory');
@@ -476,7 +488,7 @@ describe('SvgItem class', () => {
         undefined,
         'icons'
       );
-      
+
       expect(item.iconPath).toBeDefined();
     });
 
@@ -489,7 +501,7 @@ describe('SvgItem class', () => {
         undefined,
         '📦 icons.json'
       );
-      
+
       expect(item.iconPath).toBeDefined();
     });
 
@@ -502,23 +514,18 @@ describe('SvgItem class', () => {
         undefined,
         '📄 Component.tsx'
       );
-      
+
       expect(item.iconPath).toBeDefined();
     });
   });
 
   describe('action type', () => {
     test('debe crear item de acción con comando', () => {
-      const item = new SvgItem(
-        'Click to scan',
-        0,
-        vscode.TreeItemCollapsibleState.None,
-        'action'
-      );
-      
+      const item = new SvgItem('Click to scan', 0, vscode.TreeItemCollapsibleState.None, 'action');
+
       expect(item.contextValue).toBe('svgAction');
       expect(item.command).toBeDefined();
-      expect(item.command?.command).toBe('iconManager.scanWorkspace');
+      expect(item.command?.command).toBe('sageboxIconStudio.scanWorkspace');
     });
   });
 
@@ -528,9 +535,9 @@ describe('SvgItem class', () => {
       const icon: WorkspaceIcon = {
         name: 'arrow',
         path: '/icons/arrow.svg',
-        source: 'workspace'
+        source: 'workspace',
       };
-      
+
       const item = new SvgItem(
         'App.tsx:25',
         0,
@@ -540,10 +547,10 @@ describe('SvgItem class', () => {
         undefined,
         usage
       );
-      
+
       expect(item.contextValue).toBe('iconUsage');
       expect(item.tooltip).toBe('<Icon name="arrow" />');
-      expect(item.command?.command).toBe('iconManager.goToUsage');
+      expect(item.command?.command).toBe('sageboxIconStudio.goToUsage');
       expect(item.command?.arguments).toEqual(['/src/App.tsx', 25]);
     });
   });
@@ -553,9 +560,9 @@ describe('SvgItem class', () => {
       const icon: WorkspaceIcon = {
         name: 'home',
         path: '/icons/home.svg',
-        source: 'workspace'
+        source: 'workspace',
       };
-      
+
       const item = new SvgItem(
         'home',
         0,
@@ -564,7 +571,7 @@ describe('SvgItem class', () => {
         icon,
         'icons'
       );
-      
+
       expect(item.contextValue).toBe('svgIcon');
     });
 
@@ -574,17 +581,11 @@ describe('SvgItem class', () => {
         path: '/output/icons.js',
         source: 'library',
         isBuilt: true,
-        usageCount: 3
+        usageCount: 3,
       };
-      
-      const item = new SvgItem(
-        'arrow',
-        0,
-        vscode.TreeItemCollapsibleState.None,
-        'icon',
-        icon
-      );
-      
+
+      const item = new SvgItem('arrow', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
+
       expect(item.contextValue).toBe('builtIcon');
       expect(item.description).toBe('3 uses');
     });
@@ -595,9 +596,9 @@ describe('SvgItem class', () => {
         path: '/output/icons.js',
         source: 'library',
         isBuilt: true,
-        usageCount: 0
+        usageCount: 0,
       };
-      
+
       const item = new SvgItem(
         'unused-icon',
         0,
@@ -605,7 +606,7 @@ describe('SvgItem class', () => {
         'icon',
         icon
       );
-      
+
       expect(item.description).toBe('⚠ unused');
     });
 
@@ -615,17 +616,11 @@ describe('SvgItem class', () => {
         path: '/output/icons.js',
         source: 'library',
         isBuilt: true,
-        usageCount: 1
+        usageCount: 1,
       };
-      
-      const item = new SvgItem(
-        'single-use',
-        0,
-        vscode.TreeItemCollapsibleState.None,
-        'icon',
-        icon
-      );
-      
+
+      const item = new SvgItem('single-use', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
+
       expect(item.description).toBe('1 use');
     });
 
@@ -635,20 +630,14 @@ describe('SvgItem class', () => {
         path: '/src/Component.tsx',
         source: 'inline',
         filePath: '/src/Component.tsx',
-        line: 15
+        line: 15,
       };
-      
-      const item = new SvgItem(
-        'inline-svg',
-        0,
-        vscode.TreeItemCollapsibleState.None,
-        'icon',
-        icon
-      );
-      
+
+      const item = new SvgItem('inline-svg', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
+
       expect(item.contextValue).toBe('inlineSvg');
       expect(item.description).toBe('L16');
-      expect(item.command?.command).toBe('iconManager.goToInlineSvg');
+      expect(item.command?.command).toBe('sageboxIconStudio.goToInlineSvg');
     });
 
     test('debe incluir tooltip con usages', () => {
@@ -659,11 +648,11 @@ describe('SvgItem class', () => {
         isBuilt: true,
         usages: [
           { file: '/src/App.tsx', line: 10, preview: '<Icon name="used-icon" />' },
-          { file: '/src/Nav.tsx', line: 20, preview: '<Icon name="used-icon" />' }
+          { file: '/src/Nav.tsx', line: 20, preview: '<Icon name="used-icon" />' },
         ],
-        usageCount: 2
+        usageCount: 2,
       };
-      
+
       const item = new SvgItem(
         'used-icon',
         0,
@@ -671,7 +660,7 @@ describe('SvgItem class', () => {
         'icon',
         icon
       );
-      
+
       expect(item.tooltip).toContain('used-icon');
       expect(item.tooltip).toContain('✓ Built');
       expect(item.tooltip).toContain('2 usages');
@@ -681,18 +670,18 @@ describe('SvgItem class', () => {
       const usages = new Array(10).fill(null).map((_, i) => ({
         file: `/src/File${i}.tsx`,
         line: i + 1,
-        preview: `<Icon name="many-uses" />`
+        preview: `<Icon name="many-uses" />`,
       }));
-      
+
       const icon: WorkspaceIcon = {
         name: 'many-uses',
         path: '/output/icons.js',
         source: 'library',
         isBuilt: true,
         usages,
-        usageCount: 10
+        usageCount: 10,
       };
-      
+
       const item = new SvgItem(
         'many-uses',
         0,
@@ -700,7 +689,7 @@ describe('SvgItem class', () => {
         'icon',
         icon
       );
-      
+
       expect(item.tooltip).toContain('+ 5 more...');
     });
 
@@ -709,9 +698,9 @@ describe('SvgItem class', () => {
         name: 'library-icon',
         path: '/library/icons.json',
         source: 'library',
-        category: 'custom'
+        category: 'custom',
       };
-      
+
       const item = new SvgItem(
         'library-icon',
         0,
@@ -719,29 +708,23 @@ describe('SvgItem class', () => {
         'icon',
         icon
       );
-      
+
       // library icons without isBuilt get 'svgIcon' contextValue
       expect(item.contextValue).toBe('svgIcon');
       // library icons have a command to show details
       expect(item.command).toBeDefined();
-      expect(item.command?.command).toBe('iconManager.showDetails');
+      expect(item.command?.command).toBe('sageboxIconStudio.showDetails');
     });
 
     test('debe usar iconPath svg para iconos', () => {
       const icon: WorkspaceIcon = {
         name: 'svg-icon',
         path: '/icons/test.svg',
-        source: 'workspace'
+        source: 'workspace',
       };
-      
-      const item = new SvgItem(
-        'svg-icon',
-        0,
-        vscode.TreeItemCollapsibleState.None,
-        'icon',
-        icon
-      );
-      
+
+      const item = new SvgItem('svg-icon', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
+
       expect(item.iconPath).toBeDefined();
     });
   });
@@ -752,17 +735,11 @@ describe('SvgItem class', () => {
         name: 'with-svg',
         path: '/icons/test.svg',
         source: 'workspace',
-        svg: '<svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>'
+        svg: '<svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>',
       };
-      
-      const item = new SvgItem(
-        'with-svg',
-        0,
-        vscode.TreeItemCollapsibleState.None,
-        'icon',
-        icon
-      );
-      
+
+      const item = new SvgItem('with-svg', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
+
       expect(item.label).toBe('with-svg');
     });
 
@@ -772,9 +749,9 @@ describe('SvgItem class', () => {
         path: '/output/icons.js',
         source: 'library',
         isBuilt: true,
-        usageCount: 0  // Debe tener usageCount para mostrar unused
+        usageCount: 0, // Debe tener usageCount para mostrar unused
       };
-      
+
       const item = new SvgItem(
         'no-usage-info',
         0,
@@ -782,7 +759,7 @@ describe('SvgItem class', () => {
         'icon',
         icon
       );
-      
+
       // Con usageCount = 0, debe mostrar unused
       expect(item.description).toBe('⚠ unused');
     });
@@ -792,10 +769,10 @@ describe('SvgItem class', () => {
         name: 'undefined-usage',
         path: '/output/icons.js',
         source: 'library',
-        isBuilt: true
+        isBuilt: true,
         // usageCount no definido
       };
-      
+
       const item = new SvgItem(
         'undefined-usage',
         0,
@@ -803,7 +780,7 @@ describe('SvgItem class', () => {
         'icon',
         icon
       );
-      
+
       // Sin usageCount, description es cadena vacía (parts.join sin elementos)
       expect(item.description).toBe('');
     });
@@ -813,9 +790,9 @@ describe('SvgItem class', () => {
         name: 'lucide:arrow-right',
         path: '/icons/lucide.svg',
         source: 'library',
-        category: 'lucide'
+        category: 'lucide',
       };
-      
+
       const item = new SvgItem(
         'lucide:arrow-right',
         0,
@@ -824,7 +801,7 @@ describe('SvgItem class', () => {
         icon,
         'lucide'
       );
-      
+
       expect(item.label).toBe('lucide:arrow-right');
     });
   });
@@ -837,7 +814,7 @@ describe('SvgItem class', () => {
         vscode.TreeItemCollapsibleState.Collapsed,
         'category'
       );
-      
+
       // Verifica que se crea correctamente
       expect(item.label).toBe('🔧 Tools');
       expect(item.description).toBe('5');
@@ -850,7 +827,7 @@ describe('SvgItem class', () => {
         vscode.TreeItemCollapsibleState.Expanded,
         'category'
       );
-      
+
       expect(item.collapsibleState).toBe(vscode.TreeItemCollapsibleState.Expanded);
     });
   });
@@ -863,13 +840,13 @@ describe('SvgItem class', () => {
         vscode.TreeItemCollapsibleState.None,
         'action'
       );
-      
+
       item.command = {
-        command: 'iconManager.customAction',
+        command: 'sageboxIconStudio.customAction',
         title: 'Custom Action',
-        arguments: ['arg1', 'arg2']
+        arguments: ['arg1', 'arg2'],
       };
-      
+
       expect(item.command.arguments).toHaveLength(2);
     });
   });
@@ -879,15 +856,15 @@ describe('SvgItem class', () => {
       const usage = {
         file: '/src/components/deep/nested/VeryLongComponentName.tsx',
         line: 100,
-        preview: '<Icon name="test-icon" className="very-long-class-name-here" size={24} />'
+        preview: '<Icon name="test-icon" className="very-long-class-name-here" size={24} />',
       };
-      
+
       const icon: WorkspaceIcon = {
         name: 'test-icon',
         path: '/icons/test.svg',
-        source: 'workspace'
+        source: 'workspace',
       };
-      
+
       const item = new SvgItem(
         'nested/VeryLongComponentName.tsx:100',
         0,
@@ -897,7 +874,7 @@ describe('SvgItem class', () => {
         undefined,
         usage
       );
-      
+
       expect(item.type).toBe('usage');
       expect(item.command?.arguments).toContain(100);
     });
@@ -914,15 +891,15 @@ describe('WorkspaceSvgProvider additional features', () => {
     subscriptions: [],
     globalState: {
       get: jest.fn(),
-      update: jest.fn()
+      update: jest.fn(),
     },
     workspaceState: {
       get: jest.fn(),
-      update: jest.fn()
+      update: jest.fn(),
     },
     extensionPath: '/test/extension',
     extensionUri: { fsPath: '/test/extension' },
-    asAbsolutePath: (p: string) => `/test/extension/${p}`
+    asAbsolutePath: (p: string) => `/test/extension/${p}`,
   } as unknown as vscode.ExtensionContext;
 
   beforeEach(() => {
@@ -931,13 +908,8 @@ describe('WorkspaceSvgProvider additional features', () => {
 
   describe('tree item resolution', () => {
     test('getTreeItem debe retornar el elemento pasado', () => {
-      const item = new SvgItem(
-        'test',
-        0,
-        vscode.TreeItemCollapsibleState.None,
-        'action'
-      );
-      
+      const item = new SvgItem('test', 0, vscode.TreeItemCollapsibleState.None, 'action');
+
       const result = provider.getTreeItem(item);
       expect(result).toBe(item);
     });
@@ -947,7 +919,7 @@ describe('WorkspaceSvgProvider additional features', () => {
     test('getAllIcons debe retornar Promise', async () => {
       const result = provider.getAllIcons();
       expect(result).toBeInstanceOf(Promise);
-      
+
       const icons = await result;
       expect(Array.isArray(icons)).toBe(true);
     });
@@ -997,11 +969,11 @@ describe('WorkspaceSvgProvider additional features', () => {
   describe('refresh functionality', () => {
     test('refresh debe disparar evento de cambio', () => {
       let eventFired = false;
-      
+
       provider.onDidChangeTreeData(() => {
         eventFired = true;
       });
-      
+
       provider.refresh();
       expect(eventFired).toBe(true);
     });
@@ -1013,19 +985,13 @@ describe('WorkspaceSvgProvider additional features', () => {
         name: 'data-icon',
         path: '/icons/data.svg',
         source: 'workspace',
-        svg: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>'
+        svg: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>',
       };
-      
-      const item = new SvgItem(
-        'data-icon',
-        0,
-        vscode.TreeItemCollapsibleState.None,
-        'icon',
-        icon
-      );
-      
+
+      const item = new SvgItem('data-icon', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
+
       const result = provider.getSvgData(item);
-      
+
       expect(result).toBeDefined();
       expect(result?.name).toBe('data-icon');
       expect(result?.svg).toContain('circle');
@@ -1038,7 +1004,7 @@ describe('WorkspaceSvgProvider additional features', () => {
         vscode.TreeItemCollapsibleState.Collapsed,
         'category'
       );
-      
+
       const result = provider.getSvgData(item);
       expect(result).toBeUndefined();
     });
@@ -1070,9 +1036,9 @@ describe('WorkspaceSvgProvider additional features', () => {
           name: 'cached-icon',
           path: '/icons/cached.svg',
           source: 'workspace',
-          svg: '<svg></svg>'
+          svg: '<svg></svg>',
         };
-        
+
         const item = new SvgItem(
           'cached-icon',
           0,
@@ -1080,10 +1046,10 @@ describe('WorkspaceSvgProvider additional features', () => {
           'icon',
           icon
         );
-        
+
         // Simular el cacheado que ocurre en getTreeItem
         provider.getTreeItem(item);
-        
+
         const result = provider.findItemByIconNameOrPath('cached-icon');
         expect(result).toBe(item);
       });
@@ -1093,9 +1059,9 @@ describe('WorkspaceSvgProvider additional features', () => {
           name: 'path-icon',
           path: '/icons/by-path.svg',
           source: 'workspace',
-          svg: '<svg></svg>'
+          svg: '<svg></svg>',
         };
-        
+
         const item = new SvgItem(
           'path-icon',
           0,
@@ -1103,9 +1069,9 @@ describe('WorkspaceSvgProvider additional features', () => {
           'icon',
           icon
         );
-        
+
         provider.getTreeItem(item);
-        
+
         const result = provider.findItemByIconNameOrPath('other-name', '/icons/by-path.svg');
         expect(result).toBe(item);
       });
@@ -1122,19 +1088,13 @@ describe('WorkspaceSvgProvider additional features', () => {
           name: 'id-icon',
           path: '/icons/id.svg',
           source: 'workspace',
-          svg: '<svg></svg>'
+          svg: '<svg></svg>',
         };
-        
-        const item = new SvgItem(
-          'id-icon',
-          0,
-          vscode.TreeItemCollapsibleState.None,
-          'icon',
-          icon
-        );
-        
+
+        const item = new SvgItem('id-icon', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
+
         provider.getTreeItem(item);
-        
+
         const result = provider.getItemById(item.id!);
         expect(result).toBe(item);
       });
@@ -1151,11 +1111,11 @@ describe('WorkspaceSvgProvider additional features', () => {
           name: 'workspace-icon',
           path: '/icons/workspace.svg',
           source: 'workspace',
-          svg: '<svg></svg>'
+          svg: '<svg></svg>',
         };
-        
+
         const result = provider.createSvgItemFromIcon(icon);
-        
+
         expect(result).toBeDefined();
         expect(result?.label).toBe('workspace-icon');
         expect(result?.contextValue).toBe('svgIcon');
@@ -1167,11 +1127,11 @@ describe('WorkspaceSvgProvider additional features', () => {
           path: '/output/icons.ts',
           source: 'library',
           svg: '<svg></svg>',
-          isBuilt: true
+          isBuilt: true,
         };
-        
+
         const result = provider.createSvgItemFromIcon(icon);
-        
+
         expect(result).toBeDefined();
         expect(result?.contextValue).toBe('builtIcon');
       });
@@ -1183,11 +1143,11 @@ describe('WorkspaceSvgProvider additional features', () => {
           source: 'inline',
           svg: '<svg></svg>',
           filePath: '/src/component.tsx',
-          line: 10
+          line: 10,
         };
-        
+
         const result = provider.createSvgItemFromIcon(icon);
-        
+
         expect(result).toBeDefined();
         expect(result?.contextValue).toBe('inlineSvg');
       });
@@ -1197,9 +1157,9 @@ describe('WorkspaceSvgProvider additional features', () => {
           name: 'pre-cached',
           path: '/icons/pre-cached.svg',
           source: 'workspace',
-          svg: '<svg></svg>'
+          svg: '<svg></svg>',
         };
-        
+
         // Crear y cachear el item primero
         const item = new SvgItem(
           'pre-cached',
@@ -1209,7 +1169,7 @@ describe('WorkspaceSvgProvider additional features', () => {
           icon
         );
         provider.getTreeItem(item);
-        
+
         // Ahora createSvgItemFromIcon debe retornar el mismo item
         const result = provider.createSvgItemFromIcon(icon);
         expect(result).toBe(item);
@@ -1231,7 +1191,7 @@ describe('WorkspaceSvgProvider additional features', () => {
           undefined,
           'files'
         );
-        
+
         const result = provider.getParent(section);
         expect(result).toBeUndefined();
       });
@@ -1242,9 +1202,9 @@ describe('WorkspaceSvgProvider additional features', () => {
           path: '/output/icons.ts',
           source: 'library',
           svg: '<svg></svg>',
-          isBuilt: true
+          isBuilt: true,
         };
-        
+
         const item = new SvgItem(
           'built-child',
           0,
@@ -1252,9 +1212,9 @@ describe('WorkspaceSvgProvider additional features', () => {
           'icon',
           icon
         );
-        
+
         const parent = provider.getParent(item);
-        
+
         // El parent puede ser undefined si no hay workspace configurado
         // o puede ser un category si el path está configurado
         if (parent) {
@@ -1268,9 +1228,9 @@ describe('WorkspaceSvgProvider additional features', () => {
           name: 'folder-child',
           path: '/workspace/icons/subfolder/icon.svg',
           source: 'workspace',
-          svg: '<svg></svg>'
+          svg: '<svg></svg>',
         };
-        
+
         const item = new SvgItem(
           'folder-child',
           0,
@@ -1278,7 +1238,7 @@ describe('WorkspaceSvgProvider additional features', () => {
           'icon',
           icon
         );
-        
+
         // No debe lanzar error
         const parent = provider.getParent(item);
         // Puede ser undefined o un SvgItem
@@ -1292,9 +1252,9 @@ describe('WorkspaceSvgProvider additional features', () => {
           name: 'to-be-cleared',
           path: '/icons/clear.svg',
           source: 'workspace',
-          svg: '<svg></svg>'
+          svg: '<svg></svg>',
         };
-        
+
         const item = new SvgItem(
           'to-be-cleared',
           0,
@@ -1302,11 +1262,11 @@ describe('WorkspaceSvgProvider additional features', () => {
           'icon',
           icon
         );
-        
+
         // Cachear el item
         provider.getTreeItem(item);
         expect(provider.findItemByIconNameOrPath('to-be-cleared')).toBe(item);
-        
+
         // Refresh debe limpiar el cache
         provider.refresh();
         expect(provider.findItemByIconNameOrPath('to-be-cleared')).toBeUndefined();
@@ -1317,7 +1277,7 @@ describe('WorkspaceSvgProvider additional features', () => {
 
 /**
  * Tests para la regex de parsing de icons.js
- * 
+ *
  * Estos tests verifican que la regex puede parsear correctamente
  * iconos con diferentes tipos de contenido SVG, incluyendo
  * aquellos que contienen caracteres especiales como }
@@ -1325,22 +1285,24 @@ describe('WorkspaceSvgProvider additional features', () => {
 describe('BuiltIconsProvider parsing regex', () => {
   // La regex usada en parseIconsFile - simplificada para evitar complejidad
   // La complejidad de esta regex es intencional para parsear iconos JS correctamente
-  // eslint-disable-next-line sonarjs/slow-regex, regexp/no-super-linear-backtracking
-  const iconPattern = /export\s+const\s+(\w+)\s*=\s*\{[\s\S]*?name:\s*['"]([^'"]+)['"][\s\S]*?body:\s*`([^`]*)`[\s\S]*?viewBox:\s*['"]([^'"]+)['"][\s\S]*?\};/g;
+  const iconPattern =
+    /export\s+const\s+(\w+)\s*=\s*\{[\s\S]*?name:\s*['"]([^'"]+)['"][\s\S]*?body:\s*`([^`]*)`[\s\S]*?viewBox:\s*['"]([^'"]+)['"][\s\S]*?\};/g;
 
-  function parseIconsContent(content: string): Array<{varName: string, iconName: string, body: string, viewBox: string}> {
-    const results: Array<{varName: string, iconName: string, body: string, viewBox: string}> = [];
+  function parseIconsContent(
+    content: string
+  ): Array<{ varName: string; iconName: string; body: string; viewBox: string }> {
+    const results: Array<{ varName: string; iconName: string; body: string; viewBox: string }> = [];
     let match;
-    
+
     // Reset regex lastIndex
     iconPattern.lastIndex = 0;
-    
+
     while ((match = iconPattern.exec(content)) !== null) {
       results.push({
         varName: match[1],
         iconName: match[2],
         body: match[3],
-        viewBox: match[4]
+        viewBox: match[4],
       });
     }
     return results;
@@ -1354,7 +1316,7 @@ describe('BuiltIconsProvider parsing regex', () => {
 };`;
 
     const results = parseIconsContent(content);
-    
+
     expect(results).toHaveLength(1);
     expect(results[0].varName).toBe('arrowDown');
     expect(results[0].iconName).toBe('arrow-down');
@@ -1370,7 +1332,7 @@ describe('BuiltIconsProvider parsing regex', () => {
 };`;
 
     const results = parseIconsContent(content);
-    
+
     expect(results).toHaveLength(1);
     expect(results[0].iconName).toBe('complex-icon');
     expect(results[0].body).toContain('{fill:#333}');
@@ -1384,7 +1346,7 @@ describe('BuiltIconsProvider parsing regex', () => {
 };`;
 
     const results = parseIconsContent(content);
-    
+
     expect(results).toHaveLength(1);
     expect(results[0].iconName).toBe('styled-icon');
     expect(results[0].body).toContain('.a{fill:red}');
@@ -1412,7 +1374,7 @@ export const icon3 = {
 };`;
 
     const results = parseIconsContent(content);
-    
+
     expect(results).toHaveLength(3);
     expect(results[0].iconName).toBe('icon-1');
     expect(results[1].iconName).toBe('icon-2');
@@ -1428,7 +1390,7 @@ export const icon3 = {
 };`;
 
     const results = parseIconsContent(content);
-    
+
     expect(results).toHaveLength(1);
     expect(results[0].iconName).toBe('animated-icon');
     expect(results[0].body).toContain('@keyframes spin');
@@ -1444,7 +1406,7 @@ export const icon3 = {
 };`;
 
     const results = parseIconsContent(content);
-    
+
     expect(results).toHaveLength(1);
     expect(results[0].body).toContain('@keyframes a{0%{opacity:0}100%{opacity:1}}');
     expect(results[0].body).toContain('@keyframes b{0%{scale:0}100%{scale:1}}');
@@ -1458,7 +1420,7 @@ export const icon3 = {
 };`;
 
     const results = parseIconsContent(content);
-    
+
     // La regex actual asume orden name -> body -> viewBox
     // Si el orden es diferente, no debería matchear
     // Este test documenta el comportamiento actual
@@ -1477,7 +1439,7 @@ export const icon3 = {
 };`;
 
     const results = parseIconsContent(content);
-    
+
     expect(results).toHaveLength(1);
     expect(results[0].iconName).toBe('spaced-icon');
   });
@@ -1489,7 +1451,7 @@ export const icons = { icon1, icon2 };
 export function helper() { return 'hello'; }`;
 
     const results = parseIconsContent(content);
-    
+
     expect(results).toHaveLength(0);
   });
 
@@ -1508,10 +1470,10 @@ export function helper() { return 'hello'; }`;
 
     const results1 = parseIconsContent(content1);
     const results2 = parseIconsContent(content2);
-    
+
     expect(results1).toHaveLength(1);
     expect(results1[0].iconName).toBe('icon-a');
-    
+
     expect(results2).toHaveLength(1);
     expect(results2[0].iconName).toBe('icon-b');
   });
@@ -1529,12 +1491,12 @@ describe('WorkspaceSvgProvider partial refresh', () => {
       extensionUri: { fsPath: '/test/extension' } as vscode.Uri,
       globalState: {
         get: jest.fn(),
-        update: jest.fn()
+        update: jest.fn(),
       },
       workspaceState: {
         get: jest.fn(),
-        update: jest.fn()
-      }
+        update: jest.fn(),
+      },
     } as unknown as vscode.ExtensionContext;
 
     provider = new WorkspaceSvgProvider(mockContext);
@@ -1552,7 +1514,7 @@ describe('WorkspaceSvgProvider partial refresh', () => {
         name: 'old-name',
         path: '/icons/old-name.svg',
         source: 'library',
-        svg: '<svg><path/></svg>'
+        svg: '<svg><path/></svg>',
       };
 
       // Add icon to internal maps
@@ -1582,20 +1544,24 @@ describe('WorkspaceSvgProvider partial refresh', () => {
       const icon: WorkspaceIcon = {
         name: 'test-icon',
         path: '/icons/test.svg',
-        source: 'library'
+        source: 'library',
       };
 
       (provider as any).libraryIcons.set('test-icon', icon);
       (provider as any).builtIcons.add('test-icon');
-      
+
       // Add cached items via cacheService
-      (provider as any).cacheService.cacheItem({ id: 'icon:test-icon:library:/icons/test.svg' } as SvgItem);
+      (provider as any).cacheService.cacheItem({
+        id: 'icon:test-icon:library:/icons/test.svg',
+      } as SvgItem);
       (provider as any).cacheService.cacheItem({ id: 'other-item' } as SvgItem);
 
       provider.renameBuiltIcon('test-icon', 'renamed-icon');
 
       // Old cached item should be removed
-      expect((provider as any).cacheService.getItemById('icon:test-icon:library:/icons/test.svg')).toBeUndefined();
+      expect(
+        (provider as any).cacheService.getItemById('icon:test-icon:library:/icons/test.svg')
+      ).toBeUndefined();
       // Other items should remain
       expect((provider as any).cacheService.getItemById('other-item')).toBeDefined();
     });
@@ -1614,7 +1580,7 @@ describe('WorkspaceSvgProvider partial refresh', () => {
         name: 'old-file',
         path: '/icons/old-file.svg',
         source: 'workspace',
-        svg: '<svg><circle/></svg>'
+        svg: '<svg><circle/></svg>',
       };
 
       (provider as any).svgFiles.set('old-file', icon);
@@ -1660,7 +1626,7 @@ describe('WorkspaceSvgProvider partial refresh', () => {
 
     test('renameBuiltIcon no debe limpiar otros caches', () => {
       const icon: WorkspaceIcon = { name: 'built1', path: '/p', source: 'library' };
-      
+
       // Add data to multiple caches
       (provider as any).svgFiles.set('file1', { name: 'file1' });
       (provider as any).libraryIcons.set('built1', icon);
@@ -1671,11 +1637,10 @@ describe('WorkspaceSvgProvider partial refresh', () => {
       // svgFiles should not be affected
       expect((provider as any).svgFiles.size).toBe(1);
       expect((provider as any).svgFiles.has('file1')).toBe(true);
-      
+
       // Only the renamed icon should change
       expect((provider as any).libraryIcons.size).toBe(1);
       expect((provider as any).libraryIcons.has('built1-renamed')).toBe(true);
     });
   });
 });
-

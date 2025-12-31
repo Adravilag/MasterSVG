@@ -1,6 +1,6 @@
 /**
  * Syntax Highlighting Service
- * 
+ *
  * Provides syntax highlighting for SVG, CSS, HTML, and JavaScript code.
  * Extracted from IconEditorPanel to improve maintainability.
  */
@@ -11,23 +11,23 @@ const MARKERS = {
   LT: '⟨LT⟩',
   GT: '⟨GT⟩',
   // Highlight markers
-  B_OPEN: '⦃b⦄',      // Brackets
+  B_OPEN: '⦃b⦄', // Brackets
   B_CLOSE: '⦃/b⦄',
-  T_OPEN: '⦃t⦄',      // Tags
+  T_OPEN: '⦃t⦄', // Tags
   T_CLOSE: '⦃/t⦄',
-  A_OPEN: '⦃a⦄',      // Attributes/Props
+  A_OPEN: '⦃a⦄', // Attributes/Props
   A_CLOSE: '⦃/a⦄',
-  S_OPEN: '⦃s⦄',      // Strings
+  S_OPEN: '⦃s⦄', // Strings
   S_CLOSE: '⦃/s⦄',
-  C_OPEN: '⦃c⦄',      // Comments
+  C_OPEN: '⦃c⦄', // Comments
   C_CLOSE: '⦃/c⦄',
-  K_OPEN: '⦃k⦄',      // CSS Keywords
+  K_OPEN: '⦃k⦄', // CSS Keywords
   K_CLOSE: '⦃/k⦄',
-  SEL_OPEN: '⦃sel⦄',  // Selectors
+  SEL_OPEN: '⦃sel⦄', // Selectors
   SEL_CLOSE: '⦃/sel⦄',
-  V_OPEN: '⦃v⦄',      // CSS Values
+  V_OPEN: '⦃v⦄', // CSS Values
   V_CLOSE: '⦃/v⦄',
-  BR_OPEN: '⦃br⦄',    // Braces
+  BR_OPEN: '⦃br⦄', // Braces
   BR_CLOSE: '⦃/br⦄',
 };
 
@@ -137,8 +137,7 @@ export class SyntaxHighlighter {
   formatSvg(svg: string): string {
     if (!svg) return '';
 
-    let result = svg.trim()
-      .replace(/\s*style="[^"]*animation[^"]*"/gi, '');
+    const result = svg.trim().replace(/\s*style="[^"]*animation[^"]*"/gi, '');
 
     const formatted: string[] = [];
     let indent = 0;
@@ -152,7 +151,7 @@ export class SyntaxHighlighter {
         let tagEnd = result.indexOf('>', pos);
         if (tagEnd === -1) tagEnd = result.length;
 
-        let tag = result.substring(pos, tagEnd + 1).trim();
+        const tag = result.substring(pos, tagEnd + 1).trim();
         const isClosing = tag.startsWith('</');
         const isSelfClosing = tag.endsWith('/>');
         const isComment = tag.startsWith('<!--');
@@ -231,24 +230,26 @@ export class SyntaxHighlighter {
     const lines = formatted.split('\n'); // Don't filter empty lines
     let insideStyle = false;
 
-    const codeRows = lines.map((line, i) => {
-      if (line.includes('<style')) insideStyle = true;
-      const wasInsideStyle = insideStyle;
-      if (line.includes('</style')) insideStyle = false;
+    const codeRows = lines
+      .map((line, i) => {
+        if (line.includes('<style')) insideStyle = true;
+        const wasInsideStyle = insideStyle;
+        if (line.includes('</style')) insideStyle = false;
 
-      let highlighted = line
-        .replace(/&/g, MARKERS.AMP)
-        .replace(/</g, MARKERS.LT)
-        .replace(/>/g, MARKERS.GT);
+        let highlighted = line
+          .replace(/&/g, MARKERS.AMP)
+          .replace(/</g, MARKERS.LT)
+          .replace(/>/g, MARKERS.GT);
 
-      if (wasInsideStyle && !line.trim().startsWith('<')) {
-        highlighted = this._highlightCss(highlighted);
-      } else {
-        highlighted = this._highlightXml(highlighted);
-      }
+        if (wasInsideStyle && !line.trim().startsWith('<')) {
+          highlighted = this._highlightCss(highlighted);
+        } else {
+          highlighted = this._highlightXml(highlighted);
+        }
 
-      return this._createRowHtml(highlighted, i + 1);
-    }).join('');
+        return this._createRowHtml(highlighted, i + 1);
+      })
+      .join('');
 
     return `<div class="code-editor">${codeRows}</div>`;
   }
@@ -259,23 +260,25 @@ export class SyntaxHighlighter {
   highlightCssCode(css: string): string {
     const lines = css.split('\n');
 
-    const codeRows = lines.map((line, i) => {
-      let highlighted = this.escapeHtml(line);
+    const codeRows = lines
+      .map((line, i) => {
+        let highlighted = this.escapeHtml(line);
 
-      if (line.trim().startsWith('/*')) {
-        highlighted = `⦃c⦄${highlighted}⦃/c⦄`;
-      } else if (line.includes('@keyframes')) {
-        highlighted = highlighted.replace(/(@keyframes)\s+([\w-]+)/, '⦃k⦄$1⦃/k⦄ ⦃sel⦄$2⦃/sel⦄');
-      } else if (line.includes('{') || line.includes('}')) {
-        highlighted = highlighted.replace(/([{}])/g, '⦃br⦄$1⦃/br⦄');
-        highlighted = highlighted.replace(/\b(from|to|\d+%)\b/g, '⦃sel⦄$1⦃/sel⦄');
-      } else if (line.includes(':')) {
-        highlighted = highlighted.replace(/([\w-]+)(\s*:)/, '⦃a⦄$1⦃/a⦄$2');
-        highlighted = highlighted.replace(/:\s*([^;]+)(;?)/, ': ⦃v⦄$1⦃/v⦄$2');
-      }
-      
-      return this._createRowHtml(highlighted, i + 1);
-    }).join('');
+        if (line.trim().startsWith('/*')) {
+          highlighted = `⦃c⦄${highlighted}⦃/c⦄`;
+        } else if (line.includes('@keyframes')) {
+          highlighted = highlighted.replace(/(@keyframes)\s+([\w-]+)/, '⦃k⦄$1⦃/k⦄ ⦃sel⦄$2⦃/sel⦄');
+        } else if (line.includes('{') || line.includes('}')) {
+          highlighted = highlighted.replace(/([{}])/g, '⦃br⦄$1⦃/br⦄');
+          highlighted = highlighted.replace(/\b(from|to|\d+%)\b/g, '⦃sel⦄$1⦃/sel⦄');
+        } else if (line.includes(':')) {
+          highlighted = highlighted.replace(/([\w-]+)(\s*:)/, '⦃a⦄$1⦃/a⦄$2');
+          highlighted = highlighted.replace(/:\s*([^;]+)(;?)/, ': ⦃v⦄$1⦃/v⦄$2');
+        }
+
+        return this._createRowHtml(highlighted, i + 1);
+      })
+      .join('');
 
     return `<div class="code-editor">${codeRows}</div>`;
   }
@@ -284,24 +287,26 @@ export class SyntaxHighlighter {
    * Highlight usage code (HTML/JS mixed)
    */
   highlightUsageCode(lines: string[]): string {
-    const codeRows = lines.map((line, i) => {
-      let highlighted = this.escapeHtml(line);
+    const codeRows = lines
+      .map((line, i) => {
+        let highlighted = this.escapeHtml(line);
 
-      if (line.trim().startsWith('<!--')) {
-        highlighted = `⦃c⦄${highlighted}⦃/c⦄`;
-      } else if (line.includes('<')) {
-        highlighted = highlighted.replace(/&lt;(\/?)([\w-]+)/g, '⦃b⦄&lt;$1⦃/b⦄⦃t⦄$2⦃/t⦄');
-        highlighted = highlighted.replace(/(\s)([\w-]+)=/g, '$1⦃a⦄$2⦃/a⦄=');
-        highlighted = highlighted.replace(/"([^"]*)"/g, '⦃s⦄"$1"⦃/s⦄');
-        highlighted = highlighted.replace(/&gt;/g, '⦃b⦄&gt;⦃/b⦄');
-      } else if (line.includes('import')) {
-        highlighted = highlighted.replace(/(import|from)/g, '⦃k⦄$1⦃/k⦄');
-        highlighted = highlighted.replace(/\{ ([^}]+) \}/, '{ ⦃sel⦄$1⦃/sel⦄ }');
-        highlighted = highlighted.replace(/'([^']+)'/g, '⦃s⦄\'$1\'⦃/s⦄');
-      }
+        if (line.trim().startsWith('<!--')) {
+          highlighted = `⦃c⦄${highlighted}⦃/c⦄`;
+        } else if (line.includes('<')) {
+          highlighted = highlighted.replace(/&lt;(\/?)([\w-]+)/g, '⦃b⦄&lt;$1⦃/b⦄⦃t⦄$2⦃/t⦄');
+          highlighted = highlighted.replace(/(\s)([\w-]+)=/g, '$1⦃a⦄$2⦃/a⦄=');
+          highlighted = highlighted.replace(/"([^"]*)"/g, '⦃s⦄"$1"⦃/s⦄');
+          highlighted = highlighted.replace(/&gt;/g, '⦃b⦄&gt;⦃/b⦄');
+        } else if (line.includes('import')) {
+          highlighted = highlighted.replace(/(import|from)/g, '⦃k⦄$1⦃/k⦄');
+          highlighted = highlighted.replace(/\{ ([^}]+) \}/, '{ ⦃sel⦄$1⦃/sel⦄ }');
+          highlighted = highlighted.replace(/'([^']+)'/g, "⦃s⦄'$1'⦃/s⦄");
+        }
 
-      return this._createRowHtml(highlighted, i + 1);
-    }).join('');
+        return this._createRowHtml(highlighted, i + 1);
+      })
+      .join('');
 
     return `<div class="code-editor">${codeRows}</div>`;
   }
@@ -316,4 +321,3 @@ export function getSyntaxHighlighter(): SyntaxHighlighter {
   }
   return syntaxHighlighterInstance;
 }
-

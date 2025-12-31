@@ -16,7 +16,7 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
   ): Promise<vscode.CompletionItem[]> {
     const linePrefix = document.lineAt(position).text.substring(0, position.character);
     const fullLine = document.lineAt(position).text;
-    
+
     // Check if we're in an icon-related context
     const componentName = getSvgConfig<string>('componentName', 'Icon');
     const webComponentName = getSvgConfig<string>('webComponentName', 'sg-icon');
@@ -24,21 +24,21 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
 
     // Check if we're inside an icon component tag and need attribute names
     const iconTagPatterns = [
-      new RegExp(`<${componentName}[^>]*\\s+$`),           // <Icon ... |
-      new RegExp(`<${webComponentName}[^>]*\\s+$`),        // <sg-icon ... |
+      new RegExp(`<${componentName}[^>]*\\s+$`), // <Icon ... |
+      new RegExp(`<${webComponentName}[^>]*\\s+$`), // <sg-icon ... |
       new RegExp(`<${componentName}[^>]*\\s+[a-z]*$`, 'i'), // <Icon ... var|
-      new RegExp(`<${webComponentName}[^>]*\\s+[a-z]*$`, 'i') // <sg-icon ... var|
+      new RegExp(`<${webComponentName}[^>]*\\s+[a-z]*$`, 'i'), // <sg-icon ... var|
     ];
-    
+
     const shouldCompleteAttribute = iconTagPatterns.some(p => p.test(linePrefix));
     if (shouldCompleteAttribute) {
       // Check what partial text has been typed
       const partialAttrMatch = linePrefix.match(/\s+([a-z]*)$/i);
       const partialText = partialAttrMatch ? partialAttrMatch[1].toLowerCase() : '';
-      
+
       // Get existing attributes in this tag to avoid duplicates
       const existingAttrs = this.getExistingAttributes(linePrefix);
-      
+
       return this.getAttributeCompletions(partialText, existingAttrs);
     }
 
@@ -46,15 +46,15 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
     const variantPatterns = [
       new RegExp(`<${componentName}[^>]*variant=["']$`),
       new RegExp(`<${webComponentName}[^>]*variant=["']$`),
-      /variant=["']$/
+      /variant=["']$/,
     ];
-    
+
     const shouldCompleteVariant = variantPatterns.some(p => p.test(linePrefix));
     if (shouldCompleteVariant) {
       // Try to extract the icon name from the line
       const iconNameMatch = fullLine.match(new RegExp(`${nameAttr}=["']([^"']+)["']`));
       const iconName = iconNameMatch ? iconNameMatch[1] : null;
-      
+
       return this.getVariantCompletions(iconName);
     }
 
@@ -62,9 +62,9 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
     const animationPatterns = [
       new RegExp(`<${componentName}[^>]*animation=["']$`),
       new RegExp(`<${webComponentName}[^>]*animation=["']$`),
-      /animation=["']$/
+      /animation=["']$/,
     ];
-    
+
     const shouldCompleteAnimation = animationPatterns.some(p => p.test(linePrefix));
     if (shouldCompleteAnimation) {
       // Try to extract the icon name from the line for preview
@@ -79,7 +79,7 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
       new RegExp(`<${webComponentName}[^>]*${nameAttr}=["']$`),
       new RegExp(`<iconify-icon[^>]*icon=["']$`),
       new RegExp(`${nameAttr}=["']$`),
-      /icon=["']$/
+      /icon=["']$/,
     ];
 
     const shouldComplete = patterns.some(p => p.test(linePrefix));
@@ -91,12 +91,16 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
     for (const icon of icons) {
       const item = new vscode.CompletionItem(icon.name, vscode.CompletionItemKind.Value);
       item.detail = `${icon.source} - ${icon.category || 'uncategorized'}`;
-      item.documentation = new vscode.MarkdownString(`**${icon.name}**\n\nSource: ${icon.source}\nPath: ${icon.path}`);
-      
+      item.documentation = new vscode.MarkdownString(
+        `**${icon.name}**\n\nSource: ${icon.source}\nPath: ${icon.path}`
+      );
+
       // If we have the SVG, show a preview
       if (icon.svg) {
         const svgPreview = this.createSvgPreview(icon.svg);
-        item.documentation = new vscode.MarkdownString(`${svgPreview}\n\n**${icon.name}**\n\nSource: ${icon.source}`);
+        item.documentation = new vscode.MarkdownString(
+          `${svgPreview}\n\n**${icon.name}**\n\nSource: ${icon.source}`
+        );
         item.documentation.supportHtml = true;
         item.documentation.isTrusted = true;
       }
@@ -111,14 +115,14 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
   private getVariantCompletions(iconName: string | null): vscode.CompletionItem[] {
     const items: vscode.CompletionItem[] = [];
     const allVariants = this.readVariantsFromFile();
-    
+
     if (iconName && allVariants[iconName]) {
       // Show Variants for this specific icon
       const iconVariants = allVariants[iconName];
       for (const variantName of Object.keys(iconVariants)) {
         // Skip internal variants (starting with _)
         if (variantName.startsWith('_')) continue;
-        
+
         const colors = iconVariants[variantName];
         const item = new vscode.CompletionItem(variantName, vscode.CompletionItemKind.Color);
         item.detail = `🎨 Variant for ${iconName}`;
@@ -132,7 +136,7 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
         for (const variantName of Object.keys(Variants)) {
           // Skip internal variants (starting with _)
           if (variantName.startsWith('_')) continue;
-          
+
           const colors = Variants[variantName];
           const item = new vscode.CompletionItem(variantName, vscode.CompletionItemKind.Color);
           item.detail = `🎨 Variant from ${icon}`;
@@ -142,7 +146,7 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
           items.push(item);
         }
       }
-      
+
       // Remove duplicates by variant name (keep first occurrence)
       const seen = new Set<string>();
       return items.filter(item => {
@@ -151,19 +155,23 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
         return true;
       });
     }
-    
+
     return items;
   }
 
   /**
    * Create rich documentation for variant with color swatches and preview
    */
-  private createVariantDocumentation(variantName: string, colors: string[], iconName?: string): vscode.MarkdownString {
+  private createVariantDocumentation(
+    variantName: string,
+    colors: string[],
+    iconName?: string
+  ): vscode.MarkdownString {
     const md = new vscode.MarkdownString();
     md.supportHtml = true;
     md.supportThemeIcons = true;
     md.isTrusted = true;
-    
+
     // Add SVG preview with variant colors applied
     if (iconName) {
       const icon = this.svgProvider.getIcon(iconName);
@@ -172,15 +180,17 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
         md.appendMarkdown(preview + '\n\n');
       }
     }
-    
+
     md.appendMarkdown(`**🎨 ${variantName}**\n\n`);
-    
+
     // Color swatches
-    const colorSwatches = colors.map(color => {
-      const safeColor = color.replace(/[^#a-fA-F0-9,()rgb]/g, '');
-      return `<span style="background-color:${safeColor};color:${safeColor};border:1px solid #888;border-radius:2px;">&nbsp;&nbsp;&nbsp;</span> \`${color}\``;
-    }).join('\n\n');
-    
+    const colorSwatches = colors
+      .map(color => {
+        const safeColor = color.replace(/[^#a-fA-F0-9,()rgb]/g, '');
+        return `<span style="background-color:${safeColor};color:${safeColor};border:1px solid #888;border-radius:2px;">&nbsp;&nbsp;&nbsp;</span> \`${color}\``;
+      })
+      .join('\n\n');
+
     md.appendMarkdown(`**Colors:**\n\n${colorSwatches}\n\n`);
     md.appendMarkdown(`---\n*Use \`variant="${variantName}"\` to apply*`);
     return md;
@@ -191,18 +201,18 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
    */
   private createVariantSvgPreview(svg: string, iconName: string, variantName: string): string {
     const size = 48;
-    
+
     // Read variants data
     const variantsData = this.readVariantsFromFile();
     const iconVariants = variantsData[iconName];
-    
+
     if (!iconVariants) {
       return this.createSvgPreview(svg);
     }
-    
+
     const originalColors = iconVariants['_original'] || [];
     const variantColors = iconVariants[variantName] || [];
-    
+
     // Apply color replacements
     let modifiedSvg = svg;
     for (let i = 0; i < originalColors.length && i < variantColors.length; i++) {
@@ -211,26 +221,24 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
       const colorRegex = new RegExp(this.escapeRegex(original), 'gi');
       modifiedSvg = modifiedSvg.replace(colorRegex, replacement);
     }
-    
+
     // Clean and format SVG
     const viewBoxMatch = modifiedSvg.match(/viewBox=["']([^"']+)["']/);
     const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24';
-    
+
     let cleanSvg = modifiedSvg
       .replace(/\s+width="[^"]*"/g, '')
       .replace(/\s+height="[^"]*"/g, '')
       .replace(/\s+class="[^"]*"/g, '');
-    
+
     if (!cleanSvg.includes('viewBox')) {
       cleanSvg = cleanSvg.replace(/<svg/, `<svg viewBox="${viewBox}"`);
     }
-    
+
     cleanSvg = cleanSvg.replace(/<svg/, `<svg width="${size}" height="${size}"`);
-    
-    const encoded = encodeURIComponent(cleanSvg)
-      .replace(/'/g, '%27')
-      .replace(/"/g, '%22');
-    
+
+    const encoded = encodeURIComponent(cleanSvg).replace(/'/g, '%27').replace(/"/g, '%22');
+
     return `![icon](data:image/svg+xml,${encoded})`;
   }
 
@@ -245,30 +253,30 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
       const icon = this.svgProvider.getIcon(iconName);
       iconSvg = icon?.svg;
     }
-    
+
     // Animation metadata with descriptions and icons
     const animationMeta: Record<string, { description: string; icon: string }> = {
       // Basic
-      'none': { description: 'No animation', icon: '⏹️' },
-      'spin': { description: 'Continuous 360° rotation', icon: '🔄' },
+      none: { description: 'No animation', icon: '⏹️' },
+      spin: { description: 'Continuous 360° rotation', icon: '🔄' },
       'spin-reverse': { description: 'Counter-clockwise rotation', icon: '🔃' },
-      'pulse': { description: 'Scale up/down with opacity', icon: '💓' },
+      pulse: { description: 'Scale up/down with opacity', icon: '💓' },
       'pulse-grow': { description: 'Scale up and down', icon: '📈' },
-      'bounce': { description: 'Vertical bouncing', icon: '⬆️' },
+      bounce: { description: 'Vertical bouncing', icon: '⬆️' },
       'bounce-horizontal': { description: 'Horizontal bouncing', icon: '↔️' },
-      'shake': { description: 'Horizontal shaking', icon: '↔️' },
+      shake: { description: 'Horizontal shaking', icon: '↔️' },
       'shake-vertical': { description: 'Vertical shaking', icon: '↕️' },
-      'fade': { description: 'Fade in and out', icon: '👻' },
-      'float': { description: 'Gentle floating', icon: '🎈' },
-      'blink': { description: 'Blink on/off', icon: '💡' },
-      'glow': { description: 'Glowing effect', icon: '✨' },
+      fade: { description: 'Fade in and out', icon: '👻' },
+      float: { description: 'Gentle floating', icon: '🎈' },
+      blink: { description: 'Blink on/off', icon: '💡' },
+      glow: { description: 'Glowing effect', icon: '✨' },
       // Attention
-      'swing': { description: 'Pendulum swing', icon: '🎐' },
-      'wobble': { description: 'Wobbly motion', icon: '〰️' },
+      swing: { description: 'Pendulum swing', icon: '🎐' },
+      wobble: { description: 'Wobbly motion', icon: '〰️' },
       'rubber-band': { description: 'Rubber band stretch', icon: '🔗' },
-      'jello': { description: 'Jello wiggle', icon: '🟡' },
-      'heartbeat': { description: 'Double-pulse heartbeat', icon: '❤️' },
-      'tada': { description: 'Celebration effect', icon: '🎉' },
+      jello: { description: 'Jello wiggle', icon: '🟡' },
+      heartbeat: { description: 'Double-pulse heartbeat', icon: '❤️' },
+      tada: { description: 'Celebration effect', icon: '🎉' },
       // Entrance/Exit
       'fade-in': { description: 'Fade in from transparent', icon: '🌅' },
       'fade-out': { description: 'Fade out to transparent', icon: '🌆' },
@@ -278,14 +286,14 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
       'slide-in-down': { description: 'Slide in from top', icon: '⬇️' },
       'slide-in-left': { description: 'Slide in from left', icon: '⬅️' },
       'slide-in-right': { description: 'Slide in from right', icon: '➡️' },
-      'flip': { description: 'Flip on Y axis', icon: '🔀' },
+      flip: { description: 'Flip on Y axis', icon: '🔀' },
       'flip-x': { description: 'Flip on X axis', icon: '🔁' },
       // Draw (for stroke-based SVGs)
-      'draw': { description: 'Draw stroke animation', icon: '✏️' },
+      draw: { description: 'Draw stroke animation', icon: '✏️' },
       'draw-reverse': { description: 'Undraw stroke animation', icon: '🧹' },
       'draw-loop': { description: 'Draw and undraw loop', icon: '🔄' },
       // Custom
-      'custom': { description: 'Custom CSS animation (define your own keyframes)', icon: '🎨' },
+      custom: { description: 'Custom CSS animation (define your own keyframes)', icon: '🎨' },
     };
 
     const items: vscode.CompletionItem[] = [];
@@ -297,36 +305,36 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
       attention: '👀 Attention',
       entrance: '🚪 Entrance/Exit',
       draw: '✏️ Draw',
-      custom: '🎨 Custom'
+      custom: '🎨 Custom',
     };
 
     for (const [category, animations] of Object.entries(ANIMATION_CATEGORIES)) {
       for (const animName of animations) {
         const meta = animationMeta[animName] || { description: animName, icon: '🎬' };
-        
+
         const item = new vscode.CompletionItem(animName, vscode.CompletionItemKind.EnumMember);
         item.detail = `${meta.icon} ${meta.description}`;
-        
+
         const md = new vscode.MarkdownString();
         md.supportHtml = true;
         md.isTrusted = true;
-        
+
         // Add animated preview if we have an icon
         if (iconSvg && animName !== 'none') {
           const preview = this.createAnimatedSvgPreview(iconSvg, animName);
           md.appendMarkdown(preview + '\n\n');
         }
-        
+
         md.appendMarkdown(`${meta.icon} **${animName}**\n\n`);
         md.appendMarkdown(`${meta.description}\n\n`);
         md.appendMarkdown(`*Category: ${categoryLabels[category] || category}*\n\n`);
         md.appendMarkdown(`---\n*Use \`animation="${animName}"\` to apply*`);
         item.documentation = md;
-        
+
         // Sort by category then by name
         const categoryIndex = Object.keys(ANIMATION_CATEGORIES).indexOf(category);
         item.sortText = `${categoryIndex}${String(sortIndex).padStart(2, '0')}`;
-        
+
         items.push(item);
         sortIndex++;
       }
@@ -338,13 +346,16 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
   /**
    * Get completions for icon component attribute names
    */
-  private getAttributeCompletions(partialText: string, existingAttrs: Set<string>): vscode.CompletionItem[] {
+  private getAttributeCompletions(
+    partialText: string,
+    existingAttrs: Set<string>
+  ): vscode.CompletionItem[] {
     const nameAttr = getSvgConfig<string>('iconNameAttribute', 'name');
-    
+
     // Build animation type hint from ANIMATION_CATEGORIES
     const allAnimations = Object.values(ANIMATION_CATEGORIES).flat();
     const animationTypeHint = allAnimations.slice(0, 6).join(' | ') + ' | ... (32 total)';
-    
+
     const attributes = [
       { name: nameAttr, description: 'Icon name identifier', type: 'string', required: true },
       { name: 'variant', description: 'Color variant to apply', type: 'string' },
@@ -354,40 +365,42 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
       { name: 'light-color', description: 'Color for light mode', type: 'string' },
       { name: 'dark-color', description: 'Color for dark mode', type: 'string' },
       { name: 'class', description: 'CSS class name', type: 'string' },
-      { name: 'style', description: 'Inline CSS styles', type: 'string' }
+      { name: 'style', description: 'Inline CSS styles', type: 'string' },
     ];
 
     const items: vscode.CompletionItem[] = [];
-    
+
     for (const attr of attributes) {
       // Skip if already exists in tag
       if (existingAttrs.has(attr.name)) continue;
-      
+
       // Filter by partial text if provided
       if (partialText && !attr.name.toLowerCase().startsWith(partialText)) continue;
-      
+
       const item = new vscode.CompletionItem(attr.name, vscode.CompletionItemKind.Property);
       item.detail = attr.type;
-      item.documentation = new vscode.MarkdownString(`**${attr.name}**\n\n${attr.description}\n\nType: \`${attr.type}\``);
-      
+      item.documentation = new vscode.MarkdownString(
+        `**${attr.name}**\n\n${attr.description}\n\nType: \`${attr.type}\``
+      );
+
       // Insert attribute with quotes and place cursor inside
       item.insertText = new vscode.SnippetString(`${attr.name}="\${1}"`);
       item.command = {
         command: 'editor.action.triggerSuggest',
-        title: 'Trigger Suggest'
+        title: 'Trigger Suggest',
       };
-      
+
       // Required attributes first
       item.sortText = attr.required ? `0${attr.name}` : `1${attr.name}`;
-      
+
       // Preselect variant and animation as they're common
       if (attr.name === 'variant' || attr.name === 'animation') {
         item.preselect = true;
       }
-      
+
       items.push(item);
     }
-    
+
     return items;
   }
 
@@ -410,10 +423,10 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
       const outputDir = getSvgConfig<string>('outputDirectory', '');
       const workspaceFolders = vscode.workspace.workspaceFolders;
       if (!workspaceFolders || !outputDir) return {};
-      
+
       const filePath = path.join(workspaceFolders[0].uri.fsPath, outputDir, 'variants.js');
       if (!fs.existsSync(filePath)) return {};
-      
+
       const content = fs.readFileSync(filePath, 'utf-8');
       // Parse: export const Variants = { ... }; (with flexible whitespace)
       const match = content.match(/export\s+const\s+Variants\s*=\s*(\{[\s\S]*?\n\});?/);
@@ -439,7 +452,7 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
       .replace(/height="[^"]*"/g, 'height="48"')
       .replace(/class="[^"]*"/g, '')
       .replace(/style="[^"]*"/g, '');
-    
+
     // Convert to data URI for markdown
     const encoded = Buffer.from(cleanSvg).toString('base64');
     return `<img src="data:image/svg+xml;base64,${encoded}" width="48" height="48" />`;
@@ -450,51 +463,49 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
    */
   private createAnimatedSvgPreview(svg: string, animationName: string): string {
     const size = 48;
-    
+
     // Extract viewBox if present
     const viewBoxMatch = svg.match(/viewBox=["']([^"']+)["']/);
     const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 24 24';
-    
+
     // Clean SVG
     let cleanSvg = svg
       .replace(/\s+width="[^"]*"/g, '')
       .replace(/\s+height="[^"]*"/g, '')
       .replace(/\s+class="[^"]*"/g, '');
-    
+
     // Ensure viewBox is set
     if (!cleanSvg.includes('viewBox')) {
       cleanSvg = cleanSvg.replace(/<svg/, `<svg viewBox="${viewBox}"`);
     }
-    
+
     // Add width/height
     cleanSvg = cleanSvg.replace(/<svg/, `<svg width="${size}" height="${size}"`);
-    
+
     // Add animation if keyframes exist
     const keyframes = ANIMATION_KEYFRAMES[animationName];
     if (keyframes) {
       const duration = this.getAnimationDuration(animationName);
       const timing = this.getAnimationTiming(animationName);
-      
+
       const styleContent = `
         ${keyframes}
         svg { animation: ${animationName} ${duration} ${timing} infinite; }
       `.trim();
-      
+
       cleanSvg = cleanSvg.replace(/<svg([^>]*)>/, `<svg$1><style>${styleContent}</style>`);
     }
-    
+
     // URL encode for data URI
-    const encoded = encodeURIComponent(cleanSvg)
-      .replace(/'/g, '%27')
-      .replace(/"/g, '%22');
-    
+    const encoded = encodeURIComponent(cleanSvg).replace(/'/g, '%27').replace(/"/g, '%22');
+
     return `![icon](data:image/svg+xml,${encoded})`;
   }
 
   private getAnimationDuration(animationType: string): string {
     const fastAnimations = ['spin', 'spin-reverse', 'blink'];
     const slowAnimations = ['float', 'fade', 'glow'];
-    
+
     if (fastAnimations.includes(animationType)) return '1s';
     if (slowAnimations.includes(animationType)) return '2s';
     return '1.5s';
@@ -503,10 +514,9 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
   private getAnimationTiming(animationType: string): string {
     const linearAnimations = ['spin', 'spin-reverse'];
     const easeOutAnimations = ['bounce', 'bounce-horizontal', 'slide-in-up', 'slide-in-down'];
-    
+
     if (linearAnimations.includes(animationType)) return 'linear';
     if (easeOutAnimations.includes(animationType)) return 'ease-out';
     return 'ease-in-out';
   }
 }
-

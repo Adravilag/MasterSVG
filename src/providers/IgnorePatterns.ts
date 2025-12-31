@@ -20,7 +20,7 @@ function loadIgnorePatterns(): string[] {
   if (!workspaceRoot) return [];
 
   const ignoreFile = path.join(workspaceRoot, '.bezierignore');
-  
+
   if (!fs.existsSync(ignoreFile)) {
     return [];
   }
@@ -31,7 +31,7 @@ function loadIgnorePatterns(): string[] {
       .split('\n')
       .map(line => line.trim())
       .filter(line => line && !line.startsWith('#'));
-    
+
     return patterns;
   } catch {
     return [];
@@ -51,13 +51,13 @@ export function shouldIgnorePath(filePath: string): boolean {
 
   // Get relative path from workspace root
   const relativePath = path.relative(workspaceRoot, filePath).replace(/\\/g, '/');
-  
+
   for (const pattern of ignorePatterns) {
     if (matchIgnorePattern(relativePath, pattern)) {
       return true;
     }
   }
-  
+
   return false;
 }
 
@@ -67,19 +67,19 @@ export function shouldIgnorePath(filePath: string): boolean {
 function matchIgnorePattern(relativePath: string, pattern: string): boolean {
   // Normalize pattern
   let normalizedPattern = pattern.replace(/\\/g, '/');
-  
+
   // Handle directory patterns (ending with /)
   const isDirectoryPattern = normalizedPattern.endsWith('/');
   if (isDirectoryPattern) {
     normalizedPattern = normalizedPattern.slice(0, -1);
   }
-  
+
   // Handle patterns starting with / (root-relative)
   const isRootRelative = normalizedPattern.startsWith('/');
   if (isRootRelative) {
     normalizedPattern = normalizedPattern.slice(1);
   }
-  
+
   // Convert glob pattern to regex
   const regexPattern = normalizedPattern
     .replace(/\./g, '\\.')
@@ -87,7 +87,7 @@ function matchIgnorePattern(relativePath: string, pattern: string): boolean {
     .replace(/\*/g, '[^/]*')
     .replace(/{{DOUBLESTAR}}/g, '.*')
     .replace(/\?/g, '[^/]');
-  
+
   // Build the final regex
   let regex: RegExp;
   if (isRootRelative) {
@@ -100,7 +100,7 @@ function matchIgnorePattern(relativePath: string, pattern: string): boolean {
     // Match anywhere in path (file or directory)
     regex = new RegExp(`(?:^|/)${regexPattern}(?:/|$)|^${regexPattern}$`);
   }
-  
+
   return regex.test(relativePath);
 }
 
@@ -110,24 +110,24 @@ function matchIgnorePattern(relativePath: string, pattern: string): boolean {
 export function initIgnoreFileWatcher(context: vscode.ExtensionContext): void {
   // Load initial patterns
   ignorePatterns = loadIgnorePatterns();
-  
+
   // Watch for changes to .bezierignore
   const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   if (workspaceRoot) {
     ignoreFileWatcher = vscode.workspace.createFileSystemWatcher(
       new vscode.RelativePattern(workspaceRoot, '.bezierignore')
     );
-    
+
     const reloadPatterns = () => {
       ignorePatterns = loadIgnorePatterns();
       // Fire event to refresh tree (will be handled by the provider)
-      vscode.commands.executeCommand('iconManager.refresh');
+      vscode.commands.executeCommand('sageboxIconStudio.refresh');
     };
-    
+
     ignoreFileWatcher.onDidCreate(reloadPatterns);
     ignoreFileWatcher.onDidChange(reloadPatterns);
     ignoreFileWatcher.onDidDelete(reloadPatterns);
-    
+
     context.subscriptions.push(ignoreFileWatcher);
   }
 }
@@ -141,4 +141,3 @@ export { matchIgnorePattern, loadIgnorePatterns };
 export function reloadIgnorePatterns(): void {
   ignorePatterns = loadIgnorePatterns();
 }
-

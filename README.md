@@ -1,4 +1,4 @@
-# IconWrap for VS Code
+# SageBox Icon Studio for VS Code
 
 > **The complete SVG icon workflow without leaving your editor**
 
@@ -10,9 +10,9 @@ Search, preview, edit, optimize, and export SVG icons to React, Vue, Svelte, Ang
 
 ---
 
-## ✨ Why IconWrap?
+## ✨ Why SageBox Icon Studio?
 
-Most icon extensions do **one thing**. IconWrap does the **complete workflow**:
+Most icon extensions do **one thing**. SageBox Icon Studio does the **complete workflow**:
 
 ```
 🔍 Search    →    👁️ Preview    →    🎨 Edit    →    ⚡ Optimize    →    📦 Export
@@ -83,12 +83,12 @@ Build a complete icon system with one command:
 
 | Command | Description |
 |---------|-------------|
-| `Icon Manager: Open Panel` | Browse all icons |
-| `Icon Manager: Search Icons` | Search Iconify |
-| `Icon Manager: Build Icons` | Generate icons.js + sprite |
-| `Icon Manager: Color Editor` | Edit SVG colors |
-| `Icon Manager: Optimize SVG` | SVGO optimization |
-| `Icon Manager: Transform SVG` | Convert to component |
+| `Icon Studio: Open Panel` | Browse all icons |
+| `Icon Studio: Search Icons` | Search Iconify |
+| `Icon Studio: Build Icons` | Generate icons.js + sprite |
+| `Icon Studio: Color Editor` | Edit SVG colors |
+| `Icon Studio: Optimize SVG` | SVGO optimization |
+| `Icon Studio: Transform SVG` | Convert to component |
 
 **Shortcuts:**
 - `Ctrl+Shift+I` — Open panel
@@ -101,26 +101,26 @@ Build a complete icon system with one command:
 ```json
 {
   // Your Icon component name
-  "iconManager.componentName": "Icon",
+  "sageboxIconStudio.componentName": "Icon",
   
   // Import path for auto-imports
-  "iconManager.componentImport": "@/components/ui/Icon",
+  "sageboxIconStudio.componentImport": "@/components/ui/Icon",
   
   // Folders to scan for SVGs
-  "iconManager.svgFolders": [
+  "sageboxIconStudio.svgFolders": [
     "src/assets/icons",
     "src/icons",
     "public/icons"
   ],
   
   // Output format: jsx, vue, svelte, html, angular
-  "iconManager.outputFormat": "jsx",
+  "sageboxIconStudio.outputFormat": "jsx",
   
   // Output directory for generated files
-  "iconManager.outputDirectory": "src/icons",
+  "sageboxIconStudio.outputDirectory": "src/icons",
   
   // Auto-add imports when inserting icons
-  "iconManager.autoImport": true
+  "sageboxIconStudio.autoImport": true
 }
 ```
 
@@ -154,27 +154,27 @@ The built-in Web Component supports modern CSS features:
 ## 🔧 Workflow Examples
 
 ### Import an icon from Iconify
-1. Open Icon Manager panel (`Ctrl+Shift+I`)
+1. Open Icon Studio panel (`Ctrl+Shift+I`)
 2. Search for "arrow right"
 3. Click the icon to add to your library
 4. Click again to insert in your code
 
 ### Edit colors of an SVG
-1. Right-click any SVG file → "Icon Manager: Color Editor"
+1. Right-click any SVG file → "Icon Studio: Color Editor"
 2. Click any color swatch to change it
 3. Use presets or pick custom colors
 4. Save when done
 
 ### Build your icon system
 1. Add icons to your workspace folder
-2. Run "Icon Manager: Build Icons"
+2. Run "Icon Studio: Build Icons"
 3. Get `icons.js`, `sprite.svg`, and `icon.js` ready to use
 
 ---
 
 ## 📊 Comparison
 
-| Feature | Icon Manager | jock.svg | svg-preview | Iconbuddy |
+| Feature | Icon Studio | jock.svg | svg-preview | Iconbuddy |
 |---------|--------------|----------|-------------|-----------|
 | Workspace scan | ✅ | ❌ | ❌ | ❌ |
 | Iconify search | ✅ | ❌ | ❌ | ✅ |

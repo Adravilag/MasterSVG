@@ -1,6 +1,6 @@
 /**
  * Extension Helper Functions
- * 
+ *
  * Funciones utilitarias extraídas de extension.ts para facilitar testing
  */
 import * as path from 'node:path';
@@ -22,26 +22,39 @@ export function loadTemplate(templateName: string): string {
   if (cached) {
     return cached;
   }
-  
+
   // Use require('fs') to get the real fs module, not a mocked version
   // This ensures templates are always loaded from disk even in tests
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const realFs = require('fs');
-  
-  // Load from disk - try multiple locations
-  // __dirname points to out/utils in compiled code
-  const templatesDir = path.join(__dirname, '..', 'templates');
-  const sharedDir = path.join(templatesDir, 'shared');
-  
-  // Try shared folder first, then root templates folder
-  let templatePath = path.join(sharedDir, templateName);
-  if (!realFs.existsSync(templatePath)) {
-    templatePath = path.join(templatesDir, templateName);
+
+  // Try multiple locations to support different execution contexts:
+  // 1. Bundled mode: dist/templates/shared/
+  // 2. Dev mode (out): out/templates/shared/
+  // 3. Test mode: relative to project root
+  const possibleDirs = [
+    path.join(__dirname, 'templates', 'shared'),           // dist/templates/shared
+    path.join(__dirname, 'templates'),                     // dist/templates
+    path.join(__dirname, '..', 'templates', 'shared'),     // out/templates/shared (from out/utils)
+    path.join(__dirname, '..', 'templates'),               // out/templates (from out/utils)
+  ];
+
+  let templatePath: string | null = null;
+  for (const dir of possibleDirs) {
+    const candidate = path.join(dir, templateName);
+    if (realFs.existsSync(candidate)) {
+      templatePath = candidate;
+      break;
+    }
   }
-  
+
+  if (!templatePath) {
+    throw new Error(`Template not found: ${templateName}. Searched in: ${possibleDirs.join(', ')}`);
+  }
+
   const content = realFs.readFileSync(templatePath, 'utf-8');
   templateCache.set(templateName, content);
-  
+
   return content;
 }
 
@@ -57,12 +70,12 @@ export function clearTemplateCache(): void {
  */
 export function getOutputFormat(languageId: string): string {
   const formatMap: Record<string, string> = {
-    'javascriptreact': 'jsx',
-    'typescriptreact': 'jsx',
-    'vue': 'vue',
-    'svelte': 'svelte',
-    'astro': 'astro',
-    'html': 'html'
+    javascriptreact: 'jsx',
+    typescriptreact: 'jsx',
+    vue: 'vue',
+    svelte: 'svelte',
+    astro: 'astro',
+    html: 'html',
   };
   return formatMap[languageId] || 'jsx';
 }
@@ -96,7 +109,7 @@ export function generateIconSnippet(
 export function toVariableName(name: string): string {
   return name
     .split(/[-:]/)
-    .map((part, i) => i === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1))
+    .map((part, i) => (i === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1)))
     .join('');
 }
 
@@ -105,10 +118,10 @@ export function toVariableName(name: string): string {
  */
 export function toIconName(name: string): string {
   return name
-    .replace(/([a-z])([A-Z])/g, '$1-$2')  // camelCase to kebab-case
+    .replace(/([a-z])([A-Z])/g, '$1-$2') // camelCase to kebab-case
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')  // replace non-alphanumeric with dashes
-    .replace(/^-|-$/g, '');  // remove leading/trailing dashes
+    .replace(/[^a-z0-9]+/g, '-') // replace non-alphanumeric with dashes
+    .replace(/^-|-$/g, ''); // remove leading/trailing dashes
 }
 
 /**
@@ -116,15 +129,13 @@ export function toIconName(name: string): string {
  * Los custom elements DEBEN tener un guión
  */
 export function toCustomElementName(componentName: string): string {
-  let tagName = componentName
-    .replace(/([a-z])([A-Z])/g, '$1-$2')
-    .toLowerCase();
-  
+  let tagName = componentName.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+
   // Custom elements MUST have a hyphen - if none, add suffix
   if (!tagName.includes('-')) {
     tagName = `${tagName}-icon`;
   }
-  
+
   return tagName;
 }
 
@@ -140,7 +151,12 @@ export function findImportInsertPosition(text: string): number {
     const line = lines[i];
     if (line.startsWith('import ')) {
       insertLine = i + 1;
-    } else if (line.trim() && !line.startsWith('//') && !line.startsWith('/*') && !line.startsWith('*')) {
+    } else if (
+      line.trim() &&
+      !line.startsWith('//') &&
+      !line.startsWith('/*') &&
+      !line.startsWith('*')
+    ) {
       break;
     }
   }
@@ -258,7 +274,7 @@ export interface IconifySearchResult {
 
 export function parseIconifySearchResults(data: any): IconifySearchResult[] {
   const icons: IconifySearchResult[] = [];
-  
+
   if (data.icons && Array.isArray(data.icons)) {
     for (const iconId of data.icons) {
       const [prefix, name] = iconId.split(':');
@@ -267,7 +283,7 @@ export function parseIconifySearchResults(data: any): IconifySearchResult[] {
       }
     }
   }
-  
+
   return icons;
 }
 
@@ -293,20 +309,25 @@ export function addIconToFile(content: string, varName: string, newEntry: string
   // Find the icons object and add before it
   const iconsObjMatch = content.match(/export const icons = \{/);
   if (iconsObjMatch && iconsObjMatch.index !== undefined) {
-    content = content.slice(0, iconsObjMatch.index) + newEntry + '\n\n' + content.slice(iconsObjMatch.index);
-    
+    content =
+      content.slice(0, iconsObjMatch.index) +
+      newEntry +
+      '\n\n' +
+      content.slice(iconsObjMatch.index);
+
     // Also add to the icons object using proper brace matching
     const objData = extractIconsObjectContent(content);
     if (objData) {
       const existingIcons = objData.inner.trim();
       const newInner = existingIcons ? `${existingIcons},\n  ${varName}` : `\n  ${varName}\n`;
-      content = content.substring(0, objData.startIndex) + newInner + content.substring(objData.endIndex);
+      content =
+        content.substring(0, objData.startIndex) + newInner + content.substring(objData.endIndex);
     }
   } else {
     // Just append at the end
     content += '\n\n' + newEntry;
   }
-  
+
   return content;
 }
 
@@ -321,7 +342,11 @@ export function symbolExistsInSprite(content: string, iconName: string): boolean
 /**
  * Reemplaza un symbol existente en sprite.svg
  */
-export function replaceSymbolInSprite(content: string, iconName: string, newSymbol: string): string {
+export function replaceSymbolInSprite(
+  content: string,
+  iconName: string,
+  newSymbol: string
+): string {
   const existingSymbol = new RegExp(`<symbol[^>]*id=["']${iconName}["'][\\s\\S]*?<\\/symbol>`, 'g');
   return content.replace(existingSymbol, newSymbol);
 }
@@ -332,4 +357,3 @@ export function replaceSymbolInSprite(content: string, iconName: string, newSymb
 export function addSymbolToSprite(content: string, newSymbol: string): string {
   return content.replace('</svg>', `${newSymbol}\n</svg>`);
 }
-

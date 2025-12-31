@@ -45,12 +45,12 @@ class AnimationAssignmentService {
       // Convert JS object literal to valid JSON:
       // 1. Replace single quotes with double quotes for string values
       // 2. Add quotes around unquoted keys
-      let jsonStr = jsObjectStr
-        .replace(/'/g, '"')  // Single to double quotes
-        .replace(/(\w+)\s*:/g, '"$1":')  // Quote unquoted keys
-        .replace(/,\s*}/g, '}')  // Remove trailing commas
-        .replace(/,\s*]/g, ']');  // Remove trailing commas in arrays
-      
+      const jsonStr = jsObjectStr
+        .replace(/'/g, '"') // Single to double quotes
+        .replace(/(\w+)\s*:/g, '"$1":') // Quote unquoted keys
+        .replace(/,\s*}/g, '}') // Remove trailing commas
+        .replace(/,\s*]/g, ']'); // Remove trailing commas in arrays
+
       return JSON.parse(jsonStr);
     } catch {
       // If parsing fails, return empty object
@@ -90,7 +90,7 @@ class AnimationAssignmentService {
       }
 
       const content = fs.readFileSync(filePath, 'utf-8');
-      
+
       // Parse the JS module format: export const animations = { ... }
       const regex = /export\s+const\s+animations\s*=\s*(\{[\s\S]*\});?\s*$/;
       const match = regex.exec(content);
@@ -127,10 +127,10 @@ class AnimationAssignmentService {
       // Generate JS module content
       const content = this._generateAnimationsContent(animations);
       fs.writeFileSync(filePath, content, 'utf-8');
-      
+
       // Update cache
       this._animationsCache = { ...animations };
-      
+
       return true;
     } catch {
       // Silent fail - return false if file can't be written
@@ -151,15 +151,15 @@ class AnimationAssignmentService {
       ' * Format: { iconName: { type, duration?, timing?, iteration?, delay?, direction? } }',
       ' */',
       '',
-      'export const animations = {'
+      'export const animations = {',
     ];
 
     const iconNames = Object.keys(animations).sort((a, b) => a.localeCompare(b));
-    
+
     const iconEntries = iconNames.map((iconName, i) => {
       const anim = animations[iconName];
       const comma = i < iconNames.length - 1 ? ',' : '';
-      
+
       // Build animation object string
       const props: string[] = [`type: '${anim.type}'`];
       if (anim.duration !== undefined) props.push(`duration: ${anim.duration}`);
@@ -167,7 +167,7 @@ class AnimationAssignmentService {
       if (anim.iteration) props.push(`iteration: '${anim.iteration}'`);
       if (anim.delay !== undefined) props.push(`delay: ${anim.delay}`);
       if (anim.direction) props.push(`direction: '${anim.direction}'`);
-      
+
       return `  '${iconName}': { ${props.join(', ')} }${comma}`;
     });
 
@@ -194,14 +194,14 @@ class AnimationAssignmentService {
    */
   setAnimation(iconName: string, animation: IconAnimation): boolean {
     const animations = this._readAnimationsFromFile();
-    
+
     if (animation.type === 'none' || !animation.type) {
       // Remove animation if set to 'none'
       delete animations[iconName];
     } else {
       animations[iconName] = animation;
     }
-    
+
     return this._writeAnimationsToFile(animations);
   }
 
@@ -210,12 +210,12 @@ class AnimationAssignmentService {
    */
   removeAnimation(iconName: string): boolean {
     const animations = this._readAnimationsFromFile();
-    
+
     if (animations[iconName]) {
       delete animations[iconName];
       return this._writeAnimationsToFile(animations);
     }
-    
+
     return true;
   }
 

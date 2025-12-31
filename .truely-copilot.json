@@ -1,0 +1,670 @@
+{
+  "projectName": "sagebox-icon-studio",
+  "description": "Extensión para Visual Studio Code que permite gestionar iconos SVG de manera eficiente, incluyendo búsqueda, previsualización, edición, optimización y exportación como componentes para frameworks modernos.",
+  "createdAt": "2025-12-31T01:41:26.798Z",
+  "updatedAt": "2025-12-31T14:05:43.451Z",
+  "projectType": "vscode-extension",
+  "projectMaturity": "legacy",
+  "rulesSeverity": "balanced",
+  "userContext": "IconWrap es una extensión para Visual Studio Code que centraliza y optimiza el flujo de trabajo con iconos SVG, permitiendo buscar, previsualizar, editar, optimizar y exportar iconos como componentes para frameworks como React, Vue, Svelte y Angular, todo sin salir del editor. Entre sus características clave se incluyen la importación desde árboles de archivos, edición avanzada de detalles, optimización automática y generación de wrappers específicos para distintos frameworks. Está diseñada para desarrolladores y diseñadores que trabajan en sistemas de diseño o proyectos que requieren una gestión eficiente de iconos. La extensión opera bajo licencia MIT, es compatible con VS Code 1.85 o superior y prioriza la integración fluida en entornos de desarrollo modernos.",
+  "technology": {
+    "language": "typescript",
+    "framework": "vscode-extension",
+    "packageManager": "npm",
+    "typescript": {
+      "enabled": true,
+      "strict": true,
+      "version": "5.0",
+      "paths": true,
+      "decorators": false
+    },
+    "testing": {
+      "framework": "jest",
+      "e2e": null,
+      "coverage": true,
+      "minCoverage": 80
+    },
+    "linting": {
+      "eslint": true,
+      "prettier": true,
+      "stylelint": false,
+      "customRules": []
+    },
+    "database": null,
+    "orm": null,
+    "cache": null,
+    "cloud": null,
+    "containerization": null,
+    "cicd": null,
+    "styling": null,
+    "uiComponents": null,
+    "stateManagement": null,
+    "auth": null,
+    "apiStyle": "rest",
+    "backendFramework": "nestjs",
+    "caching": null,
+    "messageQueue": null,
+    "logging": null,
+    "monitoring": null
+  },
+  "architecture": {
+    "pattern": "layered",
+    "layers": [],
+    "modules": [],
+    "dependencies": []
+  },
+  "codeQuality": {
+    "cleanCode": {
+      "enabled": true,
+      "principles": [
+        "single-responsibility",
+        "dry",
+        "kiss"
+      ],
+      "maxFunctionLines": 40,
+      "maxFileLines": 400,
+      "maxParameters": 4,
+      "maxNestingDepth": 3
+    },
+    "naming": {
+      "variables": "camelCase",
+      "functions": "camelCase",
+      "classes": "PascalCase",
+      "constants": "SCREAMING_SNAKE_CASE",
+      "files": "kebab-case",
+      "folders": "kebab-case"
+    },
+    "documentation": {
+      "required": true,
+      "jsdoc": true,
+      "readme": true,
+      "changelog": true,
+      "adr": false
+    },
+    "patterns": {
+      "preferred": [
+        "repository",
+        "factory",
+        "strategy",
+        "dependency-injection"
+      ],
+      "avoid": [
+        "singleton"
+      ]
+    }
+  },
+  "methodology": {
+    "ddd": {
+      "enabled": false,
+      "boundedContexts": [],
+      "aggregates": false,
+      "domainEvents": false,
+      "valueObjects": false,
+      "repositories": false,
+      "ubiquitousLanguage": {}
+    },
+    "tdd": {
+      "enabled": true,
+      "testFirst": true,
+      "redGreenRefactor": true,
+      "coverageThreshold": 80
+    },
+    "bdd": false,
+    "ci_cd": {
+      "enabled": false,
+      "provider": "null",
+      "stages": [
+        "lint",
+        "test",
+        "build",
+        "deploy"
+      ]
+    }
+  },
+  "projectManagement": {
+    "requirements": [
+      {
+        "id": "ai-req-1767145393079-5mbxngp5d",
+        "title": "Implementar soporte para exportar a más frameworks",
+        "description": "Agregar soporte para frameworks adicionales como SolidJS y Qwik para ampliar la compatibilidad.\n\n📝 AI Reasoning: Ampliar la base de usuarios y mejorar la utilidad de la extensión.",
+        "type": "functional",
+        "priority": "high",
+        "status": "todo",
+        "acceptanceCriteria": [],
+        "relatedUseCases": [],
+        "estimatedHours": 16,
+        "createdAt": "2025-12-31T01:43:13.079Z"
+      },
+      {
+        "id": "ai-req-1767145393079-fh8udessf",
+        "title": "Optimizar el rendimiento del escaneo de SVGs",
+        "description": "Mejorar el algoritmo de escaneo para manejar eficientemente proyectos grandes.\n\n📝 AI Reasoning: El rendimiento actual puede ser un cuello de botella en proyectos grandes.",
+        "type": "non-functional",
+        "priority": "critical",
+        "status": "done",
+        "acceptanceCriteria": [],
+        "relatedUseCases": [],
+        "estimatedHours": 24,
+        "createdAt": "2025-12-31T01:43:13.079Z",
+        "completedAt": "2025-12-31T01:59:25.292Z"
+      },
+      {
+        "id": "ai-req-1767145393079-kiymbvro8",
+        "title": "Actualizar documentación",
+        "description": "Actualizar la documentación para reflejar las nuevas características y configuraciones.\n\n📝 AI Reasoning: Mejorar la experiencia del usuario y reducir la curva de aprendizaje.",
+        "type": "non-functional",
+        "priority": "low",
+        "status": "backlog",
+        "acceptanceCriteria": [],
+        "relatedUseCases": [],
+        "estimatedHours": 8,
+        "createdAt": "2025-12-31T01:43:13.079Z"
+      },
+      {
+        "id": "ai-req-1767145481094-ps1bvlcue",
+        "title": "Optimizar el escaneo de carpetas grandes",
+        "description": "Mejorar el rendimiento del escaneo de SVG en proyectos con miles de archivos.\n\n📝 AI Reasoning: El rendimiento actual puede ser un cuello de botella en proyectos grandes.",
+        "type": "non-functional",
+        "priority": "high",
+        "status": "todo",
+        "acceptanceCriteria": [],
+        "relatedUseCases": [],
+        "estimatedHours": 12,
+        "createdAt": "2025-12-31T01:44:41.094Z"
+      },
+      {
+        "id": "ai-req-1767145481094-zntm1e7ft",
+        "title": "Implementar soporte para más frameworks",
+        "description": "Agregar soporte para exportar componentes a frameworks como SolidJS y Qwik.\n\n📝 AI Reasoning: Ampliar la compatibilidad con frameworks modernos aumentará la adopción.",
+        "type": "functional",
+        "priority": "medium",
+        "status": "backlog",
+        "acceptanceCriteria": [],
+        "relatedUseCases": [],
+        "estimatedHours": 16,
+        "createdAt": "2025-12-31T01:44:41.094Z"
+      },
+      {
+        "id": "ai-req-1767145481094-d0nsvf5im",
+        "title": "Agregar pruebas E2E",
+        "description": "Incluir pruebas de extremo a extremo para validar la integración completa de la extensión.\n\n📝 AI Reasoning: Las pruebas E2E garantizarán la estabilidad y funcionalidad del sistema.",
+        "type": "non-functional",
+        "priority": "medium",
+        "status": "todo",
+        "acceptanceCriteria": [],
+        "relatedUseCases": [],
+        "estimatedHours": 20,
+        "createdAt": "2025-12-31T01:44:41.094Z"
+      },
+      {
+        "id": "ai-req-1767145543021-4y9jzcb18",
+        "title": "Optimizar el rendimiento del escaneo de archivos SVG",
+        "description": "Reducir el tiempo necesario para escanear grandes cantidades de archivos SVG.\n\n📝 AI Reasoning: El rendimiento actual puede ser un cuello de botella en proyectos grandes.",
+        "type": "non-functional",
+        "priority": "high",
+        "status": "todo",
+        "acceptanceCriteria": [],
+        "relatedUseCases": [],
+        "estimatedHours": 24,
+        "createdAt": "2025-12-31T01:45:43.021Z"
+      },
+      {
+        "id": "ai-req-1767145543021-mj146glzf",
+        "title": "Agregar soporte para exportar a SolidJS",
+        "description": "Permitir la exportación de iconos como componentes para SolidJS.\n\n📝 AI Reasoning: SolidJS es un framework emergente y podría atraer a más usuarios.",
+        "type": "functional",
+        "priority": "medium",
+        "status": "backlog",
+        "acceptanceCriteria": [],
+        "relatedUseCases": [],
+        "estimatedHours": 16,
+        "createdAt": "2025-12-31T01:45:43.021Z"
+      },
+      {
+        "id": "ai-req-1767145543021-3617031lm",
+        "title": "Mejorar la documentación",
+        "description": "Actualizar la documentación para incluir ejemplos detallados de uso.\n\n📝 AI Reasoning: La documentación actual es básica y podría ser más completa.",
+        "type": "non-functional",
+        "priority": "low",
+        "status": "todo",
+        "acceptanceCriteria": [],
+        "relatedUseCases": [],
+        "estimatedHours": 8,
+        "createdAt": "2025-12-31T01:45:43.021Z"
+      },
+      {
+        "id": "ai-req-1767187161198-5h7rgfzga",
+        "title": "Mejorar el rendimiento del escaneo de archivos SVG",
+        "description": "Optimizar el algoritmo de escaneo para manejar eficientemente proyectos grandes.\n\n📝 AI Reasoning: El rendimiento actual puede ser un cuello de botella en proyectos extensos.",
+        "type": "non-functional",
+        "priority": "high",
+        "status": "todo",
+        "acceptanceCriteria": [],
+        "relatedUseCases": [],
+        "estimatedHours": 24,
+        "createdAt": "2025-12-31T13:19:21.198Z"
+      },
+      {
+        "id": "ai-req-1767187161198-9zt29tjbu",
+        "title": "Implementar soporte para exportar a SolidJS",
+        "description": "Añadir la capacidad de generar componentes para SolidJS, ampliando el soporte de frameworks.\n\n📝 AI Reasoning: SolidJS es un framework emergente y podría atraer a más usuarios.",
+        "type": "functional",
+        "priority": "medium",
+        "status": "backlog",
+        "acceptanceCriteria": [],
+        "relatedUseCases": [],
+        "estimatedHours": 16,
+        "createdAt": "2025-12-31T13:19:21.198Z"
+      },
+      {
+        "id": "ai-req-1767187161198-57b2uhrpa",
+        "title": "Actualizar la documentación",
+        "description": "Incluir ejemplos y guías para nuevos usuarios.\n\n📝 AI Reasoning: Mejorar la experiencia de usuario y reducir la curva de aprendizaje.",
+        "type": "non-functional",
+        "priority": "low",
+        "status": "in-progress",
+        "acceptanceCriteria": [],
+        "relatedUseCases": [],
+        "estimatedHours": 8,
+        "createdAt": "2025-12-31T13:19:21.198Z"
+      },
+      {
+        "id": "ai-req-1767189696698-d58b3aon0",
+        "title": "Implementar soporte para exportación a SolidJS",
+        "description": "Agregar la capacidad de generar componentes para SolidJS, ampliando el soporte de frameworks.\n\n📝 AI Reasoning: SolidJS es un framework emergente y podría atraer a más usuarios.",
+        "type": "functional",
+        "priority": "medium",
+        "status": "backlog",
+        "acceptanceCriteria": [],
+        "relatedUseCases": [],
+        "estimatedHours": 16,
+        "createdAt": "2025-12-31T14:01:36.698Z"
+      },
+      {
+        "id": "ai-req-1767189696698-1ytyvlsl0",
+        "title": "Agregar pruebas unitarias para el servicio de optimización SVG",
+        "description": "Asegurar que el servicio de optimización SVG funcione correctamente bajo diferentes configuraciones.\n\n📝 AI Reasoning: Las pruebas actuales son limitadas y no cubren todos los casos de uso.",
+        "type": "functional",
+        "priority": "medium",
+        "status": "in-progress",
+        "acceptanceCriteria": [],
+        "relatedUseCases": [],
+        "estimatedHours": 12,
+        "createdAt": "2025-12-31T14:01:36.698Z"
+      }
+    ],
+    "useCases": [],
+    "milestones": [],
+    "estimations": {
+      "methodology": "hours",
+      "velocity": 0,
+      "totalEstimatedHours": 220,
+      "totalWorkedHours": 24,
+      "remainingHours": 196
+    }
+  },
+  "gamification": {
+    "enabled": true,
+    "level": 4,
+    "experience": 275,
+    "experienceToNextLevel": 337,
+    "achievements": [
+      {
+        "id": "first-blood",
+        "name": "Primera Sangre",
+        "description": "Configura tu primer proyecto con Truely Copilot",
+        "icon": "🎯",
+        "category": "code-quality",
+        "maxProgress": 1,
+        "progress": 1,
+        "unlockedAt": "2025-12-31T01:43:13.080Z"
+      },
+      {
+        "id": "clean-freak",
+        "name": "Obsesionado con la Limpieza",
+        "description": "Activa todos los principios de Clean Code",
+        "icon": "✨",
+        "category": "code-quality",
+        "maxProgress": 1,
+        "progress": 0
+      },
+      {
+        "id": "solid-foundation",
+        "name": "Base SOLID",
+        "description": "Implementa todos los principios SOLID",
+        "icon": "🏛️",
+        "category": "code-quality",
+        "maxProgress": 5,
+        "progress": 0
+      },
+      {
+        "id": "pattern-master",
+        "name": "Maestro de Patrones",
+        "description": "Usa 10 patrones de diseño diferentes",
+        "icon": "🎨",
+        "category": "code-quality",
+        "maxProgress": 10,
+        "progress": 0
+      },
+      {
+        "id": "test-pioneer",
+        "name": "Pionero del Testing",
+        "description": "Escribe tu primer test",
+        "icon": "🧪",
+        "category": "testing",
+        "maxProgress": 1,
+        "progress": 0
+      },
+      {
+        "id": "coverage-hunter",
+        "name": "Cazador de Cobertura",
+        "description": "Alcanza 80% de cobertura de tests",
+        "icon": "📊",
+        "category": "testing",
+        "maxProgress": 80,
+        "progress": 0
+      },
+      {
+        "id": "tdd-warrior",
+        "name": "Guerrero TDD",
+        "description": "Completa 10 ciclos Red-Green-Refactor",
+        "icon": "⚔️",
+        "category": "testing",
+        "maxProgress": 10,
+        "progress": 0
+      },
+      {
+        "id": "e2e-champion",
+        "name": "Campeón E2E",
+        "description": "Crea 20 tests end-to-end",
+        "icon": "🏆",
+        "category": "testing",
+        "maxProgress": 20,
+        "progress": 0
+      },
+      {
+        "id": "bug-hunter",
+        "name": "Cazador de Bugs",
+        "description": "Corrige 50 bugs detectados por tests",
+        "icon": "🐛",
+        "category": "testing",
+        "maxProgress": 50,
+        "progress": 0
+      },
+      {
+        "id": "architect-novice",
+        "name": "Arquitecto Novato",
+        "description": "Define tu primera arquitectura",
+        "icon": "🏗️",
+        "category": "architecture",
+        "maxProgress": 1,
+        "progress": 0
+      },
+      {
+        "id": "layer-master",
+        "name": "Maestro de Capas",
+        "description": "Configura 5 capas arquitectónicas",
+        "icon": "📚",
+        "category": "architecture",
+        "maxProgress": 5,
+        "progress": 0
+      },
+      {
+        "id": "ddd-explorer",
+        "name": "Explorador DDD",
+        "description": "Implementa Domain-Driven Design",
+        "icon": "🗺️",
+        "category": "architecture",
+        "maxProgress": 1,
+        "progress": 0
+      },
+      {
+        "id": "bounded-master",
+        "name": "Maestro de Contextos",
+        "description": "Define 3 bounded contexts",
+        "icon": "🎭",
+        "category": "architecture",
+        "maxProgress": 3,
+        "progress": 0
+      },
+      {
+        "id": "doc-starter",
+        "name": "Documentador Inicial",
+        "description": "Crea documentación básica del proyecto",
+        "icon": "📝",
+        "category": "documentation",
+        "maxProgress": 1,
+        "progress": 0
+      },
+      {
+        "id": "adr-keeper",
+        "name": "Guardián de Decisiones",
+        "description": "Registra 5 Architecture Decision Records",
+        "icon": "📋",
+        "category": "documentation",
+        "maxProgress": 5,
+        "progress": 0
+      },
+      {
+        "id": "use-case-master",
+        "name": "Maestro de Casos de Uso",
+        "description": "Documenta 10 casos de uso",
+        "icon": "📖",
+        "category": "documentation",
+        "maxProgress": 10,
+        "progress": 0
+      },
+      {
+        "id": "streak-starter",
+        "name": "Racha Inicial",
+        "description": "Mantén una racha de 3 días",
+        "icon": "🔥",
+        "category": "productivity",
+        "maxProgress": 3,
+        "progress": 0
+      },
+      {
+        "id": "streak-master",
+        "name": "Maestro de Rachas",
+        "description": "Mantén una racha de 7 días",
+        "icon": "💫",
+        "category": "productivity",
+        "maxProgress": 7,
+        "progress": 0
+      },
+      {
+        "id": "streak-legend",
+        "name": "Leyenda de Constancia",
+        "description": "Mantén una racha de 30 días",
+        "icon": "👑",
+        "category": "productivity",
+        "maxProgress": 30,
+        "progress": 0
+      },
+      {
+        "id": "milestone-achiever",
+        "name": "Alcanzador de Hitos",
+        "description": "Completa tu primer milestone",
+        "icon": "🎖️",
+        "category": "productivity",
+        "maxProgress": 1,
+        "progress": 0
+      },
+      {
+        "id": "requirement-machine",
+        "name": "Máquina de Requisitos",
+        "description": "Completa 20 requisitos",
+        "icon": "⚙️",
+        "category": "productivity",
+        "maxProgress": 20,
+        "progress": 0
+      },
+      {
+        "id": "learner",
+        "name": "Aprendiz",
+        "description": "Alcanza nivel 5",
+        "icon": "📚",
+        "category": "learning",
+        "maxProgress": 5,
+        "progress": 0
+      },
+      {
+        "id": "expert",
+        "name": "Experto",
+        "description": "Alcanza nivel 10",
+        "icon": "🎓",
+        "category": "learning",
+        "maxProgress": 10,
+        "progress": 0
+      },
+      {
+        "id": "master",
+        "name": "Maestro",
+        "description": "Alcanza nivel 25",
+        "icon": "🏅",
+        "category": "learning",
+        "maxProgress": 25,
+        "progress": 0
+      },
+      {
+        "id": "legend",
+        "name": "Leyenda",
+        "description": "Alcanza nivel 50",
+        "icon": "🌟",
+        "category": "learning",
+        "maxProgress": 50,
+        "progress": 0
+      }
+    ],
+    "streak": {
+      "current": 0,
+      "longest": 0,
+      "lastActivity": "2025-12-31T01:41:26.798Z"
+    },
+    "statistics": {
+      "totalCommits": 0,
+      "testsWritten": 0,
+      "testsPassing": 0,
+      "codeReviews": 0,
+      "bugsFixed": 0,
+      "featuresCompleted": 0,
+      "documentationPages": 0,
+      "refactorings": 0
+    }
+  },
+  "aiAnalysis": {
+    "lastAnalyzedAt": "2025-12-31T14:03:35.783Z",
+    "confidence": 0.95,
+    "metrics": {
+      "complexity": "medium",
+      "estimatedDevTime": "3-6 months",
+      "teamSizeRecommendation": "3-5 developers",
+      "maintenanceEffort": "medium",
+      "technicalDebtRisk": "medium"
+    },
+    "useCases": [
+      {
+        "name": "Gestión de iconos SVG",
+        "description": "Permitir a los usuarios buscar, editar y exportar iconos SVG desde el editor.",
+        "priority": "high",
+        "estimatedEffort": "2-3 weeks",
+        "status": "pending"
+      },
+      {
+        "name": "Optimización de SVG",
+        "description": "Reducir el tamaño de los archivos SVG mediante SVGO.",
+        "priority": "medium",
+        "estimatedEffort": "1 week",
+        "status": "pending"
+      }
+    ],
+    "context": {
+      "summary": "IconWrap es una extensión para Visual Studio Code que centraliza la gestión de iconos SVG, permitiendo a los desarrolladores y diseñadores optimizar su flujo de trabajo.",
+      "mainFeatures": [
+        "Búsqueda y previsualización de iconos",
+        "Edición y optimización de SVG",
+        "Exportación como componentes para frameworks"
+      ],
+      "targetUsers": "Desarrolladores y diseñadores que trabajan en sistemas de diseño o proyectos con iconos SVG.",
+      "keyTechnologies": [
+        "TypeScript",
+        "SVGO",
+        "Visual Studio Code API"
+      ],
+      "potentialChallenges": [
+        "Rendimiento en proyectos con miles de iconos",
+        "Compatibilidad con futuras versiones de VS Code"
+      ]
+    },
+    "suggestions": [
+      "Agregar soporte para más frameworks como SolidJS o Qwik.",
+      "Optimizar el rendimiento del escaneo de archivos SVG en grandes proyectos."
+    ],
+    "maturityAssessment": {
+      "maturity": "legacy",
+      "totalFiles": 365,
+      "totalLines": 116601,
+      "analyzedFiles": [
+        "esbuild.js",
+        "jest.config.js",
+        "out\\commands\\buildCommands.js",
+        "out\\commands\\configCommands.js",
+        "out\\commands\\editorCommands.js",
+        "out\\commands\\helpers\\spritePreviewHelper.js",
+        "out\\commands\\iconCommands.js",
+        "out\\commands\\iconifyCommands.js",
+        "out\\commands\\importCommands.js",
+        "out\\commands\\index.js",
+        "out\\commands\\licenseCommands.js",
+        "out\\commands\\miscCommands.js",
+        "out\\commands\\navigationCommands.js",
+        "out\\commands\\panelCommands.js",
+        "out\\commands\\referenceCommands.js"
+      ],
+      "existingPatterns": [
+        {
+          "name": "Async/Await Pattern",
+          "location": "esbuild.js",
+          "example": "async function fetchData() { await fetch(...) }",
+          "isGoodPractice": true
+        },
+        {
+          "name": "CommonJS Exports",
+          "location": "jest.config.js",
+          "example": "module.exports = { ... }",
+          "isGoodPractice": false
+        },
+        {
+          "name": "ES Module Exports",
+          "location": "out\\commands\\buildCommands.js",
+          "example": "export const myFunction = () => { ... }",
+          "isGoodPractice": true
+        },
+        {
+          "name": "Try-Catch Error Handling",
+          "location": "out\\commands\\buildCommands.js",
+          "example": "try { ... } catch (error) { ... }",
+          "isGoodPractice": true
+        },
+        {
+          "name": "SVG Graphics",
+          "location": "out\\commands\\editorCommands.js",
+          "example": "<svg viewBox=\"0 0 24 24\">...</svg>",
+          "isGoodPractice": true
+        },
+        {
+          "name": "Vanilla JS DOM Manipulation",
+          "location": "out\\commands\\iconifyCommands.js",
+          "example": "document.getElementById(\"myElement\")",
+          "isGoodPractice": true
+        },
+        {
+          "name": "DOM Event Listeners",
+          "location": "out\\commands\\iconifyCommands.js",
+          "example": "element.addEventListener(\"click\", handler)",
+          "isGoodPractice": true
+        }
+      ]
+    }
+  }
+}

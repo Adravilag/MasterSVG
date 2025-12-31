@@ -1,10 +1,10 @@
 import * as fs from 'node:fs';
-import { 
-  addToIconsJs, 
-  addToSpriteSvg, 
-  removeFromIconsJs, 
+import {
+  addToIconsJs,
+  addToSpriteSvg,
+  removeFromIconsJs,
   getIconNamesFromFile,
-  generateWebComponent 
+  generateWebComponent,
 } from '../../utils/iconsFileManager';
 import { SvgTransformer } from '../../services/SvgTransformer';
 
@@ -15,25 +15,25 @@ jest.mock('vscode', () => ({
     getConfiguration: jest.fn().mockReturnValue({
       get: jest.fn((key: string, defaultValue: any) => {
         const config: Record<string, any> = {
-          componentName: 'Icon'
+          componentName: 'Icon',
         };
         return config[key] ?? defaultValue;
-      })
-    })
+      }),
+    }),
   },
   window: {
     showErrorMessage: jest.fn(),
     showWarningMessage: jest.fn(),
-    showInformationMessage: jest.fn()
+    showInformationMessage: jest.fn(),
   },
   env: {
-    language: 'en'
+    language: 'en',
   },
   EventEmitter: jest.fn().mockImplementation(() => ({
     event: jest.fn(),
     fire: jest.fn(),
-    dispose: jest.fn()
-  }))
+    dispose: jest.fn(),
+  })),
 }));
 
 const mockFs = fs as jest.Mocked<typeof fs>;
@@ -50,14 +50,14 @@ describe('iconsFileManager', () => {
 
   describe('addToIconsJs', () => {
     it('should create new icons.js file if it does not exist', async () => {
-      mockFs.existsSync.mockImplementation((p) => {
+      mockFs.existsSync.mockImplementation(p => {
         if (p === '/output') return true;
         return false;
       });
       mockFs.writeFileSync.mockImplementation(() => {});
       mockFs.mkdirSync.mockImplementation(() => undefined);
 
-      await addToIconsJs('/output', 'home-icon', '<svg><path/></svg>', mockTransformer);
+      await addToIconsJs({ outputPath: '/output', iconName: 'home-icon', svgContent: '<svg><path/></svg>', transformer: mockTransformer });
 
       expect(mockFs.writeFileSync).toHaveBeenCalled();
       const writtenContent = (mockFs.writeFileSync as jest.Mock).mock.calls[0][1];
@@ -80,7 +80,7 @@ export const icons = {
       mockFs.readFileSync.mockReturnValue(existingContent);
       mockFs.writeFileSync.mockImplementation(() => {});
 
-      await addToIconsJs('/output', 'new-icon', '<svg><path/></svg>', mockTransformer);
+      await addToIconsJs({ outputPath: '/output', iconName: 'new-icon', svgContent: '<svg><path/></svg>', transformer: mockTransformer });
 
       expect(mockFs.writeFileSync).toHaveBeenCalled();
       const writtenContent = (mockFs.writeFileSync as jest.Mock).mock.calls[0][1];
@@ -98,7 +98,7 @@ export const icons = {
       mockFs.readFileSync.mockReturnValue(existingContent);
       mockFs.writeFileSync.mockImplementation(() => {});
 
-      await addToIconsJs('/output', 'home-icon', '<svg><new-path/></svg>', mockTransformer);
+      await addToIconsJs({ outputPath: '/output', iconName: 'home-icon', svgContent: '<svg><new-path/></svg>', transformer: mockTransformer });
 
       const writtenContent = (mockFs.writeFileSync as jest.Mock).mock.calls[0][1];
       expect(writtenContent).toContain('export const homeIcon');
@@ -110,16 +110,16 @@ export const icons = {
       mockFs.mkdirSync.mockImplementation(() => undefined);
       mockFs.writeFileSync.mockImplementation(() => {});
 
-      await addToIconsJs('/new/output/path', 'icon', '<svg><path/></svg>', mockTransformer);
+      await addToIconsJs({ outputPath: '/new/output/path', iconName: 'icon', svgContent: '<svg><path/></svg>', transformer: mockTransformer });
 
       expect(mockFs.mkdirSync).toHaveBeenCalledWith('/new/output/path', { recursive: true });
     });
 
     it('should convert icon name to valid variable name', async () => {
-      mockFs.existsSync.mockImplementation((p) => p === '/output');
+      mockFs.existsSync.mockImplementation(p => p === '/output');
       mockFs.writeFileSync.mockImplementation(() => {});
 
-      await addToIconsJs('/output', 'my-icon-name', '<svg><path/></svg>', mockTransformer);
+      await addToIconsJs({ outputPath: '/output', iconName: 'my-icon-name', svgContent: '<svg><path/></svg>', transformer: mockTransformer });
 
       const writtenContent = (mockFs.writeFileSync as jest.Mock).mock.calls[0][1];
       expect(writtenContent).toContain('export const myIconName');
@@ -128,7 +128,7 @@ export const icons = {
 
   describe('addToSpriteSvg', () => {
     it('should create new sprite.svg if it does not exist', async () => {
-      mockFs.existsSync.mockImplementation((p) => {
+      mockFs.existsSync.mockImplementation(p => {
         if (p === '/output') return true;
         return false;
       });
@@ -319,7 +319,7 @@ export const arrowLeft = {
     </svg>`;
 
     it('addToSpriteSvg debe limpiar animación del SVG antes de guardar', async () => {
-      mockFs.existsSync.mockImplementation((p) => {
+      mockFs.existsSync.mockImplementation(p => {
         if (p === '/output') return true;
         return false;
       });
@@ -330,19 +330,19 @@ export const arrowLeft = {
 
       expect(mockFs.writeFileSync).toHaveBeenCalled();
       const writtenContent = (mockFs.writeFileSync as jest.Mock).mock.calls[0][1];
-      
+
       // El sprite NO debe contener estilos de animación
       expect(writtenContent).not.toContain('icon-manager-animation');
       expect(writtenContent).not.toContain('@keyframes');
       expect(writtenContent).not.toContain('icon-anim-');
-      
+
       // Pero sí debe contener el path
       expect(writtenContent).toContain('path');
       expect(writtenContent).toContain('<symbol id="animated"');
     });
 
     it('addToSpriteSvg debe preservar el contenido del path al limpiar animación', async () => {
-      mockFs.existsSync.mockImplementation((p) => {
+      mockFs.existsSync.mockImplementation(p => {
         if (p === '/output') return true;
         return false;
       });
@@ -369,7 +369,7 @@ export const arrowLeft = {
       await addToSpriteSvg('/output', 'animated', svgWithAnimation, realTransformer);
 
       const writtenContent = (mockFs.writeFileSync as jest.Mock).mock.calls[0][1];
-      
+
       // Debe actualizar pero sin animación
       expect(writtenContent).not.toContain('icon-manager-animation');
       expect(writtenContent).not.toContain('@keyframes');
@@ -396,37 +396,37 @@ export const arrowLeft = {
     </svg>`;
 
     it('addToIconsJs debe limpiar animación del body', async () => {
-      mockFs.existsSync.mockImplementation((p) => {
+      mockFs.existsSync.mockImplementation(p => {
         if (p === '/output') return true;
         return false;
       });
       mockFs.writeFileSync.mockImplementation(() => {});
       mockFs.mkdirSync.mockImplementation(() => undefined);
 
-      await addToIconsJs('/output', 'pulsing', svgWithAnimation, realTransformer);
+      await addToIconsJs({ outputPath: '/output', iconName: 'pulsing', svgContent: svgWithAnimation, transformer: realTransformer });
 
       expect(mockFs.writeFileSync).toHaveBeenCalled();
       const writtenContent = (mockFs.writeFileSync as jest.Mock).mock.calls[0][1];
-      
+
       // El body NO debe contener estilos de animación
       expect(writtenContent).not.toContain('icon-manager-animation');
       expect(writtenContent).not.toContain('@keyframes');
       expect(writtenContent).not.toContain('icon-anim-');
-      
+
       // Pero sí debe contener el circle
       expect(writtenContent).toContain('circle');
       expect(writtenContent).toContain('cx="12"');
     });
 
     it('addToIconsJs debe mantener el viewBox correcto', async () => {
-      mockFs.existsSync.mockImplementation((p) => {
+      mockFs.existsSync.mockImplementation(p => {
         if (p === '/output') return true;
         return false;
       });
       mockFs.writeFileSync.mockImplementation(() => {});
       mockFs.mkdirSync.mockImplementation(() => undefined);
 
-      await addToIconsJs('/output', 'test-icon', svgWithAnimation, realTransformer);
+      await addToIconsJs({ outputPath: '/output', iconName: 'test-icon', svgContent: svgWithAnimation, transformer: realTransformer });
 
       const writtenContent = (mockFs.writeFileSync as jest.Mock).mock.calls[0][1];
       expect(writtenContent).toContain("viewBox: '0 0 24 24'");
@@ -452,10 +452,10 @@ export const arrowLeft = {
 
       // Primer guardado
       await addToSpriteSvg('/output', 'test', svgRound1, realTransformer);
-      
+
       const content1 = (mockFs.writeFileSync as jest.Mock).mock.calls[0][1];
       const animCount1 = (content1.match(/icon-manager-animation/g) || []).length;
-      
+
       // Segundo guardado con "nueva animación"
       const svgRound2 = `<svg viewBox="0 0 24 24">
         <style id="icon-manager-animation">@keyframes pulse { }</style>
@@ -464,9 +464,9 @@ export const arrowLeft = {
 
       mockFs.existsSync.mockReturnValue(true);
       mockFs.readFileSync.mockReturnValue(content1);
-      
+
       await addToSpriteSvg('/output', 'test', svgRound2, realTransformer);
-      
+
       const content2 = (mockFs.writeFileSync as jest.Mock).mock.calls[1][1];
       const animCount2 = (content2.match(/icon-manager-animation/g) || []).length;
 
@@ -476,4 +476,3 @@ export const arrowLeft = {
     });
   });
 });
-

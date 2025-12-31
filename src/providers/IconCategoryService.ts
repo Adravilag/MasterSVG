@@ -28,9 +28,9 @@ export class IconCategoryService {
     for (const icon of storage.svgFiles.values()) {
       const cat = icon.category || 'workspace';
       const existing = categoryCount.get(cat);
-      categoryCount.set(cat, { 
-        count: (existing?.count || 0) + 1, 
-        type: 'folder' 
+      categoryCount.set(cat, {
+        count: (existing?.count || 0) + 1,
+        type: 'folder',
       });
     }
 
@@ -40,7 +40,7 @@ export class IconCategoryService {
       const fileName = path.basename(icon.path);
       libraryByFile.set(fileName, (libraryByFile.get(fileName) || 0) + 1);
     }
-    
+
     // Add library groups
     for (const [fileName, count] of libraryByFile) {
       categoryCount.set(`📦 ${fileName}`, { count, type: 'library' });
@@ -55,7 +55,7 @@ export class IconCategoryService {
           inlineByFile.set(fileName, (inlineByFile.get(fileName) || 0) + 1);
         }
       }
-      
+
       for (const [fileName, count] of inlineByFile) {
         categoryCount.set(`📄 ${fileName}`, { count, type: 'file' });
       }
@@ -86,7 +86,7 @@ export class IconCategoryService {
    * Get icons by category string
    */
   static getIconsByCategory(
-    category: string, 
+    category: string,
     storage: IconStorageMapsForCategory
   ): WorkspaceIcon[] {
     const icons: WorkspaceIcon[] = [];
@@ -112,7 +112,7 @@ export class IconCategoryService {
       }
       return icons.sort((a, b) => a.name.localeCompare(b.name));
     }
-    
+
     // Inline SVGs by file (inline: prefix) - now uses full path
     if (category.startsWith('inline:')) {
       const filePath = category.replace('inline:', '');
@@ -145,7 +145,7 @@ export class IconCategoryService {
       }
       return icons.sort((a, b) => a.name.localeCompare(b.name));
     }
-    
+
     // Inline SVGs by file (📄 prefix)
     if (category.startsWith('📄 ')) {
       const fileName = category.replace('📄 ', '');
@@ -167,7 +167,7 @@ export class IconCategoryService {
       }
       return icons.sort((a, b) => (a.line || 0) - (b.line || 0)); // Sort by line number
     }
-    
+
     // Workspace folder icons
     for (const icon of storage.svgFiles.values()) {
       if (icon.category === category) {
@@ -178,4 +178,3 @@ export class IconCategoryService {
     return icons.sort((a, b) => a.name.localeCompare(b.name));
   }
 }
-

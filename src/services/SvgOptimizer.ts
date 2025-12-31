@@ -49,7 +49,7 @@ const defaultOptions: OptimizeOptions = {
   sortAttrs: true,
   mergePaths: false,
   removeOffCanvasPaths: false,
-  precision: 3
+  precision: 3,
 };
 
 export class SvgOptimizer {
@@ -62,7 +62,7 @@ export class SvgOptimizer {
 
     const svgoConfig: Config = {
       multipass: true,
-      plugins: this.buildPluginList(opts)
+      plugins: this.buildPluginList(opts),
     };
 
     try {
@@ -76,16 +76,16 @@ export class SvgOptimizer {
         originalSize,
         optimizedSize,
         savings,
-        savingsPercent
+        savingsPercent,
       };
-    } catch (error) {
+    } catch (_error) {
       // Return original if optimization fails
       return {
         svg,
         originalSize,
         optimizedSize: originalSize,
         savings: 0,
-        savingsPercent: 0
+        savingsPercent: 0,
       };
     }
   }
@@ -94,11 +94,7 @@ export class SvgOptimizer {
    * Build SVGO plugin list from options
    */
   private buildPluginList(opts: OptimizeOptions): Config['plugins'] {
-    const plugins: Config['plugins'] = [
-      'removeDoctype',
-      'removeXMLProcInst',
-      'removeXMLNS',
-    ];
+    const plugins: Config['plugins'] = ['removeDoctype', 'removeXMLProcInst', 'removeXMLNS'];
 
     if (opts.removeComments) plugins.push('removeComments');
     if (opts.removeMetadata) plugins.push('removeMetadata');
@@ -112,18 +108,24 @@ export class SvgOptimizer {
     if (opts.removeEmptyContainers) plugins.push('removeEmptyContainers');
     if (opts.removeUnusedNS) plugins.push('removeUnusedNS');
     if (opts.sortAttrs) plugins.push('sortAttrs');
-    
+
     if (opts.minifyStyles) {
       plugins.push({
         name: 'minifyStyles',
-        params: { usage: true }
+        params: { usage: true },
       });
     }
 
     if (opts.convertColors) {
       plugins.push({
         name: 'convertColors',
-        params: { currentColor: false, names2hex: true, rgb2hex: true, shorthex: true, shortname: true }
+        params: {
+          currentColor: false,
+          names2hex: true,
+          rgb2hex: true,
+          shorthex: true,
+          shortname: true,
+        },
       });
     }
 
@@ -132,15 +134,15 @@ export class SvgOptimizer {
         name: 'convertPathData',
         params: {
           floatPrecision: opts.precision || 3,
-          transformPrecision: opts.precision || 3
-        }
+          transformPrecision: opts.precision || 3,
+        },
       });
     }
 
     if (opts.convertTransform) {
       plugins.push({
         name: 'convertTransform',
-        params: { floatPrecision: opts.precision || 3 }
+        params: { floatPrecision: opts.precision || 3 },
       });
     }
 
@@ -184,20 +186,19 @@ export class SvgOptimizer {
         removeEmptyContainers: true,
         removeUnusedNS: true,
         sortAttrs: true,
-        precision: 3
+        precision: 3,
       },
       aggressive: {
         ...defaultOptions,
         removeTitle: true,
         mergePaths: true,
-        precision: 2
+        precision: 2,
       },
       minimal: {
         removeComments: true,
         removeMetadata: true,
-        removeEditorsNSData: true
-      }
+        removeEditorsNSData: true,
+      },
     };
   }
 }
-

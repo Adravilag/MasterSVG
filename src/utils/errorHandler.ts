@@ -7,10 +7,14 @@ export class ErrorHandler {
    * @param context A description of what was happening when the error occurred.
    * @param showNotification Whether to show a VS Code notification (default: true).
    */
-  public static handleError(error: unknown, context: string, showNotification: boolean = true): void {
+  public static handleError(
+    error: unknown,
+    context: string,
+    showNotification: boolean = true
+  ): void {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const fullMessage = `Icon Studio: Error during ${context}: ${errorMessage}`;
-    
+
     console.error(fullMessage);
     if (error instanceof Error && error.stack) {
       console.error(error.stack);
@@ -45,10 +49,7 @@ export class ErrorHandler {
    * @param contextDescription A description of the operation for the error message.
    * @returns The result of the operation, or undefined if it failed.
    */
-  public static wrapSync<T>(
-    operation: () => T,
-    contextDescription: string
-  ): T | undefined {
+  public static wrapSync<T>(operation: () => T, contextDescription: string): T | undefined {
     try {
       return operation();
     } catch (error) {
@@ -57,4 +58,3 @@ export class ErrorHandler {
     }
   }
 }
-

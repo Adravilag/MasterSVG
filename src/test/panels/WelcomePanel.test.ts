@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import { WelcomePanel } from '../../panels/WelcomePanel';
 
 // Mock configuration change callbacks storage
-let configChangeCallbacks: ((e: { affectsConfiguration: (section: string) => boolean }) => void)[] = [];
+let configChangeCallbacks: ((e: { affectsConfiguration: (section: string) => boolean }) => void)[] =
+  [];
 
 // Mock vscode
 jest.mock('vscode', () => ({
@@ -10,45 +11,45 @@ jest.mock('vscode', () => ({
     createWebviewPanel: jest.fn().mockReturnValue({
       webview: {
         html: '',
-        onDidReceiveMessage: jest.fn()
+        onDidReceiveMessage: jest.fn(),
       },
       onDidDispose: jest.fn(),
       reveal: jest.fn(),
-      dispose: jest.fn()
+      dispose: jest.fn(),
     }),
     activeTextEditor: undefined,
     showOpenDialog: jest.fn(),
     showInformationMessage: jest.fn().mockResolvedValue(undefined),
     showErrorMessage: jest.fn().mockResolvedValue(undefined),
-    showWarningMessage: jest.fn().mockResolvedValue(undefined)
+    showWarningMessage: jest.fn().mockResolvedValue(undefined),
   },
   workspace: {
     getConfiguration: jest.fn().mockReturnValue({
       get: jest.fn().mockReturnValue(''),
-      update: jest.fn().mockResolvedValue(undefined)
+      update: jest.fn().mockResolvedValue(undefined),
     }),
     workspaceFolders: [{ uri: { fsPath: '/test/workspace' } }],
-    onDidChangeConfiguration: jest.fn().mockImplementation((callback) => {
+    onDidChangeConfiguration: jest.fn().mockImplementation(callback => {
       configChangeCallbacks.push(callback);
       return { dispose: jest.fn() };
-    })
+    }),
   },
   env: {
-    language: 'en'
+    language: 'en',
   },
   ViewColumn: { One: 1 },
   ConfigurationTarget: { Workspace: 1 },
   Uri: {
-    file: jest.fn((p) => ({ fsPath: p }))
+    file: jest.fn(p => ({ fsPath: p })),
   },
   commands: {
-    executeCommand: jest.fn()
+    executeCommand: jest.fn(),
   },
   EventEmitter: jest.fn().mockImplementation(() => ({
     event: jest.fn(),
     fire: jest.fn(),
-    dispose: jest.fn()
-  }))
+    dispose: jest.fn(),
+  })),
 }));
 
 jest.mock('fs', () => ({
@@ -69,7 +70,7 @@ jest.mock('fs', () => ({
         \${step4Section}`;
     }
     return '';
-  })
+  }),
 }));
 
 describe('WelcomePanel', () => {
@@ -83,17 +84,17 @@ describe('WelcomePanel', () => {
   describe('isConfigured', () => {
     it('should return false when outputDirectory is empty', () => {
       (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
-        get: jest.fn().mockReturnValue('')
+        get: jest.fn().mockReturnValue(''),
       });
-      
+
       expect(WelcomePanel.isConfigured()).toBe(false);
     });
 
     it('should return true when outputDirectory is set', () => {
       (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
-        get: jest.fn().mockReturnValue('src/icons')
+        get: jest.fn().mockReturnValue('src/icons'),
       });
-      
+
       expect(WelcomePanel.isConfigured()).toBe(true);
     });
   });
@@ -101,16 +102,16 @@ describe('WelcomePanel', () => {
   describe('createOrShow', () => {
     it('should create a new panel when none exists', () => {
       const extensionUri = { fsPath: '/test/extension' } as vscode.Uri;
-      
+
       WelcomePanel.createOrShow(extensionUri);
-      
+
       expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith(
-        'iconManager.welcome',
-        'Welcome to Icon Studio',  // Uses t('welcome.title')
+        'sageboxIconStudio.welcome',
+        'Welcome to Icon Studio', // Uses t('welcome.title')
         expect.anything(),
         expect.objectContaining({
           enableScripts: true,
-          retainContextWhenHidden: true
+          retainContextWhenHidden: true,
         })
       );
     });
@@ -120,29 +121,29 @@ describe('WelcomePanel', () => {
       const mockPanel = {
         webview: {
           html: '',
-          onDidReceiveMessage: jest.fn()
+          onDidReceiveMessage: jest.fn(),
         },
         onDidDispose: jest.fn(),
         reveal: jest.fn(),
-        dispose: jest.fn()
+        dispose: jest.fn(),
       };
-      
+
       (vscode.window.createWebviewPanel as jest.Mock).mockReturnValue(mockPanel);
-      
+
       // Create first panel
       WelcomePanel.createOrShow(extensionUri);
-      
+
       // Try to create second panel - should reveal existing
       WelcomePanel.createOrShow(extensionUri);
-      
+
       expect(mockPanel.reveal).toHaveBeenCalled();
     });
 
     it('should register configuration change listener', () => {
       const extensionUri = { fsPath: '/test/extension' } as vscode.Uri;
-      
+
       WelcomePanel.createOrShow(extensionUri);
-      
+
       expect(vscode.workspace.onDidChangeConfiguration).toHaveBeenCalled();
     });
   });
@@ -155,16 +156,16 @@ describe('WelcomePanel', () => {
       mockPanel = {
         webview: {
           html: '',
-          onDidReceiveMessage: jest.fn().mockImplementation((handler) => {
+          onDidReceiveMessage: jest.fn().mockImplementation(handler => {
             messageHandler = handler;
             return { dispose: jest.fn() };
-          })
+          }),
         },
         onDidDispose: jest.fn().mockReturnValue({ dispose: jest.fn() }),
         reveal: jest.fn(),
-        dispose: jest.fn()
+        dispose: jest.fn(),
       };
-      
+
       (vscode.window.createWebviewPanel as jest.Mock).mockReturnValue(mockPanel);
     });
 
@@ -175,16 +176,16 @@ describe('WelcomePanel', () => {
           if (key === 'svgFolders') return [];
           return '';
         }),
-        update: jest.fn().mockResolvedValue(undefined)
+        update: jest.fn().mockResolvedValue(undefined),
       };
-      
+
       (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfig);
-      
+
       WelcomePanel.createOrShow(extensionUri);
-      
+
       // Simulate receiving setSourceDirectory message
       await messageHandler({ command: 'setSourceDirectory', directory: 'svgs' });
-      
+
       // With deferred save, config.update should NOT be called on Apply
       // It will only be called on finishSetup
       expect(mockConfig.update).not.toHaveBeenCalled();
@@ -194,16 +195,16 @@ describe('WelcomePanel', () => {
       const extensionUri = { fsPath: '/test/extension' } as vscode.Uri;
       const mockConfig = {
         get: jest.fn().mockReturnValue(''),
-        update: jest.fn().mockResolvedValue(undefined)
+        update: jest.fn().mockResolvedValue(undefined),
       };
-      
+
       (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfig);
-      
+
       WelcomePanel.createOrShow(extensionUri);
-      
+
       // Simulate receiving setOutputDirectory message
       await messageHandler({ command: 'setOutputDirectory', directory: 'public/icons' });
-      
+
       // With deferred save, config.update should NOT be called on Apply
       expect(mockConfig.update).not.toHaveBeenCalled();
     });
@@ -212,34 +213,34 @@ describe('WelcomePanel', () => {
       const extensionUri = { fsPath: '/test/extension' } as vscode.Uri;
       const mockConfig = {
         get: jest.fn().mockReturnValue(''),
-        update: jest.fn().mockResolvedValue(undefined)
+        update: jest.fn().mockResolvedValue(undefined),
       };
-      
+
       (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfig);
-      
+
       WelcomePanel.createOrShow(extensionUri);
-      
+
       // Simulate receiving setWebComponentName message
       await messageHandler({ command: 'setWebComponentName', name: 'custom-icon' });
-      
+
       // With deferred save, config.update should NOT be called on Apply
       expect(mockConfig.update).not.toHaveBeenCalled();
     });
 
     it('should update panel HTML when configuration changes', () => {
       const extensionUri = { fsPath: '/test/extension' } as vscode.Uri;
-      
+
       WelcomePanel.createOrShow(extensionUri);
-      
+
       const initialHtml = mockPanel.webview.html;
-      
+
       // Simulate configuration change
       if (configChangeCallbacks.length > 0) {
         configChangeCallbacks[0]({
-          affectsConfiguration: (section: string) => section === 'iconManager'
+          affectsConfiguration: (section: string) => section === 'sageboxIconStudio',
         });
       }
-      
+
       // HTML should have been updated
       // Note: In real scenario, HTML would change based on new config values
       expect(mockPanel.webview.html).toBeDefined();
@@ -247,19 +248,19 @@ describe('WelcomePanel', () => {
 
     it('should not update panel HTML when unrelated configuration changes', () => {
       const extensionUri = { fsPath: '/test/extension' } as vscode.Uri;
-      
+
       WelcomePanel.createOrShow(extensionUri);
-      
+
       // Get reference to initial update count
       const getConfigCallCount = (vscode.workspace.getConfiguration as jest.Mock).mock.calls.length;
-      
+
       // Simulate unrelated configuration change
       if (configChangeCallbacks.length > 0) {
         configChangeCallbacks[0]({
-          affectsConfiguration: (section: string) => section === 'editor'
+          affectsConfiguration: (section: string) => section === 'editor',
         });
       }
-      
+
       // getConfiguration should not have been called again for unrelated changes
       // (depends on implementation - this tests the filter logic)
     });
@@ -272,26 +273,26 @@ describe('WelcomePanel', () => {
           if (key === 'svgFolders') return ['svgs'];
           if (key === 'outputDirectory') return '';
           return defaultValue;
-        })
+        }),
       };
-      
+
       (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfig);
-      
+
       const extensionUri = { fsPath: '/test/extension' } as vscode.Uri;
       const mockPanel = {
         webview: {
           html: '',
-          onDidReceiveMessage: jest.fn()
+          onDidReceiveMessage: jest.fn(),
         },
         onDidDispose: jest.fn().mockReturnValue({ dispose: jest.fn() }),
         reveal: jest.fn(),
-        dispose: jest.fn()
+        dispose: jest.fn(),
       };
-      
+
       (vscode.window.createWebviewPanel as jest.Mock).mockReturnValue(mockPanel);
-      
+
       WelcomePanel.createOrShow(extensionUri);
-      
+
       // The HTML should contain 'completed' class for step 1
       expect(mockPanel.webview.html).toContain('completed');
     });
@@ -300,29 +301,29 @@ describe('WelcomePanel', () => {
       const mockConfig = {
         get: jest.fn((key: string, defaultValue?: any) => {
           // Step 1 must also be complete for step 2 to show as completed
-          if (key === 'svgFolders') return ['svgs'];  // Step 1 complete
-          if (key === 'outputDirectory') return 'public/icons';  // Step 2 complete
+          if (key === 'svgFolders') return ['svgs']; // Step 1 complete
+          if (key === 'outputDirectory') return 'public/icons'; // Step 2 complete
           return defaultValue;
-        })
+        }),
       };
-      
+
       (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfig);
-      
+
       const extensionUri = { fsPath: '/test/extension' } as vscode.Uri;
       const mockPanel = {
         webview: {
           html: '',
-          onDidReceiveMessage: jest.fn()
+          onDidReceiveMessage: jest.fn(),
         },
         onDidDispose: jest.fn().mockReturnValue({ dispose: jest.fn() }),
         reveal: jest.fn(),
-        dispose: jest.fn()
+        dispose: jest.fn(),
       };
-      
+
       (vscode.window.createWebviewPanel as jest.Mock).mockReturnValue(mockPanel);
-      
+
       WelcomePanel.createOrShow(extensionUri);
-      
+
       // The HTML should contain 'completed' class for step 2
       expect(mockPanel.webview.html).toContain('completed');
     });
@@ -335,26 +336,26 @@ describe('WelcomePanel', () => {
           if (key === 'webComponentName') return 'custom-icon';
           if (key === 'buildFormat') return 'icons.ts';
           return defaultValue;
-        })
+        }),
       };
-      
+
       (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfig);
-      
+
       const extensionUri = { fsPath: '/test/extension' } as vscode.Uri;
       const mockPanel = {
         webview: {
           html: '',
-          onDidReceiveMessage: jest.fn()
+          onDidReceiveMessage: jest.fn(),
         },
         onDidDispose: jest.fn().mockReturnValue({ dispose: jest.fn() }),
         reveal: jest.fn(),
-        dispose: jest.fn()
+        dispose: jest.fn(),
       };
-      
+
       (vscode.window.createWebviewPanel as jest.Mock).mockReturnValue(mockPanel);
-      
+
       WelcomePanel.createOrShow(extensionUri);
-      
+
       // The HTML should contain 'completed' class for step 4
       // Since step 4 is dynamically generated, check the HTML contains step-number completed
       expect(mockPanel.webview.html).toBeDefined();
@@ -369,16 +370,16 @@ describe('WelcomePanel', () => {
       mockPanel = {
         webview: {
           html: '',
-          onDidReceiveMessage: jest.fn().mockImplementation((handler) => {
+          onDidReceiveMessage: jest.fn().mockImplementation(handler => {
             messageHandler = handler;
             return { dispose: jest.fn() };
-          })
+          }),
         },
         onDidDispose: jest.fn().mockReturnValue({ dispose: jest.fn() }),
         reveal: jest.fn(),
-        dispose: jest.fn()
+        dispose: jest.fn(),
       };
-      
+
       (vscode.window.createWebviewPanel as jest.Mock).mockReturnValue(mockPanel);
     });
 
@@ -391,16 +392,16 @@ describe('WelcomePanel', () => {
           if (key === 'svgFolders') return [];
           return defaultValue;
         }),
-        update: jest.fn().mockResolvedValue(undefined)
+        update: jest.fn().mockResolvedValue(undefined),
       };
-      
+
       (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfig);
-      
+
       WelcomePanel.createOrShow(extensionUri);
-      
+
       // Simulate receiving finishSetup message
       await messageHandler({ command: 'finishSetup' });
-      
+
       expect(vscode.window.showWarningMessage).toHaveBeenCalled();
     });
 
@@ -414,16 +415,16 @@ describe('WelcomePanel', () => {
           if (key === 'webComponentName') return 'sg-icon';
           return defaultValue;
         }),
-        update: jest.fn().mockResolvedValue(undefined)
+        update: jest.fn().mockResolvedValue(undefined),
       };
-      
+
       (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfig);
-      
+
       WelcomePanel.createOrShow(extensionUri);
-      
+
       // Simulate receiving finishSetup message
       await messageHandler({ command: 'finishSetup' });
-      
+
       expect(mockPanel.dispose).toHaveBeenCalled();
     });
   });

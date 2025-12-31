@@ -52,24 +52,26 @@ export function loadSpritePreviewTemplates(): { css: string; js: string; html: s
  */
 export function getSpritePreviewHtml(icons: IconPreviewData[], fileName: string): string {
   const templates = loadSpritePreviewTemplates();
-  
-  const iconCards = icons.map(icon => {
-    // Clean content - remove text, title, desc, and embedded style/script elements
-    const cleanContent = icon.content
-      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-      .replace(/<text[^>]*>[\s\S]*?<\/text>/gi, '')
-      .replace(/<title[^>]*>[\s\S]*?<\/title>/gi, '')
-      .replace(/<desc[^>]*>[\s\S]*?<\/desc>/gi, '');
-    
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${icon.viewBox}" fill="currentColor">${cleanContent}</svg>`;
-    return `
+
+  const iconCards = icons
+    .map(icon => {
+      // Clean content - remove text, title, desc, and embedded style/script elements
+      const cleanContent = icon.content
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+        .replace(/<text[^>]*>[\s\S]*?<\/text>/gi, '')
+        .replace(/<title[^>]*>[\s\S]*?<\/title>/gi, '')
+        .replace(/<desc[^>]*>[\s\S]*?<\/desc>/gi, '');
+
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${icon.viewBox}" fill="currentColor">${cleanContent}</svg>`;
+      return `
       <div class="icon-card" data-icon-id="${icon.id}" title="${icon.id}">
         <div class="icon-preview">${svg}</div>
         <div class="icon-name">${icon.id}</div>
       </div>
     `;
-  }).join('');
+    })
+    .join('');
 
   const htmlContent = templates.html
     .replace(/\$\{fileName\}/g, fileName)
@@ -113,7 +115,15 @@ function buildFullSvg(iconData: IconPreviewData): string {
  * Create a message handler for the preview webview
  */
 export function createPreviewMessageHandler(config: PreviewMessageHandlerConfig) {
-  const { icons, filePath, panel, extensionUri, builtIconsProvider, isSprite, parseIconsFromContent } = config;
+  const {
+    icons,
+    filePath,
+    panel,
+    extensionUri,
+    builtIconsProvider,
+    isSprite,
+    parseIconsFromContent,
+  } = config;
 
   return async (message: { command: string; iconId?: string }) => {
     const iconData = icons.find(i => i.id === message.iconId);
@@ -134,7 +144,9 @@ export function createPreviewMessageHandler(config: PreviewMessageHandlerConfig)
         IconEditorPanel.createOrShow(extensionUri, {
           name: message.iconId!,
           svg: buildFullSvg(iconData!),
-          ...(isSprite ? { spriteFile: filePath, viewBox: iconData!.viewBox } : { iconsFile: filePath, viewBox: iconData!.viewBox })
+          ...(isSprite
+            ? { spriteFile: filePath, viewBox: iconData!.viewBox }
+            : { iconsFile: filePath, viewBox: iconData!.viewBox }),
         });
         break;
 
@@ -142,7 +154,7 @@ export function createPreviewMessageHandler(config: PreviewMessageHandlerConfig)
         IconDetailsPanel.createOrShow(extensionUri, {
           name: message.iconId!,
           svg: buildFullSvg(iconData!),
-          isBuilt: true
+          isBuilt: true,
         });
         break;
 
@@ -153,26 +165,47 @@ export function createPreviewMessageHandler(config: PreviewMessageHandlerConfig)
             format: 'react',
             typescript: true,
             iconName: message.iconId!,
-            svg: buildFullSvg(iconData!)
+            svg: buildFullSvg(iconData!),
           });
-          const doc = await vscode.workspace.openTextDocument({ content: result.code, language: 'typescriptreact' });
+          const doc = await vscode.workspace.openTextDocument({
+            content: result.code,
+            language: 'typescriptreact',
+          });
           await vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside);
         } catch (err) {
-          vscode.window.showErrorMessage(t('messages.failedToExportComponent', { error: String(err) }));
+          vscode.window.showErrorMessage(
+            t('messages.failedToExportComponent', { error: String(err) })
+          );
         }
         break;
 
       case 'renameIcon':
-        await handleRenameIcon(message.iconId!, iconData!, icons, filePath, panel, builtIconsProvider, isSprite);
+        await handleRenameIcon(
+          message.iconId!,
+          iconData!,
+          icons,
+          filePath,
+          panel,
+          builtIconsProvider,
+          isSprite
+        );
         break;
 
-      case 'openFile':
+      case 'openFile': {
         const doc = await vscode.workspace.openTextDocument(filePath);
         await vscode.window.showTextDocument(doc);
         break;
+      }
 
       case 'deleteIcon':
-        await handleDeleteIcon(message.iconId!, icons, filePath, panel, builtIconsProvider, isSprite);
+        await handleDeleteIcon(
+          message.iconId!,
+          icons,
+          filePath,
+          panel,
+          builtIconsProvider,
+          isSprite
+        );
         break;
 
       case 'refresh':
@@ -197,28 +230,31 @@ async function handleRenameIcon(
   const newName = await vscode.window.showInputBox({
     prompt: t('ui.prompts.enterNewIconName'),
     value: iconId,
-    validateInput: (value) => {
+    validateInput: value => {
       if (!value || value.trim() === '') return t('ui.validation.nameCannotBeEmpty');
       if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(value)) return t('ui.validation.invalidNameFormat');
       return null;
-    }
+    },
   });
-  
+
   if (newName && newName !== iconId) {
     let fileContent = fs.readFileSync(filePath, 'utf-8');
-    
+
     if (isSprite) {
       const oldIdPattern = new RegExp(`id=["']${iconId}["']`, 'g');
       fileContent = fileContent.replace(oldIdPattern, `id="${newName}"`);
     } else {
-      const namePattern = new RegExp(`(export\\s+const\\s+\\w+\\s*=\\s*\\{[\\s\\S]*?name:\\s*['"])${iconId}(['"])`, 'g');
+      const namePattern = new RegExp(
+        `(export\\s+const\\s+\\w+\\s*=\\s*\\{[\\s\\S]*?name:\\s*['"])${iconId}(['"])`,
+        'g'
+      );
       fileContent = fileContent.replace(namePattern, `$1${newName}$2`);
       const oldVarName = iconId.replace(/-/g, '_');
       const newVarName = newName.replace(/-/g, '_');
       const varPattern = new RegExp(`export\\s+const\\s+${oldVarName}\\s*=`, 'g');
       fileContent = fileContent.replace(varPattern, `export const ${newVarName} =`);
     }
-    
+
     fs.writeFileSync(filePath, fileContent, 'utf-8');
     iconData.id = newName;
     panel.webview.html = getSpritePreviewHtml(icons, path.basename(filePath));
@@ -244,19 +280,25 @@ async function handleDeleteIcon(
     { modal: true },
     'Delete'
   );
-  
+
   if (confirm === 'Delete') {
     let fileContent = fs.readFileSync(filePath, 'utf-8');
-    
+
     if (isSprite) {
-      const symbolPattern = new RegExp(`<symbol[^>]*id=["']${iconId}["'][^>]*>[\\s\\S]*?<\\/symbol>\\s*`, 'gi');
+      const symbolPattern = new RegExp(
+        `<symbol[^>]*id=["']${iconId}["'][^>]*>[\\s\\S]*?<\\/symbol>\\s*`,
+        'gi'
+      );
       fileContent = fileContent.replace(symbolPattern, '');
     } else {
       const varName = iconId.replace(/-/g, '_');
-      const iconPat = new RegExp(`export\\s+const\\s+${varName}\\s*=\\s*\\{[\\s\\S]*?\\};\\s*`, 'g');
+      const iconPat = new RegExp(
+        `export\\s+const\\s+${varName}\\s*=\\s*\\{[\\s\\S]*?\\};\\s*`,
+        'g'
+      );
       fileContent = fileContent.replace(iconPat, '');
     }
-    
+
     fs.writeFileSync(filePath, fileContent, 'utf-8');
     const index = icons.findIndex(i => i.id === iconId);
     if (index > -1) icons.splice(index, 1);
@@ -279,9 +321,9 @@ function handleRefresh(
   const newIcons = parseIconsFromContent(newContent);
   icons.length = 0;
   icons.push(...newIcons);
-  
-  panel.webview.postMessage({ 
-    command: 'refreshComplete', 
+
+  panel.webview.postMessage({
+    command: 'refreshComplete',
     icons: icons.map(icon => {
       const cleanContent = icon.content
         .replace(/<text[^>]*>[\s\S]*?<\/text>/gi, '')
@@ -290,10 +332,10 @@ function handleRefresh(
       return {
         id: icon.id,
         viewBox: icon.viewBox,
-        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${icon.viewBox}" fill="currentColor">${cleanContent}</svg>`
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${icon.viewBox}" fill="currentColor">${cleanContent}</svg>`,
       };
     }),
-    count: icons.length
+    count: icons.length,
   });
 }
 
@@ -301,7 +343,8 @@ function handleRefresh(
  * Parse icons from sprite.svg content
  */
 export function parseSpriteIcons(content: string): IconPreviewData[] {
-  const symbolRegex = /<symbol[^>]*id=['"]([^'"]+)['"][^>]*viewBox=['"]([^'"]+)['"][^>]*>([\s\S]*?)<\/symbol>/gi;
+  const symbolRegex =
+    /<symbol[^>]*id=['"]([^'"]+)['"][^>]*viewBox=['"]([^'"]+)['"][^>]*>([\s\S]*?)<\/symbol>/gi;
   const icons: IconPreviewData[] = [];
   let match;
   while ((match = symbolRegex.exec(content)) !== null) {
@@ -314,7 +357,8 @@ export function parseSpriteIcons(content: string): IconPreviewData[] {
  * Parse icons from icons.js content
  */
 export function parseIconsJsIcons(content: string): IconPreviewData[] {
-  const iconPattern = /export\s+const\s+(\w+)\s*=\s*\{[\s\S]*?name:\s*['"]([^'"]+)['"][\s\S]*?body:\s*`([^`]*)`[\s\S]*?viewBox:\s*['"]([^'"]+)['"][\s\S]*?\};/g;
+  const iconPattern =
+    /export\s+const\s+(\w+)\s*=\s*\{[\s\S]*?name:\s*['"]([^'"]+)['"][\s\S]*?body:\s*`([^`]*)`[\s\S]*?viewBox:\s*['"]([^'"]+)['"][\s\S]*?\};/g;
   const icons: IconPreviewData[] = [];
   let match;
   while ((match = iconPattern.exec(content)) !== null) {

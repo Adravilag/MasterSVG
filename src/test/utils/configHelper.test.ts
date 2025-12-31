@@ -12,7 +12,7 @@ import {
   getWorkspaceFolderOrWarn,
   checkConfigOrWarn,
   getOutputPathOrWarn,
-  IconManagerConfig
+  IconStudioConfig,
 } from '../../utils/configHelper';
 
 // Mock modules
@@ -35,17 +35,15 @@ describe('configHelper', () => {
           componentName: 'Icon',
           nameAttribute: 'name',
           defaultSize: 24,
-          defaultColor: 'currentColor'
+          defaultColor: 'currentColor',
         };
         return values[key] ?? defaultValue;
       }),
-      update: jest.fn().mockResolvedValue(undefined)
+      update: jest.fn().mockResolvedValue(undefined),
     };
 
     (mockVscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfig);
-    (mockVscode.workspace as any).workspaceFolders = [
-      { uri: { fsPath: '/workspace' } }
-    ];
+    (mockVscode.workspace as any).workspaceFolders = [{ uri: { fsPath: '/workspace' } }];
     (mockVscode.window.showWarningMessage as jest.Mock).mockResolvedValue(undefined);
   });
 
@@ -65,7 +63,7 @@ describe('configHelper', () => {
 
       const config = getConfig();
 
-      expect(config.outputDirectory).toBe('iconwrap-icons');
+      expect(config.outputDirectory).toBe('sagebox-icons');
       expect(config.componentName).toBe('Icon');
       expect(config.nameAttribute).toBe('name');
       expect(config.defaultSize).toBe(24);
@@ -124,10 +122,9 @@ describe('configHelper', () => {
       const result = ensureOutputDirectory();
 
       expect(result).toBe(path.join('/workspace', 'icons'));
-      expect(mockFs.mkdirSync).toHaveBeenCalledWith(
-        path.join('/workspace', 'icons'),
-        { recursive: true }
-      );
+      expect(mockFs.mkdirSync).toHaveBeenCalledWith(path.join('/workspace', 'icons'), {
+        recursive: true,
+      });
     });
 
     it('should not create directory if it exists', () => {
@@ -206,7 +203,9 @@ describe('configHelper', () => {
       const result = checkConfigOrWarn();
 
       expect(result).toBe(false);
-      expect(mockVscode.window.showWarningMessage).toHaveBeenCalledWith('Configure output directory first');
+      expect(mockVscode.window.showWarningMessage).toHaveBeenCalledWith(
+        'Configure output directory first'
+      );
     });
   });
 
@@ -234,16 +233,16 @@ describe('configHelper', () => {
     });
   });
 
-  describe('IconManagerConfig interface', () => {
+  describe('IconStudioConfig interface', () => {
     it('should have correct structure', () => {
-      const config: IconManagerConfig = {
+      const config: IconStudioConfig = {
         outputDirectory: 'icons',
         componentName: 'Icon',
         nameAttribute: 'name',
         defaultSize: 24,
         defaultColor: 'currentColor',
         webComponentName: 'icon-wrap',
-        buildFormat: 'icons.ts'
+        buildFormat: 'icons.ts',
       };
 
       expect(config.outputDirectory).toBe('icons');
@@ -255,4 +254,3 @@ describe('configHelper', () => {
     });
   });
 });
-

@@ -11,7 +11,7 @@
   "command.goToUsage": "Go to Usage",
   "command.transformInlineSvg": "Transform SVG to Icon Component",
   "command.configureProject": "Icon Studio: Configure Project",
-  "command.editIgnoreFile": "Icon Studio: Edit Ignore File (.iconwrapignore)",
+  "command.editIgnoreFile": "Icon Studio: Edit Ignore File (.sageboxignore)",
   "command.refreshIcons": "Icon Studio: Refresh All Views",
   "command.refreshFiles": "Icon Studio: Refresh Files",
   "command.refreshCode": "Icon Studio: Refresh Code",
@@ -31,6 +31,7 @@
   "command.exportComponent": "Export as Component",
   "command.generateSprite": "Icon Studio: Generate SVG Sprite",
   "command.addSvgToCollection": "Add to Icon Collection",
+  "command.importMissingIcon": "Import from Iconify",
   "command.removeReference": "Remove Reference",
   "command.findAndReplace": "Find & Replace Path",
   "command.renameIcon": "Rename Icon",
@@ -38,6 +39,7 @@
   "command.viewIconsFile": "View Icons File",
   "command.deleteBuiltFile": "Delete File",
   "command.buildAllReferences": "Build All References",
+  "command.buildSingleIcon": "Build Icon",
   "command.buildAllFiles": "Build All SVG Files",
   "command.cleanSprite": "Icon Studio: Clean Sprite (Remove Invalid Entries)",
   "command.generateLicenses": "Icon Studio: Generate Icon Licenses",
@@ -59,9 +61,9 @@
   "config.licenseFormat.description": "Default format for license files: combined (single file), perCollection (one per icon set), or both",
   "config.autoGenerateLicenses.description": "Automatically generate license files when building icons",
   "config.licensesFolder.description": "Folder name for generated license files (relative to output directory)",
-  "view.iconwrapFiles.title": "Files",
-  "view.iconwrapCode.title": "Code",
-  "view.iconwrapBuilt.title": "Built",
-  "view.iconwrapPreview.title": "Preview"
+  "view.sageboxFiles.title": "Files",
+  "view.sageboxCode.title": "Code",
+  "view.sageboxBuilt.title": "Built",
+  "view.sageboxPreview.title": "Preview"
 }
 

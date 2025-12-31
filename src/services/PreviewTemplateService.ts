@@ -23,7 +23,13 @@ export class PreviewTemplateService {
    * Load CSS from external file
    */
   loadCss(): string {
-    const cssPath = path.join(this.extensionUri.fsPath, 'src', 'templates', 'shared', 'IconPreview.css');
+    const cssPath = path.join(
+      this.extensionUri.fsPath,
+      'src',
+      'templates',
+      'shared',
+      'IconPreview.css'
+    );
     return fs.readFileSync(cssPath, 'utf8');
   }
 
@@ -72,12 +78,12 @@ export class PreviewTemplateService {
    */
   prepareSvgForDisplay(svg: string, animation?: PreviewAnimation): string {
     let displaySvg = svg;
-    
+
     // Add default sizing if needed
     if (!svg.includes('width=') && !svg.includes('style=')) {
       displaySvg = svg.replace('<svg', '<svg width="100%" height="100%"');
     }
-    
+
     // Apply animation style if present
     if (animation && animation.type && animation.type !== 'none') {
       const duration = animation.duration || 1;
@@ -86,14 +92,14 @@ export class PreviewTemplateService {
       const delay = animation.delay || 0;
       const direction = animation.direction || 'normal';
       const animationStyle = `animation: icon-${animation.type} ${duration}s ${timing} ${delay}s ${iteration} ${direction};`;
-      
+
       if (displaySvg.includes('style="')) {
         displaySvg = displaySvg.replace(/style="([^"]*)"/, `style="$1 ${animationStyle}"`);
       } else {
         displaySvg = displaySvg.replace('<svg', `<svg style="${animationStyle}"`);
       }
     }
-    
+
     return displaySvg;
   }
 
@@ -108,7 +114,7 @@ export class PreviewTemplateService {
     if (isRasterized) {
       badges += `<span class="badge rasterized" title="SVG has too many colors for editing">⚠</span>`;
     }
-    
+
     return `<header class="header">
     <span class="icon-name" title="${name}">${name}</span>
     ${badges}
@@ -120,21 +126,28 @@ export class PreviewTemplateService {
    */
   generateVariantsBar(variants?: Array<{ name: string; colors: string[] }>): string {
     if (!variants || variants.length === 0) return '';
-    
+
     // Limit to max 3 variants for compact display
     const maxVariants = 3;
     const displayVariants = variants.slice(0, maxVariants);
     const hasMore = variants.length > maxVariants;
-    
-    const swatches = displayVariants.map((v, i) => {
-      const colorDots = v.colors.slice(0, 4).map(c => `<span style="background:${c}"></span>`).join('');
-      return `<button class="variant-swatch ${i === 0 ? 'active' : ''}" data-index="${i}" title="${v.name}" onclick="applyVariant(${i})">
+
+    const swatches = displayVariants
+      .map((v, i) => {
+        const colorDots = v.colors
+          .slice(0, 4)
+          .map(c => `<span style="background:${c}"></span>`)
+          .join('');
+        return `<button class="variant-swatch ${i === 0 ? 'active' : ''}" data-index="${i}" title="${v.name}" onclick="applyVariant(${i})">
           <span class="variant-colors">${colorDots}</span>
         </button>`;
-    }).join('');
-    
-    const moreIndicator = hasMore ? `<span class="variants-more" title="${variants.length - maxVariants} more variants">+${variants.length - maxVariants}</span>` : '';
-    
+      })
+      .join('');
+
+    const moreIndicator = hasMore
+      ? `<span class="variants-more" title="${variants.length - maxVariants} more variants">+${variants.length - maxVariants}</span>`
+      : '';
+
     return `<div class="variants-bar" id="variantsPalette">
       ${swatches}${moreIndicator}
     </div>`;
@@ -145,36 +158,36 @@ export class PreviewTemplateService {
    */
   generateToolbar(hasLocation: boolean, isRasterized?: boolean): string {
     const buttons: string[] = [];
-    
+
     // Refresh button
     buttons.push(`<button class="toolbar-btn" onclick="refreshPreview()" title="Refresh">
       <span class="codicon codicon-refresh"></span>
     </button>`);
-    
+
     buttons.push(`<button class="toolbar-btn" onclick="copySvg()" title="Copy SVG">
       <span class="codicon codicon-copy"></span>
     </button>`);
-    
+
     buttons.push(`<button class="toolbar-btn" onclick="downloadSvg()" title="Download">
       <span class="codicon codicon-desktop-download"></span>
     </button>`);
-    
+
     if (!isRasterized) {
       buttons.push(`<button class="toolbar-btn" onclick="previewComponent()" title="Open in Editor">
       <span class="codicon codicon-edit"></span>
     </button>`);
     }
-    
+
     if (hasLocation) {
       buttons.push(`<button class="toolbar-btn" onclick="goToLocation()" title="Go to Source">
       <span class="codicon codicon-go-to-file"></span>
     </button>`);
     }
-    
+
     buttons.push(`<button class="toolbar-btn" onclick="openDetails()" title="Details">
       <span class="codicon codicon-info"></span>
     </button>`);
-    
+
     return `<div class="toolbar-row">
     ${buttons.join('\n    ')}
   </div>`;
@@ -375,7 +388,11 @@ export class PreviewTemplateService {
   /**
    * Generate preview surface HTML
    */
-  generatePreviewSurface(displaySvg: string, variants?: Array<{ name: string; colors: string[] }>, isRasterized?: boolean): string {
+  generatePreviewSurface(
+    displaySvg: string,
+    variants?: Array<{ name: string; colors: string[] }>,
+    isRasterized?: boolean
+  ): string {
     return `<div class="preview-surface" id="preview">
     <div class="icon-container">
       ${displaySvg}
@@ -395,7 +412,7 @@ export class PreviewTemplateService {
    */
   generateHtml(options: PreviewTemplateOptions): string {
     const { name, svg, location, isBuilt, animation, isRasterized, variants } = options;
-    
+
     if (!svg) {
       return this.generateEmptyState();
     }
@@ -425,4 +442,3 @@ export class PreviewTemplateService {
 </html>`;
   }
 }
-

@@ -1,18 +1,16 @@
 /**
  * Internationalization (i18n) Service for Icon Studio
- * 
+ *
  * Provides translation support for multiple languages:
  * - English (en)
  * - Spanish (es)
  * - Chinese (zh)
  * - Russian (ru)
- * 
+ *
  * Automatically detects system language or uses configured preference.
  */
 
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs';
 
 // Import locale files from l10n directory
 import en from '../../l10n/en.json';
@@ -34,16 +32,17 @@ export const SUPPORTED_LOCALES: LocaleInfo[] = [
   { code: 'en', name: 'English', nativeName: 'English', flag: '🇬🇧' },
   { code: 'es', name: 'Spanish', nativeName: 'Español', flag: '🇪🇸' },
   { code: 'zh', name: 'Chinese', nativeName: '中文', flag: '🇨🇳' },
-  { code: 'ru', name: 'Russian', nativeName: 'Русский', flag: '🇷🇺' }
+  { code: 'ru', name: 'Russian', nativeName: 'Русский', flag: '🇷🇺' },
 ];
 
 type TranslationData = typeof en;
 type NestedKeyOf<T> = T extends object
-  ? { [K in keyof T]: K extends string
-      ? T[K] extends object
-        ? `${K}.${NestedKeyOf<T[K]>}`
-        : K
-      : never
+  ? {
+      [K in keyof T]: K extends string
+        ? T[K] extends object
+          ? `${K}.${NestedKeyOf<T[K]>}`
+          : K
+        : never;
     }[keyof T]
   : never;
 
@@ -53,7 +52,7 @@ const locales: Record<string, TranslationData> = {
   en,
   es,
   zh,
-  ru
+  ru,
 };
 
 class I18nService {
@@ -61,7 +60,7 @@ class I18nService {
   private currentLocale: string = 'en';
   private translations: TranslationData = en;
   private _onDidChangeLocale = new vscode.EventEmitter<string>();
-  
+
   /**
    * Event that fires when the locale changes
    */
@@ -85,15 +84,15 @@ class I18nService {
    * Initialize locale from configuration or system
    */
   private initializeLocale(): void {
-    const config = vscode.workspace.getConfiguration('iconManager');
+    const config = vscode.workspace.getConfiguration('iconStudio');
     const configuredLocale = config.get<string>('language', 'auto');
-    
+
     if (configuredLocale === 'auto') {
       this.currentLocale = this.detectSystemLocale();
     } else {
       this.currentLocale = configuredLocale;
     }
-    
+
     this.loadTranslations();
   }
 
@@ -103,12 +102,12 @@ class I18nService {
   private detectSystemLocale(): string {
     // VS Code exposes the display language
     const vscodeLang = vscode.env.language;
-    
+
     // Map VS Code language codes to our supported locales
     if (vscodeLang.startsWith('es')) return 'es';
     if (vscodeLang.startsWith('zh')) return 'zh';
     if (vscodeLang.startsWith('ru')) return 'ru';
-    
+
     // Default to English
     return 'en';
   }
@@ -131,7 +130,7 @@ class I18nService {
    * Get configured locale (may be 'auto')
    */
   public getConfiguredLocale(): SupportedLocale {
-    const config = vscode.workspace.getConfiguration('iconManager');
+    const config = vscode.workspace.getConfiguration('iconStudio');
     return config.get<SupportedLocale>('language', 'auto');
   }
 
@@ -139,15 +138,15 @@ class I18nService {
    * Set locale and reload translations
    */
   public async setLocale(locale: SupportedLocale): Promise<void> {
-    const config = vscode.workspace.getConfiguration('iconManager');
+    const config = vscode.workspace.getConfiguration('iconStudio');
     await config.update('language', locale, vscode.ConfigurationTarget.Global);
-    
+
     if (locale === 'auto') {
       this.currentLocale = this.detectSystemLocale();
     } else {
       this.currentLocale = locale;
     }
-    
+
     this.loadTranslations();
     this._onDidChangeLocale.fire(this.currentLocale);
   }
@@ -159,7 +158,7 @@ class I18nService {
   public t(key: string, params?: Record<string, string | number>): string {
     const keys = key.split('.');
     let value: any = this.translations;
-    
+
     for (const k of keys) {
       if (value && typeof value === 'object' && k in value) {
         value = value[k];
@@ -169,17 +168,16 @@ class I18nService {
         break;
       }
     }
-    
+
     if (typeof value !== 'string') {
-      console.warn(`[Icon Studio i18n] Translation key not found: ${key}`);
       return key;
     }
-    
+
     // Handle interpolation
     if (params) {
       return this.interpolate(value, params);
     }
-    
+
     return value;
   }
 
@@ -189,7 +187,7 @@ class I18nService {
   private getEnglishFallback(key: string): string {
     const keys = key.split('.');
     let value: any = locales.en;
-    
+
     for (const k of keys) {
       if (value && typeof value === 'object' && k in value) {
         value = value[k];
@@ -197,7 +195,7 @@ class I18nService {
         return key;
       }
     }
-    
+
     return typeof value === 'string' ? value : key;
   }
 
@@ -263,4 +261,3 @@ export function t(key: string, params?: Record<string, string | number>): string
 
 // Export type for translations
 export type { TranslationData };
-

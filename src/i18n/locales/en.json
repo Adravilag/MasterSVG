@@ -1,7 +1,7 @@
 {
   "extension": {
     "name": "Icon Studio",
-    "description": "SVG Icon Manager for VS Code",
+    "description": "SVG Icon Studio for VS Code",
     "appTitle": "Icon Studio"
   },
   "welcome": {
@@ -25,10 +25,10 @@
     "saving": "Saving...",
     "saved": "Configuration saved!",
     "features": "Features",
-    "featuresDescription": "Discover what IconWrap can do for you",
+    "featuresDescription": "Discover what Icon Studio can do for you",
     "documentation": "Documentation",
     "quickStart": "Quick Start",
-    "quickStartDescription": "Learn how to use IconWrap in minutes",
+    "quickStartDescription": "Learn how to use Icon Studio in minutes",
     "browse": "Browse...",
     "selectFolder": "Select Folder",
     "jsModule": "JS Module",
@@ -68,7 +68,7 @@
     "preview": "Preview",
     "noIcons": "No icons found",
     "scanWorkspace": "Scan workspace for SVG files",
-    "configureFirst": "Configure Icon Manager",
+    "configureFirst": "Configure Icon Studio",
     "noBuiltIcons": "No built icons - Run Build command",
     "inlineSvgs": "Inline SVGs",
     "imgReferences": "IMG References"
@@ -237,7 +237,12 @@
     "noIconsFound": "No icons found in workspace",
     "noInlineSvgsFound": "No inline SVGs found in this file",
     "noIconsFoundForQuery": "No icons found for '{query}'",
+    "noIconNameFound": "No icon name found",
+    "searchingIconify": "Searching \"{name}\" in Iconify...",
     "svgFileNotFound": "SVG file not found: {path}",
+    "svgFileNotFoundSuggestion": "File \"{path}\" not found. Try \"Search in Iconify\" or \"Browse built icons\" instead.",
+    "fileNotFound": "File not found",
+    "fileNotFoundPath": "File not found: {path}",
     "noBuiltIconsFound": "No built icons found. Build some icons first.",
     "couldNotReadSvg": "Could not read SVG content",
     "couldNotUpdateSprite": "Could not update sprite.svg",
@@ -539,6 +544,8 @@
       "brightness": "Brightness",
       "reset": "Reset",
       "resetFilters": "Reset all filters",
+      "enableFilters": "Enable global filters",
+      "disableFilters": "Disable global filters",
       "variants": "Variants",
       "saveVariant": "Save current colors as variant"
     },
@@ -552,7 +559,7 @@
       "copyUsage": "Copy usage code"
     },
     "tabs": {
-      "title": "Icon Manager",
+      "title": "Icon Studio",
       "searchPlaceholder": "Search icons...",
       "workspace": "Workspace",
       "library": "Library",
@@ -607,7 +614,15 @@
       "setAsDefault": "Set as default",
       "clickToApply": "Click to apply",
       "activeDefault": "active default",
-      "delete": "Delete"
+      "delete": "Delete",
+      "license": "License",
+      "collection": "Collection",
+      "author": "Author",
+      "licenseType": "License",
+      "unknownAuthor": "Unknown author",
+      "unknownLicense": "Unknown license",
+      "licenseUnknown": "License information not available",
+      "download": "Download"
     },
     "spritePreview": {
       "icons": "icons",

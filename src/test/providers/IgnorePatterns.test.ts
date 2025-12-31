@@ -1,37 +1,39 @@
 /**
  * Tests for IgnorePatterns
- * 
+ *
  * Tests .bezierignore pattern matching functionality
  */
 
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { matchIgnorePattern, shouldIgnorePath, reloadIgnorePatterns } from '../../providers/IgnorePatterns';
+import {
+  matchIgnorePattern,
+  shouldIgnorePath,
+  reloadIgnorePatterns,
+} from '../../providers/IgnorePatterns';
 
 // Mock vscode
 jest.mock('vscode', () => ({
   workspace: {
-    workspaceFolders: [
-      { uri: { fsPath: '/workspace' } }
-    ],
+    workspaceFolders: [{ uri: { fsPath: '/workspace' } }],
     createFileSystemWatcher: jest.fn().mockReturnValue({
       onDidCreate: jest.fn(),
       onDidChange: jest.fn(),
       onDidDelete: jest.fn(),
-      dispose: jest.fn()
-    })
+      dispose: jest.fn(),
+    }),
   },
   commands: {
-    executeCommand: jest.fn()
+    executeCommand: jest.fn(),
   },
-  RelativePattern: jest.fn()
+  RelativePattern: jest.fn(),
 }));
 
 // Mock fs
 jest.mock('fs', () => ({
   existsSync: jest.fn().mockReturnValue(false),
-  readFileSync: jest.fn().mockReturnValue('')
+  readFileSync: jest.fn().mockReturnValue(''),
 }));
 
 // Mock path
@@ -43,7 +45,7 @@ jest.mock('path', () => ({
       return to.slice(from.length + 1);
     }
     return to;
-  }
+  },
 }));
 
 describe('IgnorePatterns', () => {
@@ -192,9 +194,7 @@ describe('IgnorePatterns', () => {
   describe('shouldIgnorePath', () => {
     beforeEach(() => {
       // Reset ignore patterns
-      (vscode.workspace.workspaceFolders as any) = [
-        { uri: { fsPath: '/workspace' } }
-      ];
+      (vscode.workspace.workspaceFolders as any) = [{ uri: { fsPath: '/workspace' } }];
     });
 
     test('should return false when no patterns loaded', () => {
@@ -221,7 +221,7 @@ describe('IgnorePatterns', () => {
     test('should ignore comment lines', () => {
       (fs.existsSync as jest.Mock).mockReturnValue(true);
       (fs.readFileSync as jest.Mock).mockReturnValue('# This is a comment\n*.svg');
-      
+
       reloadIgnorePatterns();
       // The comment line should be filtered out during loading
     });
@@ -229,7 +229,7 @@ describe('IgnorePatterns', () => {
     test('should ignore empty lines', () => {
       (fs.existsSync as jest.Mock).mockReturnValue(true);
       (fs.readFileSync as jest.Mock).mockReturnValue('\n*.svg\n\n*.bak\n');
-      
+
       reloadIgnorePatterns();
       // Empty lines should be filtered out
     });
@@ -237,7 +237,7 @@ describe('IgnorePatterns', () => {
     test('should trim whitespace', () => {
       (fs.existsSync as jest.Mock).mockReturnValue(true);
       (fs.readFileSync as jest.Mock).mockReturnValue('  *.svg  \n  node_modules/  ');
-      
+
       reloadIgnorePatterns();
       // Whitespace should be trimmed
     });
@@ -274,4 +274,3 @@ describe('IgnorePatterns', () => {
     });
   });
 });
-

@@ -45,258 +45,268 @@
   "contributes": {
     "submenus": [
       {
-        "id": "iconWrap.svgMenu",
+        "id": "sageboxIconStudio.svgMenu",
         "label": "Icon Studio"
       }
     ],
     "languages": [
       {
-        "id": "iconwrapignore",
+        "id": "sageboxignore",
         "aliases": [
-          "IconWrap Ignore"
+          "SageBox Ignore"
         ],
         "filenames": [
-          ".iconwrapignore"
+          ".sageboxignore"
         ],
         "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
       {
-        "language": "iconwrapignore",
-        "scopeName": "source.iconwrapignore",
-        "path": "./syntaxes/iconwrapignore.tmLanguage.json"
+        "language": "sageboxignore",
+        "scopeName": "source.sageboxignore",
+        "path": "./syntaxes/sageboxignore.tmLanguage.json"
       }
     ],
     "commands": [
       {
-        "command": "iconManager.openPanel",
+        "command": "sageboxIconStudio.openPanel",
         "title": "%command.openPanel%",
         "icon": "$(symbol-color)"
       },
       {
-        "command": "iconManager.openWelcome",
+        "command": "sageboxIconStudio.openWelcome",
         "title": "%command.openWelcome%",
         "icon": "$(home)"
       },
       {
-        "command": "iconManager.scanWorkspace",
+        "command": "sageboxIconStudio.scanWorkspace",
         "title": "%command.scanWorkspace%"
       },
       {
-        "command": "iconManager.scanUsages",
+        "command": "sageboxIconStudio.scanUsages",
         "title": "%command.scanUsages%",
         "icon": "$(references)"
       },
       {
-        "command": "iconManager.transformSvgToIcon",
+        "command": "sageboxIconStudio.transformSvgToIcon",
         "title": "%command.transformSvgToIcon%"
       },
       {
-        "command": "iconManager.optimizeSvg",
+        "command": "sageboxIconStudio.optimizeSvg",
         "title": "%command.optimizeSvg%",
         "icon": "$(rocket)"
       },
       {
-        "command": "iconManager.insertIcon",
+        "command": "sageboxIconStudio.insertIcon",
         "title": "%command.insertIcon%"
       },
       {
-        "command": "iconManager.previewIcon",
+        "command": "sageboxIconStudio.previewIcon",
         "title": "%command.previewIcon%"
       },
       {
-        "command": "iconManager.goToInlineSvg",
+        "command": "sageboxIconStudio.goToInlineSvg",
         "title": "%command.goToInlineSvg%",
         "icon": "$(go-to-file)"
       },
       {
-        "command": "iconManager.goToUsage",
+        "command": "sageboxIconStudio.goToUsage",
         "title": "%command.goToUsage%",
         "icon": "$(go-to-file)"
       },
       {
-        "command": "iconManager.transformInlineSvg",
+        "command": "sageboxIconStudio.transformInlineSvg",
         "title": "%command.transformInlineSvg%",
         "icon": "$(replace)"
       },
       {
-        "command": "iconManager.configureProject",
+        "command": "sageboxIconStudio.configureProject",
         "title": "%command.configureProject%",
         "icon": "$(gear)"
       },
       {
-        "command": "iconManager.editIgnoreFile",
+        "command": "sageboxIconStudio.editIgnoreFile",
         "title": "%command.editIgnoreFile%",
         "icon": "$(list-filter)"
       },
       {
-        "command": "iconManager.refreshIcons",
+        "command": "sageboxIconStudio.refreshIcons",
         "title": "%command.refreshIcons%",
         "icon": "$(refresh)"
       },
       {
-        "command": "iconManager.refreshFiles",
+        "command": "sageboxIconStudio.refreshFiles",
         "title": "%command.refreshFiles%",
         "icon": "$(refresh)"
       },
       {
-        "command": "iconManager.refreshCode",
+        "command": "sageboxIconStudio.refreshCode",
         "title": "%command.refreshCode%",
         "icon": "$(refresh)"
       },
       {
-        "command": "iconManager.refreshBuilt",
+        "command": "sageboxIconStudio.refreshBuilt",
         "title": "%command.refreshBuilt%",
         "icon": "$(refresh)"
       },
       {
-        "command": "iconManager.buildIcons",
+        "command": "sageboxIconStudio.buildIcons",
         "title": "%command.buildIcons%",
         "icon": "$(package)"
       },
       {
-        "command": "iconManager.searchIcons",
+        "command": "sageboxIconStudio.searchIcons",
         "title": "%command.searchIcons%",
         "icon": "$(search)"
       },
       {
-        "command": "iconManager.deleteIcons",
+        "command": "sageboxIconStudio.deleteIcons",
         "title": "%command.deleteIcons%",
         "icon": "$(trash)"
       },
       {
-        "command": "iconManager.removeFromBuilt",
+        "command": "sageboxIconStudio.removeFromBuilt",
         "title": "%command.removeFromBuilt%",
         "icon": "$(remove)"
       },
       {
-        "command": "iconManager.showDetails",
+        "command": "sageboxIconStudio.showDetails",
         "title": "%command.showDetails%",
         "icon": "$(info)"
       },
       {
-        "command": "iconManager.goToCode",
+        "command": "sageboxIconStudio.goToCode",
         "title": "%command.goToCode%",
         "icon": "$(go-to-file)"
       },
       {
-        "command": "iconManager.openSvgFile",
+        "command": "sageboxIconStudio.openSvgFile",
         "title": "%command.openSvgFile%",
         "icon": "$(file-media)"
       },
       {
-        "command": "iconManager.copyIconName",
+        "command": "sageboxIconStudio.copyIconName",
         "title": "%command.copyIconName%",
         "icon": "$(copy)"
       },
       {
-        "command": "iconManager.colorEditor",
+        "command": "sageboxIconStudio.colorEditor",
         "title": "%command.colorEditor%",
         "icon": "$(edit)"
       },
       {
-        "command": "iconManager.expandAll",
+        "command": "sageboxIconStudio.expandAll",
         "title": "%command.expandAll%",
         "icon": "$(expand-all)"
       },
       {
-        "command": "iconManager.collapseAll",
+        "command": "sageboxIconStudio.collapseAll",
         "title": "%command.collapseAll%",
         "icon": "$(collapse-all)"
       },
       {
-        "command": "iconManager.expandBuiltIcons",
+        "command": "sageboxIconStudio.expandBuiltIcons",
         "title": "%command.expandAll%",
         "icon": "$(expand-all)"
       },
       {
-        "command": "iconManager.collapseBuiltIcons",
+        "command": "sageboxIconStudio.collapseBuiltIcons",
         "title": "%command.collapseAll%",
         "icon": "$(collapse-all)"
       },
       {
-        "command": "iconManager.expandSvgFiles",
+        "command": "sageboxIconStudio.expandSvgFiles",
         "title": "%command.expandAll%",
         "icon": "$(expand-all)"
       },
       {
-        "command": "iconManager.collapseSvgFiles",
+        "command": "sageboxIconStudio.collapseSvgFiles",
         "title": "%command.collapseAll%",
         "icon": "$(collapse-all)"
       },
       {
-        "command": "iconManager.configureSvgFolder",
+        "command": "sageboxIconStudio.configureSvgFolder",
         "title": "%command.configureSvgFolder%",
         "icon": "$(folder-opened)"
       },
       {
-        "command": "iconManager.exportComponent",
+        "command": "sageboxIconStudio.exportComponent",
         "title": "%command.exportComponent%",
         "icon": "$(file-code)"
       },
       {
-        "command": "iconManager.generateSprite",
+        "command": "sageboxIconStudio.generateSprite",
         "title": "%command.generateSprite%",
         "icon": "$(layers)"
       },
       {
-        "command": "iconManager.addSvgToCollection",
+        "command": "sageboxIconStudio.addSvgToCollection",
         "title": "%command.addSvgToCollection%",
         "icon": "$(add)"
       },
       {
-        "command": "iconManager.removeReference",
+        "command": "sageboxIconStudio.importMissingIcon",
+        "title": "%command.importMissingIcon%",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "sageboxIconStudio.removeReference",
         "title": "%command.removeReference%",
         "icon": "$(trash)"
       },
       {
-        "command": "iconManager.findAndReplace",
+        "command": "sageboxIconStudio.findAndReplace",
         "title": "%command.findAndReplace%",
         "icon": "$(search-replace)"
       },
       {
-        "command": "iconManager.renameIcon",
+        "command": "sageboxIconStudio.renameIcon",
         "title": "%command.renameIcon%",
         "icon": "$(edit)"
       },
       {
-        "command": "iconManager.viewSprite",
+        "command": "sageboxIconStudio.viewSprite",
         "title": "%command.viewSprite%",
         "icon": "$(eye)"
       },
       {
-        "command": "iconManager.viewIconsFile",
+        "command": "sageboxIconStudio.viewIconsFile",
         "title": "%command.viewIconsFile%",
         "icon": "$(eye)"
       },
       {
-        "command": "iconManager.deleteBuiltFile",
+        "command": "sageboxIconStudio.deleteBuiltFile",
         "title": "%command.deleteBuiltFile%",
         "icon": "$(trash)"
       },
       {
-        "command": "iconManager.buildAllReferences",
+        "command": "sageboxIconStudio.buildAllReferences",
         "title": "%command.buildAllReferences%",
         "icon": "$(package)"
       },
       {
-        "command": "iconManager.buildAllFiles",
+        "command": "sageboxIconStudio.buildSingleIcon",
+        "title": "%command.buildSingleIcon%",
+        "icon": "$(package)"
+      },
+      {
+        "command": "sageboxIconStudio.buildAllFiles",
         "title": "%command.buildAllFiles%",
         "icon": "$(package)"
       },
       {
-        "command": "iconManager.cleanSprite",
+        "command": "sageboxIconStudio.cleanSprite",
         "title": "%command.cleanSprite%",
         "icon": "$(trash)"
       },
       {
-        "command": "iconManager.generateLicenses",
+        "command": "sageboxIconStudio.generateLicenses",
         "title": "%command.generateLicenses%",
         "icon": "$(law)"
       },
       {
-        "command": "iconManager.showLicenseSummary",
+        "command": "sageboxIconStudio.showLicenseSummary",
         "title": "%command.showLicenseSummary%",
         "icon": "$(list-unordered)"
       }
@@ -304,7 +314,7 @@
     "configuration": {
       "title": "%config.title%",
       "properties": {
-        "iconManager.language": {
+        "sageboxIconStudio.language": {
           "type": "string",
           "enum": [
             "auto",
@@ -323,17 +333,17 @@
           "default": "auto",
           "description": "%config.language.description%"
         },
-        "iconManager.componentName": {
+        "sageboxIconStudio.componentName": {
           "type": "string",
           "default": "iw-icon",
           "description": "%config.componentName.description%"
         },
-        "iconManager.componentImport": {
+        "sageboxIconStudio.componentImport": {
           "type": "string",
           "default": "@/components/ui/Icon",
           "description": "%config.componentImport.description%"
         },
-        "iconManager.svgFolders": {
+        "sageboxIconStudio.svgFolders": {
           "type": "array",
           "default": [
             "svgs",
@@ -347,7 +357,7 @@
           ],
           "description": "%config.svgFolders.description%"
         },
-        "iconManager.outputFormat": {
+        "sageboxIconStudio.outputFormat": {
           "type": "string",
           "enum": [
             "jsx",
@@ -359,27 +369,27 @@
           "default": "jsx",
           "description": "Default output format for icon components"
         },
-        "iconManager.iconNameAttribute": {
+        "sageboxIconStudio.iconNameAttribute": {
           "type": "string",
           "default": "name",
           "description": "Attribute name for the icon identifier (name, icon, src, etc.)"
         },
-        "iconManager.autoImport": {
+        "sageboxIconStudio.autoImport": {
           "type": "boolean",
           "default": true,
           "description": "Automatically add import statement when inserting icons"
         },
-        "iconManager.libraryPath": {
+        "sageboxIconStudio.libraryPath": {
           "type": "string",
           "default": "",
-          "description": "Path to the IconWrap library (icons.json)"
+          "description": "Path to the Icon Studio library (icons.json)"
         },
-        "iconManager.outputDirectory": {
+        "sageboxIconStudio.outputDirectory": {
           "type": "string",
           "default": "",
           "description": "Directory where icons.ts or sprite.svg will be generated (relative to workspace root)"
         },
-        "iconManager.buildFormat": {
+        "sageboxIconStudio.buildFormat": {
           "type": "string",
           "enum": [
             "icons.ts",
@@ -388,17 +398,17 @@
           "default": "",
           "description": "Output format for built icons"
         },
-        "iconManager.webComponentName": {
+        "sageboxIconStudio.webComponentName": {
           "type": "string",
           "default": "",
           "description": "Name of the Web Component for icons (e.g. sg-icon)"
         },
-        "iconManager.deleteAfterBuild": {
+        "sageboxIconStudio.deleteAfterBuild": {
           "type": "boolean",
           "default": false,
           "description": "Delete original SVG file after building to sprite/component"
         },
-        "iconManager.previewBackground": {
+        "sageboxIconStudio.previewBackground": {
           "type": "string",
           "enum": [
             "transparent",
@@ -409,14 +419,14 @@
           "default": "checkered",
           "description": "Background style for icon preview"
         },
-        "iconManager.defaultIconSize": {
+        "sageboxIconStudio.defaultIconSize": {
           "type": "number",
           "default": 24,
           "minimum": 8,
           "maximum": 512,
           "description": "Default size (in pixels) for generated icons"
         },
-        "iconManager.namingConvention": {
+        "sageboxIconStudio.namingConvention": {
           "type": "string",
           "enum": [
             "kebab-case",
@@ -427,22 +437,22 @@
           "default": "kebab-case",
           "description": "Naming convention for icon identifiers"
         },
-        "iconManager.svgoOptimize": {
+        "sageboxIconStudio.svgoOptimize": {
           "type": "boolean",
           "default": true,
           "description": "Automatically optimize SVGs with SVGO when building"
         },
-        "iconManager.svgoRemoveViewBox": {
+        "sageboxIconStudio.svgoRemoveViewBox": {
           "type": "boolean",
           "default": false,
           "description": "Remove viewBox attribute during SVGO optimization (not recommended)"
         },
-        "iconManager.svgoRemoveColors": {
+        "sageboxIconStudio.svgoRemoveColors": {
           "type": "boolean",
           "default": false,
           "description": "Remove fill/stroke colors during optimization (uses currentColor)"
         },
-        "iconManager.defaultAnimation": {
+        "sageboxIconStudio.defaultAnimation": {
           "type": "string",
           "enum": [
             "none",
@@ -455,17 +465,17 @@
           "default": "none",
           "description": "Default animation for new icons"
         },
-        "iconManager.showUsagesInTree": {
+        "sageboxIconStudio.showUsagesInTree": {
           "type": "boolean",
           "default": true,
           "description": "Show usage count next to icons in tree view"
         },
-        "iconManager.scanOnStartup": {
+        "sageboxIconStudio.scanOnStartup": {
           "type": "boolean",
           "default": true,
           "description": "Automatically scan workspace for SVG files on startup"
         },
-        "iconManager.licenseFormat": {
+        "sageboxIconStudio.licenseFormat": {
           "type": "string",
           "enum": [
             "combined",
@@ -475,17 +485,17 @@
           "default": "combined",
           "description": "%config.licenseFormat.description%"
         },
-        "iconManager.autoGenerateLicenses": {
+        "sageboxIconStudio.autoGenerateLicenses": {
           "type": "boolean",
           "default": true,
           "description": "%config.autoGenerateLicenses.description%"
         },
-        "iconManager.licensesFolder": {
+        "sageboxIconStudio.licensesFolder": {
           "type": "string",
           "default": "icon-licenses",
           "description": "%config.licensesFolder.description%"
         },
-        "iconManager.excludePatterns": {
+        "sageboxIconStudio.excludePatterns": {
           "type": "array",
           "default": [
             "**/node_modules/**",
@@ -500,29 +510,29 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "iconManager",
+          "id": "sageboxIconStudio",
           "title": "Icon Studio",
           "icon": "resources/icon.svg"
         }
       ]
     },
     "views": {
-      "iconManager": [
+      "sageboxIconStudio": [
         {
-          "id": "iconManager.svgFiles",
-          "name": "%view.iconwrapFiles.title%"
+          "id": "sageboxIconStudio.svgFiles",
+          "name": "%view.sageboxFiles.title%"
         },
         {
-          "id": "iconManager.workspaceIcons",
-          "name": "%view.iconwrapCode.title%"
+          "id": "sageboxIconStudio.workspaceIcons",
+          "name": "%view.sageboxCode.title%"
         },
         {
-          "id": "iconManager.builtIcons",
-          "name": "%view.iconwrapBuilt.title%"
+          "id": "sageboxIconStudio.builtIcons",
+          "name": "%view.sageboxBuilt.title%"
         },
         {
-          "id": "iconManager.preview",
-          "name": "%view.iconwrapPreview.title%",
+          "id": "sageboxIconStudio.preview",
+          "name": "%view.sageboxPreview.title%",
           "type": "webview"
         }
       ]
@@ -530,297 +540,312 @@
     "menus": {
       "view/title": [
         {
-          "command": "iconManager.configureSvgFolder",
-          "when": "view == iconManager.svgFiles",
+          "command": "sageboxIconStudio.configureSvgFolder",
+          "when": "view == sageboxIconStudio.svgFiles",
           "group": "navigation@-1"
         },
         {
-          "command": "iconManager.expandSvgFiles",
-          "when": "view == iconManager.svgFiles && !iconManager.svgFilesExpanded",
+          "command": "sageboxIconStudio.expandSvgFiles",
+          "when": "view == sageboxIconStudio.svgFiles && !sageboxIconStudio.svgFilesExpanded",
           "group": "navigation@0"
         },
         {
-          "command": "iconManager.collapseSvgFiles",
-          "when": "view == iconManager.svgFiles && iconManager.svgFilesExpanded",
+          "command": "sageboxIconStudio.collapseSvgFiles",
+          "when": "view == sageboxIconStudio.svgFiles && sageboxIconStudio.svgFilesExpanded",
           "group": "navigation@0"
         },
         {
-          "command": "iconManager.editIgnoreFile",
-          "when": "view == iconManager.svgFiles",
+          "command": "sageboxIconStudio.editIgnoreFile",
+          "when": "view == sageboxIconStudio.svgFiles",
           "group": "navigation@1"
         },
         {
-          "command": "iconManager.buildAllFiles",
-          "when": "view == iconManager.svgFiles",
+          "command": "sageboxIconStudio.buildAllFiles",
+          "when": "view == sageboxIconStudio.svgFiles",
           "group": "navigation@2"
         },
         {
-          "command": "iconManager.refreshIcons",
-          "when": "view == iconManager.svgFiles",
+          "command": "sageboxIconStudio.refreshIcons",
+          "when": "view == sageboxIconStudio.svgFiles",
           "group": "navigation@2"
         },
         {
-          "command": "iconManager.expandAll",
-          "when": "view == iconManager.workspaceIcons && !iconManager.workspaceExpanded",
+          "command": "sageboxIconStudio.expandAll",
+          "when": "view == sageboxIconStudio.workspaceIcons && !sageboxIconStudio.workspaceExpanded",
           "group": "navigation@0"
         },
         {
-          "command": "iconManager.collapseAll",
-          "when": "view == iconManager.workspaceIcons && iconManager.workspaceExpanded",
+          "command": "sageboxIconStudio.collapseAll",
+          "when": "view == sageboxIconStudio.workspaceIcons && sageboxIconStudio.workspaceExpanded",
           "group": "navigation@0"
         },
         {
-          "command": "iconManager.refreshIcons",
-          "when": "view == iconManager.workspaceIcons",
+          "command": "sageboxIconStudio.refreshIcons",
+          "when": "view == sageboxIconStudio.workspaceIcons",
           "group": "navigation@1"
         },
         {
-          "command": "iconManager.buildAllReferences",
-          "when": "view == iconManager.workspaceIcons",
+          "command": "sageboxIconStudio.buildAllReferences",
+          "when": "view == sageboxIconStudio.workspaceIcons",
           "group": "navigation@2"
         },
         {
-          "command": "iconManager.expandBuiltIcons",
-          "when": "view == iconManager.builtIcons && !iconManager.builtExpanded",
+          "command": "sageboxIconStudio.expandBuiltIcons",
+          "when": "view == sageboxIconStudio.builtIcons && !sageboxIconStudio.builtExpanded",
           "group": "navigation@0"
         },
         {
-          "command": "iconManager.collapseBuiltIcons",
-          "when": "view == iconManager.builtIcons && iconManager.builtExpanded",
+          "command": "sageboxIconStudio.collapseBuiltIcons",
+          "when": "view == sageboxIconStudio.builtIcons && sageboxIconStudio.builtExpanded",
           "group": "navigation@0"
         },
         {
-          "command": "iconManager.refreshBuilt",
-          "when": "view == iconManager.builtIcons",
+          "command": "sageboxIconStudio.refreshBuilt",
+          "when": "view == sageboxIconStudio.builtIcons",
           "group": "navigation@1"
         },
         {
-          "command": "iconManager.searchIcons",
-          "when": "view == iconManager.builtIcons",
+          "command": "sageboxIconStudio.searchIcons",
+          "when": "view == sageboxIconStudio.builtIcons",
           "group": "navigation@2"
         },
         {
-          "command": "iconManager.configureProject",
-          "when": "view == iconManager.builtIcons",
+          "command": "sageboxIconStudio.configureProject",
+          "when": "view == sageboxIconStudio.builtIcons",
           "group": "navigation@3"
         }
       ],
       "editor/context": [
         {
-          "command": "iconManager.transformSvgToIcon",
+          "command": "sageboxIconStudio.transformSvgToIcon",
           "when": "editorHasSelection",
-          "group": "iconManager"
+          "group": "sageboxIconStudio"
         },
         {
-          "command": "iconManager.optimizeSvg",
+          "command": "sageboxIconStudio.optimizeSvg",
           "when": "editorHasSelection",
-          "group": "iconManager"
+          "group": "sageboxIconStudio"
         },
         {
-          "command": "iconManager.previewIcon",
+          "command": "sageboxIconStudio.previewIcon",
           "when": "editorTextFocus",
-          "group": "iconManager"
+          "group": "sageboxIconStudio"
         }
       ],
       "explorer/context": [
         {
-          "command": "iconManager.scanWorkspace",
+          "command": "sageboxIconStudio.scanWorkspace",
           "when": "explorerResourceIsFolder",
-          "group": "iconManager"
+          "group": "sageboxIconStudio"
         },
         {
-          "submenu": "iconWrap.svgMenu",
+          "submenu": "sageboxIconStudio.svgMenu",
           "when": "resourceExtname == .svg",
-          "group": "iconManager"
+          "group": "sageboxIconStudio"
         }
       ],
-      "iconWrap.svgMenu": [
+      "sageboxIconStudio.svgMenu": [
         {
-          "command": "iconManager.colorEditor",
-          "when": "iconManager.iconsJsExists",
+          "command": "sageboxIconStudio.colorEditor",
+          "when": "sageboxIconStudio.iconsJsExists",
           "group": "1_edit@1"
         },
         {
-          "command": "iconManager.showDetails",
+          "command": "sageboxIconStudio.showDetails",
           "group": "1_edit@2"
         }
       ],
       "view/item/context": [
         {
-          "command": "iconManager.addSvgToCollection",
-          "when": "view == iconManager.svgFiles && viewItem == svgIcon",
+          "command": "sageboxIconStudio.addSvgToCollection",
+          "when": "view == sageboxIconStudio.svgFiles && viewItem == svgIcon",
           "group": "inline"
         },
         {
-          "command": "iconManager.removeFromBuilt",
-          "when": "view == iconManager.svgFiles && viewItem =~ /svgIconBuilt|svgIconRasterizedBuilt/",
+          "command": "sageboxIconStudio.removeFromBuilt",
+          "when": "view == sageboxIconStudio.svgFiles && viewItem =~ /svgIconBuilt|svgIconRasterizedBuilt/",
           "group": "inline"
         },
         {
-          "command": "iconManager.colorEditor",
-          "when": "view == iconManager.svgFiles && viewItem =~ /svgIcon|svgIconBuilt/ && iconManager.iconsJsExists",
+          "command": "sageboxIconStudio.colorEditor",
+          "when": "view == sageboxIconStudio.svgFiles && viewItem =~ /svgIcon|svgIconBuilt/ && sageboxIconStudio.iconsJsExists",
           "group": "0_open@1"
         },
         {
-          "command": "iconManager.showDetails",
-          "when": "view == iconManager.svgFiles && viewItem =~ /svgIcon|svgIconBuilt|svgIconRasterized|svgIconRasterizedBuilt/",
+          "command": "sageboxIconStudio.showDetails",
+          "when": "view == sageboxIconStudio.svgFiles && viewItem =~ /svgIcon|svgIconBuilt|svgIconRasterized|svgIconRasterizedBuilt/",
           "group": "0_open@2"
         },
         {
-          "command": "iconManager.openSvgFile",
-          "when": "view == iconManager.svgFiles && viewItem =~ /svgIcon|svgIconBuilt|svgIconRasterized|svgIconRasterizedBuilt/",
+          "command": "sageboxIconStudio.openSvgFile",
+          "when": "view == sageboxIconStudio.svgFiles && viewItem =~ /svgIcon|svgIconBuilt|svgIconRasterized|svgIconRasterizedBuilt/",
           "group": "0_open@3"
         },
         {
-          "command": "iconManager.goToCode",
-          "when": "view == iconManager.svgFiles && viewItem =~ /svgIcon|svgIconBuilt|svgIconRasterized|svgIconRasterizedBuilt/",
+          "command": "sageboxIconStudio.goToCode",
+          "when": "view == sageboxIconStudio.svgFiles && viewItem =~ /svgIcon|svgIconBuilt|svgIconRasterized|svgIconRasterizedBuilt/",
           "group": "0_open@4"
         },
         {
-          "command": "iconManager.copyIconName",
-          "when": "view == iconManager.svgFiles && viewItem =~ /svgIcon|svgIconBuilt|svgIconRasterized|svgIconRasterizedBuilt/",
+          "command": "sageboxIconStudio.copyIconName",
+          "when": "view == sageboxIconStudio.svgFiles && viewItem =~ /svgIcon|svgIconBuilt|svgIconRasterized|svgIconRasterizedBuilt/",
           "group": "1_copy@1"
         },
         {
-          "command": "iconManager.exportComponent",
-          "when": "view == iconManager.svgFiles && viewItem =~ /svgIcon|svgIconBuilt/",
+          "command": "sageboxIconStudio.exportComponent",
+          "when": "view == sageboxIconStudio.svgFiles && viewItem =~ /svgIcon|svgIconBuilt/",
           "group": "1_copy@2"
         },
         {
-          "command": "iconManager.renameIcon",
-          "when": "view == iconManager.svgFiles && viewItem =~ /svgIcon|svgIconBuilt|svgIconRasterized|svgIconRasterizedBuilt/",
+          "command": "sageboxIconStudio.renameIcon",
+          "when": "view == sageboxIconStudio.svgFiles && viewItem =~ /svgIcon|svgIconBuilt|svgIconRasterized|svgIconRasterizedBuilt/",
           "group": "7_modification"
         },
         {
-          "command": "iconManager.deleteIcons",
-          "when": "view == iconManager.svgFiles && viewItem =~ /svgIcon|svgIconBuilt|svgIconRasterized|svgIconRasterizedBuilt/",
+          "command": "sageboxIconStudio.deleteIcons",
+          "when": "view == sageboxIconStudio.svgFiles && viewItem =~ /svgIcon|svgIconBuilt|svgIconRasterized|svgIconRasterizedBuilt/",
           "group": "9_delete@1"
         },
         {
-          "command": "iconManager.removeFromBuilt",
-          "when": "view == iconManager.svgFiles && viewItem =~ /svgIconBuilt|svgIconRasterizedBuilt/",
+          "command": "sageboxIconStudio.removeFromBuilt",
+          "when": "view == sageboxIconStudio.svgFiles && viewItem =~ /svgIconBuilt|svgIconRasterizedBuilt/",
           "group": "9_delete@2"
         },
         {
-          "command": "iconManager.transformInlineSvg",
-          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvg|imgRef/",
+          "command": "sageboxIconStudio.transformInlineSvg",
+          "when": "view == sageboxIconStudio.workspaceIcons && viewItem =~ /inlineSvg|imgRef/",
           "group": "inline"
         },
         {
-          "command": "iconManager.goToInlineSvg",
-          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvg|inlineSvgRasterized|inlineSvgRasterizedBuilt|inlineSvgBuilt|imgRef|imgRefRasterized/",
+          "command": "sageboxIconStudio.goToInlineSvg",
+          "when": "view == sageboxIconStudio.workspaceIcons && viewItem =~ /inlineSvg|inlineSvgRasterized|inlineSvgRasterizedBuilt|inlineSvgBuilt|imgRef|imgRefRasterized/",
           "group": "0_open@1"
         },
         {
-          "command": "iconManager.colorEditor",
-          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvg|imgRef|inlineSvgBuilt/ && iconManager.iconsJsExists",
+          "command": "sageboxIconStudio.colorEditor",
+          "when": "view == sageboxIconStudio.workspaceIcons && viewItem =~ /inlineSvg|imgRef|inlineSvgBuilt/ && sageboxIconStudio.iconsJsExists",
           "group": "0_open@2"
         },
         {
-          "command": "iconManager.showDetails",
-          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvg|imgRef|inlineSvgRasterized|imgRefRasterized|inlineSvgBuilt|inlineSvgRasterizedBuilt/",
+          "command": "sageboxIconStudio.showDetails",
+          "when": "view == sageboxIconStudio.workspaceIcons && viewItem =~ /inlineSvg|imgRef|inlineSvgRasterized|imgRefRasterized|inlineSvgBuilt|inlineSvgRasterizedBuilt/",
           "group": "0_open@3"
         },
         {
-          "command": "iconManager.goToCode",
-          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvg|imgRef|builtIcon|inlineSvgRasterized|imgRefRasterized|inlineSvgBuilt|inlineSvgRasterizedBuilt/",
+          "command": "sageboxIconStudio.goToCode",
+          "when": "view == sageboxIconStudio.workspaceIcons && viewItem =~ /inlineSvg|imgRef|builtIcon|inlineSvgRasterized|imgRefRasterized|inlineSvgBuilt|inlineSvgRasterizedBuilt/",
           "group": "0_open@4"
         },
         {
-          "command": "iconManager.copyIconName",
-          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvg|imgRef|builtIcon|inlineSvgRasterized|imgRefRasterized|inlineSvgBuilt|inlineSvgRasterizedBuilt/",
+          "command": "sageboxIconStudio.copyIconName",
+          "when": "view == sageboxIconStudio.workspaceIcons && viewItem =~ /inlineSvg|imgRef|builtIcon|inlineSvgRasterized|imgRefRasterized|inlineSvgBuilt|inlineSvgRasterizedBuilt/",
           "group": "1_copy@1"
         },
         {
-          "command": "iconManager.exportComponent",
-          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvg|imgRef|inlineSvgBuilt/",
+          "command": "sageboxIconStudio.exportComponent",
+          "when": "view == sageboxIconStudio.workspaceIcons && viewItem =~ /inlineSvg|imgRef|inlineSvgBuilt/",
           "group": "1_copy@2"
         },
         {
-          "command": "iconManager.deleteIcons",
-          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvg|imgRef|inlineSvgRasterized|imgRefRasterized|inlineSvgBuilt|inlineSvgRasterizedBuilt/",
+          "command": "sageboxIconStudio.deleteIcons",
+          "when": "view == sageboxIconStudio.workspaceIcons && viewItem =~ /inlineSvg|imgRef|inlineSvgRasterized|imgRefRasterized|inlineSvgBuilt|inlineSvgRasterizedBuilt/",
           "group": "9_delete@1"
         },
         {
-          "command": "iconManager.removeFromBuilt",
-          "when": "view == iconManager.workspaceIcons && viewItem =~ /inlineSvgBuilt|inlineSvgRasterizedBuilt/",
+          "command": "sageboxIconStudio.removeFromBuilt",
+          "when": "view == sageboxIconStudio.workspaceIcons && viewItem =~ /inlineSvgBuilt|inlineSvgRasterizedBuilt/",
           "group": "9_delete@2"
         },
         {
-          "command": "iconManager.goToInlineSvg",
-          "when": "view == iconManager.workspaceIcons && viewItem == missingRef",
+          "command": "sageboxIconStudio.goToInlineSvg",
+          "when": "view == sageboxIconStudio.workspaceIcons && viewItem == missingRef",
           "group": "0_open@1"
         },
         {
-          "command": "iconManager.removeReference",
-          "when": "view == iconManager.workspaceIcons && viewItem == missingRef",
+          "command": "sageboxIconStudio.removeReference",
+          "when": "view == sageboxIconStudio.workspaceIcons && viewItem == missingRef",
           "group": "1_fix@1"
         },
         {
-          "command": "iconManager.findAndReplace",
-          "when": "view == iconManager.workspaceIcons && viewItem == missingRef",
+          "command": "sageboxIconStudio.findAndReplace",
+          "when": "view == sageboxIconStudio.workspaceIcons && viewItem == missingRef",
           "group": "1_fix@2"
         },
         {
-          "command": "iconManager.colorEditor",
-          "when": "view == iconManager.builtIcons && viewItem == builtIcon && iconManager.iconsJsExists",
+          "command": "sageboxIconStudio.goToInlineSvg",
+          "when": "view == sageboxIconStudio.workspaceIcons && viewItem == iconUsageMissing",
           "group": "0_open@1"
         },
         {
-          "command": "iconManager.showDetails",
-          "when": "view == iconManager.builtIcons && viewItem =~ /builtIcon|builtIconRasterized/",
+          "command": "sageboxIconStudio.importMissingIcon",
+          "when": "view == sageboxIconStudio.workspaceIcons && viewItem == iconUsageMissing",
+          "group": "inline"
+        },
+        {
+          "command": "sageboxIconStudio.importMissingIcon",
+          "when": "view == sageboxIconStudio.workspaceIcons && viewItem == iconUsageMissing",
+          "group": "1_fix@1"
+        },
+        {
+          "command": "sageboxIconStudio.colorEditor",
+          "when": "view == sageboxIconStudio.builtIcons && viewItem == builtIcon && sageboxIconStudio.iconsJsExists",
+          "group": "0_open@1"
+        },
+        {
+          "command": "sageboxIconStudio.showDetails",
+          "when": "view == sageboxIconStudio.builtIcons && viewItem =~ /builtIcon|builtIconRasterized/",
           "group": "0_open@2"
         },
         {
-          "command": "iconManager.copyIconName",
-          "when": "view == iconManager.builtIcons && viewItem =~ /builtIcon|builtIconRasterized/",
+          "command": "sageboxIconStudio.copyIconName",
+          "when": "view == sageboxIconStudio.builtIcons && viewItem =~ /builtIcon|builtIconRasterized/",
           "group": "1_copy@1"
         },
         {
-          "command": "iconManager.exportComponent",
-          "when": "view == iconManager.builtIcons && viewItem == builtIcon",
+          "command": "sageboxIconStudio.exportComponent",
+          "when": "view == sageboxIconStudio.builtIcons && viewItem == builtIcon",
           "group": "1_copy@2"
         },
         {
-          "command": "iconManager.renameIcon",
-          "when": "view == iconManager.builtIcons && viewItem =~ /builtIcon|builtIconRasterized/",
+          "command": "sageboxIconStudio.renameIcon",
+          "when": "view == sageboxIconStudio.builtIcons && viewItem =~ /builtIcon|builtIconRasterized/",
           "group": "7_modification"
         },
         {
-          "command": "iconManager.removeFromBuilt",
-          "when": "view == iconManager.builtIcons && viewItem =~ /builtIcon|builtIconRasterized/",
+          "command": "sageboxIconStudio.removeFromBuilt",
+          "when": "view == sageboxIconStudio.builtIcons && viewItem =~ /builtIcon|builtIconRasterized/",
           "group": "9_delete"
         },
         {
-          "command": "iconManager.viewSprite",
-          "when": "view == iconManager.builtIcons && viewItem == builtSpriteFile",
+          "command": "sageboxIconStudio.viewSprite",
+          "when": "view == sageboxIconStudio.builtIcons && viewItem == builtSpriteFile",
           "group": "0_open"
         },
         {
-          "command": "iconManager.deleteBuiltFile",
-          "when": "view == iconManager.builtIcons && viewItem == builtSpriteFile",
+          "command": "sageboxIconStudio.deleteBuiltFile",
+          "when": "view == sageboxIconStudio.builtIcons && viewItem == builtSpriteFile",
           "group": "9_delete"
         },
         {
-          "command": "iconManager.viewIconsFile",
-          "when": "view == iconManager.builtIcons && viewItem == builtIconsFile",
+          "command": "sageboxIconStudio.viewIconsFile",
+          "when": "view == sageboxIconStudio.builtIcons && viewItem == builtIconsFile",
           "group": "0_open"
         },
         {
-          "command": "iconManager.deleteBuiltFile",
-          "when": "view == iconManager.builtIcons && viewItem == builtIconsFile",
+          "command": "sageboxIconStudio.deleteBuiltFile",
+          "when": "view == sageboxIconStudio.builtIcons && viewItem == builtIconsFile",
           "group": "9_delete"
         }
       ]
     },
     "keybindings": [
       {
-        "command": "iconManager.openPanel",
+        "command": "sageboxIconStudio.openPanel",
         "key": "ctrl+shift+i",
         "mac": "cmd+shift+i"
       },
       {
-        "command": "iconManager.insertIcon",
+        "command": "sageboxIconStudio.insertIcon",
         "key": "ctrl+alt+i",
         "mac": "cmd+alt+i",
         "when": "editorTextFocus"
@@ -841,10 +866,14 @@
     "test:watch": "jest --config jest.config.js --watch",
     "test:coverage": "jest --config jest.config.js --coverage",
     "test:e2e": "npm run compile && npm run compile:e2e && node ./out/test/e2e/runTest.js",
-    "lint": "eslint src --ext ts",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
     "package": "vsce package"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@types/glob": "^8.1.0",
     "@types/jest": "^29.5.11",
     "@types/mocha": "^10.0.10",
@@ -853,11 +882,17 @@
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^2.22.0",
     "esbuild": "^0.27.2",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
     "glob": "^13.0.0",
+    "globals": "^16.5.0",
     "jest": "^29.7.0",
+    "jiti": "^2.6.1",
     "mocha": "^11.7.5",
+    "prettier": "^3.7.4",
     "ts-jest": "^29.1.1",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "typescript-eslint": "^8.51.0"
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.8.11",

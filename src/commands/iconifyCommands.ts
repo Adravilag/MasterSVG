@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import * as path from 'path';
 import { SvgTransformer } from '../services/SvgTransformer';
-import { WorkspaceSvgProvider, BuiltIconsProvider, SvgItem } from '../providers/WorkspaceSvgProvider';
+import {
+  WorkspaceSvgProvider,
+  BuiltIconsProvider,
+} from '../providers/WorkspaceSvgProvider';
 import { searchIconify, fetchIconSvg, IconifySearchResult } from '../utils/iconifyService';
 import { addToIconsJs, addToSpriteSvg } from '../utils/iconsFileManager';
 import { getConfig, getOutputPathOrWarn } from '../utils/configHelper';
@@ -27,32 +29,36 @@ export async function handleDuplicateIconName(
   workspaceSvgProvider: WorkspaceSvgProvider
 ): Promise<string | undefined> {
   const existingIcon = workspaceSvgProvider.getIcon(iconName);
-  
+
   if (!existingIcon) {
     return iconName; // Name is available
   }
 
   // Icon already exists - ask user what to do
-  const choice = await vscode.window.showQuickPick([
+  const choice = await vscode.window.showQuickPick(
+    [
+      {
+        label: t('ui.labels.renameIcon') || 'Rename icon',
+        description: t('ui.labels.enterNewName') || 'Enter a different name',
+        value: 'rename',
+      },
+      {
+        label: t('ui.labels.replaceIcon') || 'Replace existing',
+        description: t('ui.labels.overwriteExisting') || 'Overwrite the existing icon',
+        value: 'replace',
+      },
+      {
+        label: t('ui.labels.cancel') || 'Cancel',
+        description: '',
+        value: 'cancel',
+      },
+    ],
     {
-      label: t('ui.labels.renameIcon') || 'Rename icon',
-      description: t('ui.labels.enterNewName') || 'Enter a different name',
-      value: 'rename'
-    },
-    {
-      label: t('ui.labels.replaceIcon') || 'Replace existing',
-      description: t('ui.labels.overwriteExisting') || 'Overwrite the existing icon',
-      value: 'replace'
-    },
-    {
-      label: t('ui.labels.cancel') || 'Cancel',
-      description: '',
-      value: 'cancel'
+      placeHolder:
+        t('messages.iconAlreadyExists', { name: iconName }) || `Icon "${iconName}" already exists`,
+      title: t('ui.titles.duplicateIcon') || 'Duplicate Icon Name',
     }
-  ], {
-    placeHolder: t('messages.iconAlreadyExists', { name: iconName }) || `Icon "${iconName}" already exists`,
-    title: t('ui.titles.duplicateIcon') || 'Duplicate Icon Name'
-  });
+  );
 
   if (!choice || choice.value === 'cancel') {
     return undefined;
@@ -64,21 +70,23 @@ export async function handleDuplicateIconName(
 
   // Rename - suggest a new name
   const suggestedName = generateUniqueName(iconName, workspaceSvgProvider);
-  
+
   const newName = await vscode.window.showInputBox({
     prompt: t('ui.prompts.enterNewIconName') || 'Enter a new name for the icon',
     value: suggestedName,
     placeHolder: t('ui.placeholders.iconName') || 'icon-name',
-    validateInput: (value) => {
+    validateInput: value => {
       if (!value || value.trim() === '') {
         return t('validation.nameRequired') || 'Name is required';
       }
       if (!/^[a-z0-9-]+$/.test(value)) {
-        return t('validation.invalidCharacters') || 'Use only lowercase letters, numbers, and hyphens';
+        return (
+          t('validation.invalidCharacters') || 'Use only lowercase letters, numbers, and hyphens'
+        );
       }
       // Don't validate uniqueness here - user might want to overwrite
       return null;
-    }
+    },
   });
 
   return newName || undefined;
@@ -90,12 +98,12 @@ export async function handleDuplicateIconName(
 function generateUniqueName(baseName: string, workspaceSvgProvider: WorkspaceSvgProvider): string {
   let counter = 2;
   let newName = `${baseName}-${counter}`;
-  
+
   while (workspaceSvgProvider.getIcon(newName)) {
     counter++;
     newName = `${baseName}-${counter}`;
   }
-  
+
   return newName;
 }
 
@@ -109,14 +117,14 @@ export function showIconifyReplacementPicker(
   query: string,
   missingIconName: string
 ): Promise<{ prefix: string; name: string; svg: string } | undefined> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const panel = vscode.window.createWebviewPanel(
       'iconifyReplacePicker',
       `Replace: ${missingIconName}`,
       vscode.ViewColumn.One,
       {
         enableScripts: true,
-        retainContextWhenHidden: true
+        retainContextWhenHidden: true,
       }
     );
 
@@ -130,37 +138,37 @@ export function showIconifyReplacementPicker(
       }
     });
 
-    panel.webview.onDidReceiveMessage(
-      async (message) => {
-        if (message.command === 'selectIcon') {
-          const { prefix, name, color } = message;
+    panel.webview.onDidReceiveMessage(async message => {
+      if (message.command === 'selectIcon') {
+        const { prefix, name, color } = message;
 
-          try {
-            const svg = await fetchIconSvg(prefix, name, color !== '#ffffff' ? color : undefined);
+        try {
+          const svg = await fetchIconSvg(prefix, name, color !== '#ffffff' ? color : undefined);
 
-            if (!svg) {
-              vscode.window.showErrorMessage(t('messages.failedToFetchIcon'));
-              return;
-            }
-
-            resolved = true;
-            panel.dispose();
-            resolve({ prefix, name, svg });
-          } catch (error) {
-            vscode.window.showErrorMessage(t('messages.failedToFetchIconError', { error: String(error) }));
+          if (!svg) {
+            vscode.window.showErrorMessage(t('messages.failedToFetchIcon'));
+            return;
           }
-        } else if (message.command === 'cancel') {
+
           resolved = true;
           panel.dispose();
-          resolve(undefined);
-        } else if (message.command === 'search') {
-          // Handle new search from within the picker
-          const newQuery = message.query;
-          const results = await searchIconify(newQuery);
-          panel.webview.postMessage({ command: 'updateResults', icons: results, query: newQuery });
+          resolve({ prefix, name, svg });
+        } catch (error) {
+          vscode.window.showErrorMessage(
+            t('messages.failedToFetchIconError', { error: String(error) })
+          );
         }
+      } else if (message.command === 'cancel') {
+        resolved = true;
+        panel.dispose();
+        resolve(undefined);
+      } else if (message.command === 'search') {
+        // Handle new search from within the picker
+        const newQuery = message.query;
+        const results = await searchIconify(newQuery);
+        panel.webview.postMessage({ command: 'updateResults', icons: results, query: newQuery });
       }
-    );
+    });
   });
 }
 
@@ -183,61 +191,72 @@ export function showIconPickerPanel(
 
   panel.webview.html = getIconPickerHtml(results, query);
 
-  panel.webview.onDidReceiveMessage(
-    async (message) => {
-      if (message.command === 'selectIcon') {
-        const { prefix, name, color } = message;
-        
-        try {
-          const svg = await fetchIconSvg(prefix, name, color !== '#ffffff' ? color : undefined);
-          
-          if (!svg) {
-            vscode.window.showErrorMessage(t('messages.failedToFetchIcon'));
-            return;
-          }
+  panel.webview.onDidReceiveMessage(async message => {
+    if (message.command === 'selectIcon') {
+      const { prefix, name, color } = message;
 
-          // Save icon name for build
-          const iconName = `${prefix}-${name}`;
-          const outputPath = getOutputPathOrWarn();
-          if (!outputPath) return;
+      try {
+        const svg = await fetchIconSvg(prefix, name, color !== '#ffffff' ? color : undefined);
 
-          // Use configured build format
-          const config = getConfig();
-          const isSprite = config.buildFormat === 'sprite.svg';
-          
-          if (isSprite) {
-            await addToSpriteSvg(outputPath, iconName, svg, svgTransformer);
-          } else {
-            await addToIconsJs(outputPath, iconName, svg, svgTransformer);
-          }
-
-          workspaceSvgProvider.refresh();
-          const formatName = isSprite ? 'sprite' : 'icons library';
-          vscode.window.showInformationMessage(t('messages.iconAddedToFormat', { name: iconName, format: formatName }));
-        } catch (error) {
-          vscode.window.showErrorMessage(t('messages.failedToAddIcon', { error: String(error) }));
+        if (!svg) {
+          vscode.window.showErrorMessage(t('messages.failedToFetchIcon'));
+          return;
         }
-      } else if (message.command === 'search') {
-        // Handle search from within the picker
-        const newQuery = message.query;
-        const newResults = await searchIconify(newQuery);
-        panel.title = `Icons: ${newQuery}`;
-        panel.webview.postMessage({ command: 'updateResults', icons: newResults, query: newQuery });
-      } else if (message.command === 'close') {
-        panel.dispose();
+
+        // Save icon name for build
+        const iconName = `${prefix}-${name}`;
+        const outputPath = getOutputPathOrWarn();
+        if (!outputPath) return;
+
+        // Use configured build format
+        const config = getConfig();
+        const isSprite = config.buildFormat === 'sprite.svg';
+
+        if (isSprite) {
+          await addToSpriteSvg(outputPath, iconName, svg, svgTransformer);
+        } else {
+          await addToIconsJs({
+            outputPath,
+            iconName,
+            svgContent: svg,
+            transformer: svgTransformer,
+          });
+        }
+
+        workspaceSvgProvider.refresh();
+        const formatName = isSprite ? 'sprite' : 'icons library';
+        vscode.window.showInformationMessage(
+          t('messages.iconAddedToFormat', { name: iconName, format: formatName })
+        );
+      } catch (error) {
+        vscode.window.showErrorMessage(t('messages.failedToAddIcon', { error: String(error) }));
       }
+    } else if (message.command === 'search') {
+      // Handle search from within the picker
+      const newQuery = message.query;
+      const newResults = await searchIconify(newQuery);
+      panel.title = `Icons: ${newQuery}`;
+      panel.webview.postMessage({ command: 'updateResults', icons: newResults, query: newQuery });
+    } else if (message.command === 'close') {
+      panel.dispose();
     }
-  );
+  });
 }
 
 /**
  * Generates HTML for the Iconify replacement picker
  */
-function getIconifyReplacePickerHtml(icons: IconifySearchResult[], query: string, missingIconName: string): string {
+function getIconifyReplacePickerHtml(
+  icons: IconifySearchResult[],
+  query: string,
+  missingIconName: string
+): string {
   const escapedQuery = query.replace(/"/g, '&quot;');
   const escapedMissing = missingIconName.replace(/"/g, '&quot;');
-  
-  const iconCards = icons.map(icon => `
+
+  const iconCards = icons
+    .map(
+      icon => `
     <div class="icon-card" data-prefix="${icon.prefix}" data-name="${icon.name}">
       <div class="icon-preview">
         <img src="https://api.iconify.design/${icon.prefix}/${icon.name}.svg?color=%23ffffff" alt="${icon.name}" loading="lazy" />
@@ -250,7 +269,9 @@ function getIconifyReplacePickerHtml(icons: IconifySearchResult[], query: string
         Build
       </button>
     </div>
-  `).join('');
+  `
+    )
+    .join('');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -406,12 +427,12 @@ function getIconifyReplacePickerHtml(icons: IconifySearchResult[], query: string
     <h1>🔄 Replace Missing Icon</h1>
     <button class="cancel-btn" onclick="cancel()">Cancel</button>
   </div>
-  
+
   <div class="info-box">
     <span class="icon">⚠️</span>
     <span>Missing icon: <strong>${escapedMissing}</strong> — Select a replacement from Iconify</span>
   </div>
-  
+
   <div class="toolbar">
     <label>
       🎨 Color:
@@ -429,7 +450,7 @@ function getIconifyReplacePickerHtml(icons: IconifySearchResult[], query: string
   </div>
 
   <p class="subtitle">Results for "${escapedQuery}" — ${icons.length} icons found. Click to build.</p>
-  
+
   <div class="grid">
     ${iconCards}
   </div>
@@ -437,7 +458,7 @@ function getIconifyReplacePickerHtml(icons: IconifySearchResult[], query: string
   <script>
     const vscode = acquireVsCodeApi();
     let currentColor = '#ffffff';
-    
+
     function updateIconColors(color) {
       currentColor = color;
       const encodedColor = encodeURIComponent(color);
@@ -450,21 +471,21 @@ function getIconifyReplacePickerHtml(icons: IconifySearchResult[], query: string
       });
       document.getElementById('colorPicker').value = color;
     }
-    
+
     document.getElementById('colorPicker').addEventListener('input', (e) => {
       updateIconColors(e.target.value);
     });
-    
+
     document.querySelectorAll('.color-preset').forEach(btn => {
       btn.addEventListener('click', () => {
         updateIconColors(btn.dataset.color);
       });
     });
-    
+
     function selectIcon(prefix, name) {
       vscode.postMessage({ command: 'selectIcon', prefix, name, color: currentColor });
     }
-    
+
     function cancel() {
       vscode.postMessage({ command: 'cancel' });
     }
@@ -483,10 +504,10 @@ export function registerIconifyCommands(
   const { workspaceSvgProvider, builtIconsProvider, svgTransformer } = providers;
 
   // Command: Search icons (Iconify)
-  const searchIconsCmd = vscode.commands.registerCommand('iconManager.searchIcons', async () => {
+  const searchIconsCmd = vscode.commands.registerCommand('sageboxIconStudio.searchIcons', async () => {
     const query = await vscode.window.showInputBox({
       prompt: t('ui.prompts.searchIconifyFull'),
-      placeHolder: t('ui.placeholders.enterSearchTerm')
+      placeHolder: t('ui.placeholders.enterSearchTerm'),
     });
 
     if (!query) return;
@@ -502,161 +523,183 @@ export function registerIconifyCommands(
   });
 
   // Command: Search Iconify with pre-filled query (for hover links)
-  const searchIconifyCmd = vscode.commands.registerCommand('iconManager.searchIconify', async (query?: string) => {
-    // If no query provided, show input box
-    const searchTerm = query || await vscode.window.showInputBox({
-      prompt: t('ui.prompts.searchIconify'),
-      placeHolder: t('ui.placeholders.enterSearchTerm')
-    });
+  const searchIconifyCmd = vscode.commands.registerCommand(
+    'sageboxIconStudio.searchIconify',
+    async (query?: string) => {
+      // If no query provided, show input box
+      const searchTerm =
+        query ||
+        (await vscode.window.showInputBox({
+          prompt: t('ui.prompts.searchIconify'),
+          placeHolder: t('ui.placeholders.enterSearchTerm'),
+        }));
 
-    if (!searchTerm) return;
+      if (!searchTerm) return;
 
-    await vscode.window.withProgress({
-      location: vscode.ProgressLocation.Notification,
-      title: `Searching "${searchTerm}" in Iconify...`,
-      cancellable: false
-    }, async () => {
-      const results = await searchIconify(searchTerm);
+      await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: `Searching "${searchTerm}" in Iconify...`,
+          cancellable: false,
+        },
+        async () => {
+          const results = await searchIconify(searchTerm);
 
-      if (results.length === 0) {
-        vscode.window.showInformationMessage(t('messages.noIconsFoundForQuery', { query: searchTerm }));
-        return;
-      }
+          if (results.length === 0) {
+            vscode.window.showInformationMessage(
+              t('messages.noIconsFoundForQuery', { query: searchTerm })
+            );
+            return;
+          }
 
-      showIconPickerPanel(context, results, searchTerm, svgTransformer, workspaceSvgProvider);
-    });
-  });
+          showIconPickerPanel(context, results, searchTerm, svgTransformer, workspaceSvgProvider);
+        }
+      );
+    }
+  );
 
   // Command: Import missing icon (for web components with missing icons)
-  const importIconCmd = vscode.commands.registerCommand('iconManager.importIcon', async (iconName: string, sourceFile?: string, line?: number) => {
-    const config = getConfig();
-    const isSprite = config.buildFormat === 'sprite.svg';
+  const importIconCmd = vscode.commands.registerCommand(
+    'sageboxIconStudio.importIcon',
+    async (iconName: string, sourceFile?: string, line?: number) => {
+      const config = getConfig();
+      const isSprite = config.buildFormat === 'sprite.svg';
 
-    // Show source selection menu
-    const sourceChoice = await vscode.window.showQuickPick([
-      { 
-        label: `$(cloud-download) ${t('ui.labels.searchInIconify')}`, 
-        description: t('ui.labels.findBuildIconify'),
-        value: 'iconify' 
-      },
-      { 
-        label: `$(folder-opened) ${t('ui.labels.browseForSvgFile')}`, 
-        description: t('ui.labels.selectExistingSvg'),
-        value: 'file' 
-      }
-    ], {
-      placeHolder: `Import icon "${iconName}" - Select source`,
-      title: `📥 Import: ${iconName}`
-    });
-
-    if (!sourceChoice) return;
-
-    let svgContent: string | undefined;
-    let finalIconName = iconName;
-
-    if (sourceChoice.value === 'iconify') {
-      // Search Iconify
-      const query = await vscode.window.showInputBox({
-        prompt: t('ui.prompts.searchIconify'),
-        value: iconName,
-        placeHolder: t('ui.placeholders.enterSearchTerm')
-      });
-
-      if (!query) return;
-
-      const results = await searchIconify(query);
-
-      if (results.length === 0) {
-        vscode.window.showInformationMessage(t('messages.noIconsFoundForQuery', { query }));
-        return;
-      }
-
-      const selectedIcon = await showIconifyReplacementPicker(context, results, query, iconName);
-      if (!selectedIcon) return;
-
-      svgContent = selectedIcon.svg;
-      finalIconName = `${selectedIcon.prefix}-${selectedIcon.name}`;
-
-      // Check for duplicate name
-      const resolvedName = await handleDuplicateIconName(finalIconName, workspaceSvgProvider);
-      if (!resolvedName) return;
-      finalIconName = resolvedName;
-
-    } else if (sourceChoice.value === 'file') {
-      // Browse for SVG file
-      const fileUri = await vscode.window.showOpenDialog({
-        canSelectFiles: true,
-        canSelectFolders: false,
-        canSelectMany: false,
-        filters: { 'SVG Files': ['svg'] },
-        title: `Select SVG file for "${iconName}"`
-      });
-
-      if (!fileUri?.[0]) return;
-
-      svgContent = fs.readFileSync(fileUri[0].fsPath, 'utf-8');
-      
-      // Check for duplicate name
-      const resolvedName = await handleDuplicateIconName(finalIconName, workspaceSvgProvider);
-      if (!resolvedName) return;
-      finalIconName = resolvedName;
-    }
-
-    if (!svgContent) return;
-
-    // Build the icon
-    const outputPath = getOutputPathOrWarn();
-    if (!outputPath) return;
-
-    if (isSprite) {
-      await addToSpriteSvg(outputPath, finalIconName, svgContent, svgTransformer);
-    } else {
-      await addToIconsJs(outputPath, finalIconName, svgContent, svgTransformer);
-    }
-
-    // Add icon directly to cache for immediate detection
-    const builtIcon = {
-      name: finalIconName,
-      svg: svgContent,
-      path: outputPath,
-      source: 'library' as const,
-      category: 'built',
-      isBuilt: true
-    };
-    workspaceSvgProvider.addBuiltIcon(finalIconName, builtIcon);
-
-    // Update reference if icon name changed
-    if (sourceFile && line !== undefined && finalIconName !== iconName) {
-      try {
-        const document = await vscode.workspace.openTextDocument(sourceFile);
-        const lineText = document.lineAt(line).text;
-        
-        const newText = lineText.replace(
-          new RegExp(`name=["']${iconName}["']`, 'g'),
-          `name="${finalIconName}"`
-        );
-        
-        if (newText !== lineText) {
-          const edit = new vscode.WorkspaceEdit();
-          edit.replace(document.uri, new vscode.Range(line, 0, line, lineText.length), newText);
-          await vscode.workspace.applyEdit(edit);
+      // Show source selection menu
+      const sourceChoice = await vscode.window.showQuickPick(
+        [
+          {
+            label: `$(cloud-download) ${t('ui.labels.searchInIconify')}`,
+            description: t('ui.labels.findBuildIconify'),
+            value: 'iconify',
+          },
+          {
+            label: `$(folder-opened) ${t('ui.labels.browseForSvgFile')}`,
+            description: t('ui.labels.selectExistingSvg'),
+            value: 'file',
+          },
+        ],
+        {
+          placeHolder: `Import icon "${iconName}" - Select source`,
+          title: `📥 Import: ${iconName}`,
         }
-      } catch (e) {
-        console.error('Failed to update icon reference:', e);
-      }
-    }
+      );
 
-    // Soft refresh to update tree without clearing cache
-    workspaceSvgProvider.softRefresh();
-    builtIconsProvider.refresh();
-    
-    const formatName = isSprite ? 'sprite' : 'icons library';
-    vscode.window.showInformationMessage(t('messages.iconImportedToFormat', { name: finalIconName, format: formatName }));
-  });
+      if (!sourceChoice) return;
+
+      let svgContent: string | undefined;
+      let finalIconName = iconName;
+
+      if (sourceChoice.value === 'iconify') {
+        // Search Iconify
+        const query = await vscode.window.showInputBox({
+          prompt: t('ui.prompts.searchIconify'),
+          value: iconName,
+          placeHolder: t('ui.placeholders.enterSearchTerm'),
+        });
+
+        if (!query) return;
+
+        const results = await searchIconify(query);
+
+        if (results.length === 0) {
+          vscode.window.showInformationMessage(t('messages.noIconsFoundForQuery', { query }));
+          return;
+        }
+
+        const selectedIcon = await showIconifyReplacementPicker(context, results, query, iconName);
+        if (!selectedIcon) return;
+
+        svgContent = selectedIcon.svg;
+        finalIconName = `${selectedIcon.prefix}-${selectedIcon.name}`;
+
+        // Check for duplicate name
+        const resolvedName = await handleDuplicateIconName(finalIconName, workspaceSvgProvider);
+        if (!resolvedName) return;
+        finalIconName = resolvedName;
+      } else if (sourceChoice.value === 'file') {
+        // Browse for SVG file
+        const fileUri = await vscode.window.showOpenDialog({
+          canSelectFiles: true,
+          canSelectFolders: false,
+          canSelectMany: false,
+          filters: { 'SVG Files': ['svg'] },
+          title: `Select SVG file for "${iconName}"`,
+        });
+
+        if (!fileUri?.[0]) return;
+
+        svgContent = fs.readFileSync(fileUri[0].fsPath, 'utf-8');
+
+        // Check for duplicate name
+        const resolvedName = await handleDuplicateIconName(finalIconName, workspaceSvgProvider);
+        if (!resolvedName) return;
+        finalIconName = resolvedName;
+      }
+
+      if (!svgContent) return;
+
+      // Build the icon
+      const outputPath = getOutputPathOrWarn();
+      if (!outputPath) return;
+
+      if (isSprite) {
+        await addToSpriteSvg(outputPath, finalIconName, svgContent, svgTransformer);
+      } else {
+        await addToIconsJs({
+          outputPath,
+          iconName: finalIconName,
+          svgContent,
+          transformer: svgTransformer,
+        });
+      }
+
+      // Add icon directly to cache for immediate detection
+      const builtIcon = {
+        name: finalIconName,
+        svg: svgContent,
+        path: outputPath,
+        source: 'library' as const,
+        category: 'built',
+        isBuilt: true,
+      };
+      workspaceSvgProvider.addBuiltIcon(finalIconName, builtIcon);
+
+      // Update reference if icon name changed
+      if (sourceFile && line !== undefined && finalIconName !== iconName) {
+        try {
+          const document = await vscode.workspace.openTextDocument(sourceFile);
+          const lineText = document.lineAt(line).text;
+
+          const newText = lineText.replace(
+            new RegExp(`name=["']${iconName}["']`, 'g'),
+            `name="${finalIconName}"`
+          );
+
+          if (newText !== lineText) {
+            const edit = new vscode.WorkspaceEdit();
+            edit.replace(document.uri, new vscode.Range(line, 0, line, lineText.length), newText);
+            await vscode.workspace.applyEdit(edit);
+          }
+        } catch (updateError) {
+          console.error('Failed to update icon reference:', updateError);
+        }
+      }
+
+      // Soft refresh to update tree without clearing cache
+      workspaceSvgProvider.softRefresh();
+      builtIconsProvider.refresh();
+
+      const formatName = isSprite ? 'sprite' : 'icons library';
+      vscode.window.showInformationMessage(
+        t('messages.iconImportedToFormat', { name: finalIconName, format: formatName })
+      );
+    }
+  );
 
   // Command: Search Iconify for component (triggered from code action)
   const searchIconifyForComponentCmd = vscode.commands.registerCommand(
-    'iconManager.searchIconifyForComponent',
+    'sageboxIconStudio.searchIconifyForComponent',
     async (suggestedQuery?: string, sourceFile?: string, line?: number) => {
       const config = getConfig();
       const isSprite = config.buildFormat === 'sprite.svg';
@@ -666,7 +709,7 @@ export function registerIconifyCommands(
       const query = await vscode.window.showInputBox({
         prompt: t('ui.prompts.searchIconify'),
         value: suggestedQuery || '',
-        placeHolder: t('ui.placeholders.enterSearchTerm')
+        placeHolder: t('ui.placeholders.enterSearchTerm'),
       });
 
       if (!query) return;
@@ -702,7 +745,12 @@ export function registerIconifyCommands(
       if (isSprite) {
         await addToSpriteSvg(outputPath, finalIconName, selectedIcon.svg, svgTransformer);
       } else {
-        await addToIconsJs(outputPath, finalIconName, selectedIcon.svg, svgTransformer);
+        await addToIconsJs({
+          outputPath,
+          iconName: finalIconName,
+          svgContent: selectedIcon.svg,
+          transformer: svgTransformer,
+        });
       }
 
       // Add icon directly to cache for immediate detection
@@ -712,7 +760,7 @@ export function registerIconifyCommands(
         path: outputPath,
         source: 'library' as const,
         category: 'built',
-        isBuilt: true
+        isBuilt: true,
       };
       workspaceSvgProvider.addBuiltIcon(finalIconName, builtIcon);
 
@@ -721,10 +769,10 @@ export function registerIconifyCommands(
         try {
           const document = await vscode.workspace.openTextDocument(sourceFile);
           const lineText = document.lineAt(line).text;
-          
+
           // Update name attribute if it exists
           const namePattern = new RegExp(`(<${componentName}[^>]*name=["'])([^"']*)(['"])`, 'gi');
-          
+
           let newText: string;
           if (namePattern.test(lineText)) {
             // Reset regex lastIndex after test()
@@ -735,14 +783,14 @@ export function registerIconifyCommands(
             const tagPattern = new RegExp(String.raw`<${componentName}(\s*)`, 'gi');
             newText = lineText.replace(tagPattern, `<${componentName}$1name="${finalIconName}" `);
           }
-          
+
           if (newText !== lineText) {
             const edit = new vscode.WorkspaceEdit();
             edit.replace(document.uri, new vscode.Range(line, 0, line, lineText.length), newText);
             await vscode.workspace.applyEdit(edit);
           }
-        } catch (e) {
-          console.error('Failed to update icon reference:', e);
+        } catch (updateError) {
+          console.error('Failed to update icon reference:', updateError);
         }
       }
 
@@ -759,7 +807,7 @@ export function registerIconifyCommands(
 
   // Command: Browse workspace icons (triggered from code action)
   const browseWorkspaceIconsCmd = vscode.commands.registerCommand(
-    'iconManager.browseWorkspaceIcons',
+    'sageboxIconStudio.browseWorkspaceIcons',
     async (suggestedName?: string, sourceFile?: string, line?: number) => {
       const config = getConfig();
       const componentName = config.webComponentName || 'sg-icon';
@@ -778,13 +826,13 @@ export function registerIconifyCommands(
       const iconItems = allIcons.map(icon => ({
         label: `$(symbol-misc) ${icon.name}`,
         description: icon.source === 'library' ? t('ui.labels.library') : icon.source,
-        iconName: icon.name
+        iconName: icon.name,
       }));
 
       const selected = await vscode.window.showQuickPick(iconItems, {
         placeHolder: t('ui.placeholders.selectIcon') || 'Select an icon',
         matchOnDescription: true,
-        title: t('ui.titles.browseIcons') || '📁 Browse Workspace Icons'
+        title: t('ui.titles.browseIcons') || '📁 Browse Workspace Icons',
       });
 
       if (!selected) return;
@@ -794,9 +842,9 @@ export function registerIconifyCommands(
         try {
           const document = await vscode.workspace.openTextDocument(sourceFile);
           const lineText = document.lineAt(line).text;
-          
+
           const namePattern = new RegExp(`(<${componentName}[^>]*name=["'])([^"']*)(['"])`, 'gi');
-          
+
           let newText: string;
           if (namePattern.test(lineText)) {
             // Reset regex lastIndex after test()
@@ -804,21 +852,62 @@ export function registerIconifyCommands(
             newText = lineText.replace(namePattern, `$1${selected.iconName}$3`);
           } else {
             const tagPattern = new RegExp(String.raw`<${componentName}(\s*)`, 'gi');
-            newText = lineText.replace(tagPattern, `<${componentName}$1name="${selected.iconName}" `);
+            newText = lineText.replace(
+              tagPattern,
+              `<${componentName}$1name="${selected.iconName}" `
+            );
           }
-          
+
           if (newText !== lineText) {
             const edit = new vscode.WorkspaceEdit();
             edit.replace(document.uri, new vscode.Range(line, 0, line, lineText.length), newText);
             await vscode.workspace.applyEdit(edit);
           }
-        } catch (e) {
-          console.error('Failed to update icon reference:', e);
+        } catch (updateError) {
+          console.error('Failed to update icon reference:', updateError);
         }
       }
 
       vscode.window.showInformationMessage(
-        t('messages.iconSelected', { name: selected.iconName }) || `Icon "${selected.iconName}" selected`
+        t('messages.iconSelected', { name: selected.iconName }) ||
+          `Icon "${selected.iconName}" selected`
+      );
+    }
+  );
+
+  // Command: Import missing icon from tree view
+  const importMissingIconCmd = vscode.commands.registerCommand(
+    'sageboxIconStudio.importMissingIcon',
+    async (item: any) => {
+      // Get the icon name from the tree item
+      const iconName = item?.icon?.name || item?.label;
+      
+      if (!iconName) {
+        vscode.window.showWarningMessage(
+          t('messages.noIconNameFound') || 'No icon name found'
+        );
+        return;
+      }
+
+      // Search for the icon in Iconify
+      await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: t('messages.searchingIconify', { name: iconName }) || `Searching "${iconName}" in Iconify...`,
+          cancellable: false,
+        },
+        async () => {
+          const results = await searchIconify(iconName);
+
+          if (results.length === 0) {
+            vscode.window.showInformationMessage(
+              t('messages.noIconsFoundForQuery', { query: iconName })
+            );
+            return;
+          }
+
+          showIconPickerPanel(context, results, iconName, svgTransformer, workspaceSvgProvider);
+        }
       );
     }
   );
@@ -828,7 +917,7 @@ export function registerIconifyCommands(
     searchIconifyCmd,
     importIconCmd,
     searchIconifyForComponentCmd,
-    browseWorkspaceIconsCmd
+    browseWorkspaceIconsCmd,
+    importMissingIconCmd
   );
 }
-

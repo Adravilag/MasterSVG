@@ -9,7 +9,12 @@ import type { IconAnimation } from '../types/icons';
 import { SvgTransformer } from '../services/SvgTransformer';
 import { getSpriteGenerator, SpriteIcon } from '../services/SpriteGenerator';
 import { addToIconsJs, addToSpriteSvg, generateWebComponent } from '../utils/iconsFileManager';
-import { getConfig, getFullOutputPath, getOutputPathOrWarn, updateIconsJsContext } from '../utils/configHelper';
+import {
+  getConfig,
+  getFullOutputPath,
+  getOutputPathOrWarn,
+  updateIconsJsContext,
+} from '../utils/configHelper';
 import { buildIconsFileContent } from '../utils/outputFileManager';
 import { t } from '../i18n';
 import { autoGenerateLicensesIfEnabled } from './licenseCommands';
@@ -18,12 +23,14 @@ import { autoGenerateLicensesIfEnabled } from './licenseCommands';
 export interface WorkspaceSvgProviderLike {
   refresh(): void;
   scanInlineSvgs(): Promise<void>;
-  getAllIcons(): Promise<Array<{
-    name: string;
-    svg?: string;
-    path?: string;
-    animation?: IconAnimation;
-  }>>;
+  getAllIcons(): Promise<
+    Array<{
+      name: string;
+      svg?: string;
+      path?: string;
+      animation?: IconAnimation;
+    }>
+  >;
   getImgReferences(): Array<{
     name: string;
     svg?: string;
@@ -57,7 +64,8 @@ async function writeFileWithVSCode(filePath: string, content: string): Promise<v
  * Count unique colors in SVG (to detect rasterized images)
  */
 function countSvgColors(svg: string): number {
-  const colorRegex = /#(?:[0-9a-fA-F]{3,4}){1,2}\b|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\)|(?:fill|stroke|stop-color|flood-color|lighting-color)\s*[:=]\s*["']?([a-zA-Z]+)["']?/gi;
+  const colorRegex =
+    /#(?:[0-9a-fA-F]{3,4}){1,2}\b|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\)|(?:fill|stroke|stop-color|flood-color|lighting-color)\s*[:=]\s*["']?([a-zA-Z]+)["']?/gi;
   const colors = new Set<string>();
   let match;
   while ((match = colorRegex.exec(svg)) !== null) {
@@ -105,331 +113,442 @@ export function registerBuildCommands(
 ): vscode.Disposable[] {
   const disposables: vscode.Disposable[] = [];
 
+  // Command: Build Single Icon - build a single icon from hover or context menu
+  disposables.push(
+    vscode.commands.registerCommand(
+      'sageboxIconStudio.buildSingleIcon',
+      async (data?: { iconName: string; svgContent: string; filePath?: string }) => {
+        if (!data || !data.iconName || !data.svgContent) {
+          vscode.window.showErrorMessage(t('messages.noIconSelected'));
+          return;
+        }
+
+        const outputPath = getOutputPathOrWarn();
+        if (!outputPath) return;
+
+        const config = getConfig();
+        const buildFormat = config.buildFormat || 'icons.js';
+        const isSprite = buildFormat === 'sprite.svg';
+
+        try {
+          if (isSprite) {
+            await addToSpriteSvg(outputPath, data.iconName, data.svgContent, svgTransformer);
+          } else {
+            await addToIconsJs({
+              outputPath,
+              iconName: data.iconName,
+              svgContent: data.svgContent,
+              transformer: svgTransformer,
+            });
+          }
+
+          // Add to cache for immediate detection
+          const builtIcon = {
+            name: data.iconName,
+            svg: data.svgContent,
+            path: outputPath,
+            source: 'library' as const,
+            category: 'built',
+            isBuilt: true,
+          };
+          (providers.workspaceSvgProvider as any).addBuiltIcon?.(data.iconName, builtIcon);
+
+          // Refresh providers
+          providers.builtIconsProvider.refresh();
+          providers.workspaceSvgProvider.refresh();
+
+          // Auto-generate licenses if enabled
+          await autoGenerateLicensesIfEnabled(outputPath);
+
+          vscode.window.showInformationMessage(
+            t('messages.iconBuilt', { name: data.iconName, format: isSprite ? 'sprite.svg' : 'icons.js' })
+          );
+        } catch (error: any) {
+          vscode.window.showErrorMessage(
+            t('messages.failedToBuildIcon', { error: error.message || String(error) })
+          );
+        }
+      }
+    )
+  );
+
   // Command: Build All References - transforms all img references to web components
   disposables.push(
-    vscode.commands.registerCommand('iconManager.buildAllReferences', async () => {
+    vscode.commands.registerCommand('sageboxIconStudio.buildAllReferences', async () => {
       const config = getConfig();
       const componentName = config.webComponentName || 'sg-icon';
       const buildFormat = config.buildFormat || 'icons.js';
-      
+
       const imgRefs = providers.workspaceSvgProvider.getImgReferences();
-      
+
       if (!imgRefs || imgRefs.length === 0) {
         vscode.window.showInformationMessage(t('messages.noImgReferencesFound'));
         return;
       }
-      
+
       const validRefs = imgRefs.filter(ref => ref.exists !== false);
-      
+
       if (validRefs.length === 0) {
         vscode.window.showWarningMessage(t('messages.allImgReferencesMissing'));
         return;
       }
-      
+
       const confirm = await vscode.window.showInformationMessage(
-        t('messages.confirmTransformReferences', { count: validRefs.length, component: componentName }),
-        t('messages.yesButton'), t('messages.noButton')
+        t('messages.confirmTransformReferences', {
+          count: validRefs.length,
+          component: componentName,
+        }),
+        t('messages.yesButton'),
+        t('messages.noButton')
       );
-      
+
       if (confirm !== t('messages.yesButton')) return;
-      
-      await vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: t('ui.progress.buildingReferences'),
-        cancellable: false
-      }, async (progress) => {
-        let transformed = 0;
-        let failed = 0;
-        
-        const refsByFile = new Map<string, typeof validRefs>();
-        for (const ref of validRefs) {
-          if (!ref.filePath) continue;
-          const list = refsByFile.get(ref.filePath) || [];
-          list.push(ref);
-          refsByFile.set(ref.filePath, list);
-        }
-        
-        for (const [filePath, refs] of Array.from(refsByFile.entries())) {
-          progress.report({ message: t('ui.progress.processing', { name: path.basename(filePath) }) });
-          
-          try {
-            const document = await vscode.workspace.openTextDocument(vscode.Uri.file(filePath));
-            const edit = new vscode.WorkspaceEdit();
-            
-            const sortedRefs = [...refs].sort((a, b) => (b.line || 0) - (a.line || 0));
-            
-            for (const ref of sortedRefs) {
-              if (ref.line === undefined || !ref.svg || !ref.path) continue;
-              
-              const line = document.lineAt(ref.line);
-              const lineText = line.text;
-              
-              const imgRegex = new RegExp(`<img\\s+[^>]*src=["'][^"']*${ref.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.svg["'][^>]*>`, 'gi');
-              const match = imgRegex.exec(lineText);
-              
-              if (match) {
-                const startPos = new vscode.Position(ref.line, match.index);
-                const endPos = new vscode.Position(ref.line, match.index + match[0].length);
-                const range = new vscode.Range(startPos, endPos);
-                
-                const iconName = ref.name;
-                const outputPath = getFullOutputPath();
-                
-                if (outputPath) {
-                  const transformer = new SvgTransformer();
-                  if (buildFormat === 'sprite.svg') {
-                    await addToSpriteSvg(outputPath, iconName, ref.svg, transformer);
-                  } else {
-                    await addToIconsJs(outputPath, iconName, ref.svg, transformer);
+
+      await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: t('ui.progress.buildingReferences'),
+          cancellable: false,
+        },
+        async progress => {
+          let transformed = 0;
+          let failed = 0;
+
+          const refsByFile = new Map<string, typeof validRefs>();
+          for (const ref of validRefs) {
+            if (!ref.filePath) continue;
+            const list = refsByFile.get(ref.filePath) || [];
+            list.push(ref);
+            refsByFile.set(ref.filePath, list);
+          }
+
+          for (const [filePath, refs] of Array.from(refsByFile.entries())) {
+            progress.report({
+              message: t('ui.progress.processing', { name: path.basename(filePath) }),
+            });
+
+            try {
+              const document = await vscode.workspace.openTextDocument(vscode.Uri.file(filePath));
+              const edit = new vscode.WorkspaceEdit();
+
+              const sortedRefs = [...refs].sort((a, b) => (b.line || 0) - (a.line || 0));
+
+              for (const ref of sortedRefs) {
+                if (ref.line === undefined || !ref.svg || !ref.path) continue;
+
+                const line = document.lineAt(ref.line);
+                const lineText = line.text;
+
+                const imgRegex = new RegExp(
+                  `<img\\s+[^>]*src=["'][^"']*${ref.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.svg["'][^>]*>`,
+                  'gi'
+                );
+                const match = imgRegex.exec(lineText);
+
+                if (match) {
+                  const startPos = new vscode.Position(ref.line, match.index);
+                  const endPos = new vscode.Position(ref.line, match.index + match[0].length);
+                  const range = new vscode.Range(startPos, endPos);
+
+                  const iconName = ref.name;
+                  const outputPath = getFullOutputPath();
+
+                  if (outputPath) {
+                    const transformer = new SvgTransformer();
+                    if (buildFormat === 'sprite.svg') {
+                      await addToSpriteSvg(outputPath, iconName, ref.svg, transformer);
+                    } else {
+                      await addToIconsJs({
+                        outputPath,
+                        iconName,
+                        svgContent: ref.svg,
+                        transformer,
+                      });
+                    }
                   }
+
+                  const replacement = `<${componentName} name="${iconName}"></${componentName}>`;
+                  edit.replace(document.uri, range, replacement);
+                  transformed++;
                 }
-                
-                const replacement = `<${componentName} name="${iconName}"></${componentName}>`;
-                edit.replace(document.uri, range, replacement);
-                transformed++;
               }
+
+              await vscode.workspace.applyEdit(edit);
+              await document.save();
+            } catch (err) {
+              console.error('[Icon Studio] Error transforming references in', filePath, err);
+              failed++;
             }
-            
-            await vscode.workspace.applyEdit(edit);
-            await document.save();
-          } catch (err) {
-            console.error('[Icon Studio] Error transforming references in', filePath, err);
-            failed++;
+          }
+
+          providers.workspaceSvgProvider.refresh();
+          providers.builtIconsProvider.refresh();
+
+          if (failed > 0) {
+            vscode.window.showWarningMessage(
+              t('messages.transformedWithErrors', { transformed, failed })
+            );
+          } else {
+            vscode.window.showInformationMessage(
+              t('messages.transformedSuccessfully', {
+                count: transformed,
+                component: componentName,
+              })
+            );
           }
         }
-        
-        providers.workspaceSvgProvider.refresh();
-        providers.builtIconsProvider.refresh();
-        
-        if (failed > 0) {
-          vscode.window.showWarningMessage(t('messages.transformedWithErrors', { transformed, failed }));
-        } else {
-          vscode.window.showInformationMessage(t('messages.transformedSuccessfully', { count: transformed, component: componentName }));
-        }
-      });
+      );
     })
   );
 
   // Command: Build All SVG Files to library
   disposables.push(
-    vscode.commands.registerCommand('iconManager.buildAllFiles', async () => {
+    vscode.commands.registerCommand('sageboxIconStudio.buildAllFiles', async () => {
       const config = getConfig();
       const buildFormat = config.buildFormat || 'icons.js';
-      
+
       await providers.svgFilesProvider.ensureReady();
-      
+
       const svgFilesMap = providers.svgFilesProvider.getSvgFilesMap();
       const allSvgFiles = Array.from(svgFilesMap.values()).filter(icon => icon.path);
-      
+
       if (allSvgFiles.length === 0) {
         vscode.window.showInformationMessage(t('messages.noSvgFilesFound'));
         return;
       }
-      
+
       const confirm = await vscode.window.showInformationMessage(
         t('messages.confirmBuildSvgFiles', { count: allSvgFiles.length, format: buildFormat }),
-        t('messages.yesButton'), t('messages.noButton')
+        t('messages.yesButton'),
+        t('messages.noButton')
       );
-      
+
       if (confirm !== t('messages.yesButton')) return;
-      
-      await vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: t('ui.progress.buildingSvgFiles'),
-        cancellable: false
-      }, async (progress) => {
-        let built = 0;
-        let failed = 0;
-        const outputPath = getFullOutputPath();
-        
-        if (!outputPath) {
-          vscode.window.showErrorMessage(t('messages.outputPathNotConfigured'));
-          return;
-        }
-        
-        const transformer = new SvgTransformer();
-        const isIconsJs = buildFormat !== 'sprite.svg';
-        
-        for (const icon of allSvgFiles) {
-          progress.report({ message: t('ui.progress.building', { name: icon.name }) });
-          
-          try {
-            let svgContent = icon.svg;
-            if (!svgContent && icon.path) {
-              svgContent = fs.readFileSync(icon.path, 'utf-8');
-            }
-            
-            if (!svgContent || !icon.name) {
-              failed++;
-              continue;
-            }
-            
-            if (isIconsJs) {
-              await addToIconsJs(outputPath, icon.name, svgContent, transformer, undefined, true);
-            } else {
-              await addToSpriteSvg(outputPath, icon.name, svgContent, transformer);
-            }
-            built++;
-          } catch (err) {
-            console.error('[Icon Studio] Error building', icon.name, err);
-            failed++;
+
+      await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: t('ui.progress.buildingSvgFiles'),
+          cancellable: false,
+        },
+        async progress => {
+          let built = 0;
+          let failed = 0;
+          const outputPath = getFullOutputPath();
+
+          if (!outputPath) {
+            vscode.window.showErrorMessage(t('messages.outputPathNotConfigured'));
+            return;
           }
-        }
-        
-        if (isIconsJs && built > 0) {
-          progress.report({ message: t('ui.progress.generatingWebComponent') });
-          await generateWebComponent(outputPath);
-        }
-        
-        const deleteOption = await vscode.window.showInformationMessage(
-          t('messages.confirmDeleteOriginals', { count: built }),
-          t('messages.deleteAll'), t('messages.keepAll')
-        );
-        
-        if (deleteOption === t('messages.deleteAll')) {
-          let deleted = 0;
+
+          const transformer = new SvgTransformer();
+          const isIconsJs = buildFormat !== 'sprite.svg';
+
           for (const icon of allSvgFiles) {
-            if (icon.path) {
-              try {
-                await vscode.workspace.fs.delete(vscode.Uri.file(icon.path));
-                deleted++;
-              } catch (err) {
-                console.error('[Icon Studio] Error deleting', icon.path, err);
+            progress.report({ message: t('ui.progress.building', { name: icon.name }) });
+
+            try {
+              let svgContent = icon.svg;
+              if (!svgContent && icon.path) {
+                svgContent = fs.readFileSync(icon.path, 'utf-8');
+              }
+
+              if (!svgContent || !icon.name) {
+                failed++;
+                continue;
+              }
+
+              if (isIconsJs) {
+                await addToIconsJs({
+                  outputPath,
+                  iconName: icon.name,
+                  svgContent,
+                  transformer,
+                  skipWebComponentGeneration: true,
+                });
+              } else {
+                await addToSpriteSvg(outputPath, icon.name, svgContent, transformer);
+              }
+              built++;
+            } catch (err) {
+              console.error('[Icon Studio] Error building', icon.name, err);
+              failed++;
+            }
+          }
+
+          if (isIconsJs && built > 0) {
+            progress.report({ message: t('ui.progress.generatingWebComponent') });
+            await generateWebComponent(outputPath);
+          }
+
+          const deleteOption = await vscode.window.showInformationMessage(
+            t('messages.confirmDeleteOriginals', { count: built }),
+            t('messages.deleteAll'),
+            t('messages.keepAll')
+          );
+
+          if (deleteOption === t('messages.deleteAll')) {
+            let deleted = 0;
+            for (const icon of allSvgFiles) {
+              if (icon.path) {
+                try {
+                  await vscode.workspace.fs.delete(vscode.Uri.file(icon.path));
+                  deleted++;
+                } catch (err) {
+                  console.error('[Icon Studio] Error deleting', icon.path, err);
+                }
               }
             }
+            vscode.window.showInformationMessage(
+              t('messages.deletedOriginals', { count: deleted })
+            );
           }
-          vscode.window.showInformationMessage(t('messages.deletedOriginals', { count: deleted }));
+
+          providers.svgFilesProvider.refresh();
+          providers.builtIconsProvider.refresh();
+
+          if (failed > 0 && deleteOption !== t('messages.deleteAll')) {
+            vscode.window.showWarningMessage(t('messages.builtWithErrors', { built, failed }));
+          }
         }
-        
-        providers.svgFilesProvider.refresh();
-        providers.builtIconsProvider.refresh();
-        
-        if (failed > 0 && deleteOption !== t('messages.deleteAll')) {
-          vscode.window.showWarningMessage(t('messages.builtWithErrors', { built, failed }));
-        }
-      });
+      );
     })
   );
 
   // Command: Build icons library
   disposables.push(
-    vscode.commands.registerCommand('iconManager.buildIcons', async () => {
+    vscode.commands.registerCommand('sageboxIconStudio.buildIcons', async () => {
       const outputPath = getOutputPathOrWarn();
       if (!outputPath) return;
 
-      await vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: t('ui.progress.buildingIconsLibrary'),
-        cancellable: false
-      }, async (progress) => {
-        progress.report({ message: t('ui.progress.scanningIcons') });
-        await providers.workspaceSvgProvider.scanInlineSvgs();
-        const icons = await providers.workspaceSvgProvider.getAllIcons();
-        
-        if (icons.length === 0) {
-          vscode.window.showWarningMessage(t('messages.noIconsFoundToBuild'));
-          return;
-        }
+      await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: t('ui.progress.buildingIconsLibrary'),
+          cancellable: false,
+        },
+        async progress => {
+          progress.report({ message: t('ui.progress.scanningIcons') });
+          await providers.workspaceSvgProvider.scanInlineSvgs();
+          const icons = await providers.workspaceSvgProvider.getAllIcons();
 
-        progress.report({ message: t('ui.progress.generatingOutput') });
-        const config = getConfig();
-        const webComponentName = config.webComponentName;
-        const buildFormat = config.buildFormat || 'icons.ts';
+          if (icons.length === 0) {
+            vscode.window.showWarningMessage(t('messages.noIconsFoundToBuild'));
+            return;
+          }
 
-        const MAX_COLORS_FOR_BUILD = 50;
+          progress.report({ message: t('ui.progress.generatingOutput') });
+          const config = getConfig();
+          const webComponentName = config.webComponentName;
+          const buildFormat = config.buildFormat || 'icons.ts';
 
-        const iconList: Array<{ name: string; svg: string; animation?: IconAnimation }> = [];
-        const processedNames = new Set<string>();
-        const skippedIcons: string[] = [];
+          const MAX_COLORS_FOR_BUILD = 50;
 
-        for (const icon of icons) {
-          if (processedNames.has(icon.name)) continue;
+          const iconList: Array<{ name: string; svg: string; animation?: IconAnimation }> = [];
+          const processedNames = new Set<string>();
+          const skippedIcons: string[] = [];
 
-          let svgContent = icon.svg;
-          
-          if (!svgContent && icon.path && fs.existsSync(icon.path) && icon.path.toLowerCase().endsWith('.svg')) {
-            try {
-              svgContent = fs.readFileSync(icon.path, 'utf-8');
-            } catch (e) {
-              console.error(`Failed to read SVG for ${icon.name}`, e);
+          for (const icon of icons) {
+            if (processedNames.has(icon.name)) continue;
+
+            let svgContent = icon.svg;
+
+            if (
+              !svgContent &&
+              icon.path &&
+              fs.existsSync(icon.path) &&
+              icon.path.toLowerCase().endsWith('.svg')
+            ) {
+              try {
+                svgContent = fs.readFileSync(icon.path, 'utf-8');
+              } catch (readError) {
+                console.error(`Failed to read SVG for ${icon.name}`, readError);
+              }
             }
+
+            if (!svgContent) continue;
+
+            const colorCount = countSvgColors(svgContent);
+            if (colorCount > MAX_COLORS_FOR_BUILD) {
+              skippedIcons.push(`${icon.name} (${colorCount} colors)`);
+              continue;
+            }
+
+            processedNames.add(icon.name);
+            iconList.push({
+              name: icon.name,
+              svg: svgContent,
+              animation: icon.animation,
+            });
           }
 
-          if (!svgContent) continue;
-          
-          const colorCount = countSvgColors(svgContent);
-          if (colorCount > MAX_COLORS_FOR_BUILD) {
-            skippedIcons.push(`${icon.name} (${colorCount} colors)`);
-            continue;
+          if (buildFormat === 'sprite.svg') {
+            const generator = getSpriteGenerator();
+            const spriteIcons: SpriteIcon[] = iconList.map(icon => ({
+              id: icon.name,
+              name: icon.name,
+              svg: icon.svg,
+              viewBox: undefined,
+            }));
+
+            const result = generator.generate(spriteIcons, {
+              outputPath,
+              generateHelper: true,
+              helperFormat: 'vanilla',
+              webComponentName,
+              generateTypes: true,
+            });
+
+            if (result.sprite) {
+              await writeFileWithVSCode(path.join(outputPath, 'sprite.svg'), result.sprite);
+            }
+            if (result.helperComponent) {
+              await writeFileWithVSCode(path.join(outputPath, 'icons.js'), result.helperComponent);
+            }
+            if (result.typeDefinitions) {
+              await writeFileWithVSCode(
+                path.join(outputPath, 'icons.d.ts'),
+                result.typeDefinitions
+              );
+            }
+          } else {
+            const iconsContent = buildIconsFileContent(iconList, svgTransformer);
+            await writeFileWithVSCode(path.join(outputPath, 'icons.js'), iconsContent);
+
+            const webComponent = await generateWebComponent(outputPath);
+            await writeFileWithVSCode(webComponent.path, webComponent.content);
+
+            const iconNames = iconList.map(i => i.name);
+            const typesContent = generateTypesFileContent(iconNames);
+            await writeFileWithVSCode(path.join(outputPath, 'icons.d.ts'), typesContent);
           }
-          
-          processedNames.add(icon.name);
-          iconList.push({ 
-            name: icon.name, 
-            svg: svgContent,
-            animation: icon.animation
-          });
+
+          if (skippedIcons.length > 0) {
+            vscode.window.showWarningMessage(
+              t('messages.skippedRasterizedIcons', {
+                count: skippedIcons.length,
+                names: skippedIcons.slice(0, 3).join(', ') + (skippedIcons.length > 3 ? '...' : ''),
+              })
+            );
+          }
+
+          providers.workspaceSvgProvider.refresh();
+
+          // Auto-generate licenses if enabled
+          await autoGenerateLicensesIfEnabled(outputPath);
         }
+      );
 
-        if (buildFormat === 'sprite.svg') {
-          const generator = getSpriteGenerator();
-          const spriteIcons: SpriteIcon[] = iconList.map(icon => ({
-            id: icon.name,
-            name: icon.name,
-            svg: icon.svg,
-            viewBox: undefined
-          }));
-          
-          const result = generator.generate(spriteIcons, { 
-            outputPath, 
-            generateHelper: true, 
-            helperFormat: 'vanilla',
-            webComponentName,
-            generateTypes: true
-          });
-
-          if (result.sprite) {
-            await writeFileWithVSCode(path.join(outputPath, 'sprite.svg'), result.sprite);
-          }
-          if (result.helperComponent) {
-            await writeFileWithVSCode(path.join(outputPath, 'icons.js'), result.helperComponent);
-          }
-          if (result.typeDefinitions) {
-            await writeFileWithVSCode(path.join(outputPath, 'icons.d.ts'), result.typeDefinitions);
-          }
-        } else {
-          const iconsContent = buildIconsFileContent(iconList, svgTransformer);
-          await writeFileWithVSCode(path.join(outputPath, 'icons.js'), iconsContent);
-          
-          const webComponent = await generateWebComponent(outputPath);
-          await writeFileWithVSCode(webComponent.path, webComponent.content);
-          
-          const iconNames = iconList.map(i => i.name);
-          const typesContent = generateTypesFileContent(iconNames);
-          await writeFileWithVSCode(path.join(outputPath, 'icons.d.ts'), typesContent);
-        }
-
-        if (skippedIcons.length > 0) {
-          vscode.window.showWarningMessage(
-            t('messages.skippedRasterizedIcons', { count: skippedIcons.length, names: skippedIcons.slice(0, 3).join(', ') + (skippedIcons.length > 3 ? '...' : '') })
-          );
-        }
-
-        providers.workspaceSvgProvider.refresh();
-        
-        // Auto-generate licenses if enabled
-        await autoGenerateLicensesIfEnabled(outputPath);
-      });
-      
       // Update context for icons.js existence
       updateIconsJsContext();
-      
+
       const config = getConfig();
       const formatName = config.buildFormat === 'sprite.svg' ? 'sprite.svg' : 'icons.js';
-      vscode.window.showInformationMessage(t('messages.iconsLibraryBuilt', { format: formatName, path: outputPath }));
+      vscode.window.showInformationMessage(
+        t('messages.iconsLibraryBuilt', { format: formatName, path: outputPath })
+      );
     })
   );
 
   return disposables;
 }
-

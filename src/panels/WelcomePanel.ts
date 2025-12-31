@@ -11,7 +11,24 @@ let welcomeHtml: string | null = null;
 
 function loadTemplates(): { css: string; js: string; html: string } {
   if (!welcomeCss || !welcomeJs || !welcomeHtml) {
-    const templatesDir = path.join(__dirname, '..', 'templates', 'welcome');
+    // Try multiple locations to support different execution contexts
+    const possibleDirs = [
+      path.join(__dirname, 'templates', 'welcome'),        // dist/templates/welcome (bundled)
+      path.join(__dirname, '..', 'templates', 'welcome'),  // out/templates/welcome (from out/panels)
+    ];
+
+    let templatesDir: string | null = null;
+    for (const dir of possibleDirs) {
+      if (fs.existsSync(path.join(dir, 'Welcome.css'))) {
+        templatesDir = dir;
+        break;
+      }
+    }
+
+    if (!templatesDir) {
+      throw new Error(`Welcome templates not found. Searched in: ${possibleDirs.join(', ')}`);
+    }
+
     welcomeCss = fs.readFileSync(path.join(templatesDir, 'Welcome.css'), 'utf-8');
     welcomeJs = fs.readFileSync(path.join(templatesDir, 'Welcome.js'), 'utf-8');
     welcomeHtml = fs.readFileSync(path.join(templatesDir, 'Welcome.html'), 'utf-8');
@@ -21,12 +38,12 @@ function loadTemplates(): { css: string; js: string; html: string } {
 
 export class WelcomePanel {
   public static currentPanel: WelcomePanel | undefined;
-  public static readonly viewType = 'iconManager.welcome';
+  public static readonly viewType = 'sageboxIconStudio.welcome';
 
   private readonly _panel: vscode.WebviewPanel;
   private readonly _extensionUri: vscode.Uri;
   private _disposables: vscode.Disposable[] = [];
-  
+
   // Temporary session state - only persisted on finishSetup
   private _sessionConfig: {
     svgFolders: string[];
@@ -57,7 +74,7 @@ export class WelcomePanel {
       {
         enableScripts: true,
         retainContextWhenHidden: true,
-        localResourceRoots: [extensionUri]
+        localResourceRoots: [extensionUri],
       }
     );
 
@@ -65,7 +82,7 @@ export class WelcomePanel {
   }
 
   public static isConfigured(): boolean {
-    const config = vscode.workspace.getConfiguration('iconManager');
+    const config = vscode.workspace.getConfiguration('sageboxIconStudio');
     const outputDir = config.get<string>('outputDirectory', '');
     return !!outputDir;
   }
@@ -75,7 +92,7 @@ export class WelcomePanel {
     this._extensionUri = extensionUri;
 
     // Initialize session config with current values (but don't save until finishSetup)
-    const config = vscode.workspace.getConfiguration('iconManager');
+    const config = vscode.workspace.getConfiguration('sageboxIconStudio');
     this._sessionConfig = {
       svgFolders: config.get<string[]>('svgFolders', []),
       outputDirectory: config.get<string>('outputDirectory', ''),
@@ -85,7 +102,7 @@ export class WelcomePanel {
       scanOnStartup: config.get<boolean>('scanOnStartup', true),
       defaultIconSize: config.get<number>('defaultIconSize', 24),
       previewBackground: config.get<string>('previewBackground', 'transparent'),
-      autoGenerateLicenses: config.get<boolean>('autoGenerateLicenses', true)
+      autoGenerateLicenses: config.get<boolean>('autoGenerateLicenses', true),
     };
 
     this._update();
@@ -93,7 +110,7 @@ export class WelcomePanel {
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
 
     this._panel.webview.onDidReceiveMessage(
-      async (message) => {
+      async message => {
         switch (message.command) {
           case 'setSourceDirectory':
             await this._setSourceDirectory(message.directory);
@@ -132,10 +149,10 @@ export class WelcomePanel {
             await this._setLicenseConsent(message.value);
             break;
           case 'openSettings':
-            vscode.commands.executeCommand('workbench.action.openSettings', 'iconManager');
+            vscode.commands.executeCommand('workbench.action.openSettings', 'sageboxIconStudio');
             break;
           case 'searchIcons':
-            vscode.commands.executeCommand('iconManager.searchIcons');
+            vscode.commands.executeCommand('sageboxIconStudio.searchIcons');
             this._panel.dispose();
             break;
           case 'close':
@@ -159,8 +176,8 @@ export class WelcomePanel {
 
     // Listen for configuration changes to ensure UI stays in sync
     this._disposables.push(
-      vscode.workspace.onDidChangeConfiguration((e) => {
-        if (e.affectsConfiguration('iconManager')) {
+      vscode.workspace.onDidChangeConfiguration(e => {
+        if (e.affectsConfiguration('sageboxIconStudio')) {
           this._update();
         }
       })
@@ -170,10 +187,10 @@ export class WelcomePanel {
   private async _setSourceDirectory(directory: string): Promise<void> {
     // Update session config only - will be persisted on finishSetup
     const currentFolders = this._sessionConfig.svgFolders;
-    
+
     // Set the new directory as the first folder (primary source)
     this._sessionConfig.svgFolders = [directory, ...currentFolders.filter(f => f !== directory)];
-    
+
     this._update();
   }
 
@@ -186,7 +203,7 @@ export class WelcomePanel {
       canSelectFolders: true,
       canSelectMany: false,
       defaultUri: workspaceFolder.uri,
-      openLabel: t('welcome.sourceDirectory')
+      openLabel: t('welcome.sourceDirectory'),
     });
 
     if (folderUri && folderUri.length > 0) {
@@ -200,7 +217,7 @@ export class WelcomePanel {
   private async _setOutputDirectory(directory: string): Promise<void> {
     // Update session config only - will be persisted on finishSetup
     this._sessionConfig.outputDirectory = directory;
-    
+
     // Create folder if it doesn't exist (do this immediately for UX)
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (workspaceFolder) {
@@ -209,7 +226,7 @@ export class WelcomePanel {
         fs.mkdirSync(fullPath, { recursive: true });
       }
     }
-    
+
     this._update();
   }
 
@@ -222,7 +239,7 @@ export class WelcomePanel {
       canSelectFolders: true,
       canSelectMany: false,
       defaultUri: workspaceFolder.uri,
-      openLabel: t('welcome.selectFolder')
+      openLabel: t('welcome.selectFolder'),
     });
 
     if (folderUri && folderUri.length > 0) {
@@ -281,7 +298,7 @@ export class WelcomePanel {
     const outputDir = this._sessionConfig.outputDirectory;
     const buildFormat = this._sessionConfig.buildFormat;
     const webComponentName = this._sessionConfig.webComponentName;
-    
+
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder || !outputDir) {
       vscode.window.showWarningMessage(`⚠️ ${t('welcome.configureOutputFirst')}`);
@@ -289,7 +306,7 @@ export class WelcomePanel {
     }
 
     const fullPath = path.join(workspaceFolder.uri.fsPath, outputDir);
-    
+
     // Create output directory if it doesn't exist
     if (!fs.existsSync(fullPath)) {
       fs.mkdirSync(fullPath, { recursive: true });
@@ -297,16 +314,52 @@ export class WelcomePanel {
 
     try {
       // NOW persist all session config to workspace settings
-      const config = vscode.workspace.getConfiguration('iconManager');
-      await config.update('svgFolders', this._sessionConfig.svgFolders, vscode.ConfigurationTarget.Workspace);
-      await config.update('outputDirectory', this._sessionConfig.outputDirectory, vscode.ConfigurationTarget.Workspace);
-      await config.update('buildFormat', this._sessionConfig.buildFormat, vscode.ConfigurationTarget.Workspace);
-      await config.update('webComponentName', this._sessionConfig.webComponentName, vscode.ConfigurationTarget.Workspace);
-      await config.update('svgoOptimize', this._sessionConfig.svgoOptimize, vscode.ConfigurationTarget.Workspace);
-      await config.update('scanOnStartup', this._sessionConfig.scanOnStartup, vscode.ConfigurationTarget.Workspace);
-      await config.update('defaultIconSize', this._sessionConfig.defaultIconSize, vscode.ConfigurationTarget.Workspace);
-      await config.update('previewBackground', this._sessionConfig.previewBackground, vscode.ConfigurationTarget.Workspace);
-      await config.update('autoGenerateLicenses', this._sessionConfig.autoGenerateLicenses, vscode.ConfigurationTarget.Workspace);
+      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      await config.update(
+        'svgFolders',
+        this._sessionConfig.svgFolders,
+        vscode.ConfigurationTarget.Workspace
+      );
+      await config.update(
+        'outputDirectory',
+        this._sessionConfig.outputDirectory,
+        vscode.ConfigurationTarget.Workspace
+      );
+      await config.update(
+        'buildFormat',
+        this._sessionConfig.buildFormat,
+        vscode.ConfigurationTarget.Workspace
+      );
+      await config.update(
+        'webComponentName',
+        this._sessionConfig.webComponentName,
+        vscode.ConfigurationTarget.Workspace
+      );
+      await config.update(
+        'svgoOptimize',
+        this._sessionConfig.svgoOptimize,
+        vscode.ConfigurationTarget.Workspace
+      );
+      await config.update(
+        'scanOnStartup',
+        this._sessionConfig.scanOnStartup,
+        vscode.ConfigurationTarget.Workspace
+      );
+      await config.update(
+        'defaultIconSize',
+        this._sessionConfig.defaultIconSize,
+        vscode.ConfigurationTarget.Workspace
+      );
+      await config.update(
+        'previewBackground',
+        this._sessionConfig.previewBackground,
+        vscode.ConfigurationTarget.Workspace
+      );
+      await config.update(
+        'autoGenerateLicenses',
+        this._sessionConfig.autoGenerateLicenses,
+        vscode.ConfigurationTarget.Workspace
+      );
 
       if (buildFormat === 'sprite.svg') {
         // Generate empty sprite.svg
@@ -321,14 +374,13 @@ export class WelcomePanel {
           `${t('welcome.setupComplete')} ${t('welcome.filesCreated', { path: outputDir })}`
         );
       }
-      
+
       // Refresh views to show the new files
-      vscode.commands.executeCommand('iconManager.refreshIcons');
-      
+      vscode.commands.executeCommand('sageboxIconStudio.refreshIcons');
     } catch (error: any) {
       vscode.window.showErrorMessage(`❌ ${t('welcome.errorCreatingFiles')}: ${error.message}`);
     }
-    
+
     this._panel.dispose();
   }
 
@@ -351,7 +403,10 @@ export class WelcomePanel {
   /**
    * Generate empty icons module files (icons.js, icon.js, icons.d.ts)
    */
-  private async _generateEmptyIconsModule(outputPath: string, webComponentName: string): Promise<void> {
+  private async _generateEmptyIconsModule(
+    outputPath: string,
+    webComponentName: string
+  ): Promise<void> {
     // 1. Generate empty icons.js
     const iconsPath = path.join(outputPath, 'icons.js');
     const iconsContent = `// Auto-generated by Icon Studio
@@ -434,26 +489,26 @@ declare global {
       // Language selector
       languageLabel: t('welcome.language'),
       languageDescription: t('welcome.languageDescription'),
-      
+
       // Header
       appTitle: t('extension.appTitle'),
       headerIcons: '200k+ ' + t('treeView.files'),
       headerColors: t('editor.color') + ' ' + t('features.iconEditor').split(' ')[0],
       headerAnimations: t('animation.title'),
       headerSvgo: 'SVGO',
-      
+
       // Step 1 - Source Directory
       step1SourceTitle: t('welcome.sourceDirectory'),
       step1SourceDesc: t('welcome.sourceDirectoryDescription'),
       step1SourcePlaceholder: t('welcome.sourceDirectoryPlaceholder'),
       step1Apply: t('editor.apply'),
       browse: t('welcome.browse'),
-      
+
       // Step 2 - Output Directory
       step2Title: t('welcome.outputDirectory'),
       step2Desc: t('welcome.outputDirectoryDescription'),
       step2Placeholder: t('welcome.outputDirectoryPlaceholder'),
-      
+
       // Step 3 - Build Format
       step3Title: t('settings.outputFormat'),
       step3Desc: t('features.buildSystemDescription'),
@@ -469,22 +524,22 @@ declare global {
       spritePro2: t('sprite.title'),
       recommended: '⭐',
       comingSoon: t('welcome.comingSoon'),
-      
+
       // Help panel
       helpJsModule: t('features.codeIntegrationDescription'),
       helpSprite: t('features.buildSystemDescription'),
       helpTip: t('welcome.quickStartDescription'),
-      
+
       // Step 4 - Web Component Name
       step4Title: t('welcome.webComponentName'),
       step4Desc: t('welcome.webComponentDesc'),
-      
+
       // Step 5 - License Consent
       step5Title: t('welcome.licenseConsentTitle'),
       step5Desc: t('welcome.licenseConsentDesc'),
       step5Checkbox: t('welcome.licenseConsentCheckbox'),
       step5Info: t('welcome.licenseConsentInfo'),
-      
+
       // Advanced Options
       advancedTitle: t('welcome.advancedOptions'),
       svgoOptimizeLabel: t('welcome.svgoOptimize'),
@@ -492,7 +547,7 @@ declare global {
       defaultIconSizeLabel: t('welcome.defaultIconSize'),
       previewBackgroundLabel: t('welcome.previewBackground'),
       allSettings: t('welcome.allSettings'),
-      
+
       // Preview
       previewTitle: t('editor.preview'),
       previewImport: t('welcome.import'),
@@ -504,17 +559,17 @@ declare global {
       previewResultLabel: t('welcome.previewResult'),
       buildFirstMessage: t('welcome.buildFirstMessage'),
       selectFormatFirst: t('welcome.selectFormatFirst'),
-      
+
       // Workflow
       workflowSource: t('welcome.workflowSource'),
       workflowBuild: t('welcome.workflowBuild'),
       workflowOutput: t('welcome.workflowOutput'),
-      
+
       // Actions
       settings: t('settings.title'),
       skip: t('messages.cancel'),
       getStarted: t('welcome.getStarted'),
-      completeStep1: t('welcome.save')
+      completeStep1: t('welcome.save'),
     };
   }
 
@@ -534,7 +589,7 @@ declare global {
     const isOutputConfigured = !!outputDir;
     const isBuildFormatConfigured = !!buildFormat;
     const isWebComponentConfigured = webComponentName && webComponentName.includes('-');
-    
+
     // All steps are always unlocked - users can configure in any order
     const isStep1Complete = isSourceConfigured;
     const isStep2Unlocked = true;
@@ -543,10 +598,11 @@ declare global {
     const isStep3Complete = isBuildFormatConfigured;
     const isStep4Unlocked = true;
     const isStep4Complete = isWebComponentConfigured;
-    
+
     // All 4 steps must be complete for the button to be enabled
-    const isFullyConfigured = isStep1Complete && isStep2Complete && isStep3Complete && isStep4Complete;
-    
+    const isFullyConfigured =
+      isStep1Complete && isStep2Complete && isStep3Complete && isStep4Complete;
+
     // Detect framework from package.json
     let detectedFramework: 'react' | 'vue' | 'svelte' | 'angular' | 'astro' | 'html' = 'html';
     if (vscode.workspace.workspaceFolders) {
@@ -567,35 +623,41 @@ declare global {
           } else if (deps['astro']) {
             detectedFramework = 'astro';
           }
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       }
     }
 
     // Check if icons have been built (for visual feedback, not for unlock logic)
-    let hasBuiltIcons = false;
     if (isStep2Complete && vscode.workspace.workspaceFolders) {
       const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
-      const outputFile = buildFormat === 'icons.ts' 
-        ? path.join(workspaceRoot, outputDir, 'icons.js')
-        : path.join(workspaceRoot, outputDir, 'sprite.svg');
-      hasBuiltIcons = fs.existsSync(outputFile);
+      const outputFile =
+        buildFormat === 'icons.ts'
+          ? path.join(workspaceRoot, outputDir, 'icons.js')
+          : path.join(workspaceRoot, outputDir, 'sprite.svg');
+      // Check existence but don't need the result for now
+      fs.existsSync(outputFile);
     }
-    
+
     const tr = this._getI18n();
-    
+
     // Build language selector options
     const currentLocale = i18n.getConfiguredLocale();
     const languageOptions = SUPPORTED_LOCALES.map(locale => {
       const selected = locale.code === currentLocale ? 'selected' : '';
-      const label = locale.code === 'auto' 
-        ? `${locale.flag} ${t('settings.languageAuto')}`
-        : `${locale.flag} ${locale.nativeName}`;
+      const label =
+        locale.code === 'auto'
+          ? `${locale.flag} ${t('settings.languageAuto')}`
+          : `${locale.flag} ${locale.nativeName}`;
       return `<option value="${locale.code}" ${selected}>${label}</option>`;
     }).join('\n          ');
 
     // Build dynamic sections
     const step4DisabledClass = isStep4Unlocked ? '' : 'step-disabled';
-    const step4Section = buildFormat === 'icons.ts' ? `
+    const step4Section =
+      buildFormat === 'icons.ts'
+        ? `
       <div class="step ${step4DisabledClass}">
         <div class="step-header">
           <div class="step-number${isStep4Complete ? ' completed' : ''}"><span>4</span></div>
@@ -610,7 +672,8 @@ declare global {
           </div>
         </div>
       </div>
-    ` : '';
+    `
+        : '';
 
     // Step 5 - License consent for Iconify icons
     const autoGenerateLicenses = this._sessionConfig.autoGenerateLicenses;
@@ -641,7 +704,7 @@ declare global {
 
     const outputDirDisplay = outputDir || 'public/icons';
     const webComponentDisplay = webComponentName || 'sg-icon';
-    
+
     // Generate framework-specific preview code
     const getFrameworkPreview = (): string => {
       if (!buildFormat) {
@@ -658,7 +721,7 @@ declare global {
           </p>
         </div>`;
       }
-      
+
       if (buildFormat === 'sprite.svg') {
         return `<div class="code-block">
 <div class="code-line"><span class="line-num">1</span><span class="comment">&lt;!-- ${tr.previewRef} --&gt;</span></div>
@@ -667,12 +730,13 @@ declare global {
 <div class="code-line"><span class="line-num">4</span><span class="tag">&lt;/svg&gt;</span></div>
 </div>`;
       }
-      
+
       // icons.ts format - show framework-specific code
-      const frameworkBadge = detectedFramework !== 'html' 
-        ? `<div class="framework-badge">${detectedFramework.charAt(0).toUpperCase() + detectedFramework.slice(1)}</div>` 
-        : '';
-      
+      const frameworkBadge =
+        detectedFramework !== 'html'
+          ? `<div class="framework-badge">${detectedFramework.charAt(0).toUpperCase() + detectedFramework.slice(1)}</div>`
+          : '';
+
       switch (detectedFramework) {
         case 'react':
           return `${frameworkBadge}<div class="code-block">
@@ -684,7 +748,7 @@ declare global {
 <div class="code-line"><span class="line-num">6</span>  <span class="keyword">return</span> <span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"home"</span> <span class="tag">/&gt;</span>;</div>
 <div class="code-line"><span class="line-num">7</span>}</div>
 </div>`;
-        
+
         case 'vue':
           return `${frameworkBadge}<div class="code-block">
 <div class="code-line"><span class="line-num">1</span><span class="tag">&lt;script</span> <span class="attr">setup</span><span class="tag">&gt;</span></div>
@@ -695,7 +759,7 @@ declare global {
 <div class="code-line"><span class="line-num">6</span>  <span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"home"</span> <span class="tag">/&gt;</span></div>
 <div class="code-line"><span class="line-num">7</span><span class="tag">&lt;/template&gt;</span></div>
 </div>`;
-        
+
         case 'svelte':
           return `${frameworkBadge}<div class="code-block">
 <div class="code-line"><span class="line-num">1</span><span class="tag">&lt;script&gt;</span></div>
@@ -704,7 +768,7 @@ declare global {
 <div class="code-line"><span class="line-num">4</span></div>
 <div class="code-line"><span class="line-num">5</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"home"</span> <span class="tag">/&gt;</span></div>
 </div>`;
-        
+
         case 'angular':
           return `${frameworkBadge}<div class="code-block">
 <div class="code-line"><span class="line-num">1</span><span class="comment">// main.ts</span></div>
@@ -713,7 +777,7 @@ declare global {
 <div class="code-line"><span class="line-num">4</span><span class="comment">&lt;!-- template.html --&gt;</span></div>
 <div class="code-line"><span class="line-num">5</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"home"</span> <span class="tag">/&gt;</span></div>
 </div>`;
-        
+
         case 'astro':
           return `${frameworkBadge}<div class="code-block">
 <div class="code-line"><span class="line-num">1</span><span class="tag">---</span></div>
@@ -722,7 +786,7 @@ declare global {
 <div class="code-line"><span class="line-num">4</span></div>
 <div class="code-line"><span class="line-num">5</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"home"</span> <span class="tag">/&gt;</span></div>
 </div>`;
-        
+
         default: // html
           return `<div class="code-block">
 <div class="code-line"><span class="line-num">1</span><span class="comment">&lt;!-- ${tr.previewImport} --&gt;</span></div>
@@ -736,7 +800,7 @@ declare global {
 </div>`;
       }
     };
-    
+
     const previewCode = getFrameworkPreview();
 
     // Gallery: always show icons as visual example
@@ -769,7 +833,8 @@ declare global {
           </div>
     `;
 
-    const previewSummary = isFullyConfigured ? `
+    const previewSummary = isFullyConfigured
+      ? `
       <div class="preview-summary">
         <div class="preview-summary-item">
           <span class="preview-summary-label">${tr.previewOutput}</span>
@@ -784,9 +849,10 @@ declare global {
           <span class="preview-summary-value">&lt;${webComponentName}&gt;</span>
         </div>
       </div>
-    ` : '';
+    `
+      : '';
 
-    const finishButton = isFullyConfigured 
+    const finishButton = isFullyConfigured
       ? `<button class="btn-primary btn-finish" onclick="finishSetup()">
           <svg class="svg-icon" viewBox="0 0 24 24" style="fill: white; width: 20px; height: 20px;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
           ${tr.getStarted}
@@ -807,7 +873,10 @@ declare global {
       .replace(/\$\{step1SourceClass\}/g, isSourceConfigured ? 'completed-step' : '')
       .replace(/\$\{step1SourceNumberClass\}/g, isSourceConfigured ? 'completed' : '')
       .replace(/\$\{step1SourceTitle\}/g, tr.step1SourceTitle)
-      .replace(/\$\{step1SourceSummary\}/g, isSourceConfigured ? `<span class="step-summary">${sourceDir}</span>` : '')
+      .replace(
+        /\$\{step1SourceSummary\}/g,
+        isSourceConfigured ? `<span class="step-summary">${sourceDir}</span>` : ''
+      )
       .replace(/\$\{step1SourceDesc\}/g, tr.step1SourceDesc)
       .replace(/\$\{step1SourcePlaceholder\}/g, tr.step1SourcePlaceholder)
       .replace(/\$\{sourceDir\}/g, sourceDir)
@@ -817,11 +886,17 @@ declare global {
       .replace(/\$\{browse\}/g, tr.browse)
       .replace(/\$\{step1Apply\}/g, tr.step1Apply)
       // Step 2 - Output Directory
-      .replace(/\$\{step2Class\}/g, `${isStep2Complete ? 'completed-step' : ''} ${isStep2Unlocked ? '' : 'step-disabled'}`)
+      .replace(
+        /\$\{step2Class\}/g,
+        `${isStep2Complete ? 'completed-step' : ''} ${isStep2Unlocked ? '' : 'step-disabled'}`
+      )
       .replace(/\$\{step2NumberClass\}/g, isStep2Complete ? 'completed' : '')
       .replace(/\$\{step2Disabled\}/g, isStep2Unlocked ? '' : 'disabled')
       .replace(/\$\{step2Title\}/g, tr.step2Title)
-      .replace(/\$\{step2Summary\}/g, isOutputConfigured ? `<span class="step-summary">${outputDir}</span>` : '')
+      .replace(
+        /\$\{step2Summary\}/g,
+        isOutputConfigured ? `<span class="step-summary">${outputDir}</span>` : ''
+      )
       .replace(/\$\{step2Desc\}/g, tr.step2Desc)
       .replace(/\$\{step2Placeholder\}/g, tr.step2Placeholder)
       .replace(/\$\{outputDir\}/g, outputDir)
@@ -829,10 +904,20 @@ declare global {
       .replace(/\$\{srcAssetsSelected\}/g, outputDir === 'src/assets/icons' ? 'selected' : '')
       .replace(/\$\{publicIconsSelected\}/g, outputDir === 'public/icons' ? 'selected' : '')
       // Step 3 - Build Format
-      .replace(/\$\{step3Class\}/g, `${isStep3Complete ? 'completed-step' : ''} ${isStep3Unlocked ? '' : 'step-disabled'}`)
+      .replace(
+        /\$\{step3Class\}/g,
+        `${isStep3Complete ? 'completed-step' : ''} ${isStep3Unlocked ? '' : 'step-disabled'}`
+      )
       .replace(/\$\{step3NumberClass\}/g, isStep3Complete ? 'completed' : '')
       .replace(/\$\{step3Title\}/g, tr.step3Title)
-      .replace(/\$\{formatSummary\}/g, buildFormat === 'icons.ts' ? tr.jsModuleTitle : (buildFormat === 'sprite.svg' ? tr.spriteTitle : tr.selectFormat || 'Seleccionar...'))
+      .replace(
+        /\$\{formatSummary\}/g,
+        buildFormat === 'icons.ts'
+          ? tr.jsModuleTitle
+          : buildFormat === 'sprite.svg'
+            ? tr.spriteTitle
+            : tr.selectFormat || 'Seleccionar...'
+      )
       .replace(/\$\{step3Desc\}/g, tr.step3Desc)
       .replace(/\$\{step3Help\}/g, tr.step3Help)
       .replace(/\$\{jsModuleTitle\}/g, tr.jsModuleTitle)
@@ -869,7 +954,14 @@ declare global {
       .replace(/\$\{allSettings\}/g, tr.allSettings)
       // Preview
       .replace(/\$\{previewTitle\}/g, tr.previewTitle)
-      .replace(/\$\{previewFileName\}/g, buildFormat === 'icons.ts' ? 'icons.js' : (buildFormat === 'sprite.svg' ? 'sprite.svg' : '...'))
+      .replace(
+        /\$\{previewFileName\}/g,
+        buildFormat === 'icons.ts'
+          ? 'icons.js'
+          : buildFormat === 'sprite.svg'
+            ? 'sprite.svg'
+            : '...'
+      )
       .replace(/\$\{previewCode\}/g, previewCode)
       .replace(/\$\{previewSummary\}/g, previewSummary)
       .replace(/\$\{previewResultLabel\}/g, tr.previewResultLabel)
@@ -905,4 +997,3 @@ declare global {
 </html>`;
   }
 }
-

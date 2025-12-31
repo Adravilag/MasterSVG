@@ -20,9 +20,33 @@ export interface AnimationConfig {
 }
 
 /**
+ * Options for creating an icon entry
+ */
+export interface IconEntryOptions {
+  varName: string;
+  iconName: string;
+  body: string;
+  viewBox: string;
+  animation?: AnimationConfig;
+}
+
+/**
+ * Options for adding an icon to icons.js
+ */
+export interface AddToIconsJsOptions {
+  outputPath: string;
+  iconName: string;
+  svgContent: string;
+  transformer: SvgTransformer;
+  animation?: AnimationConfig;
+  skipWebComponentGeneration?: boolean;
+}
+
+/**
  * Create an icon entry string with optional animation
  */
-function createIconEntry(varName: string, iconName: string, body: string, viewBox: string, animation?: AnimationConfig): string {
+function createIconEntry(options: IconEntryOptions): string {
+  const { varName, iconName, body, viewBox, animation } = options;
   if (animation) {
     const delay = animation.delay || 0;
     const direction = animation.direction || 'normal';
@@ -57,14 +81,18 @@ function addNewIconToContent(content: string, varName: string, iconEntry: string
     return content + '\n\n' + iconEntry;
   }
 
-  let updatedContent = content.slice(0, iconsObjMatch.index) + iconEntry + '\n\n' + content.slice(iconsObjMatch.index);
-  
+  let updatedContent =
+    content.slice(0, iconsObjMatch.index) + iconEntry + '\n\n' + content.slice(iconsObjMatch.index);
+
   // Use proper brace matching to find icons object content
   const objData = extractIconsObjectContent(updatedContent);
   if (objData) {
     const existingIcons = objData.inner.trim();
     const newInner = existingIcons ? `${existingIcons},\n  ${varName}` : `\n  ${varName}\n`;
-    updatedContent = updatedContent.substring(0, objData.startIndex) + newInner + updatedContent.substring(objData.endIndex);
+    updatedContent =
+      updatedContent.substring(0, objData.startIndex) +
+      newInner +
+      updatedContent.substring(objData.endIndex);
   }
   return updatedContent;
 }
@@ -87,14 +115,16 @@ export const icons = {
 /**
  * Add an icon to the icons.js library file
  */
-export async function addToIconsJs(
-  outputPath: string,
-  iconName: string,
-  svgContent: string,
-  transformer: SvgTransformer,
-  animation?: AnimationConfig,
-  skipWebComponentGeneration: boolean = false
-): Promise<void> {
+export async function addToIconsJs(options: AddToIconsJsOptions): Promise<void> {
+  const {
+    outputPath,
+    iconName,
+    svgContent,
+    transformer,
+    animation,
+    skipWebComponentGeneration = false,
+  } = options;
+
   return ErrorHandler.wrapAsync(async () => {
     // Validate SVG content before adding
     const validation = validateSvgContent(svgContent);
@@ -106,7 +136,13 @@ export async function addToIconsJs(
     const varName = toVariableName(iconName);
     const body = transformer.extractSvgBody(svgContent);
     const attrs = transformer.extractSvgAttributes(svgContent);
-    const iconEntry = createIconEntry(varName, iconName, body, attrs.viewBox || '0 0 24 24', animation);
+    const iconEntry = createIconEntry({
+      varName,
+      iconName,
+      body,
+      viewBox: attrs.viewBox || '0 0 24 24',
+      animation,
+    });
 
     if (!fs.existsSync(outputPath)) {
       fs.mkdirSync(outputPath, { recursive: true });
@@ -141,38 +177,41 @@ export async function updateIconAnimation(
 
   const varName = toVariableName(iconName);
   let content = fs.readFileSync(iconsPath, 'utf-8');
-  
+
   // Pattern to match the complete icon entry (with or without animation)
-  const iconPattern = new RegExp(
-    String.raw`export const ${varName} = \{[\s\S]*?\};`,
-    'g'
-  );
-  
+  const iconPattern = new RegExp(String.raw`export const ${varName} = \{[\s\S]*?\};`, 'g');
+
   const match = iconPattern.exec(content);
   if (!match) return false;
-  
+
   const iconBlock = match[0];
-  
+
   // Extract name, body, and viewBox from the matched block
   const nameMatch = /name:\s*['"]([^'"]+)['"]/.exec(iconBlock);
   const bodyMatch = /body:\s*`([^`]*)`/.exec(iconBlock);
   const viewBoxMatch = /viewBox:\s*['"]([^'"]+)['"]/.exec(iconBlock);
-  
+
   if (!nameMatch || !bodyMatch || !viewBoxMatch) return false;
-  
+
   const name = nameMatch[1];
   const body = bodyMatch[1];
   const viewBox = viewBoxMatch[1];
-  
+
   // Create new entry with or without animation
-  const newEntry = createIconEntry(varName, name, body, viewBox, animation || undefined);
-  
+  const newEntry = createIconEntry({
+    varName,
+    iconName: name,
+    body,
+    viewBox,
+    animation: animation || undefined,
+  });
+
   // Replace the old entry
   content = content.replace(iconBlock, newEntry);
-  
+
   fs.writeFileSync(iconsPath, content);
   await generateWebComponent(outputPath);
-  
+
   return true;
 }
 
@@ -181,14 +220,16 @@ export async function updateIconAnimation(
  * - Variants (color themes)
  * - Animations (spin, pulse, bounce, shake, fade)
  * - Dynamic imports for optional features
- * 
+ *
  * Returns the path and content so caller can write using VS Code API
  */
-export async function generateWebComponent(outputPath: string): Promise<{ path: string; content: string }> {
+export async function generateWebComponent(
+  outputPath: string
+): Promise<{ path: string; content: string }> {
   const config = getConfig();
   const tagName = config.webComponentName;
   const componentPath = path.join(outputPath, 'icon.js');
-  
+
   // Load template and replace placeholders
   const template = loadTemplate('IconWebComponent.js');
   const content = template.replace(/\$\{TAG_NAME\}/g, tagName);
@@ -225,7 +266,10 @@ export async function addToSpriteSvg(
 
   if (fs.existsSync(spritePath)) {
     let content = fs.readFileSync(spritePath, 'utf-8');
-    const existingSymbol = new RegExp(String.raw`<symbol[^>]*id=["']${iconName}["'][\s\S]*?<\/symbol>`, 'g');
+    const existingSymbol = new RegExp(
+      String.raw`<symbol[^>]*id=["']${iconName}["'][\s\S]*?<\/symbol>`,
+      'g'
+    );
     if (existingSymbol.test(content)) {
       content = content.replace(existingSymbol, symbolEntry);
     } else {
@@ -246,7 +290,7 @@ ${symbolEntry}
  */
 export function removeFromIconsJs(outputPath: string, iconNames: string[]): boolean {
   const iconsPath = path.join(outputPath, 'icons.js');
-  
+
   if (!fs.existsSync(iconsPath)) {
     return false;
   }
@@ -257,7 +301,7 @@ export function removeFromIconsJs(outputPath: string, iconNames: string[]): bool
     const varName = toVariableName(name);
     const exportRegex = new RegExp(String.raw`export const ${varName} = \{[\s\S]*?\};\s*`, 'g');
     content = content.replace(exportRegex, '');
-    
+
     // Also remove from icons object
     const iconsObjRegex = new RegExp(String.raw`,?\s*${varName}\s*,?`, 'g');
     content = content.replace(iconsObjRegex, (match: string) => {
@@ -280,21 +324,21 @@ export function removeFromIconsJs(outputPath: string, iconNames: string[]): bool
  */
 export function getIconNamesFromFile(outputPath: string): string[] {
   const iconsPath = path.join(outputPath, 'icons.js');
-  
+
   if (!fs.existsSync(iconsPath)) {
     return [];
   }
 
   const content = fs.readFileSync(iconsPath, 'utf-8');
   const names: string[] = [];
-  
+
   const regex = /export const (\w+) = \{[\s\S]*?name:\s*['"]([^'"]+)['"]/g;
   let match;
-  
+
   while ((match = regex.exec(content)) !== null) {
     names.push(match[2]); // The actual icon name
   }
-  
+
   return names;
 }
 /**
@@ -305,13 +349,13 @@ export function cleanSpriteSvg(outputPath: string): { removed: string[]; kept: n
   const spritePath = path.join(outputPath, 'sprite.svg');
   const removed: string[] = [];
   let kept = 0;
-  
+
   if (!fs.existsSync(spritePath)) {
     return { removed, kept };
   }
 
-  let content = fs.readFileSync(spritePath, 'utf-8');
-  
+  const content = fs.readFileSync(spritePath, 'utf-8');
+
   // Find all symbols and check their content
   const symbolRegex = /<symbol[^>]*id=['"]([^'"]+)['"][^>]*>([\s\S]*?)<\/symbol>/gi;
   const validSymbols: string[] = [];
@@ -321,10 +365,13 @@ export function cleanSpriteSvg(outputPath: string): { removed: string[]; kept: n
     const symbolId = match[1];
     const symbolContent = match[2];
     const fullSymbol = match[0];
-    
+
     // Check if content contains HTML indicators
-    const hasHtml = /<!DOCTYPE|<html|<head|<body|<meta|<style[^>]*>[\s\S]*?<\/style>[\s\S]*<style/i.test(symbolContent);
-    
+    const hasHtml =
+      /<!DOCTYPE|<html|<head|<body|<meta|<style[^>]*>[\s\S]*?<\/style>[\s\S]*<style/i.test(
+        symbolContent
+      );
+
     if (hasHtml) {
       removed.push(symbolId);
     } else {
@@ -339,12 +386,12 @@ export function cleanSpriteSvg(outputPath: string): { removed: string[]; kept: n
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none">
   <!--
     SVG Sprite Sheet
-    Generated by Icon Manager VS Code Extension
+    Generated by Icon Studio VS Code Extension
     Total icons: ${kept}
   -->
 ${validSymbols.join('\n\n')}
 </svg>`;
-    
+
     fs.writeFileSync(spritePath, newContent);
   }
 

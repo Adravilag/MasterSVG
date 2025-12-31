@@ -1,6 +1,6 @@
 /**
  * Tests para IconHoverProvider
- * 
+ *
  * Requisitos cubiertos:
  * - RF-4.4: Preview al hover sobre nombre de icono
  */
@@ -12,7 +12,7 @@ import { WorkspaceSvgProvider } from '../../providers/WorkspaceSvgProvider';
 
 // Mock de WorkspaceSvgProvider
 const mockSvgProvider: Partial<WorkspaceSvgProvider> = {
-  getIcon: jest.fn()
+  getIcon: jest.fn(),
 };
 
 describe('IconHoverProvider', () => {
@@ -25,7 +25,7 @@ describe('IconHoverProvider', () => {
     path: '/icons/arrow-left.svg',
     source: 'workspace',
     category: 'navigation',
-    svg: '<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>'
+    svg: '<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>',
   };
 
   beforeEach(() => {
@@ -36,9 +36,9 @@ describe('IconHoverProvider', () => {
 
   const createMockDocument = (lineText: string): Partial<vscode.TextDocument> => ({
     lineAt: jest.fn().mockReturnValue({
-      text: lineText
+      text: lineText,
     }),
-    uri: { fsPath: '/mock/path/test.tsx' } as vscode.Uri
+    uri: { fsPath: '/mock/path/test.tsx' } as vscode.Uri,
   });
 
   // =====================================================
@@ -53,7 +53,7 @@ describe('IconHoverProvider', () => {
       (mockSvgProvider.getIcon as jest.Mock).mockReturnValue(mockIcon);
 
       const position = new vscode.Position(0, 18); // cursor sobre "arrow-left"
-      
+
       const hover = await provider.provideHover(
         mockDocument as vscode.TextDocument,
         position,
@@ -71,11 +71,11 @@ describe('IconHoverProvider', () => {
       (mockSvgProvider.getIcon as jest.Mock).mockReturnValue({
         ...mockIcon,
         name: 'mdi:home',
-        source: 'iconify'
+        source: 'iconify',
       });
 
       const position = new vscode.Position(0, 25); // cursor sobre "mdi:home"
-      
+
       const hover = await provider.provideHover(
         mockDocument as vscode.TextDocument,
         position,
@@ -93,7 +93,7 @@ describe('IconHoverProvider', () => {
       (mockSvgProvider.getIcon as jest.Mock).mockReturnValue(mockIcon);
 
       const position = new vscode.Position(0, 18);
-      
+
       const hover = await provider.provideHover(
         mockDocument as vscode.TextDocument,
         position,
@@ -102,9 +102,9 @@ describe('IconHoverProvider', () => {
 
       expect(hover).not.toBeNull();
       // contents puede ser MarkdownString directo o array
-      const content = Array.isArray(hover!.contents) 
-        ? hover!.contents[0] as vscode.MarkdownString
-        : hover!.contents as vscode.MarkdownString;
+      const content = Array.isArray(hover!.contents)
+        ? (hover!.contents[0] as vscode.MarkdownString)
+        : (hover!.contents as vscode.MarkdownString);
       expect(content.supportHtml).toBe(true);
       expect(content.isTrusted).toBe(true);
     });
@@ -116,7 +116,7 @@ describe('IconHoverProvider', () => {
       (mockSvgProvider.getIcon as jest.Mock).mockReturnValue(mockIcon);
 
       const position = new vscode.Position(0, 18);
-      
+
       const hover = await provider.provideHover(
         mockDocument as vscode.TextDocument,
         position,
@@ -125,7 +125,7 @@ describe('IconHoverProvider', () => {
 
       expect(hover).not.toBeNull();
       // contents puede ser MarkdownString directo o array
-      const content = Array.isArray(hover!.contents) 
+      const content = Array.isArray(hover!.contents)
         ? (hover!.contents[0] as vscode.MarkdownString).value
         : (hover!.contents as vscode.MarkdownString).value;
       expect(content).toContain('arrow-left');
@@ -141,7 +141,7 @@ describe('IconHoverProvider', () => {
       (mockSvgProvider.getIcon as jest.Mock).mockReturnValue(null);
 
       const position = new vscode.Position(0, 18);
-      
+
       const hover = await provider.provideHover(
         mockDocument as vscode.TextDocument,
         position,
@@ -150,7 +150,7 @@ describe('IconHoverProvider', () => {
 
       expect(hover).not.toBeNull();
       // contents puede ser MarkdownString directo o array
-      const content = Array.isArray(hover!.contents) 
+      const content = Array.isArray(hover!.contents)
         ? (hover!.contents[0] as vscode.MarkdownString).value
         : (hover!.contents as vscode.MarkdownString).value;
       expect(content).toContain('⚠️');
@@ -165,7 +165,7 @@ describe('IconHoverProvider', () => {
       (mockSvgProvider.getIcon as jest.Mock).mockReturnValue(mockIcon);
 
       const position = new vscode.Position(0, 18);
-      
+
       const hover = await provider.provideHover(
         mockDocument as vscode.TextDocument,
         position,
@@ -192,7 +192,7 @@ describe('IconHoverProvider', () => {
       (mockSvgProvider.getIcon as jest.Mock).mockReturnValue(mockIcon);
 
       const position = new vscode.Position(0, 10);
-      
+
       const hover = await provider.provideHover(
         mockDocument as vscode.TextDocument,
         position,
@@ -208,7 +208,7 @@ describe('IconHoverProvider', () => {
       (mockSvgProvider.getIcon as jest.Mock).mockReturnValue(mockIcon);
 
       const position = new vscode.Position(0, 10);
-      
+
       const hover = await provider.provideHover(
         mockDocument as vscode.TextDocument,
         position,
@@ -229,7 +229,7 @@ describe('IconHoverProvider', () => {
       mockDocument = createMockDocument(lineText);
 
       const position = new vscode.Position(0, 2); // cursor sobre "<Icon"
-      
+
       const hover = await provider.provideHover(
         mockDocument as vscode.TextDocument,
         position,
@@ -244,7 +244,7 @@ describe('IconHoverProvider', () => {
       mockDocument = createMockDocument(lineText);
 
       const position = new vscode.Position(0, 15);
-      
+
       const hover = await provider.provideHover(
         mockDocument as vscode.TextDocument,
         position,
@@ -259,7 +259,7 @@ describe('IconHoverProvider', () => {
       mockDocument = createMockDocument(lineText);
 
       const position = new vscode.Position(0, 0);
-      
+
       const hover = await provider.provideHover(
         mockDocument as vscode.TextDocument,
         position,
@@ -278,7 +278,7 @@ describe('IconHoverProvider', () => {
     test('debe manejar SVG sin viewBox', async () => {
       const iconWithoutViewBox = {
         ...mockIcon,
-        svg: '<svg><path d="M15 18l-6-6 6-6"/></svg>'
+        svg: '<svg><path d="M15 18l-6-6 6-6"/></svg>',
       };
 
       const lineText = '<Icon name="arrow-left" />';
@@ -286,7 +286,7 @@ describe('IconHoverProvider', () => {
       (mockSvgProvider.getIcon as jest.Mock).mockReturnValue(iconWithoutViewBox);
 
       const position = new vscode.Position(0, 18);
-      
+
       const hover = await provider.provideHover(
         mockDocument as vscode.TextDocument,
         position,
@@ -300,7 +300,7 @@ describe('IconHoverProvider', () => {
     test('debe manejar icono sin SVG', async () => {
       const iconWithoutSvg = {
         ...mockIcon,
-        svg: undefined
+        svg: undefined,
       };
 
       const lineText = '<Icon name="arrow-left" />';
@@ -308,7 +308,7 @@ describe('IconHoverProvider', () => {
       (mockSvgProvider.getIcon as jest.Mock).mockReturnValue(iconWithoutSvg);
 
       const position = new vscode.Position(0, 18);
-      
+
       const hover = await provider.provideHover(
         mockDocument as vscode.TextDocument,
         position,
@@ -331,11 +331,11 @@ describe('IconHoverProvider', () => {
       (mockSvgProvider.getIcon as jest.Mock).mockReturnValue({
         ...mockIcon,
         name: 'star',
-        svg: '<svg viewBox="0 0 24 24"><path fill="#fff" d="M12 2l3 7h7l-6 5 3 7-7-5-7 5 3-7-6-5h7z"/></svg>'
+        svg: '<svg viewBox="0 0 24 24"><path fill="#fff" d="M12 2l3 7h7l-6 5 3 7-7-5-7 5 3-7-6-5h7z"/></svg>',
       });
 
       const position = new vscode.Position(0, 16); // cursor sobre "star"
-      
+
       const hover = await provider.provideHover(
         mockDocument as vscode.TextDocument,
         position,
@@ -343,7 +343,7 @@ describe('IconHoverProvider', () => {
       );
 
       expect(hover).not.toBeNull();
-      const content = Array.isArray(hover!.contents) 
+      const content = Array.isArray(hover!.contents)
         ? (hover!.contents[0] as vscode.MarkdownString).value
         : (hover!.contents as vscode.MarkdownString).value;
       expect(content).toContain('Variant');
@@ -355,11 +355,11 @@ describe('IconHoverProvider', () => {
       mockDocument = createMockDocument(lineText);
       (mockSvgProvider.getIcon as jest.Mock).mockReturnValue({
         ...mockIcon,
-        name: 'star'
+        name: 'star',
       });
 
       const position = new vscode.Position(0, 16);
-      
+
       const hover = await provider.provideHover(
         mockDocument as vscode.TextDocument,
         position,
@@ -367,7 +367,7 @@ describe('IconHoverProvider', () => {
       );
 
       expect(hover).not.toBeNull();
-      const content = Array.isArray(hover!.contents) 
+      const content = Array.isArray(hover!.contents)
         ? (hover!.contents[0] as vscode.MarkdownString).value
         : (hover!.contents as vscode.MarkdownString).value;
       // No debe contener info de variante
@@ -380,11 +380,11 @@ describe('IconHoverProvider', () => {
       (mockSvgProvider.getIcon as jest.Mock).mockReturnValue({
         ...mockIcon,
         name: 'star',
-        svg: '<svg viewBox="0 0 24 24"><path fill="#fff" d="M12 2l3 7h7l-6 5 3 7-7-5-7 5 3-7-6-5h7z"/></svg>'
+        svg: '<svg viewBox="0 0 24 24"><path fill="#fff" d="M12 2l3 7h7l-6 5 3 7-7-5-7 5 3-7-6-5h7z"/></svg>',
       });
 
       const position = new vscode.Position(0, 16);
-      
+
       const hover = await provider.provideHover(
         mockDocument as vscode.TextDocument,
         position,
@@ -392,7 +392,7 @@ describe('IconHoverProvider', () => {
       );
 
       expect(hover).not.toBeNull();
-      const content = Array.isArray(hover!.contents) 
+      const content = Array.isArray(hover!.contents)
         ? (hover!.contents[0] as vscode.MarkdownString).value
         : (hover!.contents as vscode.MarkdownString).value;
       expect(content).toContain('Animation');
@@ -405,11 +405,11 @@ describe('IconHoverProvider', () => {
       (mockSvgProvider.getIcon as jest.Mock).mockReturnValue({
         ...mockIcon,
         name: 'star',
-        svg: '<svg viewBox="0 0 24 24"><path fill="#fff" d="M12 2l3 7h7l-6 5 3 7-7-5-7 5 3-7-6-5h7z"/></svg>'
+        svg: '<svg viewBox="0 0 24 24"><path fill="#fff" d="M12 2l3 7h7l-6 5 3 7-7-5-7 5 3-7-6-5h7z"/></svg>',
       });
 
       const position = new vscode.Position(0, 16);
-      
+
       const hover = await provider.provideHover(
         mockDocument as vscode.TextDocument,
         position,
@@ -417,7 +417,7 @@ describe('IconHoverProvider', () => {
       );
 
       expect(hover).not.toBeNull();
-      const content = Array.isArray(hover!.contents) 
+      const content = Array.isArray(hover!.contents)
         ? (hover!.contents[0] as vscode.MarkdownString).value
         : (hover!.contents as vscode.MarkdownString).value;
       expect(content).toContain('Variant');

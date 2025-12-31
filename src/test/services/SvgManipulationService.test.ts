@@ -2,7 +2,6 @@ import { SvgManipulationService } from '../../services/SvgManipulationService';
 import { AnimationSettings } from '../../services/AnimationService';
 
 describe('SvgManipulationService', () => {
-  
   // =====================================================
   // ensureSvgNamespace
   // =====================================================
@@ -21,7 +20,8 @@ describe('SvgManipulationService', () => {
     });
 
     test('debe corregir xmlns si está mal formado o duplicado (fallback regex)', () => {
-      const input = '<svg xmlns="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"></svg>';
+      const input =
+        '<svg xmlns="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"></svg>';
       const result = SvgManipulationService.ensureSvgNamespace(input);
       const matches = result.match(/xmlns="http:\/\/www\.w3\.org\/2000\/svg"/g);
       expect(matches?.length).toBe(1);
@@ -53,7 +53,8 @@ describe('SvgManipulationService', () => {
     });
 
     test('debe eliminar estilos legacy (sin id pero con keyframes)', () => {
-      const input = '<svg><style>@keyframes spin { from { transform: rotate(0deg); } } svg { animation: spin 1s; }</style></svg>';
+      const input =
+        '<svg><style>@keyframes spin { from { transform: rotate(0deg); } } svg { animation: spin 1s; }</style></svg>';
       const result = SvgManipulationService.cleanAnimationFromSvg(input);
       expect(result).not.toContain('@keyframes spin');
     });
@@ -74,13 +75,13 @@ describe('SvgManipulationService', () => {
       timing: 'linear',
       iteration: 'infinite',
       direction: 'normal',
-      delay: 0
+      delay: 0,
     };
 
     test('debe inyectar estilo de animación estándar', () => {
       const input = '<svg viewBox="0 0 24 24"><path/></svg>';
       const result = SvgManipulationService.embedAnimationInSvg(input, 'spin', settings);
-      
+
       expect(result).toContain('id="icon-manager-animation"');
       expect(result).toContain('@keyframes spin');
       expect(result).toContain('animation: spin 2s linear infinite normal');
@@ -89,7 +90,7 @@ describe('SvgManipulationService', () => {
     test('debe inyectar animación draw (style + script)', () => {
       const input = '<svg viewBox="0 0 24 24"><path/></svg>';
       const result = SvgManipulationService.embedAnimationInSvg(input, 'draw', settings);
-      
+
       expect(result).toContain('id="icon-manager-animation"');
       expect(result).toContain('id="icon-manager-script"');
       expect(result).toContain('@keyframes draw');
@@ -99,7 +100,7 @@ describe('SvgManipulationService', () => {
     test('debe inyectar animación draw-loop', () => {
       const input = '<svg viewBox="0 0 24 24"><path/></svg>';
       const result = SvgManipulationService.embedAnimationInSvg(input, 'draw-loop', settings);
-      
+
       expect(result).toContain('@keyframes draw-loop');
       expect(result).toContain('animation: draw-loop');
     });
@@ -107,7 +108,7 @@ describe('SvgManipulationService', () => {
     test('debe limpiar animaciones previas antes de inyectar nueva', () => {
       const input = '<svg><style id="icon-manager-animation">old</style><path/></svg>';
       const result = SvgManipulationService.embedAnimationInSvg(input, 'pulse', settings);
-      
+
       expect(result).not.toContain('old');
       expect(result).toContain('@keyframes pulse');
     });
@@ -116,7 +117,7 @@ describe('SvgManipulationService', () => {
       // SVG con estructura malformada pero con tags de apertura y cierre
       const input = '<svg><broken attr=></svg>';
       const result = SvgManipulationService.embedAnimationInSvg(input, 'spin', settings);
-      
+
       expect(result).toContain('id="icon-manager-animation"');
       expect(result).toContain('@keyframes spin');
     });
@@ -127,9 +128,10 @@ describe('SvgManipulationService', () => {
   // =====================================================
   describe('detectAnimationFromSvg', () => {
     test('debe detectar animación estándar', () => {
-      const input = '<svg><style>@keyframes spin {} svg { animation: spin 2s linear 0s infinite normal; }</style></svg>';
+      const input =
+        '<svg><style>@keyframes spin {} svg { animation: spin 2s linear 0s infinite normal; }</style></svg>';
       const result = SvgManipulationService.detectAnimationFromSvg(input);
-      
+
       expect(result).not.toBeNull();
       expect(result?.type).toBe('spin');
       expect(result?.settings.duration).toBe(2);
@@ -139,23 +141,22 @@ describe('SvgManipulationService', () => {
     test('debe detectar animación draw', () => {
       const input = '<svg><style>@keyframes draw {}</style></svg>';
       const result = SvgManipulationService.detectAnimationFromSvg(input);
-      
+
       expect(result?.type).toBe('draw');
     });
 
     test('debe detectar animación draw-loop', () => {
       const input = '<svg><style>@keyframes draw-loop {}</style></svg>';
       const result = SvgManipulationService.detectAnimationFromSvg(input);
-      
+
       expect(result?.type).toBe('draw-loop');
     });
 
     test('debe retornar null si no hay animación', () => {
       const input = '<svg><path/></svg>';
       const result = SvgManipulationService.detectAnimationFromSvg(input);
-      
+
       expect(result).toBeNull();
     });
   });
 });
-

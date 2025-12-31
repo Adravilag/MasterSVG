@@ -266,6 +266,7 @@
     "copyToClipboard": "Copiar al Portapapeles",
     "dismiss": "Descartar",
     "iconImported": "¡Icono '{name}' importado a {targets}!",
+    "iconBuilt": "¡Icono '{name}' compilado a {format}!",
     "iconTransformed": "¡Icono '{name}' transformado a <{component}>!",
     "extractInlineSvg": "Extraer SVG inline como \"{name}\"",
     "addedFillColor": "Color de relleno añadido: {color}",
@@ -559,6 +560,8 @@
       "brightness": "Brillo",
       "reset": "Restablecer",
       "resetFilters": "Restablecer todos los filtros",
+      "enableFilters": "Habilitar filtros globales",
+      "disableFilters": "Deshabilitar filtros globales",
       "variants": "Variantes",
       "saveVariant": "Guardar colores actuales como variante"
     },
@@ -636,7 +639,8 @@
       "licenseType": "Licencia",
       "unknownAuthor": "Desconocido",
       "unknownLicense": "Desconocida",
-      "licenseUnknown": "Información de licencia no disponible"
+      "licenseUnknown": "Información de licencia no disponible",
+      "download": "Descargar"
     },
     "spritePreview": {
       "icons": "iconos",
