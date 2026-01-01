@@ -1,6 +1,10 @@
-out/
-node_modules/
-*.vsix
-.vscode-test/
+# Compilación
 dist/
-dist/extension.js*
+out/
+
+# Dependencias
+node_modules/
+
+# Archivos de VS Code
+.vscode-test/
+*.vsix

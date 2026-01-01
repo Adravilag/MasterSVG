@@ -11,7 +11,7 @@ const watch = process.argv.includes('--watch');
 function copyTemplates() {
   const srcDir = path.join(__dirname, 'src', 'templates');
   const destDir = path.join(__dirname, 'dist', 'templates');
-  
+
   if (!fs.existsSync(srcDir)) {
     console.log('No templates directory found, skipping...');
     return;
@@ -20,11 +20,11 @@ function copyTemplates() {
   function copyDir(src, dest) {
     fs.mkdirSync(dest, { recursive: true });
     const entries = fs.readdirSync(src, { withFileTypes: true });
-    
+
     for (const entry of entries) {
       const srcPath = path.join(src, entry.name);
       const destPath = path.join(dest, entry.name);
-      
+
       if (entry.isDirectory()) {
         copyDir(srcPath, destPath);
       } else {
@@ -66,7 +66,7 @@ async function main() {
     format: 'cjs',
     minify: production,
     sourcemap: !production,
-    sourcesContent: false,
+    sourcesContent: true,
     platform: 'node',
     outfile: 'dist/extension.js',
     external: ['vscode'],
