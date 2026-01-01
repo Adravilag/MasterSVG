@@ -755,6 +755,7 @@ export class IconEditorPanel {
    * Saves the ORIGINAL SVG (without color modifications) to icons.js
    * Color mappings are saved separately in variants.js
    */
+  // eslint-disable-next-line max-lines-per-function
   private async _addToIconCollection(
     animation?: string,
     animationSettings?: AnimationSettings
@@ -1076,7 +1077,7 @@ export class IconEditorPanel {
     // Get webview CSP source
     const cspSource = this._panel.webview.cspSource;
 
-    
+
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -1135,7 +1136,7 @@ ${jsContent}
         return `
       <div class="color-item" title="Click to change color">
         <div class="color-swatch" style="background-color: ${color}">
-          <input type="color" value="${this._colorService.toHexColor(color)}" 
+          <input type="color" value="${this._colorService.toHexColor(color)}"
             data-original-color="${escapedColor}"
             onchange="changeColor(this.dataset.originalColor, this.value)"
             oninput="previewColor(this.dataset.originalColor, this.value)" />
@@ -1150,7 +1151,7 @@ ${jsContent}
       ? `
       <div class="current-color-item">
         <div class="current-color-swatch" title="currentColor - inherits from CSS">
-          <input type="color" value="#000000" 
+          <input type="color" value="#000000"
             onchange="replaceCurrentColor(this.value)" />
           <span class="current-color-icon codicon codicon-paintcan"></span>
         </div>
