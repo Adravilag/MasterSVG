@@ -91,13 +91,32 @@ export async function handleCopySvg(ctx: PanelContext, message: { svg?: string }
 
 export async function handleOpenEditor(ctx: PanelContext): Promise<void> {
   if (ctx.iconDetails) {
+    // If a variant is selected, restore to original colors first for editing
+    let svgToPass = ctx.iconDetails.svg;
+    if (ctx.selectedVariantIndex >= 0 && ctx.originalColors.length > 0) {
+      // Get current colors in the variant-modified SVG
+      const variantsService = getVariantsService();
+      const savedVariants = variantsService.getSavedVariants(ctx.iconDetails.name);
+      if (savedVariants[ctx.selectedVariantIndex]) {
+        const { colors: currentColors } = colorService.extractAllColorsFromSvg(ctx.iconDetails.svg);
+        
+        // Restore to original colors
+        let restoredSvg = ctx.iconDetails.svg;
+        for (let i = 0; i < Math.min(currentColors.length, ctx.originalColors.length); i++) {
+          restoredSvg = colorService.replaceColorInSvg(restoredSvg, currentColors[i], ctx.originalColors[i]);
+        }
+        svgToPass = restoredSvg;
+      }
+    }
+    
     await vscode.commands.executeCommand('sageboxIconStudio.colorEditor', {
       icon: {
         name: ctx.iconDetails.name,
-        svg: ctx.iconDetails.svg,
+        svg: svgToPass,
         path: ctx.iconDetails.location?.file,
         line: ctx.iconDetails.location?.line,
         isBuilt: ctx.iconDetails.isBuilt,
+        selectedVariantIndex: ctx.selectedVariantIndex >= 0 ? ctx.selectedVariantIndex : undefined,
       },
     });
   }
@@ -133,7 +152,14 @@ export async function handleOptimizeSvg(
   }
 }
 
-export function handleApplyOptimizedSvg(ctx: PanelContext, message: { svg: string }): void {
+export async function handleApplyOptimizedSvg(ctx: PanelContext, message: { svg: string }): Promise<void> {
+  console.log('[handleApplyOptimizedSvg] Called with:', {
+    hasIconDetails: !!ctx.iconDetails,
+    iconName: ctx.iconDetails?.name,
+    hasSvg: !!message.svg,
+    svgLength: message.svg?.length,
+  });
+
   if (ctx.iconDetails && message.svg) {
     // Update panel state
     ctx.setIconDetails({ ...ctx.iconDetails, svg: message.svg });
@@ -141,16 +167,24 @@ export function handleApplyOptimizedSvg(ctx: PanelContext, message: { svg: strin
     // Persist the optimized SVG by invoking the buildSingleIcon command
     // This will update icons.js or sprite.svg according to user config
     try {
-      void vscode.commands.executeCommand('sageboxIconStudio.buildSingleIcon', {
+      console.log('[handleApplyOptimizedSvg] Executing buildSingleIcon command...');
+      await vscode.commands.executeCommand('sageboxIconStudio.buildSingleIcon', {
         iconName: ctx.iconDetails.name,
         svgContent: message.svg,
         filePath: ctx.iconDetails.location?.file,
       });
+      console.log('[handleApplyOptimizedSvg] Command executed successfully');
+      vscode.window.showInformationMessage(t('messages.optimizedSvgApplied'));
     } catch (e) {
-      // swallow - command may not be available in some test contexts
+      // Log error for debugging but show message in test contexts
+      console.error('[handleApplyOptimizedSvg] Error:', e);
+      vscode.window.showErrorMessage(t('messages.failedToApplyOptimizedSvg'));
     }
-
-    vscode.window.showInformationMessage(t('messages.optimizedSvgApplied'));
+  } else {
+    console.warn('[handleApplyOptimizedSvg] Missing iconDetails or svg:', {
+      hasIconDetails: !!ctx.iconDetails,
+      hasSvg: !!message.svg,
+    });
   }
 }
 
@@ -221,14 +255,14 @@ export function handleApplyVariant(ctx: PanelContext, message: { index: number }
 
       ctx.setIconDetails({ ...ctx.iconDetails, svg: newSvg });
       ctx.setSelectedVariantIndex(message.index);
-      
+
       // Send updated SVG to webview for immediate preview update
       ctx.panel.webview.postMessage({
         command: 'variantApplied',
         svg: newSvg,
         variantIndex: message.index,
       });
-      
+
       ctx.update();
     }
   }
@@ -245,14 +279,14 @@ export function handleApplyDefaultVariant(ctx: PanelContext): void {
 
     ctx.setIconDetails({ ...ctx.iconDetails, svg: newSvg });
     ctx.setSelectedVariantIndex(-1);
-    
+
     // Send updated SVG to webview for immediate preview update
     ctx.panel.webview.postMessage({
       command: 'variantApplied',
       svg: newSvg,
       variantIndex: -1,
     });
-    
+
     ctx.update();
   }
 }
@@ -351,7 +385,7 @@ export async function handleMessage(ctx: PanelContext, message: any): Promise<vo
       await handleOptimizeSvg(ctx, message);
       break;
     case 'applyOptimizedSvg':
-      handleApplyOptimizedSvg(ctx, message);
+      await handleApplyOptimizedSvg(ctx, message);
       break;
     case 'changeColor':
       await handleChangeColor(ctx, message);

@@ -1,11 +1,37 @@
 import * as vscode from 'vscode';
 import { t } from '../i18n';
 
+// Double-click detection state
+let lastClickTime = 0;
+let lastClickedIconName: string | undefined;
+const DOUBLE_CLICK_THRESHOLD = 400; // ms
+
 /**
  * Registers navigation-related commands for icons
  */
 export function registerNavigationCommands(_context: vscode.ExtensionContext): vscode.Disposable[] {
   const commands: vscode.Disposable[] = [];
+
+  // Command: Handle icon click with double-click detection
+  commands.push(
+    vscode.commands.registerCommand('sageboxIconStudio.iconClick', async (icon: any) => {
+      if (!icon) return;
+      
+      const now = Date.now();
+      const iconName = icon.name;
+      
+      if (iconName === lastClickedIconName && (now - lastClickTime) < DOUBLE_CLICK_THRESHOLD) {
+        // Double click detected - open details
+        lastClickTime = 0;
+        lastClickedIconName = undefined;
+        await vscode.commands.executeCommand('sageboxIconStudio.showDetails', icon);
+      } else {
+        // Single click - just record the click (preview is updated by selection handler)
+        lastClickTime = now;
+        lastClickedIconName = iconName;
+      }
+    })
+  );
 
   // Command: Go to usage location
   commands.push(

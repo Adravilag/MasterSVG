@@ -3,7 +3,6 @@
 
     // State
     let currentZoom = 3;
-    let optimizedSvg = null;
     const zoomLevels = [50, 75, 100, 150, 200];
 
     // Zoom functions
@@ -81,15 +80,6 @@
       input.click();
     }
 
-    // Optimization functions
-    function optimizeSvg(preset) {
-      // Update button states
-      document.querySelectorAll('.optimize-preset').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-
-      vscode.postMessage({ command: 'optimizeSvg', preset });
-    }
-
     // Variants functionality
     function applyDefaultVariant() {
       vscode.postMessage({ command: 'applyDefaultVariant' });
@@ -110,27 +100,6 @@
     function setDefaultVariant(variantName) {
       // Default-variant setting removed; no-op
       console.debug('[IconDetails] setDefaultVariant called but feature removed');
-    }
-
-    function applyOptimizedSvg() {
-      if (optimizedSvg) {
-        vscode.postMessage({ command: 'applyOptimizedSvg', svg: optimizedSvg });
-
-        // Update preview
-        const previewBox = document.getElementById('previewBox');
-        previewBox.innerHTML = optimizedSvg;
-
-        // Update file size display
-        const size = new Blob([optimizedSvg]).size;
-        const sizeStr = size < 1024 ? size + ' B' : (size / 1024).toFixed(1) + ' KB';
-        document.getElementById('fileSize').textContent = sizeStr;
-      }
-    }
-
-    function copyOptimizedSvg() {
-      if (optimizedSvg) {
-        vscode.postMessage({ command: 'copySvg', svg: optimizedSvg });
-      }
     }
 
     // Navigation
@@ -175,7 +144,7 @@
                 </div>
               `;
             }).join('');
-            
+
             // Attach event listeners
             document.querySelectorAll('.usage-item').forEach((el, idx) => {
               el.addEventListener('click', () => {
@@ -185,18 +154,6 @@
             });
           }
         }
-
-      if (message.command === 'optimizeResult') {
-        optimizedSvg = message.svg;
-
-        const resultEl = document.getElementById('optimizeResult');
-        resultEl.classList.add('visible');
-
-        document.getElementById('optimizeOriginal').textContent = i18n.original + ' ' + message.originalSizeStr;
-        document.getElementById('optimizeNew').textContent = i18n.optimized + ' ' + message.optimizedSizeStr;
-        document.getElementById('optimizeSavings').textContent =
-          i18n.saved + ' ' + (message.savingsPercent > 0 ? message.savingsPercent.toFixed(1) + '%' : i18n.alreadyOptimal);
-      }
 
       if (message.command === 'colorChanged') {
         // Update preview with new SVG
@@ -208,7 +165,7 @@
         // Update preview with new SVG from applied variant
         const previewBox = document.getElementById('previewBox');
         previewBox.innerHTML = message.svg;
-        
+
         // Update variant selection UI
         document.querySelectorAll('.variant-item').forEach((item, index) => {
           item.classList.remove('selected');

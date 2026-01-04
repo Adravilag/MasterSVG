@@ -4,6 +4,7 @@ import * as path from 'path';
 import { WorkspaceSvgProvider } from './WorkspaceSvgProvider';
 import { getSvgConfig } from '../utils/config';
 import { ANIMATION_CATEGORIES, ANIMATION_KEYFRAMES } from '../services/AnimationKeyframes';
+import { AnimationPreset } from '../services/VariantsService';
 
 export class IconCompletionProvider implements vscode.CompletionItemProvider {
   constructor(private svgProvider: WorkspaceSvgProvider) {}
@@ -337,6 +338,63 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
 
         items.push(item);
         sortIndex++;
+      }
+    }
+
+    // Add icon-specific animation presets at the end
+    if (iconName) {
+      const { getVariantsService } = require('../services/VariantsService');
+      const variantsService = getVariantsService();
+      const iconPresets = variantsService.getAnimationPresets(iconName);
+
+      if (iconPresets.length > 0) {
+        // Add separator comment for icon animations
+        const separatorItem = new vscode.CompletionItem(
+          '─ Animaciones del icono ─',
+          vscode.CompletionItemKind.Text
+        );
+        separatorItem.sortText = '999animation-header';
+        items.push(separatorItem);
+
+        // Add each icon animation preset
+        iconPresets.forEach((preset: AnimationPreset, idx: number) => {
+          const item = new vscode.CompletionItem(
+            preset.name,
+            vscode.CompletionItemKind.Variable
+          );
+          item.detail = `🎨 Animación: ${preset.type}`;
+
+          const md = new vscode.MarkdownString();
+          md.supportHtml = true;
+          md.isTrusted = true;
+
+          // Add animated preview if we have an icon
+          if (iconSvg && preset.type !== 'none') {
+            const preview = this.createAnimatedSvgPreview(iconSvg, preset.type);
+            md.appendMarkdown(preview + '\n\n');
+          }
+
+          md.appendMarkdown(`🎨 **${preset.name}**\n\n`);
+          md.appendMarkdown(`*Animación: ${preset.type}*\n\n`);
+          
+          if (preset.duration) {
+            md.appendMarkdown(`• Duración: ${preset.duration}s\n`);
+          }
+          if (preset.delay) {
+            md.appendMarkdown(`• Retardo: ${preset.delay}s\n`);
+          }
+          if (preset.iteration) {
+            md.appendMarkdown(`• Repeticiones: ${preset.iteration}\n`);
+          }
+          if (preset.timing) {
+            md.appendMarkdown(`• Tiempo: ${preset.timing}\n`);
+          }
+
+          md.appendMarkdown(`\n---\n*Usa \`animation="${preset.name}"\` para aplicar*`);
+          item.documentation = md;
+          item.sortText = `999animation-${String(idx).padStart(2, '0')}-${preset.name}`;
+          items.push(item);
+        });
       }
     }
 

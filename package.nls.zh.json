@@ -16,6 +16,8 @@
   "command.refreshFiles": "Icon Studio: 刷新文件",
   "command.refreshCode": "Icon Studio: 刷新代码",
   "command.refreshBuilt": "Icon Studio: 刷新已构建图标",
+  "command.forceRefreshPreview": "Icon Studio: 强制刷新预览 (开发)",
+  "command.devRefreshAll": "Icon Studio: 开发刷新全部 (清除缓存)",
   "command.buildIcons": "Icon Studio: 构建图标",
   "command.searchIcons": "Icon Studio: 搜索图标 (Iconify)",
   "command.deleteIcons": "删除图标",

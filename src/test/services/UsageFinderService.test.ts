@@ -9,7 +9,7 @@ describe('UsageFinderService', () => {
       const text = 'const icon = <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40"/></svg> end';
       // Access private method through Object.getOwnPropertyNames
       const extractor = (service as any).extractFullSvgIfInline;
-      
+
       // We need to test through the public method instead
       // For now, we'll test the behavior indirectly
       expect(text).toContain('<svg');
@@ -27,7 +27,7 @@ describe('UsageFinderService', () => {
   <path d="M50,5 C60,20 70,40 70,60" fill="url(#rocketGradient)"/>
   <circle cx="50" cy="40" r="8" fill="#1a1a2e"/>
 </svg>\`;`;
-      
+
       expect(text).toContain('<svg');
       expect(text).toContain('<defs>');
       expect(text).toContain('</svg>');
@@ -37,7 +37,7 @@ describe('UsageFinderService', () => {
   describe('buildSearchPatterns', () => {
     test('debe generar patrones de búsqueda para un nombre de icono', () => {
       const patterns = (service as any).buildSearchPatterns('rocket');
-      
+
       expect(patterns).toContain('rocket');
       expect(patterns).toContain('"rocket"');
       expect(patterns).toContain("'rocket'");
@@ -48,7 +48,7 @@ describe('UsageFinderService', () => {
 
     test('debe generar patrones para nombres con guión', () => {
       const patterns = (service as any).buildSearchPatterns('arrow-left');
-      
+
       expect(patterns).toContain('arrow-left');
       expect(patterns).toContain('ArrowLeft');
       expect(patterns).toContain('icon-arrow-left');
@@ -59,7 +59,7 @@ describe('UsageFinderService', () => {
     test('debe encontrar múltiples coincidencias de un patrón', () => {
       const text = 'rocket text rocket another rocket';
       const matches = (service as any).findMatches(text, 'rocket');
-      
+
       expect(matches).toHaveLength(3);
       expect(matches[0].index).toBe(0);
       expect(matches[1].index).toBe(12);
@@ -69,7 +69,7 @@ describe('UsageFinderService', () => {
     test('debe retornar array vacío si no hay coincidencias', () => {
       const text = 'some text without pattern';
       const matches = (service as any).findMatches(text, 'rocket');
-      
+
       expect(matches).toHaveLength(0);
     });
   });

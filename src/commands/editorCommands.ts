@@ -267,14 +267,5 @@ export function registerEditorCommands(
   );
   disposables.push(exportComponentCmd);
 
-  // Command: Update TreeView preview from Editor color changes
-  const updateTreeViewPreviewCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.updateTreeViewPreview',
-    (name: string, svg: string, currentColors?: string[]) => {
-      iconPreviewProvider.updateSvgContent(name, svg, currentColors);
-    }
-  );
-  disposables.push(updateTreeViewPreviewCmd);
-
   return disposables;
 }

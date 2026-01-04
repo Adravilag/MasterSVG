@@ -319,6 +319,7 @@
     "copiedNameToClipboard": "\"{name}\" 已复制到剪贴板",
     "svgAlreadyOptimized": "SVG 已经是最优化的",
     "optimizedSvgApplied": "已应用优化的 SVG",
+    "failedToApplyOptimizedSvg": "应用优化的 SVG 失败",
     "addedFillColor": "已添加填充颜色：{color}",
     "variantSaved": "变体 \"{name}\" 已保存",
     "variantSetAsDefault": "\"{name}\" 现在是 {iconName} 的默认变体",
@@ -477,6 +478,7 @@
       "componentName": "组件名称",
       "outputFormat": "输出格式",
       "webComponentName": "Web 组件名称",
+      "openWelcome": "打开完整配置",
       "svgSprite": "SVG Sprite",
       "webComponentJs": "Web 组件 (JS)",
       "both": "两者都",
@@ -502,7 +504,8 @@
       "svgFoldersDesc": "要扫描 SVG 文件的文件夹",
       "componentNameDesc": "Icon 组件的名称（例如 Icon）",
       "outputFormatDesc": "默认输出格式（jsx、vue、svelte 等）",
-      "webComponentNameDesc": "自定义元素的名称（例如 sagebox-icon）"
+      "webComponentNameDesc": "自定义元素的名称（例如 sagebox-icon）",
+      "openWelcomeDesc": "打开包含所有配置选项的欢迎面板"
     },
     "validation": {
       "nameCannotBeEmpty": "名称不能为空",

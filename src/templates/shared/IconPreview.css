@@ -13,7 +13,7 @@
   --space-md: 12px;
   --space-lg: 16px;
   --radius: 2px;
-  --avatar-size: 64px;
+  --avatar-size: 128px;
   --font-mono: var(--vscode-editor-font-family, 'Consolas', 'Courier New', monospace);
   --font-ui: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
 }
@@ -90,7 +90,7 @@ body {
   position: relative;
   aspect-ratio: 1;
   background-color: var(--vscode-editor-background);
-  background-image: 
+  background-image:
     linear-gradient(45deg, var(--checker-color) 25%, transparent 25%),
     linear-gradient(-45deg, var(--checker-color) 25%, transparent 25%),
     linear-gradient(45deg, transparent 75%, var(--checker-color) 75%),
@@ -103,7 +103,6 @@ body {
   flex-direction: column;
   margin-bottom: var(--space-sm);
   overflow: hidden;
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
 }
 
 .preview-surface .icon-container {
@@ -117,8 +116,7 @@ body {
 .preview-surface svg {
   width: var(--avatar-size);
   height: var(--avatar-size);
-  transition: all 0.15s ease;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  /* Removed transition to prevent interference with CSS animations */
 }
 
 /* === BOTTOM CONTROLS STACK === */
@@ -323,6 +321,15 @@ body {
   font-size: 13px;
 }
 
+/* Animation toggle button */
+.toolbar-btn.animation-toggle {
+  color: var(--vscode-testing-iconPassed, var(--vscode-debugIcon-startForeground));
+}
+
+.toolbar-btn.animation-toggle:hover {
+  background: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.4));
+}
+
 /* === EMPTY STATE === */
 .empty {
   color: var(--vscode-descriptionForeground);
@@ -334,32 +341,32 @@ body {
 }
 
 /* === ANIMATION KEYFRAMES === */
-@keyframes icon-spin { from { rotate: 0deg; } to { rotate: 360deg; } }
-@keyframes icon-spin-reverse { from { rotate: 360deg; } to { rotate: 0deg; } }
-@keyframes icon-pulse { 0%, 100% { scale: 1; opacity: 1; } 50% { scale: 1.1; opacity: 0.8; } }
-@keyframes icon-pulse-grow { 0%, 100% { scale: 1; } 50% { scale: 1.3; } }
-@keyframes icon-bounce { 0%, 100% { translate: 0 0; } 50% { translate: 0 -4px; } }
-@keyframes icon-bounce-horizontal { 0%, 100% { translate: 0 0; } 50% { translate: 4px 0; } }
-@keyframes icon-shake { 0%, 100% { translate: 0 0; } 25% { translate: -2px 0; } 75% { translate: 2px 0; } }
-@keyframes icon-shake-vertical { 0%, 100% { translate: 0 0; } 25% { translate: 0 -2px; } 75% { translate: 0 2px; } }
+@keyframes icon-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes icon-spin-reverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+@keyframes icon-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.8; } }
+@keyframes icon-pulse-grow { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+@keyframes icon-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes icon-bounce-horizontal { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
+@keyframes icon-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
+@keyframes icon-shake-vertical { 0%, 100% { transform: translateY(0); } 25% { transform: translateY(-2px); } 75% { transform: translateY(2px); } }
 @keyframes icon-fade { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 @keyframes icon-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes icon-fade-out { from { opacity: 1; } to { opacity: 0; } }
-@keyframes icon-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
-@keyframes icon-swing { 0%, 100% { rotate: 0deg; } 20% { rotate: 15deg; } 40% { rotate: -10deg; } 60% { rotate: 5deg; } 80% { rotate: -5deg; } }
+@keyframes icon-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes icon-swing { 0%, 100% { transform: rotate(0deg); } 20% { transform: rotate(15deg); } 40% { transform: rotate(-10deg); } 60% { transform: rotate(5deg); } 80% { transform: rotate(-5deg); } }
 @keyframes icon-flip { 0% { transform: perspective(400px) rotateY(0); } 100% { transform: perspective(400px) rotateY(360deg); } }
 @keyframes icon-flip-x { 0% { transform: perspective(400px) rotateX(0); } 100% { transform: perspective(400px) rotateX(360deg); } }
-@keyframes icon-heartbeat { 0%, 100% { scale: 1; } 14% { scale: 1.3; } 28% { scale: 1; } 42% { scale: 1.3; } 70% { scale: 1; } }
-@keyframes icon-wiggle { 0%, 100% { rotate: 0deg; } 25% { rotate: -10deg; } 75% { rotate: 10deg; } }
+@keyframes icon-heartbeat { 0%, 100% { transform: scale(1); } 14% { transform: scale(1.3); } 28% { transform: scale(1); } 42% { transform: scale(1.3); } 70% { transform: scale(1); } }
+@keyframes icon-wiggle { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
 @keyframes icon-wobble { 0% { transform: translateX(0%); } 15% { transform: translateX(-25%) rotate(-5deg); } 30% { transform: translateX(20%) rotate(3deg); } 45% { transform: translateX(-15%) rotate(-3deg); } 60% { transform: translateX(10%) rotate(2deg); } 75% { transform: translateX(-5%) rotate(-1deg); } 100% { transform: translateX(0%); } }
-@keyframes icon-rubber-band { 0% { scale: 1 1; } 30% { scale: 1.25 0.75; } 40% { scale: 0.75 1.25; } 50% { scale: 1.15 0.85; } 65% { scale: 0.95 1.05; } 75% { scale: 1.05 0.95; } 100% { scale: 1 1; } }
+@keyframes icon-rubber-band { 0% { transform: scale(1, 1); } 30% { transform: scale(1.25, 0.75); } 40% { transform: scale(0.75, 1.25); } 50% { transform: scale(1.15, 0.85); } 65% { transform: scale(0.95, 1.05); } 75% { transform: scale(1.05, 0.95); } 100% { transform: scale(1, 1); } }
 @keyframes icon-jello { 0%, 100% { transform: skewX(0deg) skewY(0deg); } 22% { transform: skewX(-12.5deg) skewY(-12.5deg); } 33% { transform: skewX(6.25deg) skewY(6.25deg); } 44% { transform: skewX(-3.125deg) skewY(-3.125deg); } 55% { transform: skewX(1.5625deg) skewY(1.5625deg); } }
-@keyframes icon-tada { 0% { scale: 1; rotate: 0deg; } 10%, 20% { scale: 0.9; rotate: -3deg; } 30%, 50%, 70%, 90% { scale: 1.1; rotate: 3deg; } 40%, 60%, 80% { scale: 1.1; rotate: -3deg; } 100% { scale: 1; rotate: 0deg; } }
+@keyframes icon-tada { 0% { transform: scale(1) rotate(0deg); } 10%, 20% { transform: scale(0.9) rotate(-3deg); } 30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); } 40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); } 100% { transform: scale(1) rotate(0deg); } }
 @keyframes icon-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 @keyframes icon-glow { 0%, 100% { filter: drop-shadow(0 0 2px currentColor); } 50% { filter: drop-shadow(0 0 8px currentColor); } }
-@keyframes icon-zoom-in { from { scale: 0; opacity: 0; } to { scale: 1; opacity: 1; } }
-@keyframes icon-zoom-out { from { scale: 1; opacity: 1; } to { scale: 0; opacity: 0; } }
-@keyframes icon-slide-in-up { from { translate: 0 100%; opacity: 0; } to { translate: 0 0; opacity: 1; } }
-@keyframes icon-slide-in-down { from { translate: 0 -100%; opacity: 0; } to { translate: 0 0; opacity: 1; } }
-@keyframes icon-slide-in-left { from { translate: -100% 0; opacity: 0; } to { translate: 0 0; opacity: 1; } }
-@keyframes icon-slide-in-right { from { translate: 100% 0; opacity: 0; } to { translate: 0 0; opacity: 1; } }
+@keyframes icon-zoom-in { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes icon-zoom-out { from { transform: scale(1); opacity: 1; } to { transform: scale(0); opacity: 0; } }
+@keyframes icon-slide-in-up { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes icon-slide-in-down { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes icon-slide-in-left { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes icon-slide-in-right { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }

@@ -421,3 +421,141 @@
       stroke-dashoffset: var(--path-length);
       animation: draw-loop var(--anim-duration, 2s) var(--anim-timing, ease-in-out) var(--anim-delay, 0s) var(--anim-iteration, infinite);
     }
+    /* Custom Presets Styles */
+    .custom-presets-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .preset-save {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px;
+      background: rgba(var(--vscode-button-background-rgb, 0, 122, 204), 0.08);
+      border: 1px solid var(--vscode-panel-border);
+      border-radius: 6px;
+    }
+
+    .preset-save label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--vscode-foreground);
+    }
+
+    .preset-save-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .preset-save-controls input {
+      flex: 1;
+      padding: 8px 12px;
+      background: var(--vscode-input-background);
+      border: 1px solid var(--vscode-input-border);
+      color: var(--vscode-input-foreground);
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    .preset-save-controls input:focus {
+      outline: none;
+      border-color: var(--vscode-focusBorder);
+    }
+
+    .preset-save-controls .btn {
+      padding: 8px 16px;
+      white-space: nowrap;
+    }
+
+    .preset-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .preset-list > label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--vscode-foreground);
+    }
+
+    .presets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 8px;
+    }
+
+    .preset-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px;
+      background: var(--vscode-editor-background);
+      border: 1px solid var(--vscode-panel-border);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .preset-item:hover {
+      background: var(--vscode-list-hoverBackground);
+      border-color: var(--vscode-focusBorder);
+    }
+
+    .preset-item-name {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--vscode-foreground);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .preset-item-info {
+      font-size: 10px;
+      color: var(--vscode-descriptionForeground);
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .preset-item-delete {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: transparent;
+      border: none;
+      color: var(--vscode-descriptionForeground);
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 2px;
+      font-size: 11px;
+      display: none;
+    }
+
+    .preset-item:hover .preset-item-delete {
+      display: block;
+    }
+
+    .preset-item-delete:hover {
+      background: rgba(255, 0, 0, 0.2);
+      color: #ff6666;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 20px 12px;
+      color: var(--vscode-descriptionForeground);
+      font-size: 12px;
+    }
+
+    .empty-state .codicon {
+      font-size: 24px;
+      opacity: 0.5;
+    }

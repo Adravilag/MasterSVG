@@ -152,9 +152,6 @@ export function activate(context: vscode.ExtensionContext) {
     if (e.selection.length > 0) {
       const item = e.selection[0] as SvgItem;
       if (item.icon) {
-        // Reset variants cache to prevent contamination between icons
-        getVariantsService().resetCache();
-        
         const svgData = workspaceSvgProvider.getSvgData(item);
         if (svgData) {
           iconPreviewProvider.updatePreview(
@@ -199,24 +196,24 @@ export function activate(context: vscode.ExtensionContext) {
   );
   context.subscriptions.push(...treeViewCommands);
 
+  // Update preview when workspace tree item is selected
   treeView.onDidChangeSelection(e => {
     if (e.selection.length > 0) {
       const item = e.selection[0] as SvgItem;
       if (
         item.contextValue === 'inlineSvg' ||
         item.contextValue === 'builtIcon' ||
-        item.contextValue === 'svgIcon'
+        item.contextValue === 'svgIcon' ||
+        item.contextValue === 'iconUsage' ||
+        item.contextValue === 'iconUsageMissing'
       ) {
-        // Reset variants cache to prevent contamination between icons
-        getVariantsService().resetCache();
-        
         const svgData = workspaceSvgProvider.getSvgData(item);
         if (svgData) {
           iconPreviewProvider.updatePreview(
             svgData.name,
             svgData.svg,
             svgData.location,
-            item.contextValue === 'builtIcon',
+            item.contextValue === 'builtIcon' || item.contextValue === 'iconUsage',
             svgData.animation
           );
         }
@@ -262,6 +259,7 @@ export function activate(context: vscode.ExtensionContext) {
     workspaceSvgProvider,
     builtIconsProvider,
     svgFilesProvider,
+    iconPreviewProvider,
   });
   context.subscriptions.push(...refreshCommands);
 
@@ -342,6 +340,12 @@ export function activate(context: vscode.ExtensionContext) {
   svgWatcher.onDidDelete(() => svgFilesProvider.refresh());
   svgWatcher.onDidChange(() => svgFilesProvider.refresh());
 
+  // Watch for variants.js changes and refresh the built icons tree
+  const variantsWatcher = vscode.workspace.createFileSystemWatcher('**/variants.js');
+  variantsWatcher.onDidCreate(() => builtIconsProvider.refresh());
+  variantsWatcher.onDidChange(() => builtIconsProvider.refresh());
+  variantsWatcher.onDidDelete(() => builtIconsProvider.refresh());
+
   // Register code action provider for SVG img references
   // Use '*' scheme to match all file types including untitled
   const codeActionProvider = vscode.languages.registerCodeActionsProvider(
@@ -381,6 +385,7 @@ export function activate(context: vscode.ExtensionContext) {
     completionDisposable,
     hoverDisposable,
     svgWatcher,
+    variantsWatcher,
     codeActionProvider,
     missingIconCodeActionProvider
   );

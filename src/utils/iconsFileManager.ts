@@ -126,6 +126,9 @@ export async function addToIconsJs(options: AddToIconsJsOptions): Promise<void> 
   } = options;
 
   return ErrorHandler.wrapAsync(async () => {
+    console.log('[addToIconsJs] iconName:', iconName);
+    console.log('[addToIconsJs] svgContent length:', svgContent.length);
+
     // Validate SVG content before adding
     const validation = validateSvgContent(svgContent);
     if (!validation.valid) {
@@ -136,6 +139,11 @@ export async function addToIconsJs(options: AddToIconsJsOptions): Promise<void> 
     const varName = toVariableName(iconName);
     const body = transformer.extractSvgBody(svgContent);
     const attrs = transformer.extractSvgAttributes(svgContent);
+
+    console.log('[addToIconsJs] varName:', varName);
+    console.log('[addToIconsJs] body length:', body.length);
+    console.log('[addToIconsJs] viewBox:', attrs.viewBox);
+
     const iconEntry = createIconEntry({
       varName,
       iconName,
@@ -150,12 +158,17 @@ export async function addToIconsJs(options: AddToIconsJsOptions): Promise<void> 
 
     if (fs.existsSync(iconsPath)) {
       let content = fs.readFileSync(iconsPath, 'utf-8');
-      content = content.includes(`export const ${varName}`)
+      const exists = content.includes(`export const ${varName}`);
+      console.log('[addToIconsJs] Icon exists in file:', exists);
+
+      content = exists
         ? updateExistingIcon(content, varName, iconEntry)
         : addNewIconToContent(content, varName, iconEntry);
       fs.writeFileSync(iconsPath, content);
+      console.log('[addToIconsJs] File written to:', iconsPath);
     } else {
       fs.writeFileSync(iconsPath, createNewIconsFileContent(iconEntry, varName));
+      console.log('[addToIconsJs] New file created at:', iconsPath);
     }
 
     if (!skipWebComponentGeneration) {

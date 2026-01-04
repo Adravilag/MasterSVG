@@ -97,11 +97,6 @@
       background: var(--vscode-charts-blue, #2196f3);
       color: #fff;
     }
-
-    .badge-optimized {
-      background: var(--vscode-charts-purple, #9c27b0);
-      color: #fff;
-    }
     
     .file-size {
       font-size: 11px;
@@ -894,70 +889,6 @@
       font-size: 11px;
     }
     
-    /* Optimize Presets */
-    .optimize-presets {
-      display: flex;
-      gap: 8px;
-    }
-    
-    .optimize-preset {
-      flex: 1;
-      padding: 8px 12px;
-      font-size: 11px;
-      background: var(--vscode-button-secondaryBackground);
-      color: var(--vscode-button-secondaryForeground);
-      border: 2px solid transparent;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s ease;
-      text-align: center;
-    }
-    
-    .optimize-preset:hover {
-      background: var(--vscode-button-secondaryHoverBackground);
-      transform: translateY(-1px);
-    }
-    
-    .optimize-preset.active {
-      border-color: var(--vscode-focusBorder);
-      background: var(--vscode-button-background);
-      color: var(--vscode-button-foreground);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
-    
-    .optimize-result {
-      display: none;
-      padding: 12px;
-      background: rgba(115, 201, 145, 0.1);
-      border: 1px solid rgba(115, 201, 145, 0.3);
-      border-radius: 8px;
-      margin-top: 12px;
-    }
-    
-    .optimize-result.visible {
-      display: block;
-    }
-    
-    .optimize-stats {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-      font-size: 12px;
-    }
-    
-    .optimize-savings {
-      color: #73c991;
-      font-weight: 600;
-      font-size: 14px;
-    }
-    
-    .optimize-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-    }
-    
     /* Buttons */
     .btn {
       display: inline-flex;
@@ -1053,107 +984,6 @@
     
     .action-btn.warning:hover {
       background: linear-gradient(135deg, rgba(204, 166, 82, 0.3), rgba(204, 120, 82, 0.3));
-    }
-    
-    /* Optimize Button */
-    .action-btn.optimize-btn {
-      background: linear-gradient(135deg, rgba(100, 150, 220, 0.2), rgba(130, 100, 200, 0.2));
-      color: #6496dc;
-    }
-    
-    .action-btn.optimize-btn:hover {
-      background: linear-gradient(135deg, rgba(100, 150, 220, 0.3), rgba(130, 100, 200, 0.3));
-    }
-    
-    .action-btn.optimize-btn.optimized {
-      background: rgba(115, 201, 145, 0.2);
-      color: #73c991;
-      cursor: default;
-    }
-    
-    /* Optimize Result Bar */
-    .optimize-result-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-top: 6px;
-      padding: 8px 12px;
-      background: var(--vscode-editor-inactiveSelectionBackground);
-      border: 1px solid var(--vscode-panel-border);
-      border-radius: 6px;
-      font-size: 11px;
-    }
-    
-    .optimize-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .optimize-savings-badge {
-      font-weight: 600;
-      color: #73c991;
-      background: rgba(115, 201, 145, 0.15);
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-size: 11px;
-    }
-    
-    .optimize-savings-badge.no-savings {
-      color: var(--vscode-descriptionForeground);
-      background: var(--vscode-badge-background);
-    }
-    
-    .optimize-size-text {
-      color: var(--vscode-descriptionForeground);
-      font-family: var(--font-mono);
-      font-size: 10px;
-    }
-    
-    .optimize-build-hint {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      color: var(--vscode-descriptionForeground);
-      font-size: 10px;
-      opacity: 0.8;
-    }
-    
-    .optimize-build-hint .codicon {
-      font-size: 10px;
-    }
-    
-    .optimize-bar-actions {
-      display: flex;
-      gap: 4px;
-    }
-    
-    .mini-btn {
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--vscode-button-secondaryBackground);
-      color: var(--vscode-button-secondaryForeground);
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    
-    .mini-btn:hover {
-      background: var(--vscode-button-secondaryHoverBackground);
-    }
-    
-    .mini-btn.success {
-      background: rgba(115, 201, 145, 0.2);
-      color: #73c991;
-    }
-    
-    .mini-btn.success:hover {
-      background: rgba(115, 201, 145, 0.3);
     }
 
     /* Animation Tab Styles */

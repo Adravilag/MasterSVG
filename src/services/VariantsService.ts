@@ -13,11 +13,24 @@ export interface ColorMapping {
   [originalColor: string]: string;
 }
 
+/** Animation preset per icon */
+export interface AnimationPreset {
+  name: string;
+  type: string;
+  duration?: number;
+  timing?: string;
+  iteration?: string;
+  delay?: number;
+  direction?: string;
+}
+
 export interface VariantsData {
   variants: Record<string, Record<string, string[]>>;
   defaults: Record<string, string>;
   /** Color mappings per icon: { iconName: { originalColor: newColor } } */
   colorMappings?: Record<string, ColorMapping>;
+  /** Animation presets per icon: { iconName: AnimationPreset[] } */
+  animations?: Record<string, AnimationPreset[]>;
 }
 
 /**
@@ -392,28 +405,32 @@ export class VariantsService {
 
   /**
    * Ensure an icon has stored original colors and a "custom" variant
-   * @returns The original colors (from saved _original variant or provided)
+   * @returns The original colors (from provided currentColors, always fresh from SVG)
    */
   ensureCustomVariant(iconName: string, currentColors: string[]): string[] {
     const allVariants = this.getAllVariants(iconName);
     const hasCustom = allVariants.some(v => v.name === 'custom');
-    const savedOriginal = allVariants.find(v => v.name === '_original');
 
     console.log(`[VariantsService.ensureCustomVariant] Icon: ${iconName}`);
-    console.log(`  Detected colors:`, currentColors);
+    console.log(`  Detected colors from SVG:`, currentColors);
     console.log(`  All variants:`, allVariants.map(v => v.name));
-    console.log(`  Saved _original:`, savedOriginal?.colors);
 
+    // IMPORTANT: Always use colors extracted from current SVG, not saved variant
+    // This ensures we're working with the actual file state, not outdated saved data
     let originalColors = currentColors;
 
-    // If we have saved original colors, use those
-    if (savedOriginal) {
-      originalColors = [...savedOriginal.colors];
-      console.log(`  Using saved _original colors:`, originalColors);
-    } else if (currentColors.length > 0) {
-      // Save original colors for the first time (hidden variant)
-      console.log(`  Saving _original colors for first time:`, currentColors);
+    // If no colors detected from SVG, try to use saved _original as fallback
+    if (currentColors.length === 0) {
+      const savedOriginal = allVariants.find(v => v.name === '_original');
+      if (savedOriginal) {
+        originalColors = [...savedOriginal.colors];
+        console.log(`  No colors detected from SVG, using saved _original:`, originalColors);
+      }
+    } else {
+      // Update the saved _original with current SVG colors
+      // This ensures the variant file stays in sync with actual SVG
       this.saveVariant(iconName, '_original', [...currentColors]);
+      console.log(`  Updated _original variant with current SVG colors`);
     }
 
     if (!hasCustom && originalColors.length > 0) {
@@ -424,6 +441,193 @@ export class VariantsService {
 
     console.log(`  Final originalColors returned:`, originalColors);
     return originalColors;
+  }
+
+  /**
+   * Get all animation presets for an icon
+   */
+  getAnimationPresets(iconName: string): AnimationPreset[] {
+    try {
+      const filePath = this._getVariantsFilePath();
+      if (!filePath || !fs.existsSync(filePath)) return [];
+
+      const content = fs.readFileSync(filePath, 'utf-8');
+      const match = content.match(/export\s+const\s+Variants\s*=\s*(\{[\s\S]*?\n\}\s*);/);
+      if (!match) return [];
+
+      const data = new Function(`return ${match[1]}`)() as VariantsData;
+      return data.animations?.[iconName] ?? [];
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Get a specific animation preset by name
+   */
+  getAnimationPreset(iconName: string, presetName: string): AnimationPreset | undefined {
+    const presets = this.getAnimationPresets(iconName);
+    return presets.find(p => p.name === presetName);
+  }
+
+  /**
+   * Save an animation preset for an icon
+   */
+  saveAnimationPreset(iconName: string, preset: AnimationPreset): void {
+    try {
+      const filePath = this._getVariantsFilePath();
+      if (!filePath) return;
+
+      // Ensure directory exists
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+
+      let content = '';
+      const data: VariantsData = {
+        variants: {},
+        defaults: {},
+        colorMappings: {},
+        animations: {}
+      };
+
+      // Read existing data if file exists
+      if (fs.existsSync(filePath)) {
+        content = fs.readFileSync(filePath, 'utf-8');
+        const match = content.match(/export\s+const\s+Variants\s*=\s*(\{[\s\S]*?\n\}\s*);/);
+        if (match) {
+          Object.assign(data, new Function(`return ${match[1]}`)() as VariantsData);
+        }
+      }
+
+      // Initialize animations object if needed
+      if (!data.animations) {
+        data.animations = {};
+      }
+
+      // Initialize icon animations array if needed
+      if (!data.animations[iconName]) {
+        data.animations[iconName] = [];
+      }
+
+      // Remove existing preset with same name
+      data.animations[iconName] = data.animations[iconName].filter(p => p.name !== preset.name);
+
+      // Add new preset
+      data.animations[iconName].push(preset);
+
+      // Write back to file
+      const output = this._formatVariantsData(data);
+      fs.writeFileSync(filePath, output, 'utf-8');
+
+      this._hasUnsavedChanges = false;
+    } catch (error) {
+      console.error('Error saving animation preset:', error);
+    }
+  }
+
+  /**
+   * Delete an animation preset for an icon
+   */
+  deleteAnimationPreset(iconName: string, presetName: string): void {
+    try {
+      const filePath = this._getVariantsFilePath();
+      if (!filePath || !fs.existsSync(filePath)) return;
+
+      const content = fs.readFileSync(filePath, 'utf-8');
+      const match = content.match(/export\s+const\s+Variants\s*=\s*(\{[\s\S]*?\n\}\s*);/);
+      if (!match) return;
+
+      const data = new Function(`return ${match[1]}`)() as VariantsData;
+
+      if (data.animations?.[iconName]) {
+        data.animations[iconName] = data.animations[iconName].filter(
+          p => p.name !== presetName
+        );
+
+        // Clean up empty arrays
+        if (data.animations[iconName].length === 0) {
+          delete data.animations[iconName];
+        }
+      }
+
+      // Write back to file
+      const output = this._formatVariantsData(data);
+      fs.writeFileSync(filePath, output, 'utf-8');
+
+      this._hasUnsavedChanges = false;
+    } catch (error) {
+      console.error('Error deleting animation preset:', error);
+    }
+  }
+
+  /**
+   * Format variants data for file output
+   */
+  private _formatVariantsData(data: VariantsData): string {
+    const lines: string[] = [];
+    lines.push('export const Variants = {');
+
+    // Variants
+    if (Object.keys(data.variants).length > 0) {
+      lines.push('  variants: {');
+      for (const [iconName, variants] of Object.entries(data.variants)) {
+        lines.push(`    "${iconName}": {`);
+        for (const [variantName, colors] of Object.entries(variants)) {
+          const colorStr = colors.map(c => `"${c}"`).join(', ');
+          lines.push(`      "${variantName}": [${colorStr}],`);
+        }
+        lines.push('    },');
+      }
+      lines.push('  },');
+    }
+
+    // Defaults
+    if (Object.keys(data.defaults ?? {}).length > 0) {
+      lines.push('  defaults: {');
+      for (const [iconName, defaultVariant] of Object.entries(data.defaults ?? {})) {
+        lines.push(`    "${iconName}": "${defaultVariant}",`);
+      }
+      lines.push('  },');
+    }
+
+    // Color mappings
+    if (data.colorMappings && Object.keys(data.colorMappings).length > 0) {
+      lines.push('  colorMappings: {');
+      for (const [iconName, mapping] of Object.entries(data.colorMappings)) {
+        lines.push(`    "${iconName}": {`);
+        for (const [original, replacement] of Object.entries(mapping)) {
+          lines.push(`      "${original}": "${replacement}",`);
+        }
+        lines.push('    },');
+      }
+      lines.push('  },');
+    }
+
+    // Animations
+    if (data.animations && Object.keys(data.animations).length > 0) {
+      lines.push('  animations: {');
+      for (const [iconName, presets] of Object.entries(data.animations)) {
+        lines.push(`    "${iconName}": [`);
+        for (const preset of presets) {
+          lines.push('      {');
+          lines.push(`        name: "${preset.name}",`);
+          lines.push(`        type: "${preset.type}",`);
+          if (preset.duration !== undefined) lines.push(`        duration: ${preset.duration},`);
+          if (preset.timing) lines.push(`        timing: "${preset.timing}",`);
+          if (preset.iteration) lines.push(`        iteration: "${preset.iteration}",`);
+          if (preset.delay !== undefined) lines.push(`        delay: ${preset.delay},`);
+          if (preset.direction) lines.push(`        direction: "${preset.direction}",`);
+          lines.push('      },');
+        }
+        lines.push('    ],');
+      }
+      lines.push('  },');
+    }
+
+    lines.push('};');
+    return lines.join('\n');
   }
 }
 

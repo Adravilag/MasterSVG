@@ -11,7 +11,6 @@ import { getAnimationService } from '../services/AnimationAssignmentService';
  * TreeItem for SVG icons in the tree view
  */
 export class SvgItem extends vscode.TreeItem {
-  private static instanceCounter = 0;
   private static svgCache = SvgContentCache.getInstance();
 
   constructor(
@@ -25,24 +24,23 @@ export class SvgItem extends vscode.TreeItem {
   ) {
     super(label, collapsibleState);
 
-    const instanceId = SvgItem.instanceCounter++;
-
-    // Set unique ID for TreeView.reveal() to work
+    // Set stable unique ID for TreeView.reveal() to work
+    // IDs must be consistent across getChildren calls
     if (type === 'section' && category) {
-      this.id = `${instanceId}/section:${category}`;
+      this.id = `section:${category}`;
     } else if (type === 'category' && category) {
-      this.id = `${instanceId}/category:${category}`;
+      this.id = `category:${category}`;
     } else if (type === 'icon' && icon) {
       // Use icon name + source + path for unique ID
       // Name is essential for library icons that share the same path file
-      this.id = `${instanceId}/icon:${icon.name}:${icon.source || 'unknown'}:${icon.path || ''}`;
+      this.id = `icon:${icon.name}:${icon.source || 'unknown'}:${icon.path || ''}`;
       if (icon.line !== undefined) {
         this.id += `:L${icon.line}`;
       }
     } else if (type === 'usage' && usage) {
-      this.id = `${instanceId}/usage:${usage.file}:${usage.line}`;
+      this.id = `usage:${usage.file}:${usage.line}`;
     } else if (type === 'action') {
-      this.id = `${instanceId}/action:scan`;
+      this.id = `action:${category || 'scan'}`;
     }
 
     if (type === 'section') {
@@ -272,10 +270,10 @@ export class SvgItem extends vscode.TreeItem {
         };
       }
     } else if (icon.source === 'library') {
-      // For library/built icons - double click shows details
+      // For library/built icons - click handled by iconClick command (detects double click)
       this.tooltip = tooltipLines.join('\n');
       this.command = {
-        command: 'sageboxIconStudio.showDetails',
+        command: 'sageboxIconStudio.iconClick',
         title: t('commands.showDetails'),
         arguments: [icon],
       };
@@ -289,10 +287,10 @@ export class SvgItem extends vscode.TreeItem {
         arguments: [icon],
       };
     } else {
-      // For workspace SVG files - double click shows details
+      // For workspace SVG files - click handled by iconClick command (detects double click)
       this.tooltip = `${icon.name}\n${icon.path}`;
       this.command = {
-        command: 'sageboxIconStudio.showDetails',
+        command: 'sageboxIconStudio.iconClick',
         title: t('commands.showDetails'),
         arguments: [icon],
       };

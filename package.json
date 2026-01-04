@@ -151,6 +151,16 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "sageboxIconStudio.forceRefreshPreview",
+        "title": "%command.forceRefreshPreview%",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "sageboxIconStudio.devRefreshAll",
+        "title": "%command.devRefreshAll%",
+        "icon": "$(sync-ignored)"
+      },
+      {
         "command": "sageboxIconStudio.buildIcons",
         "title": "%command.buildIcons%",
         "icon": "$(package)"
@@ -567,7 +577,7 @@
         {
           "command": "sageboxIconStudio.refreshIcons",
           "when": "view == sageboxIconStudio.svgFiles",
-          "group": "navigation@2"
+          "group": "navigation@3"
         },
         {
           "command": "sageboxIconStudio.expandAll",

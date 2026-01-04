@@ -16,6 +16,8 @@
   "command.refreshFiles": "Icon Studio: Refresh Files",
   "command.refreshCode": "Icon Studio: Refresh Code",
   "command.refreshBuilt": "Icon Studio: Refresh Built Icons",
+  "command.forceRefreshPreview": "Icon Studio: Force Refresh Preview (Dev)",
+  "command.devRefreshAll": "Icon Studio: Dev Refresh All (Clear Caches)",
   "command.buildIcons": "Icon Studio: Build Icons",
   "command.searchIcons": "Icon Studio: Search Icons (Iconify)",
   "command.deleteIcons": "Delete Icon(s)",

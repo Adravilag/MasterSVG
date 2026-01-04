@@ -13,9 +13,6 @@
         <span class="badge badge-anim" id="animBadge" style="display: none;">
            <span class="codicon codicon-play"></span> <span id="animName"></span>
         </span>
-        <span class="badge badge-optimized" id="optimizedBadge" style="display: none;">
-           <span class="codicon codicon-rocket"></span> ${i18n_optimizedBadge}
-        </span>
         <span class="file-size" id="fileSize">${fileSizeStr}</span>
       </div>
     </header>
@@ -60,26 +57,6 @@
           <button class="action-btn" onclick="copySvg()" title="${i18n_copySvg}">
             <span class="codicon codicon-copy"></span>
           </button>
-          <button class="action-btn optimize-btn" id="optimizeBtn" onclick="optimizeSvg('safe')" title="${i18n_optimizeSvg}">
-            <span class="codicon codicon-rocket"></span>
-          </button>
-        </div>
-        
-        <!-- Optimize Result (shows after optimization) -->
-        <div class="optimize-result-bar" id="optimizeResultBar" style="display: none;">
-          <div class="optimize-info">
-            <span class="optimize-savings-badge" id="optimizeSavingsText">--%</span>
-            <span class="optimize-size-text" id="optimizeSizeText"></span>
-          </div>
-          <div class="optimize-build-hint" id="optimizeBuildHint">
-            <span class="codicon codicon-arrow-right"></span>
-            <span>${i18n_applyOnBuild}</span>
-          </div>
-          <div class="optimize-bar-actions" id="optimizeBarActions">
-            <button class="mini-btn" id="btnRevertOptimized" onclick="revertOptimized()" title="${i18n_discardOptimization}" style="display: none;">
-              <span class="codicon codicon-close"></span>
-            </button>
-          </div>
         </div>
 
 
@@ -92,7 +69,7 @@
             <button class="tab-btn active" onclick="switchTab('color')">
               <span class="codicon codicon-symbol-color"></span> ${i18n_tabColor}
             </button>
-            <button class="tab-btn" onclick="switchTab('animation')">
+            <button class="tab-btn" onclick="switchTab('animation'); onAnimationTabOpen();">
               <span class="codicon codicon-play"></span> ${i18n_tabAnimation}
             </button>
             <button class="tab-btn" onclick="switchTab('code')">

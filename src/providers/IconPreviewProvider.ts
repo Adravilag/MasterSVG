@@ -30,96 +30,6 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
     this._templateService = new PreviewTemplateService(_extensionUri);
   }
 
-  // Read variants from variants.js file
-  private _getVariantsFilePath(): string | undefined {
-    const outputDir = getSvgConfig<string>('outputDirectory', '');
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (!workspaceFolders || !outputDir) return undefined;
-    return path.join(workspaceFolders[0].uri.fsPath, outputDir, 'variants.js');
-  }
-
-  private _readVariantsFromFile(): Record<string, Record<string, string[]>> {
-    try {
-      const filePath = this._getVariantsFilePath();
-      if (!filePath || !fs.existsSync(filePath)) return {};
-      const content = fs.readFileSync(filePath, 'utf-8');
-      const match = content.match(/export\s+const\s+Variants\s*=\s*(\{[\s\S]*\});/);
-      if (match) {
-        return new Function(`return ${match[1]}`)();
-      }
-      return {};
-    } catch {
-      return {};
-    }
-  }
-
-  private _readColorMappings(): Record<string, Record<string, string>> {
-    try {
-      const filePath = this._getVariantsFilePath();
-      if (!filePath || !fs.existsSync(filePath)) return {};
-      const content = fs.readFileSync(filePath, 'utf-8');
-      const match = content.match(/export\s+const\s+colorMappings\s*=\s*(\{[\s\S]*?\});/);
-      if (match) {
-        return new Function(`return ${match[1]}`)();
-      }
-      return {};
-    } catch {
-      return {};
-    }
-  }
-
-  private _applyColorMappings(svg: string, iconName: string): string {
-    const allMappings = this._readColorMappings();
-    const mappings = allMappings[iconName];
-    
-    // Debug logging
-    console.log(`[IconPreviewProvider._applyColorMappings] iconName: ${iconName}`);
-    console.log(`[IconPreviewProvider._applyColorMappings] Available icons in mappings:`, Object.keys(allMappings));
-    console.log(`[IconPreviewProvider._applyColorMappings] Mappings for ${iconName}:`, mappings);
-    
-    if (!mappings || Object.keys(mappings).length === 0) return svg;
-
-    let result = svg;
-    for (const [originalColor, newColor] of Object.entries(mappings)) {
-      // Replace color in fill and stroke attributes (case insensitive)
-      // Fix: Properly escape the original color for regex
-      const escapedColor = originalColor.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regex = new RegExp(escapedColor, 'gi');
-      result = result.replace(regex, newColor);
-    }
-    return result;
-  }
-
-  private _getSavedVariants(iconName: string): Array<{ name: string; colors: string[] }> {
-    const allVariants = this._readVariantsFromFile();
-    const iconVariants = allVariants[iconName] || {};
-
-    // Check if there are color modifications
-    const colorMappings = this._readColorMappings()[iconName] || {};
-    const hasColorChanges = Object.keys(colorMappings).length > 0;
-
-    // Build array with proper ordering: _original first, then others alphabetically
-    const variantsArray: Array<{ name: string; colors: string[] }> = [];
-    
-    // Add _original first if it exists
-    if (iconVariants._original) {
-      variantsArray.push({ name: '_original', colors: iconVariants._original });
-    }
-    
-    // Add other variants sorted alphabetically (excluding internal _* and excluding 'custom' if no color changes)
-    const otherVariants = Object.entries(iconVariants)
-      .filter(([name]) => {
-        if (name === '_original') return false; // Already added
-        if (name.startsWith('_')) return false; // Skip other internal variants
-        if (name === 'custom' && !hasColorChanges) return false; // Skip custom if no color changes
-        return true;
-      })
-      .sort(([nameA], [nameB]) => nameA.localeCompare(nameB)) // Sort alphabetically
-      .map(([name, colors]) => ({ name, colors }));
-    
-    return [...variantsArray, ...otherVariants];
-  }
-
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
     _context: vscode.WebviewViewResolveContext,
@@ -263,21 +173,21 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
     animation?: PreviewAnimation
   ) {
     console.log(`[IconPreviewProvider.updatePreview] Updating preview for: ${name}, isBuilt: ${isBuilt}`);
-    
+    console.log(`[IconPreviewProvider.updatePreview] SVG length: ${svg?.length}, has animation: ${!!animation}`);
+    if (animation) {
+      console.log(`[IconPreviewProvider.updatePreview] Animation: ${JSON.stringify(animation)}`);
+    }
+    // Log first 500 chars of SVG for debugging
+    console.log(`[IconPreviewProvider.updatePreview] SVG preview: ${svg?.substring(0, 500)}`);
+
     this._currentSvg = svg;
     this._currentName = name;
     this._currentLocation = location;
     this._isBuilt = isBuilt;
     this._currentAnimation = animation;
 
-    // Apply color mappings for built icons to show current colors
-    let displaySvg = svg;
-    if (isBuilt) {
-      console.log(`[IconPreviewProvider.updatePreview] Applying color mappings for ${name}`);
-      displaySvg = this._applyColorMappings(svg, name);
-    } else {
-      console.log(`[IconPreviewProvider.updatePreview] ${name} is NOT built, skipping color mappings`);
-    }
+    // Preview shows SVG as-is from file, no transformations
+    const displaySvg = svg;
 
     // Detect if SVG is rasterized (too many colors)
     const MAX_COLORS_FOR_EDIT = 50;
@@ -288,10 +198,6 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
       ? new Set(colorMatches.map(c => c.toLowerCase())).size > MAX_COLORS_FOR_EDIT
       : false;
 
-    // Get saved variants for this icon
-    const variants = this._getSavedVariants(name);
-    console.log(`[IconPreviewProvider.updatePreview] Variants: ${variants.map(v => v.name).join(', ')}`);
-
     if (this._view) {
       this._view.webview.html = this._templateService.generateHtml({
         name,
@@ -300,7 +206,6 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
         isBuilt,
         animation,
         isRasterized,
-        variants,
       });
     }
   }
@@ -317,19 +222,27 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Update only the SVG content without regenerating the entire HTML.
-   * Used when Editor changes colors and needs to sync with TreeView preview.
-   * @param currentColors - Optional colors from Editor to show as "custom" variant in real-time
+   * Force refresh the preview by clearing CSS cache and regenerating HTML
+   * Useful during development to see template changes
    */
-  public updateSvgContent(name: string, svg: string, currentColors?: string[]) {
-    // Only update if we're showing the same icon
-    if (this._currentName === name && this._view) {
-      this._currentSvg = svg;
-      this._view.webview.postMessage({
-        command: 'updateSvgContent',
-        svg: svg,
-        customColors: currentColors,
-      });
+  public forceRefresh(): void {
+    // Clear CSS cache in template service
+    this._templateService.clearCache();
+
+    // If we have current data, regenerate the preview
+    if (this._currentSvg && this._currentName) {
+      this.updatePreview(
+        this._currentName,
+        this._currentSvg,
+        this._currentLocation,
+        this._isBuilt,
+        this._currentAnimation
+      );
+    } else if (this._view) {
+      // Otherwise just regenerate empty state
+      this._view.webview.html = this._templateService.generateHtml({ name: '', svg: '' });
     }
+
+    vscode.window.showInformationMessage('Preview cache cleared and refreshed');
   }
 }

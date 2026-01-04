@@ -17,6 +17,9 @@ export interface RefreshableProviders {
     refreshFile(filePath: string): void;
     refreshItemByName?(name: string): void;
   };
+  iconPreviewProvider?: {
+    forceRefresh(): void;
+  };
 }
 
 /**
@@ -94,6 +97,26 @@ export function registerRefreshCommands(providers: RefreshableProviders): vscode
         providers.svgFilesProvider.refreshItemByName?.(iconName);
         providers.builtIconsProvider.refreshItemByName?.(iconName);
       }
+    })
+  );
+
+  // Command: Force refresh preview (clears CSS cache - useful for development)
+  disposables.push(
+    vscode.commands.registerCommand('sageboxIconStudio.forceRefreshPreview', () => {
+      providers.iconPreviewProvider?.forceRefresh();
+    })
+  );
+
+  // Command: Full dev refresh (all views + preview cache clear)
+  disposables.push(
+    vscode.commands.registerCommand('sageboxIconStudio.devRefreshAll', () => {
+      // Clear preview cache first
+      providers.iconPreviewProvider?.forceRefresh();
+      // Then refresh all tree views
+      providers.builtIconsProvider.refresh();
+      providers.svgFilesProvider.refresh();
+      providers.workspaceSvgProvider.refresh();
+      vscode.window.showInformationMessage('All views and caches refreshed');
     })
   );
 

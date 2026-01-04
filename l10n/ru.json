@@ -317,6 +317,7 @@
     "copiedNameToClipboard": "\"{name}\" скопировано в буфер обмена",
     "svgAlreadyOptimized": "SVG уже оптимизирован",
     "optimizedSvgApplied": "Оптимизированный SVG применён",
+    "failedToApplyOptimizedSvg": "Не удалось применить оптимизированный SVG",
     "addedFillColor": "Добавлен цвет заливки: {color}",
     "variantSaved": "Вариант \"{name}\" сохранён",
     "variantSetAsDefault": "\"{name}\" теперь вариант по умолчанию для {iconName}",
@@ -475,6 +476,7 @@
       "componentName": "Имя компонента",
       "outputFormat": "Формат вывода",
       "webComponentName": "Имя Web-компонента",
+      "openWelcome": "Открыть полную настройку",
       "svgSprite": "SVG Спрайт",
       "webComponentJs": "Web-компонент (JS)",
       "both": "Оба",
@@ -500,7 +502,8 @@
       "svgFoldersDesc": "Папки для сканирования SVG файлов",
       "componentNameDesc": "Имя компонента Icon (напр. Icon)",
       "outputFormatDesc": "Формат вывода по умолчанию (jsx, vue, svelte и т.д.)",
-      "webComponentNameDesc": "Имя пользовательского элемента (напр. sagebox-icon)"
+      "webComponentNameDesc": "Имя пользовательского элемента (напр. sagebox-icon)",
+      "openWelcomeDesc": "Открыть панель приветствия со всеми настройками"
     },
     "validation": {
       "nameCannotBeEmpty": "Имя не может быть пустым",

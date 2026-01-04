@@ -59,6 +59,11 @@ import {
   handleRefresh,
   handleSaveAnimation,
 } from '../handlers/IconEditorIconHandlers';
+import {
+  handleSaveAnimationPreset,
+  handleDeleteAnimationPreset,
+  handleGetAnimationPresets,
+} from '../handlers/IconEditorAnimationHandlers';
 import { getAnimationService } from '../services/AnimationAssignmentService';
 
 interface IconAnimation {
@@ -79,6 +84,7 @@ interface IconData {
   viewBox?: string; // ViewBox for sprite icons
   isBuilt?: boolean; // Whether icon comes from built icons
   animation?: IconAnimation; // Animation settings from built icon
+  selectedVariantIndex?: number; // Index of selected variant from details panel
 }
 
 export class IconEditorPanel {
@@ -111,8 +117,8 @@ export class IconEditorPanel {
           IconEditorPanel.currentPanel._originalSvg = data.svg;
         }
         IconEditorPanel.currentPanel._originalColors =
-          IconEditorPanel.currentPanel._colorService.extractColorsFromSvg(data.svg).colors;
-        IconEditorPanel.currentPanel._selectedVariantIndex = -1;
+          IconEditorPanel.currentPanel._colorService.extractAllColorsFromSvg(data.svg).colors;
+        IconEditorPanel.currentPanel._selectedVariantIndex = data.selectedVariantIndex ?? -1;
         IconEditorPanel.currentPanel._ensureCustomVariant();
         IconEditorPanel.currentPanel._update();
       }
@@ -144,12 +150,18 @@ export class IconEditorPanel {
     if (this._iconData?.svg) {
       this._iconData.svg = SvgManipulationService.cleanAnimationFromSvg(this._iconData.svg);
       this._originalSvg = this._iconData.svg; // Store original SVG for Build
-      
+
       // IMPORTANT: Extract ALL colors (not filtered) for variant storage
       // This ensures we save the complete palette, not just the primary colors
       const allColors = this._colorService.extractAllColorsFromSvg(this._iconData.svg).colors;
       this._originalColors = allColors;
       console.log(`[IconEditorPanel] Extracted ${allColors.length} colors for variants storage:`, allColors);
+
+      // Load selected variant if passed from details panel
+      this._selectedVariantIndex = data?.selectedVariantIndex ?? -1;
+      if (this._selectedVariantIndex >= 0) {
+        console.log(`[IconEditorPanel] Loading variant at index ${this._selectedVariantIndex}`);
+      }
 
       // Ensure "custom" variant exists for every icon
       this._ensureCustomVariant();
@@ -345,6 +357,27 @@ export class IconEditorPanel {
         break;
       case 'refresh':
         handleRefresh();
+        break;
+      case 'saveAnimationPreset':
+        await handleSaveAnimationPreset(
+          message as {
+            name?: string;
+            settings?: Record<string, unknown>;
+            animationType?: string;
+            iconName?: string;
+          }
+        );
+        break;
+      case 'deleteAnimationPreset':
+        await handleDeleteAnimationPreset(
+          message as { name?: string; iconName?: string }
+        );
+        break;
+      case 'getAnimationPresets':
+        await handleGetAnimationPresets(
+          this._panel.webview,
+          this._iconData?.name || ''
+        );
         break;
       case 'log':
         // Webview log - no-op in production
@@ -1020,6 +1053,7 @@ export class IconEditorPanel {
 
     const jsContent = jsTemplate
       .replace(/__I18N__/g, JSON.stringify(i18nObject))
+      .replace(/__ICON_NAME__/g, JSON.stringify(this._iconData?.name || ''))
       .replace(/__ANIMATION_TYPE__/g, JSON.stringify(detectedAnimation?.type || 'none'))
       .replace(
         /__ANIMATION_DURATION__/g,

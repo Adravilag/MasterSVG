@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { ensureOutputDirectory } from '../utils/configHelper';
 import { t } from '../i18n';
 
 /**
@@ -17,29 +16,19 @@ export function registerConfigCommands(_context: vscode.ExtensionContext): vscod
 
       const items: vscode.QuickPickItem[] = [
         {
-          label: t('ui.labels.outputDirectory'),
-          description: config.get<string>('outputDirectory'),
-          detail: t('ui.details.outputDirectoryDesc'),
+          label: `$(gear) ${t('ui.labels.openWelcome')}`,
+          description: '',
+          detail: t('ui.details.openWelcomeDesc'),
         },
         {
-          label: t('ui.labels.svgFolders'),
-          description: (config.get<string[]>('svgFolders') || []).join(', '),
-          detail: t('ui.details.svgFoldersDesc'),
-        },
-        {
-          label: t('ui.labels.componentName'),
+          label: `$(symbol-string) ${t('ui.labels.componentName')}`,
           description: config.get<string>('componentName'),
           detail: t('ui.details.componentNameDesc'),
         },
         {
-          label: t('ui.labels.outputFormat'),
+          label: `$(file-code) ${t('ui.labels.outputFormat')}`,
           description: config.get<string>('outputFormat'),
           detail: t('ui.details.outputFormatDesc'),
-        },
-        {
-          label: t('ui.labels.webComponentName'),
-          description: config.get<string>('webComponentName'),
-          detail: t('ui.details.webComponentNameDesc'),
         },
       ];
 
@@ -51,37 +40,9 @@ export function registerConfigCommands(_context: vscode.ExtensionContext): vscod
         return;
       }
 
-      if (selection.label === t('ui.labels.outputDirectory')) {
-        const outputDir = await vscode.window.showInputBox({
-          prompt: t('ui.prompts.enterOutputDirectory'),
-          value: config.get('outputDirectory') || 'sagebox-icons',
-          placeHolder: t('ui.placeholders.outputDirectoryExample'),
-        });
-
-        if (outputDir !== undefined) {
-          await config.update('outputDirectory', outputDir, vscode.ConfigurationTarget.Workspace);
-          ensureOutputDirectory();
-          vscode.window.showInformationMessage(
-            t('messages.outputDirectorySet', { path: outputDir })
-          );
-        }
-      } else if (selection.label === t('ui.labels.svgFolders')) {
-        const currentFolders = config.get<string[]>('svgFolders') || [];
-        const foldersStr = await vscode.window.showInputBox({
-          prompt: t('ui.prompts.enterSvgFolders'),
-          value: currentFolders.join(', '),
-          placeHolder: t('ui.placeholders.svgFoldersExample'),
-        });
-        if (foldersStr !== undefined) {
-          const folders = foldersStr
-            .split(',')
-            .map(s => s.trim())
-            .filter(s => s.length > 0);
-          await config.update('svgFolders', folders, vscode.ConfigurationTarget.Workspace);
-          vscode.window.showInformationMessage(t('messages.svgFoldersUpdated'));
-          vscode.commands.executeCommand('sageboxIconStudio.refreshIcons');
-        }
-      } else if (selection.label === t('ui.labels.componentName')) {
+      if (selection.label.includes(t('ui.labels.openWelcome'))) {
+        vscode.commands.executeCommand('sageboxIconStudio.showWelcome');
+      } else if (selection.label.includes(t('ui.labels.componentName'))) {
         const name = await vscode.window.showInputBox({
           prompt: t('ui.prompts.enterComponentName'),
           value: config.get('componentName') || 'Icon',
@@ -90,7 +51,7 @@ export function registerConfigCommands(_context: vscode.ExtensionContext): vscod
           await config.update('componentName', name, vscode.ConfigurationTarget.Workspace);
           vscode.window.showInformationMessage(t('messages.componentNameSet', { name }));
         }
-      } else if (selection.label === t('ui.labels.outputFormat')) {
+      } else if (selection.label.includes(t('ui.labels.outputFormat'))) {
         const format = await vscode.window.showQuickPick(
           ['jsx', 'vue', 'svelte', 'astro', 'html'],
           {
@@ -100,15 +61,6 @@ export function registerConfigCommands(_context: vscode.ExtensionContext): vscod
         if (format) {
           await config.update('outputFormat', format, vscode.ConfigurationTarget.Workspace);
           vscode.window.showInformationMessage(t('messages.outputFormatSet', { format }));
-        }
-      } else if (selection.label === t('ui.labels.webComponentName')) {
-        const name = await vscode.window.showInputBox({
-          prompt: t('ui.prompts.enterWebComponentName'),
-          value: config.get('webComponentName') || 'sagebox-icon',
-        });
-        if (name) {
-          await config.update('webComponentName', name, vscode.ConfigurationTarget.Workspace);
-          vscode.window.showInformationMessage(t('messages.componentNameSet', { name }));
         }
       }
     })

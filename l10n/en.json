@@ -319,6 +319,7 @@
     "copiedNameToClipboard": "Copied \"{name}\" to clipboard",
     "svgAlreadyOptimized": "SVG is already optimized",
     "optimizedSvgApplied": "Optimized SVG applied",
+    "failedToApplyOptimizedSvg": "Failed to apply optimized SVG",
     "addedFillColor": "Added fill color: {color}",
     "variantSaved": "Variant \"{name}\" saved",
     "variantSetAsDefault": "\"{name}\" is now the default variant for {iconName}",
@@ -472,6 +473,7 @@
       "componentName": "Component Name",
       "outputFormat": "Output Format",
       "webComponentName": "Web Component Name",
+      "openWelcome": "Open Full Configuration",
       "svgSprite": "SVG Sprite",
       "webComponentJs": "Web Component (JS)",
       "both": "Both",
@@ -502,7 +504,8 @@
       "svgFoldersDesc": "Folders to scan for SVG files",
       "componentNameDesc": "Name of the Icon component (e.g. Icon)",
       "outputFormatDesc": "Default output format (jsx, vue, svelte, etc.)",
-      "webComponentNameDesc": "Name for the custom element (e.g. sagebox-icon)"
+      "webComponentNameDesc": "Name for the custom element (e.g. sagebox-icon)",
+      "openWelcomeDesc": "Open welcome panel with all configuration options"
     },
     "validation": {
       "nameCannotBeEmpty": "Name cannot be empty",

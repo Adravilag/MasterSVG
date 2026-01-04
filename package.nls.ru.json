@@ -16,6 +16,8 @@
   "command.refreshFiles": "Icon Studio: Обновить файлы",
   "command.refreshCode": "Icon Studio: Обновить код",
   "command.refreshBuilt": "Icon Studio: Обновить собранные иконки",
+  "command.forceRefreshPreview": "Icon Studio: Принудительное обновление предпросмотра (Dev)",
+  "command.devRefreshAll": "Icon Studio: Dev Обновить все (Очистить кэш)",
   "command.buildIcons": "Icon Studio: Собрать иконки",
   "command.searchIcons": "Icon Studio: Поиск иконок (Iconify)",
   "command.deleteIcons": "Удалить иконку(и)",

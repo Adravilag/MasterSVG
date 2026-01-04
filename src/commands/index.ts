@@ -7,7 +7,6 @@ export {
   registerTreeViewCommands,
   type TreeViews,
   type TreeProviders,
-  type TreeViewState,
 } from './treeViewCommands';
 export {
   registerBuildCommands,

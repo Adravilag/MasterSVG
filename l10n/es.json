@@ -319,6 +319,7 @@
     "copiedNameToClipboard": "\"{name}\" copiado al portapapeles",
     "svgAlreadyOptimized": "El SVG ya está optimizado",
     "optimizedSvgApplied": "SVG optimizado aplicado",
+    "failedToApplyOptimizedSvg": "Error al aplicar el SVG optimizado",
     "addedFillColor": "Color de relleno añadido: {color}",
     "variantSaved": "Variante \"{name}\" guardada",
     "variantSetAsDefault": "\"{name}\" es ahora la variante predeterminada para {iconName}",
@@ -477,6 +478,7 @@
       "componentName": "Nombre del Componente",
       "outputFormat": "Formato de Salida",
       "webComponentName": "Nombre del Web Component",
+      "openWelcome": "Abrir Configuración Completa",
       "svgSprite": "SVG Sprite",
       "webComponentJs": "Web Component (JS)",
       "both": "Ambos",
@@ -502,7 +504,8 @@
       "svgFoldersDesc": "Carpetas para escanear archivos SVG",
       "componentNameDesc": "Nombre del componente Icon (ej. Icon)",
       "outputFormatDesc": "Formato de salida por defecto (jsx, vue, svelte, etc.)",
-      "webComponentNameDesc": "Nombre del elemento personalizado (ej. sagebox-icon)"
+      "webComponentNameDesc": "Nombre del elemento personalizado (ej. sagebox-icon)",
+      "openWelcomeDesc": "Abrir panel de bienvenida con todas las opciones"
     },
     "validation": {
       "nameCannotBeEmpty": "El nombre no puede estar vacío",

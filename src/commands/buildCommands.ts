@@ -118,17 +118,26 @@ export function registerBuildCommands(
     vscode.commands.registerCommand(
       'sageboxIconStudio.buildSingleIcon',
       async (data?: { iconName: string; svgContent: string; filePath?: string }) => {
+        console.log('[buildSingleIcon] Called with data:', {
+          iconName: data?.iconName,
+          svgContentLength: data?.svgContent?.length,
+          filePath: data?.filePath,
+        });
+
         if (!data || !data.iconName || !data.svgContent) {
           vscode.window.showErrorMessage(t('messages.noIconSelected'));
           return;
         }
 
         const outputPath = getOutputPathOrWarn();
+        console.log('[buildSingleIcon] outputPath:', outputPath);
         if (!outputPath) return;
 
         const config = getConfig();
         const buildFormat = config.buildFormat || 'icons.js';
         const isSprite = buildFormat === 'sprite.svg';
+
+        console.log('[buildSingleIcon] buildFormat:', buildFormat, 'isSprite:', isSprite);
 
         try {
           if (isSprite) {
@@ -141,6 +150,8 @@ export function registerBuildCommands(
               transformer: svgTransformer,
             });
           }
+
+          console.log('[buildSingleIcon] Icon added successfully');
 
           // Add to cache for immediate detection
           const builtIcon = {

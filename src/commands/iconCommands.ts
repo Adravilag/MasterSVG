@@ -107,9 +107,14 @@ export function registerIconCommands(
         }
 
         // Remove from cache and do partial refresh for each deleted file
-        for (const { path: filePath } of svgFilesToRemove) {
+        for (const { name: iconName, path: filePath } of svgFilesToRemove) {
           // removeItem handles both cache removal and partial view refresh
           svgFilesProvider.removeItem(filePath);
+          // Also clean variants cache for deleted icon
+          const variantsService = new VariantsService();
+          variantsService.removeIconData(iconName);
+          variantsService.persistToFile();
+          variantsService.resetCache();
         }
 
         // Full refresh for built icons (they're in a different file)
@@ -179,6 +184,7 @@ export function registerIconCommands(
             variantsService.removeIconData(name);
           }
           variantsService.persistToFile();
+          variantsService.resetCache(); // Clean cache after removing icons
 
           // Update context for icons.js existence
           updateIconsJsContext();

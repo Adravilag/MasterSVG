@@ -37,9 +37,26 @@ export class IconDetailsPanel {
       IconDetailsPanel.currentPanel._panel.reveal(column);
       if (details) {
         IconDetailsPanel.currentPanel._iconDetails = details;
-        IconDetailsPanel.currentPanel._originalColors = colorService.extractAllColorsFromSvg(
-          details.svg
-        ).colors;
+        
+        // For built icons, try to get the original colors from the _original variant
+        // This is the source of truth for what colors should be considered "original"
+        let originalColors: string[] = [];
+        if (details.isBuilt) {
+          const variantsService = getVariantsService();
+          const savedVariants = variantsService.getSavedVariants(details.name);
+          const originalVariant = savedVariants.find(v => v.name === '_original');
+          if (originalVariant) {
+            originalColors = originalVariant.colors;
+            console.log(`[IconDetailsPanel.createOrShow] Using _original variant colors:`, originalColors);
+          }
+        }
+        
+        // If no _original variant, fall back to extracting from the current SVG
+        if (originalColors.length === 0) {
+          originalColors = colorService.extractAllColorsFromSvg(details.svg).colors;
+        }
+        
+        IconDetailsPanel.currentPanel._originalColors = originalColors;
         IconDetailsPanel.currentPanel._selectedVariantIndex = -1;
         IconDetailsPanel.currentPanel._update(details);
       }
@@ -64,8 +81,26 @@ export class IconDetailsPanel {
     this._panel = panel;
     this._extensionUri = extensionUri;
     this._iconDetails = details;
+    
     if (details) {
-      this._originalColors = colorService.extractAllColorsFromSvg(details.svg).colors;
+      // For built icons, try to get the original colors from the _original variant
+      let originalColors: string[] = [];
+      if (details.isBuilt) {
+        const variantsService = getVariantsService();
+        const savedVariants = variantsService.getSavedVariants(details.name);
+        const originalVariant = savedVariants.find(v => v.name === '_original');
+        if (originalVariant) {
+          originalColors = originalVariant.colors;
+          console.log(`[IconDetailsPanel] Using _original variant colors:`, originalColors);
+        }
+      }
+      
+      // If no _original variant, fall back to extracting from the current SVG
+      if (originalColors.length === 0) {
+        originalColors = colorService.extractAllColorsFromSvg(details.svg).colors;
+      }
+      
+      this._originalColors = originalColors;
     }
 
     this._update(details);
@@ -126,11 +161,11 @@ export class IconDetailsPanel {
 
     try {
       const usages = await usageFinderService.findIconUsages(iconName);
-      
+
       // Filter out usages from the icon output directory (avoid circular references)
       const { getFullOutputPath } = require('../utils/configHelper');
       const outputPath = getFullOutputPath();
-      
+
       const filteredUsages = usages.filter(u => {
         if (!outputPath) return true; // If no output path configured, include all
         // Normalize paths to use forward slashes for comparison
@@ -375,10 +410,6 @@ export class IconDetailsPanel {
       ? `<div class="Variants-disabled-message"><span class="codicon codicon-info"></span> ${t('webview.details.variantsDisabled')}</div>`
       : `<div class="Variants-container" id="VariantsContainer">${this._generateVariantsHtml(name)}</div>`;
 
-    const variantsAddButtonHtml = !hasMoreColors
-      ? `<button class="variant-add-btn" onclick="saveVariant()" title="${t('webview.details.saveVariant')}"><span class="codicon codicon-add"></span></button>`
-      : '';
-
     // Animation section HTML - show animation details if present
     let animationHtml = '';
     if (animation && animation.type && animation.type !== 'none') {
@@ -479,7 +510,6 @@ export class IconDetailsPanel {
         <div class="Variants-section${hasMoreColors ? ' disabled-section' : ''}">
           <div class="Variants-header">
             <h2><span class="codicon codicon-color-mode"></span> ${t('webview.details.variants')}</h2>
-            ${variantsAddButtonHtml}
           </div>
           ${variantsContentHtml}
         </div>

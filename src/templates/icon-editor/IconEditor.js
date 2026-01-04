@@ -5,7 +5,6 @@
     const i18n = __I18N__;
 
     let currentZoom = 3;
-    let optimizedSvg = null;
     let currentAnimation = __ANIMATION_TYPE__;
     let animationSettings = {
       duration: __ANIMATION_DURATION__,
@@ -17,12 +16,7 @@
     const originalColors = __ORIGINAL_COLORS__;
     const currentColors = __CURRENT_COLORS__;
     const zoomLevels = [50, 75, 100, 150, 200];
-
-    window.revertOptimized = function() {
-      vscode.postMessage({
-        command: 'revertOptimization'
-      });
-    };
+    const iconName = __ICON_NAME__;
 
     // Copy to clipboard utility
     window.copyToClipboard = function(text) {
@@ -350,45 +344,9 @@
       vscode.postMessage({ command: 'persistVariants' });
     }
 
-    function optimizeSvg(preset) {
-      const btn = document.getElementById('optimizeBtn');
-      if (btn && btn.classList.contains('optimized')) return;
-
-      vscode.postMessage({ command: 'optimizeSvg', preset });
-    }
-
-    function resetOptimization() {
-      const btn = document.getElementById('optimizeBtn');
-      if (btn) {
-        btn.classList.remove('optimized');
-        btn.title = i18n.optimizeSvgo;
-      }
-      const resultBar = document.getElementById('optimizeResultBar');
-      if (resultBar) resultBar.style.display = 'none';
-
-      const revertBtn = document.getElementById('btnRevertOptimized');
-      if (revertBtn) revertBtn.style.display = 'none';
-    }
-
-    function applyOptimized() {
-      if (optimizedSvg) {
-        vscode.postMessage({ command: 'applyOptimizedSvg', svg: optimizedSvg });
-      }
-    }
-
-    function copyOptimized() {
-      if (optimizedSvg) {
-        vscode.postMessage({ command: 'copySvg', svg: optimizedSvg });
-      }
-    }
-
     function rebuild() {
-      // Check if there's pending optimization
-      const hasPendingOptimization = optimizedSvg !== null;
-
       vscode.postMessage({
         command: 'rebuild',
-        applyOptimization: hasPendingOptimization,
         animation: currentAnimation !== 'none' ? currentAnimation : null,
         animationSettings: currentAnimation !== 'none' ? animationSettings : null
       });
@@ -412,13 +370,6 @@
     window.addEventListener('message', event => {
       const message = event.data;
 
-      if (message.command === 'applyOptimizationBeforeRebuild') {
-        // Server wants us to apply optimization before rebuild
-        if (optimizedSvg) {
-          applyOptimized();
-        }
-      }
-
       if (message.command === 'previewUpdated') {
         // Only update SVG preview, don't touch swatches (picker is open)
         const container = document.getElementById('zoomContainer');
@@ -431,7 +382,6 @@
       }
 
       if (message.command === 'colorChanged') {
-        resetOptimizationButtons();
         // Update preview
         const container = document.getElementById('zoomContainer');
         if (container) container.innerHTML = message.svg;
@@ -476,123 +426,7 @@
         }
       }
 
-      if (message.command === 'optimizeResult') {
-        optimizedSvg = message.svg;
-
-        // Show result bar
-        const resultBar = document.getElementById('optimizeResultBar');
-        if (resultBar) {
-          resultBar.style.display = 'flex';
-        }
-
-        // Update savings badge
-        const savingsText = document.getElementById('optimizeSavingsText');
-        if (savingsText) {
-          if (message.savingsPercent > 0) {
-            savingsText.textContent = '-' + message.savingsPercent.toFixed(1) + '%';
-            savingsText.classList.remove('no-savings');
-          } else {
-            savingsText.textContent = i18n.optimal;
-            savingsText.classList.add('no-savings');
-          }
-        }
-
-        // Update size text
-        const sizeText = document.getElementById('optimizeSizeText');
-        if (sizeText) {
-          sizeText.textContent = message.originalSizeStr + ' → ' + message.optimizedSizeStr;
-        }
-
-        // Show/hide build hint based on savings
-        const buildHint = document.getElementById('optimizeBuildHint');
-        if (buildHint) {
-          buildHint.style.display = message.savingsPercent > 0 ? 'flex' : 'none';
-        }
-
-        // Mark optimize button if already optimal
-        if (message.savingsPercent <= 0) {
-          const optimizeBtn = document.getElementById('optimizeBtn');
-          if (optimizeBtn) {
-            optimizeBtn.classList.add('optimized');
-            optimizeBtn.title = i18n.alreadyOptimized;
-          }
-        }
-      }
-
-      if (message.command === 'optimizedSvgApplied') {
-        // Clear pending optimization
-        optimizedSvg = null;
-
-        // Update preview
-        const container = document.getElementById('zoomContainer');
-        if (container) container.innerHTML = message.svg;
-
-        // Update code tab
-        const codeEl = document.getElementById('svgCodeTab');
-        if (codeEl) {
-          codeEl.innerHTML = message.code;
-        }
-
-        // Update header file size
-        const fileSizeEl = document.getElementById('fileSize');
-        if (fileSizeEl) {
-          const newSize = new Blob([message.svg]).size;
-          const newSizeStr = newSize < 1024 ? newSize + ' B' : (newSize / 1024).toFixed(1) + ' KB';
-          fileSizeEl.textContent = newSizeStr;
-        }
-
-        // Show optimized badge
-        const optimizedBadge = document.getElementById('optimizedBadge');
-        if (optimizedBadge) {
-          optimizedBadge.style.display = 'inline-flex';
-        }
-
-        // Mark optimize button as optimized
-        const optimizeBtn = document.getElementById('optimizeBtn');
-        if (optimizeBtn) {
-          optimizeBtn.classList.add('optimized');
-          optimizeBtn.title = i18n.alreadyOptimized;
-        }
-
-        // Hide build hint, show revert button
-        const buildHint = document.getElementById('optimizeBuildHint');
-        if (buildHint) buildHint.style.display = 'none';
-
-        const revertBtn = document.getElementById('btnRevertOptimized');
-        if (revertBtn) revertBtn.style.display = 'flex';
-      }
-
-      if (message.command === 'optimizationReverted') {
-        // Update preview
-        const container = document.getElementById('zoomContainer');
-        if (container) container.innerHTML = message.svg;
-
-        // Update code tab
-        const codeEl = document.getElementById('svgCodeTab');
-        if (codeEl) {
-          codeEl.innerHTML = message.code;
-        }
-
-        // Update header file size
-        const fileSizeEl = document.getElementById('fileSize');
-        if (fileSizeEl) {
-          const newSize = new Blob([message.svg]).size;
-          const newSizeStr = newSize < 1024 ? newSize + ' B' : (newSize / 1024).toFixed(1) + ' KB';
-          fileSizeEl.textContent = newSizeStr;
-        }
-
-        // Hide optimized badge
-        const optimizedBadge = document.getElementById('optimizedBadge');
-        if (optimizedBadge) {
-          optimizedBadge.style.display = 'none';
-        }
-
-        // Reset optimization UI
-        resetOptimization();
-      }
-
       if (message.command === 'updateVariantselection') {
-        resetOptimization();
         document.querySelectorAll('.variant-item').forEach((el, idx) => {
           if (idx === message.selectedIndex) {
             el.classList.add('selected');
@@ -684,15 +518,14 @@
         }
       });
 
-      // Update export button state
+      // Update export button state (elements may not exist)
       const copyBtn = document.getElementById('copyAnimBtn');
       const hint = document.querySelector('.export-hint');
-      if (type === 'none') {
-        copyBtn.disabled = true;
-        hint.textContent = i18n.selectAnimationToEnable;
-      } else {
-        copyBtn.disabled = false;
-        hint.textContent = i18n.svgWillIncludeAnimation;
+      if (copyBtn) {
+        copyBtn.disabled = type === 'none';
+      }
+      if (hint) {
+        hint.textContent = type === 'none' ? i18n.selectAnimationToEnable : i18n.svgWillIncludeAnimation;
       }
 
       // Show/hide restart animation button and indicator
@@ -895,7 +728,6 @@
     window.copyUsageCode = copyUsageCode;
     window.insertUsageCode = insertUsageCode;
     window.toggleCodeSection = toggleCodeSection;
-    window.optimizeSvg = optimizeSvg;
     window.rebuild = rebuild;
     window.copySvg = copySvg;
     window.saveVariant = saveVariant;
@@ -907,8 +739,6 @@
     window.showAnimCategory = showAnimCategory;
     window.switchTab = switchTab;
     window.applyVariant = applyVariant;
-    window.applyOptimized = applyOptimized;
-    window.copyOptimized = copyOptimized;
     window.generateAutoVariant = generateAutoVariant;
     window.applyDefaultVariant = applyDefaultVariant;
     window.editVariant = editVariant;
@@ -918,4 +748,100 @@
     window.copyWithAnimation = copyWithAnimation;
     window.saveAnimation = saveAnimation;
     window.updateAnimationSetting = updateAnimationSetting;
+
+    // Custom Animation Presets
+    window.saveAsPreset = function() {
+      const input = document.getElementById('presetName');
+      const name = input?.value?.trim();
+      
+      if (!name) {
+        vscode.postMessage({
+          command: 'showMessage',
+          message: i18n.enterPresetName || 'Por favor ingresa un nombre para la animación'
+        });
+        return;
+      }
+
+      vscode.postMessage({
+        command: 'saveAnimationPreset',
+        name: name,
+        settings: animationSettings,
+        animationType: currentAnimation,
+        iconName: iconName
+      });
+      
+      input.value = '';
+    };
+
+    window.deleteAnimationPreset = function(name) {
+      if (confirm(`¿Eliminar la animación personalizada "${name}"?`)) {
+        vscode.postMessage({
+          command: 'deleteAnimationPreset',
+          name: name,
+          iconName: iconName
+        });
+      }
+    };
+
+    window.applyPreset = function(presetData) {
+      if (!presetData) return;
+      
+      currentAnimation = presetData.type || 'none';
+      animationSettings = {
+        duration: presetData.duration || 1,
+        timing: presetData.timing || 'ease-in-out',
+        iteration: presetData.iteration || 1,
+        delay: presetData.delay || 0,
+        direction: presetData.direction || 'normal'
+      };
+
+      // Update UI
+      document.querySelectorAll('.animation-type-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.querySelector(`.animation-type-btn[data-type="${currentAnimation}"]`)?.classList.add('active');
+
+      // Update settings controls
+      document.getElementById('animDuration').value = animationSettings.duration;
+      document.getElementById('animDurationValue').textContent = animationSettings.duration + 's';
+      document.getElementById('animDelay').value = animationSettings.delay;
+      document.getElementById('animDelayValue').textContent = animationSettings.delay + 's';
+      document.getElementById('animTiming').value = animationSettings.timing;
+      document.getElementById('animIteration').value = animationSettings.iteration;
+      document.getElementById('animDirection').value = animationSettings.direction;
+
+      // Update preview
+      updateAnimationPreview();
+
+      vscode.postMessage({
+        command: 'showMessage',
+        message: `Animación "${presetData.name}" aplicada`
+      });
+    };
+
+    window.loadAnimationPresets = function() {
+      // Animation presets section removed from UI
+    };
+
+    window.displayAnimationPresets = function(presets) {
+      // Animation presets section removed from UI
+    };
+
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // Load animation presets when animation tab is opened
+    window.onAnimationTabOpen = function() {
+      // Animation presets section removed from UI
+    };
+
+    // Animation presets listener removed - section no longer in UI
 })();

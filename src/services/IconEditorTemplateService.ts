@@ -160,22 +160,7 @@ ${animationRule}`;
       ``,
       `<!-- Web Component (variant + animation) -->`,
       `<${tagName} name="${iconName}" variant="custom"${animationType && animationType !== 'none' ? ` animation="${animationType}"` : ''}></${tagName}>`,
-      ``,
-      `<!-- SVG Use (Sprite) -->`,
-      `<svg><use href="sprite.svg#${iconName}"></use></svg>`,
-      ``,
-      `<!-- JavaScript Import -->`,
-      `import { ${toVariableName(iconName)} } from './icons.js';`,
-      `// Create web component programmatically and set variant/animation`,
-      `const el = document.createElement('${tagName}');`,
-      `el.setAttribute('name', '${iconName}');`,
-      `el.setAttribute('variant', 'custom');`,
-      `document.body.appendChild(el);`,
     ];
-
-    if (animationType && animationType !== 'none') {
-      lines.splice(lines.length - 1, 0, `el.setAttribute('animation', '${animationType}');`);
-    }
 
     return getSyntaxHighlighter().highlightUsageCode(lines);
   }

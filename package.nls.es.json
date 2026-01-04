@@ -16,6 +16,8 @@
   "command.refreshFiles": "Icon Studio: Actualizar Archivos",
   "command.refreshCode": "Icon Studio: Actualizar Código",
   "command.refreshBuilt": "Icon Studio: Actualizar Iconos Construidos",
+  "command.forceRefreshPreview": "Icon Studio: Forzar Actualización de Vista Previa (Dev)",
+  "command.devRefreshAll": "Icon Studio: Dev Actualizar Todo (Limpiar Cachés)",
   "command.buildIcons": "Icon Studio: Construir Iconos",
   "command.searchIcons": "Icon Studio: Buscar Iconos (Iconify)",
   "command.deleteIcons": "Eliminar Icono(s)",

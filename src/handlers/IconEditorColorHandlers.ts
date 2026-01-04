@@ -40,17 +40,6 @@ export function handlePreviewColor(
     command: 'previewUpdated',
     svg: updatedSvg,
   });
-
-  // Extract colors from updated SVG for custom variant display
-  const { colors } = ctx.colorService.extractColorsFromSvg(updatedSvg);
-
-  // Update TreeView preview in real-time with current colors
-  vscode.commands.executeCommand(
-    'sageboxIconStudio.updateTreeViewPreview',
-    ctx.iconData.name,
-    updatedSvg,
-    colors
-  );
 }
 
 /**
@@ -80,14 +69,6 @@ export function handleChangeColor(
 
   // Use filtered extraction - only save editable colors (excludes SMIL secondary)
   const { colors } = ctx.colorService.extractColorsFromSvg(updatedSvg);
-
-  // Update TreeView preview with current colors for real-time custom variant display
-  vscode.commands.executeCommand(
-    'sageboxIconStudio.updateTreeViewPreview',
-    ctx.iconData.name,
-    updatedSvg,
-    colors
-  );
 
   // If in "original" (read-only), switch to "custom" automatically
   let targetVariantIndex = ctx.selectedVariantIndex;
