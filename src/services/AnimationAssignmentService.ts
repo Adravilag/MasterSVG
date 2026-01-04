@@ -62,7 +62,7 @@ class AnimationAssignmentService {
    * Get the path to the animations.js file
    */
   private _getAnimationsFilePath(): string | undefined {
-    const outputDir = getSvgConfig<string>('outputDirectory', 'bezier-icons');
+    const outputDir = getSvgConfig<string>('outputDirectory', 'sagebox-icons');
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders || !outputDir) return undefined;
 

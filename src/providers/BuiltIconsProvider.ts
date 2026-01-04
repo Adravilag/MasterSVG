@@ -209,7 +209,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
     
     this.builtIcons.clear();
 
-    const outputDir = getSvgConfig<string>('outputDirectory', 'bezier-svg');
+    const outputDir = getSvgConfig<string>('outputDirectory', 'sagebox-svg');
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) return;
 

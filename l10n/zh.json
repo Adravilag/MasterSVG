@@ -502,7 +502,7 @@
       "svgFoldersDesc": "要扫描 SVG 文件的文件夹",
       "componentNameDesc": "Icon 组件的名称（例如 Icon）",
       "outputFormatDesc": "默认输出格式（jsx、vue、svelte 等）",
-      "webComponentNameDesc": "自定义元素的名称（例如 bezier-icon）"
+      "webComponentNameDesc": "自定义元素的名称（例如 sagebox-icon）"
     },
     "validation": {
       "nameCannotBeEmpty": "名称不能为空",
@@ -667,6 +667,7 @@
       "noIconsFound": "未找到图标。扫描工作区以检测 SVG 文件。",
       "noIconsMatch": "没有图标匹配您的搜索。",
       "noUsagesFound": "在工作区中未找到使用",
+      "found": "已找到",
       "original": "原始:",
       "optimized": "已优化:",
       "saved": "节省:",

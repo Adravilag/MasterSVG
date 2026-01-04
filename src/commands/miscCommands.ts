@@ -88,7 +88,7 @@ export function registerMiscCommands(
           ? originalPath
           : path.resolve(docDir, originalPath);
         const fileExists = fs.existsSync(fullSvgPath);
-        
+
         if (fileExists) {
           menuOptions.push({
             label: `$(file-media) ${t('ui.labels.useReferencedSvg')}`,

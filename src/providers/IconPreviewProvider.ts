@@ -69,13 +69,22 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
   }
 
   private _applyColorMappings(svg: string, iconName: string): string {
-    const mappings = this._readColorMappings()[iconName];
+    const allMappings = this._readColorMappings();
+    const mappings = allMappings[iconName];
+    
+    // Debug logging
+    console.log(`[IconPreviewProvider._applyColorMappings] iconName: ${iconName}`);
+    console.log(`[IconPreviewProvider._applyColorMappings] Available icons in mappings:`, Object.keys(allMappings));
+    console.log(`[IconPreviewProvider._applyColorMappings] Mappings for ${iconName}:`, mappings);
+    
     if (!mappings || Object.keys(mappings).length === 0) return svg;
 
     let result = svg;
     for (const [originalColor, newColor] of Object.entries(mappings)) {
       // Replace color in fill and stroke attributes (case insensitive)
-      const regex = new RegExp(originalColor.replace('#', '#?'), 'gi');
+      // Fix: Properly escape the original color for regex
+      const escapedColor = originalColor.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escapedColor, 'gi');
       result = result.replace(regex, newColor);
     }
     return result;
@@ -89,15 +98,26 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
     const colorMappings = this._readColorMappings()[iconName] || {};
     const hasColorChanges = Object.keys(colorMappings).length > 0;
 
-    // Include _original variant for reset functionality, but filter other internal variants
-    // Also filter out "custom" if there are no color changes (would be duplicate of _original)
-    return Object.entries(iconVariants)
+    // Build array with proper ordering: _original first, then others alphabetically
+    const variantsArray: Array<{ name: string; colors: string[] }> = [];
+    
+    // Add _original first if it exists
+    if (iconVariants._original) {
+      variantsArray.push({ name: '_original', colors: iconVariants._original });
+    }
+    
+    // Add other variants sorted alphabetically (excluding internal _* and excluding 'custom' if no color changes)
+    const otherVariants = Object.entries(iconVariants)
       .filter(([name]) => {
-        if (name.startsWith('_') && name !== '_original') return false;
-        if (name === 'custom' && !hasColorChanges) return false;
+        if (name === '_original') return false; // Already added
+        if (name.startsWith('_')) return false; // Skip other internal variants
+        if (name === 'custom' && !hasColorChanges) return false; // Skip custom if no color changes
         return true;
       })
+      .sort(([nameA], [nameB]) => nameA.localeCompare(nameB)) // Sort alphabetically
       .map(([name, colors]) => ({ name, colors }));
+    
+    return [...variantsArray, ...otherVariants];
   }
 
   public resolveWebviewView(
@@ -242,6 +262,8 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
     isBuilt?: boolean,
     animation?: PreviewAnimation
   ) {
+    console.log(`[IconPreviewProvider.updatePreview] Updating preview for: ${name}, isBuilt: ${isBuilt}`);
+    
     this._currentSvg = svg;
     this._currentName = name;
     this._currentLocation = location;
@@ -251,7 +273,10 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
     // Apply color mappings for built icons to show current colors
     let displaySvg = svg;
     if (isBuilt) {
+      console.log(`[IconPreviewProvider.updatePreview] Applying color mappings for ${name}`);
       displaySvg = this._applyColorMappings(svg, name);
+    } else {
+      console.log(`[IconPreviewProvider.updatePreview] ${name} is NOT built, skipping color mappings`);
     }
 
     // Detect if SVG is rasterized (too many colors)
@@ -265,6 +290,7 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
 
     // Get saved variants for this icon
     const variants = this._getSavedVariants(name);
+    console.log(`[IconPreviewProvider.updatePreview] Variants: ${variants.map(v => v.name).join(', ')}`);
 
     if (this._view) {
       this._view.webview.html = this._templateService.generateHtml({

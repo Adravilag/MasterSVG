@@ -13,6 +13,7 @@ import {
 import { t } from '../i18n';
 import { getIconLicenseInfoSync, parseIconifyName } from '../services/LicenseService';
 import { getKeyframesForAnimation } from '../services/AnimationKeyframes';
+import { scopeSvgIds } from '../utils/svgIdScoper';
 
 export { IconDetails, IconAnimation };
 
@@ -125,10 +126,24 @@ export class IconDetailsPanel {
 
     try {
       const usages = await usageFinderService.findIconUsages(iconName);
-      const formattedUsages = usages.map(u => ({
+      
+      // Filter out usages from the icon output directory (avoid circular references)
+      const { getFullOutputPath } = require('../utils/configHelper');
+      const outputPath = getFullOutputPath();
+      
+      const filteredUsages = usages.filter(u => {
+        if (!outputPath) return true; // If no output path configured, include all
+        // Normalize paths to use forward slashes for comparison
+        const normalizedUsageFile = u.file.replace(/\\/g, '/');
+        const normalizedOutputPath = outputPath.replace(/\\/g, '/');
+        return !normalizedUsageFile.includes(normalizedOutputPath);
+      });
+
+      const formattedUsages = filteredUsages.map(u => ({
         file: u.file,
         line: u.line,
-        preview: u.text.substring(0, 100) + (u.text.length > 100 ? '...' : ''),
+        // Provide full usage text so inline SVG (with <defs>, ids, etc.) is shown completely
+        preview: u.text,
       }));
 
       this._panel.webview.postMessage({
@@ -168,7 +183,7 @@ export class IconDetailsPanel {
 
     const { name, svg, location, isBuilt, animation } = this._iconDetails;
 
-    
+
 
     // Extract data from SVG
     const viewBoxMatch = svg.match(/viewBox=["']([^"']+)["']/);
@@ -252,6 +267,14 @@ export class IconDetailsPanel {
       animationKeyframes = getKeyframesForAnimation(animation.type);
     }
 
+    // Scope SVG ids to avoid collisions when multiple previews or templates are on the same page
+    try {
+      const idSuffix = 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      displaySvg = scopeSvgIds(displaySvg, idSuffix);
+    } catch {
+      // ignore scoping errors and fall back to original svg
+    }
+
     // Extract colors from SVG using ColorService
     const { colors: allColors, hasCurrentColor } = colorService.extractAllColorsFromSvg(svg);
     const totalColorCount = allColors.length;
@@ -269,6 +292,7 @@ export class IconDetailsPanel {
     // Inject i18n translations into JS
     const i18nObject = {
       noUsagesFound: t('webview.js.noUsagesFound'),
+      found: t('webview.js.found'),
       original: t('webview.js.original'),
       optimized: t('webview.js.optimized'),
       saved: t('webview.js.saved'),
@@ -314,7 +338,7 @@ export class IconDetailsPanel {
       // Build Iconify URLs
       const iconifyPageUrl = `https://icon-sets.iconify.design/${iconifyParsed.prefix}/${iconifyParsed.name}/`;
       const iconifyDownloadUrl = `https://api.iconify.design/${iconifyParsed.prefix}/${iconifyParsed.name}.svg`;
-      
+
       if (licenseInfo) {
         const authorLink = licenseInfo.author?.url
           ? `<a href="${licenseInfo.author.url}" class="license-link" onclick="openExternal('${licenseInfo.author.url}')">${licenseInfo.author.name}</a>`
@@ -364,9 +388,9 @@ export class IconDetailsPanel {
       if (animation.iteration) animDetails.push(animation.iteration);
       if (animation.delay) animDetails.push(`delay: ${animation.delay}s`);
       if (animation.direction) animDetails.push(animation.direction);
-      
+
       const detailsStr = animDetails.length > 0 ? ` · ${animDetails.join(' · ')}` : '';
-      
+
       animationHtml = `<div class="animation-section">
           <h2><span class="codicon codicon-play"></span> ${t('webview.details.animation')}</h2>
           <div class="animation-info">
@@ -392,36 +416,36 @@ export class IconDetailsPanel {
       <span class="icon-name">${name}</span>
       ${badgeHtml}
     </header>
-    
+
     <div class="content">
       <div class="preview-section">
         <div class="preview-container">
           <div class="preview-box zoom-3" id="previewBox">${displaySvg}</div>
         </div>
-        
+
         <div class="zoom-controls">
           <button class="zoom-btn" onclick="zoomOut()" title="${t('webview.details.zoomOut')}"><span class="codicon codicon-zoom-out"></span></button>
           <span class="zoom-level" id="zoomLevel">100%</span>
           <button class="zoom-btn" onclick="zoomIn()" title="${t('webview.details.zoomIn')}"><span class="codicon codicon-zoom-in"></span></button>
           <button class="zoom-btn" onclick="resetZoom()" title="${t('webview.details.resetZoom')}"><span class="codicon codicon-screen-normal"></span></button>
         </div>
-        
+
         <div class="quick-actions">
           <button class="action-btn" onclick="copyName()" title="${t('webview.details.copyIconName')}"><span class="codicon codicon-copy"></span></button>
           <button class="action-btn" onclick="copySvg()" title="${t('webview.details.copySvgCode')}"><span class="codicon codicon-code"></span></button>
           <button class="action-btn primary" onclick="openEditor()" title="${t('webview.details.openInEditor')}"><span class="codicon codicon-edit"></span></button>
           ${locationButtonHtml}
         </div>
-        
+
         <div class="color-picker-section">
           <div class="color-picker-title"><span class="codicon codicon-symbol-color"></span> ${t('webview.details.colors')}</div>
           ${colorsHtml}
         </div>
       </div>
-      
+
       <div class="details-section">
         <h2>${t('webview.details.properties')}</h2>
-        
+
         <!-- Compact Stats Row -->
         <div class="stats-row">
           <div class="stat-item">
@@ -439,7 +463,7 @@ export class IconDetailsPanel {
             <span class="stat-label">Elements</span>
           </div>
         </div>
-        
+
         <div class="details-grid">
           <div class="detail-card">
             <div class="detail-label"><span class="codicon codicon-symbol-class"></span> ${t('webview.details.elementsBreakdown') || 'Elements Breakdown'}</div>
@@ -449,9 +473,9 @@ export class IconDetailsPanel {
           ${locationCardHtml}
           ${licenseCardHtml}
         </div>
-        
+
         ${animationHtml}
-        
+
         <div class="Variants-section${hasMoreColors ? ' disabled-section' : ''}">
           <div class="Variants-header">
             <h2><span class="codicon codicon-color-mode"></span> ${t('webview.details.variants')}</h2>
@@ -459,7 +483,7 @@ export class IconDetailsPanel {
           </div>
           ${variantsContentHtml}
         </div>
-        
+
         <div class="usages-section">
           <div class="usages-header">
             <h2><span class="codicon codicon-references"></span> ${t('webview.details.usages')}</h2>
@@ -484,7 +508,7 @@ export class IconDetailsPanel {
 
     // Original variant item (always present)
     const originalVariant = `
-      <div class="variant-item default${this._selectedVariantIndex === -1 ? ' selected' : ''}${!defaultVariant ? ' is-default' : ''}" onclick="applyDefaultVariant()" title="Original colors${!defaultVariant ? ' (active default)' : ''}">
+      <div class="variant-item default${this._selectedVariantIndex === -1 ? ' selected' : ''}" onclick="applyDefaultVariant()" title="Original colors">
         <div class="variant-colors">
           ${this._originalColors
             .slice(0, 4)
@@ -493,9 +517,7 @@ export class IconDetailsPanel {
         </div>
         <span class="variant-name">original</span>
         <div class="variant-actions">
-          <button class="variant-set-default${!defaultVariant ? ' active' : ''}" onclick="event.stopPropagation(); setDefaultVariant(null)" title="${!defaultVariant ? 'Currently default' : 'Set as default'}">
-            <span class="codicon codicon-star${!defaultVariant ? '-full' : '-empty'}"></span>
-          </button>
+
         </div>
       </div>
     `;
@@ -513,9 +535,6 @@ export class IconDetailsPanel {
         </div>
         <span class="variant-name">${variant.name}</span>
         <div class="variant-actions">
-          <button class="variant-set-default${defaultVariant === variant.name ? ' active' : ''}" onclick="event.stopPropagation(); setDefaultVariant('${variant.name}')" title="${defaultVariant === variant.name ? 'Currently default' : 'Set as default'}">
-            <span class="codicon codicon-star${defaultVariant === variant.name ? '-full' : '-empty'}"></span>
-          </button>
           <button class="variant-delete" onclick="event.stopPropagation(); deleteVariant(${index})" title="Delete">
             <span class="codicon codicon-trash"></span>
           </button>

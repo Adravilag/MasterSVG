@@ -78,6 +78,7 @@ async function main() {
     await ctx.watch();
   } else {
     await ctx.rebuild();
+    copyTemplates();
     await ctx.dispose();
   }
 }

@@ -65,21 +65,6 @@ export function handleApplyVariant(ctx: VariantHandlerContext, message: { index?
     ctx.updateSvg(newSvg);
     ctx.setSelectedVariantIndex(message.index);
     ctx.refresh();
-
-    // Auto-calc CSS filters to bring the variant closer to original look
-    // Only do this when both palettes have a single color (multi-color variants are skipped)
-    try {
-      const originalColors = ctx.originalColors || [];
-      const variantColors = variant.colors || [];
-      if (originalColors.length === 1 && variantColors.length === 1) {
-        const from = variantColors[0];
-        const to = originalColors[0];
-        const filters = ctx.colorService.estimateFiltersForColor(from, to);
-        ctx.postMessage({ command: 'setFilters', filters: { hue: filters.hue, saturation: filters.saturation, brightness: filters.brightness } });
-      }
-    } catch (err) {
-      // silent
-    }
   }
 }
 

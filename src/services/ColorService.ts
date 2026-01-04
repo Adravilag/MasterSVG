@@ -254,43 +254,6 @@ export class ColorService {
     return { h: Math.round((h % 1) * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
   }
 
-  /**
-   * Estimate CSS filter values (hue-rotate deg, saturate %, brightness %) to transform
-   * fromColor -> toColor. Returns defaults when calculation isn't possible.
-   */
-  estimateFiltersForColor(fromColor: string, toColor: string): {
-    hue: number;
-    saturation: number;
-    brightness: number;
-  } {
-    try {
-      const fromHex = this.toHexColor(fromColor);
-      const toHex = this.toHexColor(toColor);
-      const fromHsl = this.hexToHsl(fromHex);
-      const toHsl = this.hexToHsl(toHex);
-      if (!fromHsl || !toHsl) return { hue: 0, saturation: 100, brightness: 100 };
-
-      // Hue difference (shortest direction)
-      let deltaHue = toHsl.h - fromHsl.h;
-      if (deltaHue > 180) deltaHue -= 360;
-      if (deltaHue < -180) deltaHue += 360;
-
-      // Saturation multiplier relative to source (100 = same)
-      const sat = fromHsl.s === 0 ? 100 : Math.round((toHsl.s / Math.max(1, fromHsl.s)) * 100);
-
-      // Brightness multiplier relative to source (100 = same)
-      const bri = fromHsl.l === 0 ? 100 : Math.round((toHsl.l / Math.max(1, fromHsl.l)) * 100);
-
-      // Clamp values to reasonable ranges
-      const hue = Math.round(deltaHue);
-      const saturation = Math.min(250, Math.max(0, sat));
-      const brightness = Math.min(250, Math.max(0, bri));
-
-      return { hue, saturation, brightness };
-    } catch (err) {
-      return { hue: 0, saturation: 100, brightness: 100 };
-    }
-  }
 
   /**
    * Generate auto variant colors based on transformation type
@@ -328,6 +291,63 @@ export class ColorService {
     }
 
     return { colors: newColors, variantName };
+  }
+
+  /**
+   * Estimate CSS filters (hue-rotate, saturate%, brightness%) to transform
+   * `sourceColor` into `targetColor` as best-effort. Returns defaults on
+   * invalid input or when a reliable estimation isn't possible.
+   */
+  estimateFiltersForColor(sourceColor: string, targetColor: string): { hue: number; saturation: number; brightness: number } {
+    const DEFAULT = { hue: 0, saturation: 100, brightness: 100 };
+
+    // Handle currentColor or invalid colors
+    if (!sourceColor || !targetColor) return DEFAULT;
+    if (sourceColor.toLowerCase() === 'currentcolor' || targetColor.toLowerCase() === 'currentcolor') return DEFAULT;
+
+    try {
+      const sHex = this.toHexColor(sourceColor);
+      const tHex = this.toHexColor(targetColor);
+
+      const sHsl = this.hexToHsl(sHex);
+      const tHsl = this.hexToHsl(tHex);
+
+      if (!sHsl || !tHsl) return DEFAULT;
+
+      // Hue: choose shortest direction between angles (-180..180)
+      let dh = tHsl.h - sHsl.h;
+      if (dh > 180) dh -= 360;
+      if (dh < -180) dh += 360;
+
+      // Saturation: compute multiplier percent. If source saturation is 0,
+      // we can't scale from 0 -> use default 100
+      let satPercent: number;
+      if (sHsl.s === 0) {
+        satPercent = 100;
+      } else {
+        satPercent = Math.round((tHsl.s / sHsl.s) * 100);
+      }
+
+      // Brightness (lightness): compute multiplier percent. If source lightness is 0,
+      // use default 100
+      let brightPercent: number;
+      if (sHsl.l === 0) {
+        brightPercent = 100;
+      } else {
+        brightPercent = Math.round((tHsl.l / sHsl.l) * 100);
+      }
+
+      // Clamp according to tests expectations
+      const clamp = (v: number, min = 0, max = 250) => Math.max(min, Math.min(max, v));
+
+      return {
+        hue: Math.round(dh),
+        saturation: clamp(satPercent, 0, 250),
+        brightness: clamp(brightPercent, 0, 250),
+      };
+    } catch (e) {
+      return DEFAULT;
+    }
   }
 }
 

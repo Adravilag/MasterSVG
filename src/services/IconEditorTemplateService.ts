@@ -152,15 +152,30 @@ ${animationRule}`;
     const tagName = config.webComponentName || 'sg-icon';
 
     const lines: string[] = [
-      `<!-- Web Component -->`,
-      `<${tagName} name="${iconName}"${animationType && animationType !== 'none' ? ` animation="${animationType}"` : ''}></${tagName}>`,
+      `<!-- Web Component (basic) -->`,
+      `<${tagName} name="${iconName}"></${tagName}>`,
+      ``,
+      `<!-- Web Component (variant) -->`,
+      `<${tagName} name="${iconName}" variant="custom"></${tagName}>`,
+      ``,
+      `<!-- Web Component (variant + animation) -->`,
+      `<${tagName} name="${iconName}" variant="custom"${animationType && animationType !== 'none' ? ` animation="${animationType}"` : ''}></${tagName}>`,
       ``,
       `<!-- SVG Use (Sprite) -->`,
       `<svg><use href="sprite.svg#${iconName}"></use></svg>`,
       ``,
       `<!-- JavaScript Import -->`,
       `import { ${toVariableName(iconName)} } from './icons.js';`,
+      `// Create web component programmatically and set variant/animation`,
+      `const el = document.createElement('${tagName}');`,
+      `el.setAttribute('name', '${iconName}');`,
+      `el.setAttribute('variant', 'custom');`,
+      `document.body.appendChild(el);`,
     ];
+
+    if (animationType && animationType !== 'none') {
+      lines.splice(lines.length - 1, 0, `el.setAttribute('animation', '${animationType}');`);
+    }
 
     return getSyntaxHighlighter().highlightUsageCode(lines);
   }
@@ -390,7 +405,7 @@ ${animationRule}`;
         (color, index) => `
       <div class="color-item">
         <div class="color-swatch" style="background-color: ${color}">
-          <input type="color" value="${colorService.toHexColor(color)}" 
+          <input type="color" value="${colorService.toHexColor(color)}"
             onchange="changeColor(${index}, this.value)"
             oninput="previewColor(${index}, this.value)" />
         </div>
@@ -409,7 +424,7 @@ ${animationRule}`;
     return `
       <div class="current-color-item">
         <div class="current-color-swatch" title="currentColor - inherits from CSS">
-          <input type="color" value="#000000" 
+          <input type="color" value="#000000"
             onchange="replaceCurrentColor(this.value)" />
           <span class="current-color-icon codicon codicon-paintcan"></span>
         </div>

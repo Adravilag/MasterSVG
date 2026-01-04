@@ -253,20 +253,16 @@ export function registerReferenceCommands(
     async (iconName: string, filePath?: string, lineNumber?: number) => {
       if (!iconName && !filePath) return;
 
-      
-
       try {
         // Ensure the tree is initialized before searching
         await workspaceSvgProvider.ensureInitialized();
 
         // First try to find a cached item (already rendered in tree)
         let item = workspaceSvgProvider.findItemByIconNameOrPath(iconName, filePath, lineNumber);
-        
 
         if (!item) {
           // If not cached, try to find the icon and create an item
           let icon = workspaceSvgProvider.getIconByName(iconName);
-          
 
           if (!icon && filePath) {
             icon = workspaceSvgProvider.getIconByPath(filePath);
@@ -284,7 +280,6 @@ export function registerReferenceCommands(
           } catch (revealError) {
             // If reveal fails, the item might not be in the visible tree yet
             // This can happen if the parent sections are collapsed
-            
           }
         }
       } catch (error) {

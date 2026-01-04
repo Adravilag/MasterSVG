@@ -8,3 +8,7 @@ node_modules/
 # Archivos de VS Code
 .vscode-test/
 *.vsix
+
+# Coverage artifacts
+coverage/
+coverage/

@@ -1,9 +1,10 @@
+// Mock configuration change callbacks storage
+// Use `var` so the variable is hoisted and available to the mock factory
+// even if the mock is initialized early during module evaluation.
+var configChangeCallbacks: ((e: { affectsConfiguration: (section: string) => boolean }) => void)[] = [];
+
 import * as vscode from 'vscode';
 import { WelcomePanel } from '../../panels/WelcomePanel';
-
-// Mock configuration change callbacks storage
-let configChangeCallbacks: ((e: { affectsConfiguration: (section: string) => boolean }) => void)[] =
-  [];
 
 // Mock vscode
 jest.mock('vscode', () => ({

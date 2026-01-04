@@ -1552,39 +1552,7 @@
       flex-shrink: 0;
       margin-top: 1px;
     }
-/* Global Filters & Optimize Improvements */
-
-/* Filters Grid Layout */
-.filters-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  padding: 8px 4px;
-}
-
-.filter-control {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.filter-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 11px;
-  color: var(--vscode-foreground);
-}
-
-.filter-value {
-  font-family: var(--font-mono);
-  color: var(--vscode-descriptionForeground);
-  font-size: 10px;
-  background: var(--vscode-badge-background);
-  color: var(--vscode-badge-foreground);
-  padding: 2px 6px;
-  border-radius: 4px;
-}
+/* Optimize Improvements */
 
 /* Custom Range Slider */
 input[type=range] {

@@ -1,0 +1,16 @@
+# Sagebox - Ignore File
+# This file works similar to .gitignore
+# Patterns listed here will be excluded from scanning by the extension
+
+# Ignore entire directories
+bak/
+
+# Ignore specific files
+# svgs/old-icon.svg
+
+# Ignore by pattern
+# **/temp/**
+# **/*-backup.svg
+
+# Ignore files starting with underscore
+# _*.svg

@@ -66,7 +66,7 @@ export async function handleApplyOptimizedSvg(
     svg: message.svg,
     includeAnimationInFile: false,
     updateAnimationMetadata: false,
-    triggerFullRebuild: false,
+    triggerFullRebuild: true,
     skipPanelUpdate: true,
     successMessage: 'Optimized SVG applied (session only)',
   });

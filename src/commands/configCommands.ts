@@ -54,7 +54,7 @@ export function registerConfigCommands(_context: vscode.ExtensionContext): vscod
       if (selection.label === t('ui.labels.outputDirectory')) {
         const outputDir = await vscode.window.showInputBox({
           prompt: t('ui.prompts.enterOutputDirectory'),
-          value: config.get('outputDirectory') || 'bezier-icons',
+          value: config.get('outputDirectory') || 'sagebox-icons',
           placeHolder: t('ui.placeholders.outputDirectoryExample'),
         });
 
@@ -104,7 +104,7 @@ export function registerConfigCommands(_context: vscode.ExtensionContext): vscod
       } else if (selection.label === t('ui.labels.webComponentName')) {
         const name = await vscode.window.showInputBox({
           prompt: t('ui.prompts.enterWebComponentName'),
-          value: config.get('webComponentName') || 'bezier-icon',
+          value: config.get('webComponentName') || 'sagebox-icon',
         });
         if (name) {
           await config.update('webComponentName', name, vscode.ConfigurationTarget.Workspace);
@@ -114,7 +114,7 @@ export function registerConfigCommands(_context: vscode.ExtensionContext): vscod
     })
   );
 
-  // Command: Edit .bezierignore file
+  // Command: Edit .sageboxignore file
   commands.push(
     vscode.commands.registerCommand('sageboxIconStudio.editIgnoreFile', async () => {
       const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -123,11 +123,11 @@ export function registerConfigCommands(_context: vscode.ExtensionContext): vscod
         return;
       }
 
-      const ignoreFilePath = path.join(workspaceFolder.uri.fsPath, '.bezierignore');
+      const ignoreFilePath = path.join(workspaceFolder.uri.fsPath, '.sageboxignore');
 
       // Create file with template if it doesn't exist
       if (!fs.existsSync(ignoreFilePath)) {
-        const template = `# Bezier - Ignore File
+        const template = `# Sagebox - Ignore File
 # This file works similar to .gitignore
 # Patterns listed here will be excluded from scanning
 

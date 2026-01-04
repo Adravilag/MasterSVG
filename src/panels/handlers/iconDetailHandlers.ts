@@ -135,7 +135,21 @@ export async function handleOptimizeSvg(
 
 export function handleApplyOptimizedSvg(ctx: PanelContext, message: { svg: string }): void {
   if (ctx.iconDetails && message.svg) {
+    // Update panel state
     ctx.setIconDetails({ ...ctx.iconDetails, svg: message.svg });
+
+    // Persist the optimized SVG by invoking the buildSingleIcon command
+    // This will update icons.js or sprite.svg according to user config
+    try {
+      void vscode.commands.executeCommand('sageboxIconStudio.buildSingleIcon', {
+        iconName: ctx.iconDetails.name,
+        svgContent: message.svg,
+        filePath: ctx.iconDetails.location?.file,
+      });
+    } catch (e) {
+      // swallow - command may not be available in some test contexts
+    }
+
     vscode.window.showInformationMessage(t('messages.optimizedSvgApplied'));
   }
 }
@@ -190,15 +204,31 @@ export function handleApplyVariant(ctx: PanelContext, message: { index: number }
     const variant = variants[message.index];
 
     if (variant) {
-      const { colors: currentColors } = colorService.extractAllColorsFromSvg(ctx.iconDetails.svg);
+      // Use original colors as the base for replacement
+      // This ensures we map from the original color positions to variant colors
       let newSvg = ctx.iconDetails.svg;
 
-      for (let i = 0; i < Math.min(currentColors.length, variant.colors.length); i++) {
-        newSvg = colorService.replaceColorInSvg(newSvg, currentColors[i], variant.colors[i]);
+      // First, restore to original colors if they exist
+      const currentColors = colorService.extractAllColorsFromSvg(ctx.iconDetails.svg).colors;
+      for (let i = 0; i < Math.min(currentColors.length, ctx.originalColors.length); i++) {
+        newSvg = colorService.replaceColorInSvg(newSvg, currentColors[i], ctx.originalColors[i]);
+      }
+
+      // Then apply variant colors based on original positions
+      for (let i = 0; i < Math.min(ctx.originalColors.length, variant.colors.length); i++) {
+        newSvg = colorService.replaceColorInSvg(newSvg, ctx.originalColors[i], variant.colors[i]);
       }
 
       ctx.setIconDetails({ ...ctx.iconDetails, svg: newSvg });
       ctx.setSelectedVariantIndex(message.index);
+      
+      // Send updated SVG to webview for immediate preview update
+      ctx.panel.webview.postMessage({
+        command: 'variantApplied',
+        svg: newSvg,
+        variantIndex: message.index,
+      });
+      
       ctx.update();
     }
   }
@@ -215,6 +245,14 @@ export function handleApplyDefaultVariant(ctx: PanelContext): void {
 
     ctx.setIconDetails({ ...ctx.iconDetails, svg: newSvg });
     ctx.setSelectedVariantIndex(-1);
+    
+    // Send updated SVG to webview for immediate preview update
+    ctx.panel.webview.postMessage({
+      command: 'variantApplied',
+      svg: newSvg,
+      variantIndex: -1,
+    });
+    
     ctx.update();
   }
 }
@@ -227,6 +265,8 @@ export async function handleSaveVariant(ctx: PanelContext): Promise<void> {
     });
 
     if (variantName) {
+      // Use the CURRENT colors from the SVG (which may have been edited)
+      // Not the original colors, because the user wants to save the current state
       const { colors } = colorService.extractAllColorsFromSvg(ctx.iconDetails.svg);
       const variantsService = getVariantsService();
       variantsService.saveVariant(ctx.iconDetails.name, variantName, colors);
@@ -334,9 +374,7 @@ export async function handleMessage(ctx: PanelContext, message: any): Promise<vo
     case 'deleteVariant':
       handleDeleteVariant(ctx, message);
       break;
-    case 'setDefaultVariant':
-      handleSetDefaultVariant(ctx, message);
-      break;
+
     case 'openExternal':
       if (message.url) {
         vscode.env.openExternal(vscode.Uri.parse(message.url));

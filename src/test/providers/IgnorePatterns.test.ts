@@ -1,7 +1,7 @@
 /**
  * Tests for IgnorePatterns
  *
- * Tests .bezierignore pattern matching functionality
+ * Tests .sageboxignore pattern matching functionality
  */
 
 import * as vscode from 'vscode';

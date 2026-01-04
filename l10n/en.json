@@ -502,7 +502,7 @@
       "svgFoldersDesc": "Folders to scan for SVG files",
       "componentNameDesc": "Name of the Icon component (e.g. Icon)",
       "outputFormatDesc": "Default output format (jsx, vue, svelte, etc.)",
-      "webComponentNameDesc": "Name for the custom element (e.g. bezier-icon)"
+      "webComponentNameDesc": "Name for the custom element (e.g. sagebox-icon)"
     },
     "validation": {
       "nameCannotBeEmpty": "Name cannot be empty",
@@ -668,6 +668,7 @@
       "noIconsFound": "No icons found. Scan your workspace to detect SVG files.",
       "noIconsMatch": "No icons match your search.",
       "noUsagesFound": "No usages found in workspace",
+      "found": "found",
       "original": "Original:",
       "optimized": "Optimized:",
       "saved": "Saved:",

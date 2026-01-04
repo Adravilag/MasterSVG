@@ -1,14 +1,20 @@
 {
-    "name": "Depurar Extensión (dist)",
-    "type": "extensionHost",
-    "request": "launch",
-    "args": [
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Depurar Extensión (dist)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
         "--disable-extensions"
-    ],
-    "outFiles": [
-        "${workspaceFolder}/dist/**/*.js"
-    ],
-    "sourceMaps": true,
-    "preLaunchTask": "npm: watch:esbuild"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "${workspaceFolder}/out/**/*.js"
+      ],
+      "sourceMaps": true,
+      "preLaunchTask": "npm: watch"
+    }
+  ]
 }

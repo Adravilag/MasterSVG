@@ -7,7 +7,7 @@ let ignorePatterns: string[] = [];
 let ignoreFileWatcher: vscode.FileSystemWatcher | undefined;
 
 /**
- * Read and parse .bezierignore file
+ * Read and parse .sageboxignore file
  * Supports gitignore-like patterns:
  * - Lines starting with # are comments
  * - Empty lines are ignored
@@ -19,7 +19,7 @@ function loadIgnorePatterns(): string[] {
   const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   if (!workspaceRoot) return [];
 
-  const ignoreFile = path.join(workspaceRoot, '.bezierignore');
+  const ignoreFile = path.join(workspaceRoot, '.sageboxignore');
 
   if (!fs.existsSync(ignoreFile)) {
     return [];
@@ -39,7 +39,7 @@ function loadIgnorePatterns(): string[] {
 }
 
 /**
- * Check if a path should be ignored based on .bezierignore patterns
+ * Check if a path should be ignored based on .sageboxignore patterns
  * @param filePath Absolute path to check
  * @returns true if the path should be ignored
  */
@@ -105,17 +105,17 @@ function matchIgnorePattern(relativePath: string, pattern: string): boolean {
 }
 
 /**
- * Initialize the .bezierignore file watcher
+ * Initialize the .sageboxignore file watcher
  */
 export function initIgnoreFileWatcher(context: vscode.ExtensionContext): void {
   // Load initial patterns
   ignorePatterns = loadIgnorePatterns();
 
-  // Watch for changes to .bezierignore
+  // Watch for changes to .sageboxignore
   const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   if (workspaceRoot) {
     ignoreFileWatcher = vscode.workspace.createFileSystemWatcher(
-      new vscode.RelativePattern(workspaceRoot, '.bezierignore')
+      new vscode.RelativePattern(workspaceRoot, '.sageboxignore')
     );
 
     const reloadPatterns = () => {

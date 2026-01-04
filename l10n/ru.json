@@ -500,7 +500,7 @@
       "svgFoldersDesc": "Папки для сканирования SVG файлов",
       "componentNameDesc": "Имя компонента Icon (напр. Icon)",
       "outputFormatDesc": "Формат вывода по умолчанию (jsx, vue, svelte и т.д.)",
-      "webComponentNameDesc": "Имя пользовательского элемента (напр. bezier-icon)"
+      "webComponentNameDesc": "Имя пользовательского элемента (напр. sagebox-icon)"
     },
     "validation": {
       "nameCannotBeEmpty": "Имя не может быть пустым",
@@ -665,6 +665,7 @@
       "noIconsFound": "Иконки не найдены. Отсканируйте рабочее пространство для обнаружения SVG файлов.",
       "noIconsMatch": "Нет иконок, соответствующих вашему поиску.",
       "noUsagesFound": "Использования не найдены в рабочем пространстве",
+      "found": "найдено",
       "original": "Оригинал:",
       "optimized": "Оптимизировано:",
       "saved": "Сэкономлено:",

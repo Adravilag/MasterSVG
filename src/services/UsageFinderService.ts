@@ -59,12 +59,16 @@ export class UsageFinderService {
               );
 
               if (!existingUsage) {
+                // Extract full SVG if this is an inline SVG usage
+                const fullText = this.extractFullSvgIfInline(text, match.index);
+                const displayText = fullText || lineText.trim();
+
                 usages.push({
                   file: file.fsPath,
                   relativePath: vscode.workspace.asRelativePath(file),
                   line: position.line + 1,
                   column: position.character + 1,
-                  text: lineText.trim(),
+                  text: displayText,
                   context: this.getContext(document, position.line),
                 });
               }
@@ -138,6 +142,34 @@ export class UsageFinderService {
     }
 
     return lines.join('\n');
+  }
+
+  /**
+   * Extract full SVG content if the match is inside an inline SVG tag
+   * Returns the complete SVG from <svg> to </svg>, or null if not in an SVG
+   */
+  private extractFullSvgIfInline(text: string, matchIndex: number): string | null {
+    // Look backwards to find the opening <svg tag
+    const beforeMatch = text.substring(0, matchIndex);
+    const svgOpenIndex = beforeMatch.lastIndexOf('<svg');
+
+    if (svgOpenIndex === -1) {
+      return null; // Not inside an SVG tag
+    }
+
+    // Look forward to find the closing </svg> tag
+    const afterMatch = text.substring(matchIndex);
+    const svgCloseMatch = afterMatch.match(/<\/svg\s*>/i);
+
+    if (!svgCloseMatch) {
+      return null; // No closing SVG tag found
+    }
+
+    // Extract the complete SVG from <svg to </svg>
+    const svgEndIndex = matchIndex + afterMatch.indexOf(svgCloseMatch[0]) + svgCloseMatch[0].length;
+    const completeSvg = text.substring(svgOpenIndex, svgEndIndex);
+
+    return completeSvg;
   }
 
   /**

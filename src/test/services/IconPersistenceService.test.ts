@@ -21,9 +21,9 @@ jest.mock('node:path', () => ({
 // Mock vscode - must be before imports
 jest.mock('vscode', () => {
   const mockWorkspaceFolders = [{ uri: { fsPath: '/workspace' } }];
-  const mockConfig = {
+    const mockConfig = {
     get: jest.fn().mockImplementation((key: string, defaultValue: unknown) => {
-      if (key === 'outputDirectory') return 'bezier-icons';
+      if (key === 'outputDirectory') return 'sagebox-icons';
       return defaultValue;
     }),
   };
@@ -97,7 +97,7 @@ describe('IconPersistenceService', () => {
   describe('getOutputPath', () => {
     it('should return output path when workspace and config exist', () => {
       const result = service.getOutputPath();
-      expect(result).toBe('/workspace/bezier-icons');
+      expect(result).toBe('/workspace/sagebox-icons');
     });
 
     it('should return undefined when no workspace folders', () => {
@@ -113,7 +113,7 @@ describe('IconPersistenceService', () => {
   describe('getIconsFilePath', () => {
     it('should return icons.js path when output path exists', () => {
       const result = service.getIconsFilePath();
-      expect(result).toBe('/workspace/bezier-icons/icons.js');
+      expect(result).toBe('/workspace/sagebox-icons/icons.js');
     });
   });
 

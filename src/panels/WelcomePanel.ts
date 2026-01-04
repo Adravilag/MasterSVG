@@ -2,39 +2,8 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { generateWebComponent } from '../utils/iconsFileManager';
+import { scopeSvgIds } from '../utils/svgIdScoper';
 import { i18n, t, SUPPORTED_LOCALES, SupportedLocale } from '../i18n';
-
-// Template cache
-let welcomeCss: string | null = null;
-let welcomeJs: string | null = null;
-let welcomeHtml: string | null = null;
-
-function loadTemplates(): { css: string; js: string; html: string } {
-  if (!welcomeCss || !welcomeJs || !welcomeHtml) {
-    // Try multiple locations to support different execution contexts
-    const possibleDirs = [
-      path.join(__dirname, 'templates', 'welcome'),        // dist/templates/welcome (bundled)
-      path.join(__dirname, '..', 'templates', 'welcome'),  // out/templates/welcome (from out/panels)
-    ];
-
-    let templatesDir: string | null = null;
-    for (const dir of possibleDirs) {
-      if (fs.existsSync(path.join(dir, 'Welcome.css'))) {
-        templatesDir = dir;
-        break;
-      }
-    }
-
-    if (!templatesDir) {
-      throw new Error(`Welcome templates not found. Searched in: ${possibleDirs.join(', ')}`);
-    }
-
-    welcomeCss = fs.readFileSync(path.join(templatesDir, 'Welcome.css'), 'utf-8');
-    welcomeJs = fs.readFileSync(path.join(templatesDir, 'Welcome.js'), 'utf-8');
-    welcomeHtml = fs.readFileSync(path.join(templatesDir, 'Welcome.html'), 'utf-8');
-  }
-  return { css: welcomeCss, js: welcomeJs, html: welcomeHtml };
-}
 
 export class WelcomePanel {
   public static currentPanel: WelcomePanel | undefined;
@@ -43,8 +12,6 @@ export class WelcomePanel {
   private readonly _panel: vscode.WebviewPanel;
   private readonly _extensionUri: vscode.Uri;
   private _disposables: vscode.Disposable[] = [];
-
-  // Temporary session state - only persisted on finishSetup
   private _sessionConfig: {
     svgFolders: string[];
     outputDirectory: string;
@@ -57,7 +24,7 @@ export class WelcomePanel {
     autoGenerateLicenses: boolean;
   };
 
-  public static createOrShow(extensionUri: vscode.Uri): void {
+  public static createOrShow(extensionUri: vscode.Uri) {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
       : undefined;
@@ -102,7 +69,7 @@ export class WelcomePanel {
       scanOnStartup: config.get<boolean>('scanOnStartup', true),
       defaultIconSize: config.get<number>('defaultIconSize', 24),
       previewBackground: config.get<string>('previewBackground', 'transparent'),
-      autoGenerateLicenses: config.get<boolean>('autoGenerateLicenses', true),
+      autoGenerateLicenses: config.get<boolean>('autoGenerateLicenses', false),
     };
 
     this._update();
@@ -479,6 +446,37 @@ declare global {
     }
   }
 
+  private _loadTemplates(): { html: string; js: string; css: string } {
+    const distPath = path.join(this._extensionUri.fsPath, 'dist', 'templates', 'welcome');
+    const srcPath = path.join(this._extensionUri.fsPath, 'src', 'templates', 'welcome');
+    let html = '';
+    let js = '';
+    let css = '';
+
+    try {
+      if (fs.existsSync(distPath)) {
+        html = fs.readFileSync(path.join(distPath, 'Welcome.html'), 'utf8');
+        js = fs.readFileSync(path.join(distPath, 'Welcome.js'), 'utf8');
+        css = fs.readFileSync(path.join(distPath, 'Welcome.css'), 'utf8');
+      } else if (fs.existsSync(srcPath)) {
+        html = fs.readFileSync(path.join(srcPath, 'Welcome.html'), 'utf8');
+        js = fs.readFileSync(path.join(srcPath, 'Welcome.js'), 'utf8');
+        css = fs.readFileSync(path.join(srcPath, 'Welcome.css'), 'utf8');
+      } else {
+        // Minimal fallback templates
+        html = '<div>Welcome</div>';
+        js = '';
+        css = '';
+      }
+    } catch {
+      html = '<div>Welcome</div>';
+      js = '';
+      css = '';
+    }
+
+    return { html, js, css };
+  }
+
   private _update(): void {
     this._panel.webview.html = this._getHtmlForWebview();
   }
@@ -574,7 +572,7 @@ declare global {
   }
 
   private _getHtmlForWebview(): string {
-    const templates = loadTemplates();
+    const templates = this._loadTemplates();
     // Use session config (in-memory) instead of persisted config
     const svgFolders = this._sessionConfig.svgFolders;
     const sourceDir = svgFolders.length > 0 ? svgFolders[0] : '';
@@ -744,9 +742,10 @@ declare global {
 <div class="code-line"><span class="line-num">2</span><span class="keyword">import</span> <span class="value">'${outputDirDisplay}/icons.js'</span>;</div>
 <div class="code-line"><span class="line-num">3</span></div>
 <div class="code-line"><span class="line-num">4</span><span class="comment">// ${tr.previewUse}</span></div>
-<div class="code-line"><span class="line-num">5</span><span class="keyword">function</span> <span class="func">App</span>() {</div>
-<div class="code-line"><span class="line-num">6</span>  <span class="keyword">return</span> <span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"home"</span> <span class="tag">/&gt;</span>;</div>
-<div class="code-line"><span class="line-num">7</span>}</div>
+<div class="code-line"><span class="line-num">5</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"home"</span> <span class="tag">/&gt;</span></div>
+<div class="code-line"><span class="line-num">6</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"heart"</span> <span class="attr">variant</span>=<span class="value">"custom"</span> <span class="tag">/&gt;</span></div>
+<div class="code-line"><span class="line-num">7</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"settings"</span> <span class="attr">animation</span>=<span class="value">"spin"</span> <span class="tag">/&gt;</span></div>
+<div class="code-line"><span class="line-num">8</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"check"</span> <span class="attr">variant</span>=<span class="value">"custom"</span> <span class="attr">animation</span>=<span class="value">"spin"</span> <span class="tag">/&gt;</span></div>
 </div>`;
 
         case 'vue':
@@ -757,7 +756,10 @@ declare global {
 <div class="code-line"><span class="line-num">4</span></div>
 <div class="code-line"><span class="line-num">5</span><span class="tag">&lt;template&gt;</span></div>
 <div class="code-line"><span class="line-num">6</span>  <span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"home"</span> <span class="tag">/&gt;</span></div>
-<div class="code-line"><span class="line-num">7</span><span class="tag">&lt;/template&gt;</span></div>
+<div class="code-line"><span class="line-num">7</span>  <span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"heart"</span> <span class="attr">variant</span>=<span class="value">"custom"</span> <span class="tag">/&gt;</span></div>
+<div class="code-line"><span class="line-num">8</span>  <span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"settings"</span> <span class="attr">animation</span>=<span class="value">"spin"</span> <span class="tag">/&gt;</span></div>
+<div class="code-line"><span class="line-num">9</span>  <span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"check"</span> <span class="attr">variant</span>=<span class="value">"custom"</span> <span class="attr">animation</span>=<span class="value">"spin"</span> <span class="tag">/&gt;</span></div>
+<div class="code-line"><span class="line-num">10</span><span class="tag">&lt;/template&gt;</span></div>
 </div>`;
 
         case 'svelte':
@@ -767,6 +769,9 @@ declare global {
 <div class="code-line"><span class="line-num">3</span><span class="tag">&lt;/script&gt;</span></div>
 <div class="code-line"><span class="line-num">4</span></div>
 <div class="code-line"><span class="line-num">5</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"home"</span> <span class="tag">/&gt;</span></div>
+<div class="code-line"><span class="line-num">6</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"heart"</span> <span class="attr">variant</span>=<span class="value">"custom"</span> <span class="tag">/&gt;</span></div>
+<div class="code-line"><span class="line-num">7</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"settings"</span> <span class="attr">animation</span>=<span class="value">"spin"</span> <span class="tag">/&gt;</span></div>
+<div class="code-line"><span class="line-num">8</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"check"</span> <span class="attr">variant</span>=<span class="value">"custom"</span> <span class="attr">animation</span>=<span class="value">"spin"</span> <span class="tag">/&gt;</span></div>
 </div>`;
 
         case 'angular':
@@ -776,6 +781,9 @@ declare global {
 <div class="code-line"><span class="line-num">3</span></div>
 <div class="code-line"><span class="line-num">4</span><span class="comment">&lt;!-- template.html --&gt;</span></div>
 <div class="code-line"><span class="line-num">5</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"home"</span> <span class="tag">/&gt;</span></div>
+<div class="code-line"><span class="line-num">6</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"heart"</span> <span class="attr">variant</span>=<span class="value">"custom"</span> <span class="tag">/&gt;</span></div>
+<div class="code-line"><span class="line-num">7</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"settings"</span> <span class="attr">animation</span>=<span class="value">"spin"</span> <span class="tag">/&gt;</span></div>
+<div class="code-line"><span class="line-num">8</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"check"</span> <span class="attr">variant</span>=<span class="value">"custom"</span> <span class="attr">animation</span>=<span class="value">"spin"</span> <span class="tag">/&gt;</span></div>
 </div>`;
 
         case 'astro':
@@ -785,6 +793,9 @@ declare global {
 <div class="code-line"><span class="line-num">3</span><span class="tag">---</span></div>
 <div class="code-line"><span class="line-num">4</span></div>
 <div class="code-line"><span class="line-num">5</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"home"</span> <span class="tag">/&gt;</span></div>
+<div class="code-line"><span class="line-num">6</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"heart"</span> <span class="attr">variant</span>=<span class="value">"custom"</span> <span class="tag">/&gt;</span></div>
+<div class="code-line"><span class="line-num">7</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"settings"</span> <span class="attr">animation</span>=<span class="value">"spin"</span> <span class="tag">/&gt;</span></div>
+<div class="code-line"><span class="line-num">8</span><span class="tag">&lt;${webComponentDisplay}</span> <span class="attr">name</span>=<span class="value">"check"</span> <span class="attr">variant</span>=<span class="value">"custom"</span> <span class="attr">animation</span>=<span class="value">"spin"</span> <span class="tag">/&gt;</span></div>
 </div>`;
 
         default: // html
@@ -794,39 +805,59 @@ declare global {
 <div class="code-line"><span class="line-num">3</span></div>
 <div class="code-line"><span class="line-num">4</span><span class="comment">&lt;!-- ${tr.previewUse} --&gt;</span></div>
 <div class="code-line"><span class="line-num">5</span><span class="tag">&lt;${webComponentDisplay} </span><span class="attr">name</span>=<span class="value">"home"</span><span class="tag">/&gt;</span></div>
-<div class="code-line"><span class="line-num">6</span><span class="tag">&lt;${webComponentDisplay} </span><span class="attr">name</span>=<span class="value">"heart"</span><span class="tag">/&gt;</span></div>
-<div class="code-line"><span class="line-num">7</span><span class="tag">&lt;${webComponentDisplay} </span><span class="attr">name</span>=<span class="value">"settings"</span><span class="tag">/&gt;</span></div>
-<div class="code-line"><span class="line-num">8</span><span class="tag">&lt;${webComponentDisplay} </span><span class="attr">name</span>=<span class="value">"check"</span><span class="tag">/&gt;</span></div>
+<div class="code-line"><span class="line-num">6</span><span class="tag">&lt;${webComponentDisplay} </span><span class="attr">name</span>=<span class="value">"heart"</span> <span class="attr">variant</span>=<span class="value">"custom"</span><span class="tag">/&gt;</span></div>
+<div class="code-line"><span class="line-num">7</span><span class="tag">&lt;${webComponentDisplay} </span><span class="attr">name</span>=<span class="value">"settings"</span> <span class="attr">animation</span>=<span class="value">"spin"</span><span class="tag">/&gt;</span></div>
+<div class="code-line"><span class="line-num">8</span><span class="tag">&lt;${webComponentDisplay} </span><span class="attr">name</span>=<span class="value">"check"</span> <span class="attr">variant</span>=<span class="value">"custom"</span> <span class="attr">animation</span>=<span class="value">"spin"</span><span class="tag">/&gt;</span></div>
 </div>`;
       }
     };
 
     const previewCode = getFrameworkPreview();
 
-    // Gallery: always show icons as visual example
+    // Gallery: always show icons as visual example (scope SVG ids to avoid collisions)
+    const _svgHome = `<svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>`;
+    const _svgHeart = `<svg viewBox="0 0 24 24" style="fill: #e25555;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+    const _svgSettings = `<svg viewBox="0 0 24 24"><g>
+                  <path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                  <animateTransform attributeType="XML" attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite" />
+                </g></svg>`;
+    const _svgCheck = `<svg viewBox="0 0 24 24" style="fill: #2b8a3e;"><g>
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  <animateTransform attributeType="XML" attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite" />
+                </g></svg>`;
+
+    const _suffix = 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const svgHome = scopeSvgIds(_svgHome, _suffix + '_home');
+    const svgHeart = scopeSvgIds(_svgHeart, _suffix + '_heart');
+    const svgSettings = scopeSvgIds(_svgSettings, _suffix + '_settings');
+    const svgCheck = scopeSvgIds(_svgCheck, _suffix + '_check');
+
     const previewGallery = `
           <div class="preview-icons-gallery">
             <div class="preview-icon-item">
               <div class="preview-icon-box small">
-                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                ${svgHome}
               </div>
               <span>home</span>
             </div>
             <div class="preview-icon-item">
               <div class="preview-icon-box small">
-                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                <!-- Variant demonstrated via inline fill style -->
+                ${svgHeart}
               </div>
               <span>heart</span>
             </div>
             <div class="preview-icon-item">
               <div class="preview-icon-box small">
-                <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                <!-- Animation demonstrated via inline SVG animation -->
+                ${svgSettings}
               </div>
               <span>settings</span>
             </div>
             <div class="preview-icon-item">
               <div class="preview-icon-box small">
-                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                <!-- Variant + Animation combined: inline fill + animateTransform -->
+                ${svgCheck}
               </div>
               <span>check</span>
             </div>

@@ -45,7 +45,7 @@ export function registerNavigationCommands(_context: vscode.ExtensionContext): v
           const text = document.getText();
           const lines = text.split('\n');
           const startLine = icon.line;
-          
+
           // Check if this is an IMG reference or inline SVG
           const isImgRef = icon.category === 'img-ref';
           

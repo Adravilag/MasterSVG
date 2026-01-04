@@ -27,7 +27,6 @@ import {
   handleReplaceCurrentColor,
   handleAddFillColor,
   handleAddColor,
-  handleApplyFilters,
 } from '../handlers/IconEditorColorHandlers';
 import {
   VariantHandlerContext,
@@ -145,7 +144,12 @@ export class IconEditorPanel {
     if (this._iconData?.svg) {
       this._iconData.svg = SvgManipulationService.cleanAnimationFromSvg(this._iconData.svg);
       this._originalSvg = this._iconData.svg; // Store original SVG for Build
-      this._originalColors = this._colorService.extractColorsFromSvg(this._iconData.svg).colors;
+      
+      // IMPORTANT: Extract ALL colors (not filtered) for variant storage
+      // This ensures we save the complete palette, not just the primary colors
+      const allColors = this._colorService.extractAllColorsFromSvg(this._iconData.svg).colors;
+      this._originalColors = allColors;
+      console.log(`[IconEditorPanel] Extracted ${allColors.length} colors for variants storage:`, allColors);
 
       // Ensure "custom" variant exists for every icon
       this._ensureCustomVariant();
@@ -216,8 +220,7 @@ export class IconEditorPanel {
     [key: string]: unknown;
   }): Promise<void> {
     if (message.command === 'log') {
-      // Force a toast on first log to prove connectivity
-      // vscode.window.showInformationMessage('Webview Log: ' + (message.message as string));
+      // Log command handled silently
     }
 
     // Create handler contexts
@@ -243,13 +246,8 @@ export class IconEditorPanel {
       case 'addColor':
         handleAddColor(colorCtx, message as { color?: string });
         break;
-      case 'applyFilters':
-        handleApplyFilters(
-          colorCtx,
-          message as unknown as { filters: { hue: string; saturation: string; brightness: string } }
-        );
-        // If thenRebuild is true, trigger rebuild after applying filters
-        if ((message as { thenRebuild?: boolean }).thenRebuild) {
+      case 'rebuild':
+        {
           const rebuildMsg = message as {
             animation?: string;
             animationSettings?: Record<string, unknown>;
@@ -263,7 +261,6 @@ export class IconEditorPanel {
 
       // Variant handlers
       case 'saveVariant':
-        // console.log('[Icon Studio] Handling saveVariant command');
         await handleSaveVariant(variantCtx);
         break;
       case 'applyVariant':
@@ -282,8 +279,9 @@ export class IconEditorPanel {
         handleDeleteVariant(variantCtx, message as { index?: number });
         break;
       case 'setDefaultVariant':
-        handleSetDefaultVariant(variantCtx, message as { variantName?: string | null });
+        await handleSetDefaultVariant(variantCtx, message as { variantName?: string | null });
         break;
+
       case 'editVariant':
         await handleEditVariant(variantCtx, message as { index?: number });
         break;
@@ -545,7 +543,7 @@ export class IconEditorPanel {
   // Animation storage methods - use animations.js in output directory
   private _getOutputPath(): string | undefined {
     const workspaceFolders = vscode.workspace.workspaceFolders;
-    const outputDir = getSvgConfig<string>('outputDirectory', 'bezier-icons');
+    const outputDir = getSvgConfig<string>('outputDirectory', 'sagebox-icons');
     if (!workspaceFolders || !outputDir) return undefined;
     return path.join(workspaceFolders[0].uri.fsPath, outputDir);
   }
@@ -729,6 +727,10 @@ export class IconEditorPanel {
       if (!updated) {
         vscode.window.showWarningMessage(t('messages.couldNotFindIconsJs'));
         return;
+      }
+      // If requested, trigger a full rebuild so build artifacts include this change
+      if (options.triggerFullRebuild) {
+        await vscode.commands.executeCommand('sageboxIconStudio.buildIcons');
       }
     }
 
@@ -983,11 +985,10 @@ export class IconEditorPanel {
       // Load and concatenate CSS files
       const baseCss = fs.readFileSync(path.join(templatesDir, 'IconEditor.css'), 'utf-8');
       const colorCss = fs.readFileSync(path.join(tabsDir, 'IconEditorColor.css'), 'utf-8');
-      const filtersCss = fs.readFileSync(path.join(tabsDir, 'IconEditorFilters.css'), 'utf-8');
       const animationCss = fs.readFileSync(path.join(tabsDir, 'IconEditorAnimation.css'), 'utf-8');
       const codeCss = fs.readFileSync(path.join(tabsDir, 'IconEditorCode.css'), 'utf-8');
       cssContent =
-        baseCss + '\n' + colorCss + '\n' + filtersCss + '\n' + animationCss + '\n' + codeCss;
+        baseCss + '\n' + colorCss + '\n' + animationCss + '\n' + codeCss;
 
       jsTemplate = fs.readFileSync(path.join(templatesDir, 'IconEditor.js'), 'utf-8');
       bodyTemplate = fs.readFileSync(path.join(templatesDir, 'IconEditorBody.html'), 'utf-8');
@@ -1015,8 +1016,6 @@ export class IconEditorPanel {
       originalColor: t('webview.js.originalColor'),
       addFillColor: t('webview.js.addFillColor'),
       noColorsDetected: t('webview.js.noColorsDetected'),
-      enableFilters: t('webview.color.enableFilters'),
-      disableFilters: t('webview.color.disableFilters'),
     };
 
     const jsContent = jsTemplate
@@ -1170,28 +1169,11 @@ ${jsContent}
           isOriginalSelected ? '<span class="colors-hint">(select custom to edit)</span>' : ''
         )
         .replace(/\$\{swatchesDisabledClass\}/g, isOriginalSelected ? ' disabled' : '')
-        .replace(/\$\{filtersDisabledClass\}/g, isOriginalSelected ? ' colors-disabled' : '')
-        .replace(
-          /\$\{filtersHint\}/g,
-          isOriginalSelected ? '<span class="colors-hint">(select custom)</span>' : ''
-        )
-        .replace(/\$\{filtersContainerDisabledClass\}/g, isOriginalSelected ? ' disabled' : '')
-        .replace(/\$\{filtersDisabled\}/g, isOriginalSelected ? ' disabled' : '')
-        .replace(/\$\{filtersToggleActiveClass\}/g, isOriginalSelected ? '' : ' active')
-        .replace(/\$\{i18n_filtersToggleTitle\}/g, isOriginalSelected ? '' : t('webview.color.disableFilters'))
         .replace(/\$\{currentColorHtml\}/g, currentColorHtml)
         .replace(/\$\{colorSwatches\}/g, colorSwatches)
         .replace(/\$\{variantsHtml\}/g, this._generateVariantsHtml(this._iconData?.name || ''))
         // i18n translations for color tab
         .replace(/\$\{i18n_colors\}/g, t('webview.color.colors'))
-        .replace(/\$\{i18n_globalFilters\}/g, t('webview.color.globalFilters'))
-        .replace(/\$\{i18n_hueRotate\}/g, t('webview.color.hueRotate'))
-        .replace(/\$\{i18n_saturation\}/g, t('webview.color.saturation'))
-        .replace(/\$\{i18n_brightness\}/g, t('webview.color.brightness'))
-        .replace(/\$\{i18n_reset\}/g, t('webview.color.reset'))
-        .replace(/\$\{i18n_resetFilters\}/g, t('webview.color.resetFilters'))
-        .replace(/\$\{i18n_enableFilters\}/g, t('webview.color.enableFilters'))
-        .replace(/\$\{i18n_disableFilters\}/g, t('webview.color.disableFilters'))
         .replace(/\$\{i18n_variants\}/g, t('webview.color.variants'))
         .replace(/\$\{i18n_saveVariant\}/g, t('webview.color.saveVariant'))
     );

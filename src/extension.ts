@@ -15,6 +15,7 @@ import {
   SvgImgDiagnosticProvider,
 } from './providers/SvgToIconCodeActionProvider';
 import { IconPreviewProvider } from './providers/IconPreviewProvider';
+import { getVariantsService } from './services/VariantsService';
 import { WelcomePanel } from './panels/WelcomePanel';
 import {
   updateIconsJsContext,
@@ -94,12 +95,10 @@ async function showOnboardingWizard(context: vscode.ExtensionContext): Promise<v
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  
-
   // Show onboarding for first-time users
   showOnboardingWizard(context);
 
-  // Initialize .bezierignore file watcher
+  // Initialize .sageboxignore file watcher
   initIgnoreFileWatcher(context);
 
   // Set initial context for icons.js existence
@@ -153,6 +152,9 @@ export function activate(context: vscode.ExtensionContext) {
     if (e.selection.length > 0) {
       const item = e.selection[0] as SvgItem;
       if (item.icon) {
+        // Reset variants cache to prevent contamination between icons
+        getVariantsService().resetCache();
+        
         const svgData = workspaceSvgProvider.getSvgData(item);
         if (svgData) {
           iconPreviewProvider.updatePreview(
@@ -205,6 +207,9 @@ export function activate(context: vscode.ExtensionContext) {
         item.contextValue === 'builtIcon' ||
         item.contextValue === 'svgIcon'
       ) {
+        // Reset variants cache to prevent contamination between icons
+        getVariantsService().resetCache();
+        
         const svgData = workspaceSvgProvider.getSvgData(item);
         if (svgData) {
           iconPreviewProvider.updatePreview(
@@ -372,41 +377,12 @@ export function activate(context: vscode.ExtensionContext) {
     diagnosticProvider.updateDiagnostics(editor.document);
   });
 
-  // importSvgToLibraryCmd, checkAndImportSvgCmd, transformSvgReferenceCmd,
-  // addSvgToCollectionCmd, removeReferenceCmd, findAndReplaceCmd, revealInTreeCmd
-  // -> Now registered via registerMiscCommands
-
   context.subscriptions.push(
-    // openPanelCmd, openWelcomeCmd, scanWorkspaceCmd, scanUsagesCmd
-    // -> Now registered via registerPanelCommands
-    // goToUsageCmd, goToInlineSvgCmd, goToCodeCmd, copyIconNameCmd
-    // -> Now registered via registerNavigationCommands
-    // configureProjectCmd, editIgnoreFileCmd
-    // -> Now registered via registerConfigCommands
-    // deleteIconsCmd, removeFromBuiltCmd, renameIconCmd
-    // -> Now registered via registerIconCommands
-    // transformInlineSvgCmd, transformSvgCmd, optimizeSvgCmd, insertIconCmd
-    // -> Now registered via registerTransformCommands
-    // refreshIconsCmd, buildAllReferencesCmd, buildAllFilesCmd, refreshFilesCmd,
-    // refreshCodeCmd, refreshBuiltCmd, refreshSvgFileCmd, buildIconsCmd
-    // -> Now registered via registerRefreshCommands and registerBuildCommands
-    // previewIconCmd, colorEditorCmd, showDetailsCmd, exportComponentCmd
-    // -> Now registered via registerEditorCommands
-    // generateSpriteCmd, viewSpriteCmd, viewIconsFileCmd, deleteBuiltFileCmd, cleanSpriteCmd
-    // -> Now registered via registerSpriteCommands
-    // searchIconsCmd, searchIconifyCmd, importIconCmd
-    // -> Now registered via registerIconifyCommands
-    // importSvgToLibraryCmd, checkAndImportSvgCmd, transformSvgReferenceCmd,
-    // addSvgToCollectionCmd, removeReferenceCmd, findAndReplaceCmd, revealInTreeCmd
-    // -> Now registered via registerMiscCommands
     completionDisposable,
     hoverDisposable,
     svgWatcher,
     codeActionProvider,
     missingIconCodeActionProvider
-    // expandAllCmd, expandBuiltCmd, collapseAllCmd, collapseBuiltCmd,
-    // expandSvgFilesCmd, collapseSvgFilesCmd
-    // -> Now registered via registerTreeViewCommands
   );
 }
 
@@ -428,13 +404,3 @@ export function deactivate() {
   workspaceTreeView = undefined!;
   svgFilesTreeView = undefined!;
 }
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-// showIconifyReplacementPicker, getIconifyReplacePickerHtml, showIconPickerPanel
-// -> Now provided by ./commands/iconifyCommands
-
-// getSpritePreviewHtml
-// -> Now provided by ./commands/spriteCommands

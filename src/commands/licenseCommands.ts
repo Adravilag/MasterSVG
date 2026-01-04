@@ -19,7 +19,7 @@ export function getLicenseConfig() {
   const config = vscode.workspace.getConfiguration('sageboxIconStudio');
   return {
     format: config.get<string>('licenseFormat', 'combined'),
-    autoGenerate: config.get<boolean>('autoGenerateLicenses', true),
+    autoGenerate: config.get<boolean>('autoGenerateLicenses', false),
     folder: config.get<string>('licensesFolder', 'icon-licenses'),
   };
 }
@@ -32,11 +32,8 @@ export async function autoGenerateLicensesIfEnabled(outputPath: string): Promise
   const licenseConfig = getLicenseConfig();
 
   if (!licenseConfig.autoGenerate) {
-    
     return;
   }
-
-  
 
   try {
     const result = await generateLicenseFiles(outputPath, {
@@ -49,7 +46,6 @@ export async function autoGenerateLicensesIfEnabled(outputPath: string): Promise
       vscode.window.showInformationMessage(`📄 ${result.message}`);
     } else if (!result.success) {
       // Only log - don't show message for "no Iconify icons" case
-      
     }
   } catch (error) {
     // Log but don't interrupt workflow

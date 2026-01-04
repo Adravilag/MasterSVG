@@ -198,10 +198,12 @@ export class PreviewTemplateService {
    */
   generateScript(name: string, variants?: Array<{ name: string; colors: string[] }>): string {
     return `<script>
+    console.log('📦 [Preview Script] - Script de preview cargado');
     const vscode = acquireVsCodeApi();
     const colorMap = new Map();
     const savedVariants = ${JSON.stringify(variants || [])};
     const originalSvg = document.querySelector('.icon-container svg')?.outerHTML;
+    console.log('📦 [Preview Script] - Variantes disponibles:', savedVariants?.length || 0);
     
     // === SIZE CONTROL ===
     const sizeSlider = document.getElementById('sizeSlider');
@@ -256,26 +258,43 @@ export class PreviewTemplateService {
     function applyVariant(index) {
       const variant = savedVariants[index];
       
+      console.log('🎨 [applyVariant] - Iniciando aplicación de variante');
+      console.log('  Índice:', index);
+      console.log('  Nombre variante:', variant?.name);
+      console.log('  Colores variante:', variant?.colors);
+      console.log('  Colores originales:', originalColors);
+      
       if (!variant || !variant.colors || variant.colors.length === 0) {
+        console.warn('⚠️ [applyVariant] - Variante inválida o sin colores');
         return;
       }
       
       const container = document.querySelector('.icon-container');
       if (!container || !originalSvgContent) {
+        console.error('❌ [applyVariant] - Contenedor o SVG original no encontrado');
         return;
       }
       
       // Start with original SVG
       let newSvg = originalSvgContent;
+      console.log('  SVG original cargado, longitud:', originalSvgContent.length);
       
       // Replace colors directly in SVG string
       if (originalColors.length > 0) {
+        console.log('  Reemplazando colores...');
         originalColors.forEach((origColor, i) => {
           if (i < variant.colors.length) {
             const newColor = variant.colors[i];
+            console.log('    [' + i + '] ' + origColor + ' -> ' + newColor);
+            
+            // Properly escape special regex characters
+            const escapedColor = origColor.replace(/([.*+?^$()|\\[\\]])/g, '\\\\$1');
             // Replace color in fill and stroke attributes (case insensitive)
-            const regex = new RegExp(origColor.replace('#', '#?'), 'gi');
+            const regex = new RegExp(escapedColor, 'gi');
+            const countBefore = (newSvg.match(regex) || []).length;
             newSvg = newSvg.replace(regex, newColor);
+            const countAfter = (newSvg.match(new RegExp(newColor.replace(/([.*+?^$()|\\[\\]])/g, '\\\\$1'), 'gi')) || []).length;
+            console.log('      Reemplazados: ' + countBefore + ' ocurrencias');
           }
         });
       }
@@ -286,11 +305,46 @@ export class PreviewTemplateService {
       if (svg) {
         svg.style.width = 'var(--avatar-size)';
         svg.style.height = 'var(--avatar-size)';
+        console.log('✅ [applyVariant] - SVG renderizado exitosamente');
       }
       
       // Update active state
       document.querySelectorAll('.variant-swatch').forEach((btn, i) => {
         btn.classList.toggle('active', i === index);
+      });
+      
+      console.log('✅ [applyVariant] - Variante aplicada: ' + variant.name);
+    }
+    
+    // Attach click handlers to variant buttons
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('📦 [Preview Script] - Attachando listeners a botones de variantes');
+      document.querySelectorAll('.variant-swatch').forEach((btn, i) => {
+        btn.addEventListener('click', () => {
+          console.log('🖱️ [Click Variante] - Click detectado en botón índice: ' + i);
+          applyVariant(i);
+        });
+      });
+    });
+    
+    // Also attach immediately in case DOM is already ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('📦 [Preview Script] - Attachando listeners (después de DOMContentLoaded)');
+        document.querySelectorAll('.variant-swatch').forEach((btn, i) => {
+          btn.addEventListener('click', () => {
+            console.log('🖱️ [Click Variante] - Click detectado en botón índice: ' + i);
+            applyVariant(i);
+          });
+        });
+      });
+    } else {
+      console.log('📦 [Preview Script] - DOM ya está listo, attachando listeners inmediatamente');
+      document.querySelectorAll('.variant-swatch').forEach((btn, i) => {
+        btn.addEventListener('click', () => {
+          console.log('🖱️ [Click Variante] - Click detectado en botón índice: ' + i);
+          applyVariant(i);
+        });
       });
     }
     

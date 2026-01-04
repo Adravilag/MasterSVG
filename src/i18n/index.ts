@@ -60,6 +60,7 @@ class I18nService {
   private currentLocale: string = 'en';
   private translations: TranslationData = en;
   private _onDidChangeLocale = new vscode.EventEmitter<string>();
+  private _configListener: vscode.Disposable | undefined;
 
   /**
    * Event that fires when the locale changes
@@ -68,6 +69,21 @@ class I18nService {
 
   private constructor() {
     this.initializeLocale();
+    // Listen for external configuration changes to update locale dynamically
+    // Only register the configuration change listener if the API is available
+    if (typeof vscode.workspace.onDidChangeConfiguration === 'function') {
+      this._configListener = vscode.workspace.onDidChangeConfiguration(e => {
+        if (e.affectsConfiguration('sageboxIconStudio.language')) {
+          const prev = this.currentLocale;
+          this.initializeLocale();
+          if (this.currentLocale !== prev) {
+            this._onDidChangeLocale.fire(this.currentLocale);
+          }
+        }
+      });
+    } else {
+      this._configListener = undefined;
+    }
   }
 
   /**
@@ -84,7 +100,7 @@ class I18nService {
    * Initialize locale from configuration or system
    */
   private initializeLocale(): void {
-    const config = vscode.workspace.getConfiguration('iconStudio');
+    const config = vscode.workspace.getConfiguration('sageboxIconStudio');
     const configuredLocale = config.get<string>('language', 'auto');
 
     if (configuredLocale === 'auto') {
@@ -130,7 +146,7 @@ class I18nService {
    * Get configured locale (may be 'auto')
    */
   public getConfiguredLocale(): SupportedLocale {
-    const config = vscode.workspace.getConfiguration('iconStudio');
+    const config = vscode.workspace.getConfiguration('sageboxIconStudio');
     return config.get<SupportedLocale>('language', 'auto');
   }
 
@@ -138,7 +154,7 @@ class I18nService {
    * Set locale and reload translations
    */
   public async setLocale(locale: SupportedLocale): Promise<void> {
-    const config = vscode.workspace.getConfiguration('iconStudio');
+    const config = vscode.workspace.getConfiguration('sageboxIconStudio');
     await config.update('language', locale, vscode.ConfigurationTarget.Global);
 
     if (locale === 'auto') {
@@ -248,6 +264,10 @@ class I18nService {
    */
   public dispose(): void {
     this._onDidChangeLocale.dispose();
+    if (this._configListener) {
+      this._configListener.dispose();
+      this._configListener = undefined;
+    }
   }
 }
 
