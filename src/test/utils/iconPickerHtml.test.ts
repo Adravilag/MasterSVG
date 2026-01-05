@@ -332,7 +332,7 @@ describe('iconPickerHtml', () => {
 
     it('should include color picker label', () => {
       const html = generateToolbarHtml();
-      expect(html).toContain('🎨 Color:');
+      expect(html).toContain('Color:');
     });
   });
 

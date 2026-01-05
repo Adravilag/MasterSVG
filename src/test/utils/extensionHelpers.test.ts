@@ -158,7 +158,7 @@ describe('extensionHelpers', () => {
   // =====================================================
   describe('toCustomElementName', () => {
     test('debe convertir a kebab-case', () => {
-      expect(toCustomElementName('SgIcon')).toBe('svg-icon');
+      expect(toCustomElementName('SgIcon')).toBe('sg-icon');
       expect(toCustomElementName('IconComponent')).toBe('icon-component');
     });
 

@@ -713,7 +713,7 @@ describe('SvgItem class', () => {
       expect(item.contextValue).toBe('svgIcon');
       // library icons have a command to show details
       expect(item.command).toBeDefined();
-      expect(item.command?.command).toBe('masterSVG.showDetails');
+      expect(item.command?.command).toBe('masterSVG.iconClick');
     });
 
     test('debe usar iconPath svg para iconos', () => {

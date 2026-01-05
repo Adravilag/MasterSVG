@@ -427,15 +427,15 @@
         "masterSVG.outputDirectory": {
           "type": "string",
           "default": "",
-          "description": "Directory where icons.ts or sprite.svg will be generated (relative to workspace root)"
+          "description": "Directory where icons.js or sprite.svg will be generated (relative to workspace root)"
         },
         "masterSVG.buildFormat": {
           "type": "string",
           "enum": [
-            "icons.ts",
+            "icons.js",
             "sprite.svg"
           ],
-          "default": "icons.ts",
+          "default": "icons.js",
           "description": "Output format for built icons"
         },
         "masterSVG.webComponentName": {

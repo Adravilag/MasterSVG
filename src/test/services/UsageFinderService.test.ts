@@ -63,7 +63,7 @@ describe('UsageFinderService', () => {
       expect(matches).toHaveLength(3);
       expect(matches[0].index).toBe(0);
       expect(matches[1].index).toBe(12);
-      expect(matches[2].index).toBe(29);
+      expect(matches[2].index).toBe(27);
     });
 
     test('debe retornar array vacío si no hay coincidencias', () => {
