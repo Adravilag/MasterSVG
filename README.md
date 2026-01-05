@@ -67,7 +67,6 @@ Full-featured icon editor panel with:
 - Create light/dark theme variants
 - Auto-generate complementary variants
 - Set default variant per icon
-- Apply variants across icon collections
 
 ### Animation Support
 31 built-in CSS animations organized by category:
@@ -101,9 +100,8 @@ mastersvg-icons/
 
 ### Output Includes
 - TypeScript type definitions for icon names
-- Helper functions for icon lookup
 - CSS animations file
-- Variant mappings
+- Variant color mappings
 
 ---
 
@@ -121,14 +119,11 @@ mastersvg-icons/
 
 ### Code Actions
 - Convert inline `<svg>` to icon component
-- Import missing icons from Iconify
-- Find and replace icon references
 - Transform `<img>` tags to icon components
 
 ### Diagnostics
-- Detect missing icon references in `<svg-icon>` components
 - Suggest converting `<img src="*.svg">` to icon components
-- Quick fixes to import or search icons
+- Quick fixes to transform or search icons
 
 ---
 
@@ -467,11 +462,11 @@ npm run package
 ```
 src/
 ├── extension.ts        # Extension entry point
-├── commands/           # Command handlers (17 modules)
+├── commands/           # Command handlers (16 modules)
 ├── handlers/           # Message handlers for webviews
 ├── panels/             # Webview panels (Editor, Details, Welcome)
 ├── providers/          # Tree providers, completion, hover
-├── services/           # Business logic (20+ services)
+├── services/           # Business logic (20 services)
 ├── templates/          # HTML/CSS templates
 ├── types/              # TypeScript type definitions
 ├── utils/              # Helper utilities
