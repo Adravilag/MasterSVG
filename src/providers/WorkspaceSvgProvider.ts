@@ -216,7 +216,7 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
     if (!isFullyConfigured()) {
       if (!element) {
         const configureItem = new SvgItem(
-          'Configurar Icon Studio',
+          'Configurar MasterSVG',
           0,
           vscode.TreeItemCollapsibleState.None,
           'action',
@@ -225,7 +225,7 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
         );
         configureItem.command = {
           command: 'masterSVG.showWelcome',
-          title: 'Configurar Icon Studio',
+          title: 'Configurar MasterSVG',
         };
         configureItem.iconPath = new vscode.ThemeIcon('gear');
         return [configureItem];
@@ -517,7 +517,7 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: 'Icon Studio: Scanning workspace',
+        title: 'MasterSVG: Scanning workspace',
         cancellable: false,
       },
       async progress => {
@@ -712,7 +712,7 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: 'Icon Studio: Scanning inline SVGs',
+        title: 'MasterSVG: Scanning inline SVGs',
         cancellable: false,
       },
       async progress => {
@@ -754,7 +754,7 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: 'Icon Studio: Scanning icon usages',
+        title: 'MasterSVG: Scanning icon usages',
         cancellable: false,
       },
       async progress => {

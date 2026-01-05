@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 /**
- * Get a configuration value from the Icon Studio extension settings
+ * Get a configuration value from the MasterSVG extension settings
  * @param key The configuration key (without the 'masterSVG.' prefix)
  * @param defaultValue The default value if the configuration is not set
  * @returns The configuration value
@@ -12,7 +12,7 @@ export function getSvgConfig<T>(key: string, defaultValue: T): T {
 }
 
 /**
- * Get the full Icon Studio configuration object
+ * Get the full MasterSVG configuration object
  * @returns The full configuration object
  */
 export function getFullSvgConfig(): vscode.WorkspaceConfiguration {
@@ -39,7 +39,7 @@ export async function updateSvgConfig<T>(
 }
 
 /**
- * Check if Icon Studio is fully configured (all 4 steps completed)
+ * Check if MasterSVG is fully configured (all 4 steps completed)
  * Step 1: Source directory (svgFolders)
  * Step 2: Output directory (outputDirectory)
  * Step 3: Build format (buildFormat)

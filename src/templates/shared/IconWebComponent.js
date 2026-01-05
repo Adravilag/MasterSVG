@@ -1,4 +1,4 @@
-// Auto-generated Web Component by Icon Studio
+// Auto-generated Web Component by MasterSVG
 // Usage: <${TAG_NAME} name="icon-name"></${TAG_NAME}>
 // With variant: <${TAG_NAME} name="icon-name" variant="dark-theme"></${TAG_NAME}>
 // With animation: <${TAG_NAME} name="icon-name" animation="spin"></${TAG_NAME}>

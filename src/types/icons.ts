@@ -1,5 +1,5 @@
 /**
- * Common types for Icon Studio extension
+ * Common types for MasterSVG extension
  */
 
 /**

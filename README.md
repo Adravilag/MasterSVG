@@ -1,7 +1,7 @@
-# MasterSVG Icon Studio
+# MasterSVG
 
 <p align="center">
-  <img src="resources/icon.webp" alt="MasterSVG Icon Studio" width="128" height="128">
+  <img src="resources/icon.webp" alt="MasterSVG" width="128" height="128">
 </p>
 
 <p align="center">
@@ -172,7 +172,7 @@ Access all Iconify collections including Material Design, Lucide, Heroicons, Tab
 
 | Command | Shortcut | Description |
 |---------|----------|-------------|
-| Open Panel | `Ctrl+Shift+I` / `Cmd+Shift+I` | Open the Icon Studio sidebar |
+| Open Panel | `Ctrl+Shift+I` / `Cmd+Shift+I` | Open the MasterSVG sidebar |
 | Insert Icon | `Ctrl+Alt+I` / `Cmd+Alt+I` | Quick insert icon at cursor |
 | Search Icons | — | Search and import from Iconify |
 | Open Welcome | — | Show getting started panel |
@@ -237,7 +237,7 @@ All settings under the `masterSVG.*` namespace:
 ```json
 {
   "masterSVG.svgFolders": [
-    "svgs", "src/assets/icons", "src/icons", 
+    "svgs", "src/assets/icons", "src/icons",
     "public/icons", "assets/icons", "icons",
     "svg", "assets/svg"
   ],
@@ -397,12 +397,12 @@ Set via `masterSVG.language` or auto-detect from VS Code locale.
 
 1. **Install** the extension from VS Code Marketplace
 2. **Open** a project with SVG files
-3. **Click** the Icon Studio icon in the Activity Bar
+3. **Click** the MasterSVG icon in the Activity Bar
 4. **Configure** your output directory in the Welcome panel
 5. **Start building** your icon system!
 
 ### Quick Start Commands
-- `Ctrl+Shift+I` (Windows/Linux) / `Cmd+Shift+I` (Mac) — Open Icon Studio panel
+- `Ctrl+Shift+I` (Windows/Linux) / `Cmd+Shift+I` (Mac) — Open MasterSVG panel
 - `Ctrl+Alt+I` (Windows/Linux) / `Cmd+Alt+I` (Mac) — Quick insert icon
 
 ---
@@ -509,10 +509,3 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for gu
 ## 📄 License
 
 MIT © [Adrián Dávila Guerra](https://adravilag.github.io/MasterSVG/)
-
----
-
-<p align="center">
-  Made with ❤️ for the VS Code community
-</p>
-

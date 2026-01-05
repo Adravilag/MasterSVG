@@ -171,7 +171,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
       assert.ok(menus, 'Extensión debe contribuir menús');
     });
 
-    test('Debe tener submenú Icon Studio', async () => {
+    test('Debe tener submenú MasterSVG', async () => {
       const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       assert.ok(ext, 'Extensión debe existir');
 

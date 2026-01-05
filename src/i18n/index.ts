@@ -1,5 +1,5 @@
 /**
- * Internationalization (i18n) Service for Icon Studio
+ * Internationalization (i18n) Service for MasterSVG
  *
  * Provides translation support for multiple languages:
  * - English (en)

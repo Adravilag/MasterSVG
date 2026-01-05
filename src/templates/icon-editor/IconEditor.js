@@ -311,7 +311,7 @@
       try {
         vscode.postMessage({ command: 'saveVariant' });
       } catch (e) {
-        console.error('[Icon Studio IconEditor JS] Error in saveVariant:', e);
+        console.error('[MasterSVG IconEditor JS] Error in saveVariant:', e);
       }
     }
 

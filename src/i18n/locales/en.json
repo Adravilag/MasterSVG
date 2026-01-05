@@ -1,11 +1,11 @@
 {
   "extension": {
-    "name": "Icon Studio",
-    "description": "SVG Icon Studio for VS Code",
-    "appTitle": "Icon Studio"
+    "name": "MasterSVG",
+    "description": "SVG MasterSVG for VS Code",
+    "appTitle": "MasterSVG"
   },
   "welcome": {
-    "title": "Welcome to Icon Studio",
+    "title": "Welcome to MasterSVG",
     "subtitle": "Your SVG icon management solution",
     "getStarted": "Get Started",
     "configuration": "Configuration",
@@ -25,10 +25,10 @@
     "saving": "Saving...",
     "saved": "Configuration saved!",
     "features": "Features",
-    "featuresDescription": "Discover what Icon Studio can do for you",
+    "featuresDescription": "Discover what MasterSVG can do for you",
     "documentation": "Documentation",
     "quickStart": "Quick Start",
-    "quickStartDescription": "Learn how to use Icon Studio in minutes",
+    "quickStartDescription": "Learn how to use MasterSVG in minutes",
     "browse": "Browse...",
     "selectFolder": "Select Folder",
     "jsModule": "JS Module",
@@ -68,7 +68,7 @@
     "preview": "Preview",
     "noIcons": "No icons found",
     "scanWorkspace": "Scan workspace for SVG files",
-    "configureFirst": "Configure Icon Studio",
+    "configureFirst": "Configure MasterSVG",
     "noBuiltIcons": "No built icons - Run Build command",
     "inlineSvgs": "Inline SVGs",
     "imgReferences": "IMG References"
@@ -559,7 +559,7 @@
       "copyUsage": "Copy usage code"
     },
     "tabs": {
-      "title": "Icon Studio",
+      "title": "MasterSVG",
       "searchPlaceholder": "Search icons...",
       "workspace": "Workspace",
       "library": "Library",

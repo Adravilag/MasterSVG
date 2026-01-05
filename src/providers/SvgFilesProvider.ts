@@ -191,7 +191,7 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
         }
       }
     } catch (error) {
-      console.error(`[Icon Studio] SvgFilesProvider: Error scanning ${dirPath}:`, error);
+      console.error(`[MasterSVG] SvgFilesProvider: Error scanning ${dirPath}:`, error);
     }
   }
 
@@ -236,7 +236,7 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
         }
       }
     } catch (error) {
-      console.error(`[Icon Studio] SvgFilesProvider: Error scanning ${folderPath}:`, error);
+      console.error(`[MasterSVG] SvgFilesProvider: Error scanning ${folderPath}:`, error);
     }
   }
 
@@ -274,7 +274,7 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
     if (!isFullyConfigured()) {
       if (!element) {
         const configureItem = new SvgItem(
-          'Configurar Icon Studio',
+          'Configurar MasterSVG',
           0,
           vscode.TreeItemCollapsibleState.None,
           'action',
@@ -283,7 +283,7 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
         );
         configureItem.command = {
           command: 'masterSVG.showWelcome',
-          title: 'Configurar Icon Studio',
+          title: 'Configurar MasterSVG',
         };
         configureItem.iconPath = new vscode.ThemeIcon('gear');
         return [configureItem];

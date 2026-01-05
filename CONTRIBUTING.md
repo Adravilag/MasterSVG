@@ -1,6 +1,6 @@
-# Contributing to MasterSVG Icon Studio
+# Contributing to MasterSVG
 
-Thank you for your interest in contributing to MasterSVG Icon Studio! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to MasterSVG! This document provides guidelines and instructions for contributing.
 
 ## 📋 Table of Contents
 

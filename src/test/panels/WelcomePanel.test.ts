@@ -108,7 +108,7 @@ describe('WelcomePanel', () => {
 
       expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith(
         'masterSVG.welcome',
-        'Welcome to Icon Studio', // Uses t('welcome.title')
+        'Welcome to MasterSVG', // Uses t('welcome.title')
         expect.anything(),
         expect.objectContaining({
           enableScripts: true,

@@ -1,6 +1,6 @@
 {
   "name": "mastersvg-icon-studio",
-  "displayName": "MasterSVG Icon Studio",
+  "displayName": "MasterSVG",
   "description": "Professional SVG icon management studio. Preview, edit, transform and build icon components for your design system.",
   "version": "0.1.0",
   "icon": "resources/icon.png",
@@ -22,7 +22,7 @@
   "keywords": [
     "svg",
     "icons",
-    "icon studio",
+    "mastersvg",
     "MasterSVG",
     "svg components",
     "iconify",
@@ -47,7 +47,7 @@
     "submenus": [
       {
         "id": "masterSVG.svgMenu",
-        "label": "Icon Studio"
+        "label": "MasterSVG"
       }
     ],
     "languages": [
@@ -423,7 +423,7 @@
         "masterSVG.libraryPath": {
           "type": "string",
           "default": "",
-          "description": "Path to the Icon Studio library (icons.json)"
+          "description": "Path to the MasterSVG library (icons.json)"
         },
         "masterSVG.outputDirectory": {
           "type": "string",
@@ -569,7 +569,7 @@
       "activitybar": [
         {
           "id": "masterSVG",
-          "title": "Icon Studio",
+          "title": "MasterSVG",
           "icon": "resources/icon.svg"
         }
       ]

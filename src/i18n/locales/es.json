@@ -1,11 +1,11 @@
 {
   "extension": {
-    "name": "Icon Studio",
+    "name": "MasterSVG",
     "description": "Gestor de iconos SVG para VS Code",
-    "appTitle": "Icon Studio"
+    "appTitle": "MasterSVG"
   },
   "welcome": {
-    "title": "Bienvenido a Icon Studio",
+    "title": "Bienvenido a MasterSVG",
     "subtitle": "Tu solución para gestionar iconos SVG",
     "getStarted": "Comenzar",
     "configuration": "Configuración",
@@ -23,10 +23,10 @@
     "saving": "Guardando...",
     "saved": "¡Configuración guardada!",
     "features": "Características",
-    "featuresDescription": "Descubre lo que Icon Studio puede hacer por ti",
+    "featuresDescription": "Descubre lo que MasterSVG puede hacer por ti",
     "documentation": "Documentación",
     "quickStart": "Inicio Rápido",
-    "quickStartDescription": "Aprende a usar Icon Studio en minutos",
+    "quickStartDescription": "Aprende a usar MasterSVG en minutos",
     "browse": "Explorar...",
     "selectFolder": "Seleccionar Carpeta",
     "jsModule": "Módulo JS",
@@ -66,7 +66,7 @@
     "preview": "Vista Previa",
     "noIcons": "No se encontraron iconos",
     "scanWorkspace": "Escanear workspace en busca de archivos SVG",
-    "configureFirst": "Configurar Icon Studio",
+    "configureFirst": "Configurar MasterSVG",
     "noBuiltIcons": "Sin iconos compilados - Ejecuta el comando Build",
     "inlineSvgs": "SVGs en línea",
     "imgReferences": "Referencias IMG"

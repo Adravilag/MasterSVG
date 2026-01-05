@@ -1,11 +1,11 @@
 {
   "extension": {
-    "name": "Icon Studio",
+    "name": "MasterSVG",
     "description": "Менеджер SVG иконок для VS Code",
-    "appTitle": "Icon Studio"
+    "appTitle": "MasterSVG"
   },
   "welcome": {
-    "title": "Добро пожаловать в Icon Studio",
+    "title": "Добро пожаловать в MasterSVG",
     "subtitle": "Ваше решение для управления SVG иконками",
     "getStarted": "Начать",
     "configuration": "Конфигурация",
@@ -23,10 +23,10 @@
     "saving": "Сохранение...",
     "saved": "Конфигурация сохранена!",
     "features": "Возможности",
-    "featuresDescription": "Узнайте, что Icon Studio может сделать для вас",
+    "featuresDescription": "Узнайте, что MasterSVG может сделать для вас",
     "documentation": "Документация",
     "quickStart": "Быстрый старт",
-    "quickStartDescription": "Научитесь использовать Icon Studio за минуты",
+    "quickStartDescription": "Научитесь использовать MasterSVG за минуты",
     "browse": "Обзор...",
     "selectFolder": "Выбрать папку",
     "jsModule": "JS Модуль",
@@ -66,7 +66,7 @@
     "preview": "Превью",
     "noIcons": "Иконки не найдены",
     "scanWorkspace": "Сканировать рабочую область на наличие SVG файлов",
-    "configureFirst": "Настроить Icon Studio",
+    "configureFirst": "Настроить MasterSVG",
     "noBuiltIcons": "Нет собранных иконок - Выполните команду Build",
     "inlineSvgs": "Встроенные SVG",
     "imgReferences": "IMG ссылки"

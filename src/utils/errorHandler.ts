@@ -13,7 +13,7 @@ export class ErrorHandler {
     showNotification: boolean = true
   ): void {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    const fullMessage = `Icon Studio: Error during ${context}: ${errorMessage}`;
+    const fullMessage = `MasterSVG: Error during ${context}: ${errorMessage}`;
 
     console.error(fullMessage);
     if (error instanceof Error && error.stack) {
@@ -21,7 +21,7 @@ export class ErrorHandler {
     }
 
     if (showNotification) {
-      vscode.window.showErrorMessage(`Icon Studio: ${errorMessage}`);
+      vscode.window.showErrorMessage(`MasterSVG: ${errorMessage}`);
     }
   }
 

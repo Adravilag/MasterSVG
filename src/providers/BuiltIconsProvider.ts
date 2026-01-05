@@ -271,7 +271,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
 
 
     } catch (error) {
-      console.error('[Icon Studio] BuiltIconsProvider: Error parsing sprite file:', error);
+      console.error('[MasterSVG] BuiltIconsProvider: Error parsing sprite file:', error);
     }
   }
 
@@ -335,7 +335,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
 
 
     } catch (error) {
-      console.error('[Icon Studio] BuiltIconsProvider: Error parsing icons file:', error);
+      console.error('[MasterSVG] BuiltIconsProvider: Error parsing icons file:', error);
     }
   }
 

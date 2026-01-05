@@ -38,7 +38,7 @@ async function expandAllItems(
       await treeView.reveal(root, { expand: 3, focus: false, select: false });
     } catch (e) {
       // Log error for debugging
-      console.log('[Icon Studio] Failed to reveal:', root.label, e);
+      console.log('[MasterSVG] Failed to reveal:', root.label, e);
     }
   }
 }

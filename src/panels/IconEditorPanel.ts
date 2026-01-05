@@ -603,7 +603,7 @@ export class IconEditorPanel {
         };
       }
     } catch (err) {
-      console.error('[Icon Studio] Error reading from AnimationAssignmentService:', err);
+      console.error('[MasterSVG] Error reading from AnimationAssignmentService:', err);
     }
 
     // Fallback: check the icons.js file for embedded animation
@@ -1032,7 +1032,7 @@ export class IconEditorPanel {
       );
       codeTabTemplate = fs.readFileSync(path.join(tabsDir, 'IconEditorCodeTab.html'), 'utf-8');
     } catch (err) {
-      console.error('[Icon Studio] IconEditorPanel template load error:', err);
+      console.error('[MasterSVG] IconEditorPanel template load error:', err);
       return '<html><body><p>Error loading templates</p></body></html>';
     }
 

@@ -1,11 +1,11 @@
 {
   "extension": {
-    "name": "Icon Studio",
+    "name": "MasterSVG",
     "description": "VS Code 的 SVG 图标管理器",
-    "appTitle": "Icon Studio"
+    "appTitle": "MasterSVG"
   },
   "welcome": {
-    "title": "欢迎使用 Icon Studio",
+    "title": "欢迎使用 MasterSVG",
     "subtitle": "您的 SVG 图标管理解决方案",
     "getStarted": "开始使用",
     "configuration": "配置",
@@ -23,10 +23,10 @@
     "saving": "保存中...",
     "saved": "配置已保存！",
     "features": "功能",
-    "featuresDescription": "了解 Icon Studio 能为您做什么",
+    "featuresDescription": "了解 MasterSVG 能为您做什么",
     "documentation": "文档",
     "quickStart": "快速入门",
-    "quickStartDescription": "几分钟学会使用 Icon Studio",
+    "quickStartDescription": "几分钟学会使用 MasterSVG",
     "browse": "浏览...",
     "selectFolder": "选择文件夹",
     "jsModule": "JS 模块",

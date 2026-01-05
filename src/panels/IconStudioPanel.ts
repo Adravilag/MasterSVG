@@ -259,7 +259,7 @@ export class IconStudioPanel {
   }
 
   private _update() {
-    this._panel.title = 'Icon Studio';
+    this._panel.title = 'MasterSVG';
     this._panel.webview.html = this._getHtmlForWebview();
   }
 

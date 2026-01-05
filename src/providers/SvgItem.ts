@@ -316,7 +316,7 @@ export class SvgItem extends vscode.TreeItem {
           svgContent = fs.readFileSync(icon.path, 'utf-8');
         }
       } catch (err) {
-        console.error('[Icon Studio] Error reading SVG file:', icon.path, err);
+        console.error('[MasterSVG] Error reading SVG file:', icon.path, err);
       }
     }
 
@@ -326,7 +326,7 @@ export class SvgItem extends vscode.TreeItem {
         const tempPath = saveTempSvgIcon(icon.name, svgContent);
         this.iconPath = vscode.Uri.file(tempPath);
       } catch (err) {
-        console.error('[Icon Studio] Error saving temp SVG:', icon.name, err);
+        console.error('[MasterSVG] Error saving temp SVG:', icon.name, err);
         this.iconPath = icon.isBuilt
           ? new vscode.ThemeIcon('pass', new vscode.ThemeColor('charts.green'))
           : new vscode.ThemeIcon('circle-outline');
