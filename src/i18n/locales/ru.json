@@ -1,8 +1,8 @@
 {
   "extension": {
-    "name": "MasterSVG",
+    "name": "Master SVG",
     "description": "Менеджер SVG иконок для VS Code",
-    "appTitle": "MasterSVG"
+    "appTitle": "Master SVG"
   },
   "welcome": {
     "title": "Добро пожаловать в MasterSVG",

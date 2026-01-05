@@ -1,11 +1,11 @@
 {
   "extension": {
-    "name": "MasterSVG",
+    "name": "Master SVG",
     "description": "Gestor de iconos SVG para VS Code",
-    "appTitle": "MasterSVG"
+    "appTitle": "Master SVG"
   },
   "welcome": {
-    "title": "Bienvenido a MasterSVG",
+    "title": "Bienvenido a Master SVG",
     "subtitle": "Tu solución para gestionar iconos SVG",
     "getStarted": "Comenzar",
     "configuration": "Configuración",

@@ -1,6 +1,6 @@
 {
   "name": "mastersvg-icon-studio",
-  "displayName": "MasterSVG",
+  "displayName": "Master SVG",
   "description": "Professional SVG icon management studio. Preview, edit, transform and build icon components for your design system.",
   "version": "0.1.0",
   "icon": "resources/icon.png",
@@ -569,7 +569,7 @@
       "activitybar": [
         {
           "id": "masterSVG",
-          "title": "MasterSVG",
+          "title": "Master SVG",
           "icon": "resources/icon.svg"
         }
       ]

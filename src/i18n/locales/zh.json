@@ -1,8 +1,8 @@
 {
   "extension": {
-    "name": "MasterSVG",
+    "name": "Master SVG",
     "description": "VS Code 的 SVG 图标管理器",
-    "appTitle": "MasterSVG"
+    "appTitle": "Master SVG"
   },
   "welcome": {
     "title": "欢迎使用 MasterSVG",
