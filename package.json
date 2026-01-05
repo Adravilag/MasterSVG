@@ -3,6 +3,7 @@
   "displayName": "MasterSVG Icon Studio",
   "description": "Professional SVG icon management studio. Preview, edit, transform and build icon components for your design system.",
   "version": "0.1.0",
+  "icon": "resources/icon.png",
   "publisher": "MasterSVG",
   "author": {
     "name": "Adrián Dávila Guerra",

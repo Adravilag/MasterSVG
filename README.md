@@ -1,7 +1,7 @@
 # MasterSVG Icon Studio
 
 <p align="center">
-  <img src="resources/icon.svg" alt="MasterSVG Icon Studio" width="128" height="128">
+  <img src="resources/icon.webp" alt="MasterSVG Icon Studio" width="128" height="128">
 </p>
 
 <p align="center">
