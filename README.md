@@ -65,7 +65,7 @@ Full-featured icon editor panel with:
 
 ### Variants System
 - Create light/dark theme variants
-- Auto-generate complementary variants
+- Auto-generate variants (invert, darken, lighten, muted, grayscale)
 - Set default variant per icon
 
 ### Animation Support
