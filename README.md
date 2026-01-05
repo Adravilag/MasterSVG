@@ -1,4 +1,4 @@
-# SageBox Icon Studio for VS Code
+# MasterSVG Icon Studio for VS Code
 
 > **The complete SVG icon workflow without leaving your editor**
 
@@ -10,9 +10,9 @@ Search, preview, edit, optimize, and export SVG icons to React, Vue, Svelte, Ang
 
 ---
 
-## ✨ Why SageBox Icon Studio?
+## ✨ Why MasterSVG Icon Studio?
 
-Most icon extensions do **one thing**. SageBox Icon Studio does the **complete workflow**:
+Most icon extensions do **one thing**. MasterSVG Icon Studio does the **complete workflow**:
 
 ```
 🔍 Search    →    👁️ Preview    →    🎨 Edit    →    ⚡ Optimize    →    📦 Export
@@ -101,26 +101,26 @@ Build a complete icon system with one command:
 ```json
 {
   // Your Icon component name
-  "sageboxIconStudio.componentName": "Icon",
+  "masterSVG.componentName": "Icon",
   
   // Import path for auto-imports
-  "sageboxIconStudio.componentImport": "@/components/ui/Icon",
+  "masterSVG.componentImport": "@/components/ui/Icon",
   
   // Folders to scan for SVGs
-  "sageboxIconStudio.svgFolders": [
+  "masterSVG.svgFolders": [
     "src/assets/icons",
     "src/icons",
     "public/icons"
   ],
   
   // Output format: jsx, vue, svelte, html, angular
-  "sageboxIconStudio.outputFormat": "jsx",
+  "masterSVG.outputFormat": "jsx",
   
   // Output directory for generated files
-  "sageboxIconStudio.outputDirectory": "src/icons",
+  "masterSVG.outputDirectory": "src/icons",
   
   // Auto-add imports when inserting icons
-  "sageboxIconStudio.autoImport": true
+  "masterSVG.autoImport": true
 }
 ```
 
@@ -191,7 +191,7 @@ The built-in Web Component supports modern CSS features:
 ## 🛠️ Development
 
 ```bash
-git clone https://github.com/sagebox/icon-manager-vscode
+git clone https://github.com/MasterSVG/icon-manager-vscode
 cd icon-manager-vscode
 npm install
 npm run compile
@@ -224,7 +224,7 @@ npm test
 
 ## 📄 License
 
-MIT © [SageBox](https://github.com/sagebox)
+MIT © [MasterSVG](https://github.coMasterSVGrsvg)
 
 ---
 

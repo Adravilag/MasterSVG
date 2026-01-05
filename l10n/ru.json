@@ -502,7 +502,7 @@
       "svgFoldersDesc": "Папки для сканирования SVG файлов",
       "componentNameDesc": "Имя компонента Icon (напр. Icon)",
       "outputFormatDesc": "Формат вывода по умолчанию (jsx, vue, svelte и т.д.)",
-      "webComponentNameDesc": "Имя пользовательского элемента (напр. sagebox-icon)",
+      "webComponentNameDesc": "Имя пользовательского элемента (напр. mastersvg-icon)",
       "openWelcomeDesc": "Открыть панель приветствия со всеми настройками"
     },
     "validation": {

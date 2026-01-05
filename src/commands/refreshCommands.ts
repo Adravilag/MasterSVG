@@ -30,7 +30,7 @@ export function registerRefreshCommands(providers: RefreshableProviders): vscode
 
   // Command: Refresh all views
   disposables.push(
-    vscode.commands.registerCommand('sageboxIconStudio.refreshIcons', () => {
+    vscode.commands.registerCommand('masterSVG.refreshIcons', () => {
       // Refresh builtIconsProvider first so svgFilesProvider can get build status
       providers.builtIconsProvider.refresh();
       providers.svgFilesProvider.refresh();
@@ -40,28 +40,28 @@ export function registerRefreshCommands(providers: RefreshableProviders): vscode
 
   // Command: Refresh FILES view only
   disposables.push(
-    vscode.commands.registerCommand('sageboxIconStudio.refreshFiles', () => {
+    vscode.commands.registerCommand('masterSVG.refreshFiles', () => {
       providers.svgFilesProvider.refresh();
     })
   );
 
   // Command: Refresh CODE view only
   disposables.push(
-    vscode.commands.registerCommand('sageboxIconStudio.refreshCode', () => {
+    vscode.commands.registerCommand('masterSVG.refreshCode', () => {
       providers.workspaceSvgProvider.refresh();
     })
   );
 
   // Command: Refresh BUILT view only
   disposables.push(
-    vscode.commands.registerCommand('sageboxIconStudio.refreshBuilt', () => {
+    vscode.commands.registerCommand('masterSVG.refreshBuilt', () => {
       providers.builtIconsProvider.refresh();
     })
   );
 
   // Command: Partial refresh for a single SVG file (after save/edit)
   disposables.push(
-    vscode.commands.registerCommand('sageboxIconStudio.refreshSvgFile', (filePath: string) => {
+    vscode.commands.registerCommand('masterSVG.refreshSvgFile', (filePath: string) => {
       if (filePath) {
         providers.svgFilesProvider.refreshFile(filePath);
       }
@@ -70,7 +70,7 @@ export function registerRefreshCommands(providers: RefreshableProviders): vscode
 
   // Command: Partial refresh FILES view by icon name (preserves tree expansion state)
   disposables.push(
-    vscode.commands.registerCommand('sageboxIconStudio.refreshFilesItemByName', (iconName: string) => {
+    vscode.commands.registerCommand('masterSVG.refreshFilesItemByName', (iconName: string) => {
       if (iconName) {
         providers.svgFilesProvider.refreshItemByName?.(iconName);
       }
@@ -80,7 +80,7 @@ export function registerRefreshCommands(providers: RefreshableProviders): vscode
   // Command: Add icon to BUILT and refresh without collapsing tree
   disposables.push(
     vscode.commands.registerCommand(
-      'sageboxIconStudio.addIconToBuiltAndRefresh',
+      'masterSVG.addIconToBuiltAndRefresh',
       (iconName: string, svg: string, iconsFilePath: string, animation?: any) => {
         if (iconName && svg && iconsFilePath) {
           providers.builtIconsProvider.addIconAndRefresh?.(iconName, svg, iconsFilePath, animation);
@@ -91,7 +91,7 @@ export function registerRefreshCommands(providers: RefreshableProviders): vscode
 
   // Command: Partial refresh by icon name in both views (preserves tree expansion state)
   disposables.push(
-    vscode.commands.registerCommand('sageboxIconStudio.refreshIconByName', (iconName: string) => {
+    vscode.commands.registerCommand('masterSVG.refreshIconByName', (iconName: string) => {
       if (iconName) {
         // Refresh only the specific icon item without collapsing tree
         providers.svgFilesProvider.refreshItemByName?.(iconName);
@@ -102,14 +102,14 @@ export function registerRefreshCommands(providers: RefreshableProviders): vscode
 
   // Command: Force refresh preview (clears CSS cache - useful for development)
   disposables.push(
-    vscode.commands.registerCommand('sageboxIconStudio.forceRefreshPreview', () => {
+    vscode.commands.registerCommand('masterSVG.forceRefreshPreview', () => {
       providers.iconPreviewProvider?.forceRefresh();
     })
   );
 
   // Command: Full dev refresh (all views + preview cache clear)
   disposables.push(
-    vscode.commands.registerCommand('sageboxIconStudio.devRefreshAll', () => {
+    vscode.commands.registerCommand('masterSVG.devRefreshAll', () => {
       // Clear preview cache first
       providers.iconPreviewProvider?.forceRefresh();
       // Then refresh all tree views

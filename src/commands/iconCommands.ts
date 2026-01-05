@@ -37,7 +37,7 @@ export function registerIconCommands(
   // Command: Delete icons
   commands.push(
     vscode.commands.registerCommand(
-      'sageboxIconStudio.deleteIcons',
+      'masterSVG.deleteIcons',
       async (item: any, selectedItems?: any[]) => {
         const itemsToDelete = selectedItems && selectedItems.length > 0 ? selectedItems : [item];
 
@@ -133,7 +133,7 @@ export function registerIconCommands(
   // Supports multiple selection
   commands.push(
     vscode.commands.registerCommand(
-      'sageboxIconStudio.removeFromBuilt',
+      'masterSVG.removeFromBuilt',
       async (item: any, selectedItems?: any[]) => {
         // Handle multiple selection
         const items =
@@ -209,7 +209,7 @@ export function registerIconCommands(
   // Command: Rename icon
   commands.push(
     vscode.commands.registerCommand(
-      'sageboxIconStudio.renameIcon',
+      'masterSVG.renameIcon',
       async (item: any, providedNewName?: string) => {
         if (!item?.icon) {
           vscode.window.showWarningMessage(t('messages.selectIconToRename'));
@@ -344,7 +344,7 @@ export function registerIconCommands(
                   }
                 } catch (err) {
                   // Skip files that can't be read/written
-                  
+
                 }
               }
             }
@@ -456,7 +456,7 @@ export function registerIconCommands(
             }
 
             // Partial refresh for built icons - update both providers
-            
+
             workspaceSvgProvider.renameBuiltIcon(oldName, newName);
             builtIconsProvider.refresh(); // Refresh the BuiltIconsProvider tree view
 

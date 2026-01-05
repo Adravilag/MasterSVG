@@ -42,7 +42,7 @@ export function Header() {
 `;
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -69,25 +69,25 @@ export function Header() {
   suite('CA-17.1: Comandos de navegación', () => {
     test('Debe existir comando goToUsage', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.goToUsage'), 'Comando goToUsage debe existir');
+      assert.ok(commands.includes('masterSVG.goToUsage'), 'Comando goToUsage debe existir');
     });
 
     test('Debe existir comando goToCode', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.goToCode'), 'Comando goToCode debe existir');
+      assert.ok(commands.includes('masterSVG.goToCode'), 'Comando goToCode debe existir');
     });
 
     test('Debe existir comando goToInlineSvg', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.goToInlineSvg'),
+        commands.includes('masterSVG.goToInlineSvg'),
         'Comando goToInlineSvg debe existir'
       );
     });
 
     test('Debe existir comando openSvgFile', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.openSvgFile'), 'Comando openSvgFile debe existir');
+      assert.ok(commands.includes('masterSVG.openSvgFile'), 'Comando openSvgFile debe existir');
     });
   });
 
@@ -184,7 +184,7 @@ export function Header() {
 
       // Verificar que existe funcionalidad de reveal
       assert.ok(
-        commands.includes('sageboxIconStudio.focusIconsView') ||
+        commands.includes('masterSVG.focusIconsView') ||
           commands.some(c => c.includes('reveal') || c.includes('focus')),
         'Debe existir funcionalidad para revelar en árbol'
       );
@@ -194,7 +194,7 @@ export function Header() {
   suite('CA-17.5: Quick Navigation', () => {
     test('Debe existir comando copyIconName', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.copyIconName'), 'Comando copyIconName debe existir');
+      assert.ok(commands.includes('masterSVG.copyIconName'), 'Comando copyIconName debe existir');
     });
 
     test('Debe formatear referencia según formato', () => {

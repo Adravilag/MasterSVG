@@ -116,7 +116,7 @@ export function registerBuildCommands(
   // Command: Build Single Icon - build a single icon from hover or context menu
   disposables.push(
     vscode.commands.registerCommand(
-      'sageboxIconStudio.buildSingleIcon',
+      'masterSVG.buildSingleIcon',
       async (data?: { iconName: string; svgContent: string; filePath?: string }) => {
         console.log('[buildSingleIcon] Called with data:', {
           iconName: data?.iconName,
@@ -185,9 +185,9 @@ export function registerBuildCommands(
 
   // Command: Build All References - transforms all img references to web components
   disposables.push(
-    vscode.commands.registerCommand('sageboxIconStudio.buildAllReferences', async () => {
+    vscode.commands.registerCommand('masterSVG.buildAllReferences', async () => {
       const config = getConfig();
-      const componentName = config.webComponentName || 'sg-icon';
+      const componentName = config.webComponentName || 'svg-icon';
       const buildFormat = config.buildFormat || 'icons.js';
 
       const imgRefs = providers.workspaceSvgProvider.getImgReferences();
@@ -314,7 +314,7 @@ export function registerBuildCommands(
 
   // Command: Build All SVG Files to library
   disposables.push(
-    vscode.commands.registerCommand('sageboxIconStudio.buildAllFiles', async () => {
+    vscode.commands.registerCommand('masterSVG.buildAllFiles', async () => {
       const config = getConfig();
       const buildFormat = config.buildFormat || 'icons.js';
 
@@ -428,7 +428,7 @@ export function registerBuildCommands(
 
   // Command: Build icons library
   disposables.push(
-    vscode.commands.registerCommand('sageboxIconStudio.buildIcons', async () => {
+    vscode.commands.registerCommand('masterSVG.buildIcons', async () => {
       const outputPath = getOutputPathOrWarn();
       if (!outputPath) return;
 

@@ -1,5 +1,5 @@
 /**
- * Type definitions for Sagebox Icon System
+ * Type definitions for mastersvg Icon System
  * Defines interfaces for animations, variations, and build configuration
  */
 

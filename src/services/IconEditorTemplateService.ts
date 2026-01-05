@@ -149,7 +149,7 @@ ${animationRule}`;
    */
   public generateUsageCodeHtml(iconName: string, animationType?: string): string {
     const config = getConfig();
-    const tagName = config.webComponentName || 'sg-icon';
+    const tagName = config.webComponentName || 'svg-icon';
 
     const lines: string[] = [
       `<!-- Web Component (basic) -->`,

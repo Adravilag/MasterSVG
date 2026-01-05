@@ -7,7 +7,7 @@ import { t } from '../i18n';
 
 export class IconStudioPanel {
   public static currentPanel: IconStudioPanel | undefined;
-  public static readonly viewType = 'sageboxIconStudio';
+  public static readonly viewType = 'masterSVG';
 
   private readonly _panel: vscode.WebviewPanel;
   private readonly _extensionUri: vscode.Uri;
@@ -146,7 +146,7 @@ export class IconStudioPanel {
       }
 
       case 'scanWorkspace':
-        vscode.commands.executeCommand('sageboxIconStudio.scanWorkspace');
+        vscode.commands.executeCommand('masterSVG.scanWorkspace');
         break;
 
       case 'showError':

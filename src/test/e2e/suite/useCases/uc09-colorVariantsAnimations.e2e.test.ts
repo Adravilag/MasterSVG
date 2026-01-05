@@ -17,7 +17,7 @@ suite('UC-9: Personalizar Colores de Iconos', () => {
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -28,7 +28,7 @@ suite('UC-9: Personalizar Colores de Iconos', () => {
     test('Debe existir comando changeIconColor', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.changeIconColor'),
+        commands.includes('masterSVG.changeIconColor'),
         'Comando changeIconColor debe existir'
       );
     });
@@ -132,7 +132,7 @@ suite('UC-29: Crear Variantes de Iconos', () => {
     test('Debe existir comando createVariant', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.createVariant'),
+        commands.includes('masterSVG.createVariant'),
         'Comando createVariant debe existir'
       );
     });
@@ -140,7 +140,7 @@ suite('UC-29: Crear Variantes de Iconos', () => {
     test('Debe existir comando duplicateIcon', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.duplicateIcon'),
+        commands.includes('masterSVG.duplicateIcon'),
         'Comando duplicateIcon debe existir'
       );
     });
@@ -227,13 +227,13 @@ suite('UC-30: Animaciones de Iconos', () => {
   suite('CA-30.1: Comandos de animación', () => {
     test('Debe existir comando addAnimation', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.addAnimation'), 'Comando addAnimation debe existir');
+      assert.ok(commands.includes('masterSVG.addAnimation'), 'Comando addAnimation debe existir');
     });
 
     test('Debe existir comando previewAnimation', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.previewAnimation'),
+        commands.includes('masterSVG.previewAnimation'),
         'Comando previewAnimation debe existir'
       );
     });
@@ -282,7 +282,7 @@ suite('UC-30: Animaciones de Iconos', () => {
     test('Debe soportar animación SVG inline (SMIL)', () => {
       const animatedSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
   <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z">
-    <animateTransform 
+    <animateTransform
       attributeName="transform"
       type="rotate"
       from="0 12 12"
@@ -357,9 +357,9 @@ import React from 'react';
 import './IconLoading.css';
 
 export const IconLoading = ({ className = '', ...props }) => (
-  <svg 
+  <svg
     className={\`icon-loading \${className}\`}
-    xmlns="http://www.w3.org/2000/svg" 
+    xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
     {...props}
   >

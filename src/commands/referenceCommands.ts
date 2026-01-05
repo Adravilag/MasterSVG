@@ -25,7 +25,7 @@ export function registerReferenceCommands(
 
   // Command: Remove missing reference (delete the <img> tag)
   const removeReferenceCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.removeReference',
+    'masterSVG.removeReference',
     async (item: any) => {
       if (!item?.icon?.filePath || item.icon.line === undefined) {
         vscode.window.showWarningMessage(t('messages.cannotFindRefLocation'));
@@ -73,7 +73,7 @@ export function registerReferenceCommands(
 
   // Command: Find and replace path for missing reference
   const findAndReplaceCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.findAndReplace',
+    'masterSVG.findAndReplace',
     async (item: any) => {
       if (!item?.icon?.filePath || item.icon.line === undefined) {
         vscode.window.showWarningMessage(t('messages.cannotFindRefLocation'));
@@ -249,7 +249,7 @@ export function registerReferenceCommands(
 
   // Command: Reveal icon in tree view
   const revealInTreeCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.revealInTree',
+    'masterSVG.revealInTree',
     async (iconName: string, filePath?: string, lineNumber?: number) => {
       if (!iconName && !filePath) return;
 

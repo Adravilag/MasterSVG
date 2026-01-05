@@ -83,7 +83,7 @@ export class SvgItem extends vscode.TreeItem {
       this.iconPath = new vscode.ThemeIcon('refresh');
       this.contextValue = 'svgAction';
       this.command = {
-        command: 'sageboxIconStudio.scanWorkspace',
+        command: 'masterSVG.scanWorkspace',
         title: t('commands.scanWorkspace'),
       };
     } else if (type === 'usage' && usage) {
@@ -92,7 +92,7 @@ export class SvgItem extends vscode.TreeItem {
       this.contextValue = 'iconUsage';
       this.tooltip = usage.preview;
       this.command = {
-        command: 'sageboxIconStudio.goToUsage',
+        command: 'masterSVG.goToUsage',
         title: t('commands.goToUsage'),
         arguments: [usage.file, usage.line],
       };
@@ -115,10 +115,8 @@ export class SvgItem extends vscode.TreeItem {
       svgContent = SvgItem.svgCache.getContent(icon.path);
     }
 
-    // Check if this is a rasterized SVG using cached analysis
-    const isRasterized = icon.path
-      ? SvgItem.svgCache.isRasterized(icon.path)
-      : this.isRasterizedSvg(svgContent);
+    // Rasterized check disabled - allow building any SVG
+    const isRasterized = false;
 
     // Detect animation type - for built icons, use AnimationAssignmentService as source of truth
     let animationType: string | null = null;
@@ -264,7 +262,7 @@ export class SvgItem extends vscode.TreeItem {
       // Still allow clicking to navigate to the reference
       if (icon.filePath && icon.line !== undefined) {
         this.command = {
-          command: 'sageboxIconStudio.goToInlineSvg',
+          command: 'masterSVG.goToInlineSvg',
           title: t('commands.goToReference'),
           arguments: [icon],
         };
@@ -273,7 +271,7 @@ export class SvgItem extends vscode.TreeItem {
       // For library/built icons - click handled by iconClick command (detects double click)
       this.tooltip = tooltipLines.join('\n');
       this.command = {
-        command: 'sageboxIconStudio.iconClick',
+        command: 'masterSVG.iconClick',
         title: t('commands.showDetails'),
         arguments: [icon],
       };
@@ -282,7 +280,7 @@ export class SvgItem extends vscode.TreeItem {
       const fileName = path.basename(icon.filePath);
       this.tooltip = `${icon.name}\n${fileName}:${icon.line + 1}`;
       this.command = {
-        command: 'sageboxIconStudio.goToInlineSvg',
+        command: 'masterSVG.goToInlineSvg',
         title: t('commands.goToSvg'),
         arguments: [icon],
       };
@@ -290,7 +288,7 @@ export class SvgItem extends vscode.TreeItem {
       // For workspace SVG files - click handled by iconClick command (detects double click)
       this.tooltip = `${icon.name}\n${icon.path}`;
       this.command = {
-        command: 'sageboxIconStudio.iconClick',
+        command: 'masterSVG.iconClick',
         title: t('commands.showDetails'),
         arguments: [icon],
       };
@@ -335,7 +333,7 @@ export class SvgItem extends vscode.TreeItem {
       }
     } else {
       // Show symbol icon for missing SVGs
-      
+
       this.iconPath = new vscode.ThemeIcon('symbol-misc');
     }
   }
@@ -372,7 +370,7 @@ export class SvgItem extends vscode.TreeItem {
       const animationNameMatch = svg.match(/animation(?:-name)?\s*:\s*([^;}\s]+)/i);
       const animationName = animationNameMatch ? animationNameMatch[1] : '';
       const searchContext = styleContent + ' ' + animationName;
-      
+
       // Try to detect specific CSS animation type from keyframes and animation names
       if (/spin|rotate/i.test(searchContext)) return 'spin (CSS)';
       if (/pulse|scale/i.test(searchContext)) return 'pulse (CSS)';

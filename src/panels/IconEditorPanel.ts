@@ -176,7 +176,7 @@ export class IconEditorPanel {
       e => {
         if (e.webviewPanel.visible && this._iconData) {
           vscode.commands.executeCommand(
-            'sageboxIconStudio.revealInTree',
+            'masterSVG.revealInTree',
             this._iconData.name,
             this._iconData.location?.file,
             this._iconData.location?.line
@@ -576,7 +576,7 @@ export class IconEditorPanel {
   // Animation storage methods - use animations.js in output directory
   private _getOutputPath(): string | undefined {
     const workspaceFolders = vscode.workspace.workspaceFolders;
-    const outputDir = getSvgConfig<string>('outputDirectory', 'sagebox-icons');
+    const outputDir = getSvgConfig<string>('outputDirectory', 'mastersvg-icons');
     if (!workspaceFolders || !outputDir) return undefined;
     return path.join(workspaceFolders[0].uri.fsPath, outputDir);
   }
@@ -752,7 +752,7 @@ export class IconEditorPanel {
       }
       // Trigger rebuild after updating sprite
       if (options.triggerFullRebuild) {
-        vscode.commands.executeCommand('sageboxIconStudio.buildIcons');
+        vscode.commands.executeCommand('masterSVG.buildIcons');
       }
     } else {
       // Update icons.js directly
@@ -763,7 +763,7 @@ export class IconEditorPanel {
       }
       // If requested, trigger a full rebuild so build artifacts include this change
       if (options.triggerFullRebuild) {
-        await vscode.commands.executeCommand('sageboxIconStudio.buildIcons');
+        await vscode.commands.executeCommand('masterSVG.buildIcons');
       }
     }
 
@@ -776,7 +776,7 @@ export class IconEditorPanel {
 
     // 8. Refresh tree view partially (preserves expansion state)
     // Use partial refresh by icon name to avoid collapsing tree branches
-    await vscode.commands.executeCommand('sageboxIconStudio.refreshIconByName', this._iconData.name);
+    await vscode.commands.executeCommand('masterSVG.refreshIconByName', this._iconData.name);
 
     // 9. Notify
     if (options.successMessage) {
@@ -877,11 +877,11 @@ export class IconEditorPanel {
         // - FILES: partial refresh to update "(built)" label
         // - BUILT: add icon to cache and refresh only icons.js container
         await vscode.commands.executeCommand(
-          'sageboxIconStudio.refreshFilesItemByName',
+          'masterSVG.refreshFilesItemByName',
           this._iconData.name
         );
         await vscode.commands.executeCommand(
-          'sageboxIconStudio.addIconToBuiltAndRefresh',
+          'masterSVG.addIconToBuiltAndRefresh',
           this._iconData.name,
           svgToAdd,
           this._iconData.iconsFile,

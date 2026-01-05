@@ -1,3 +1,3 @@
 // Deprecated compatibility file
-// Re-export types from the new sageboxTypes module
-export * from './sageboxTypes';
+// Re-export types from the new mastersvgTypes module
+export * from './mastersvgTypes';

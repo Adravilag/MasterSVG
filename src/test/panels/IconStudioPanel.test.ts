@@ -87,7 +87,7 @@ describe('IconStudioPanel', () => {
       IconStudioPanel.createOrShow(extensionUri, mockContext as vscode.ExtensionContext);
 
       expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith(
-        'sageboxIconStudio',
+        'masterSVG',
         'Files', // Uses t('treeView.files')
         expect.any(Number),
         expect.objectContaining({
@@ -120,8 +120,8 @@ describe('IconStudioPanel', () => {
       });
     });
 
-    test('CA-8.1.4: viewType debe ser "sageboxIconStudio"', () => {
-      expect(IconStudioPanel.viewType).toBe('sageboxIconStudio');
+    test('CA-8.1.4: viewType debe ser "masterSVG"', () => {
+      expect(IconStudioPanel.viewType).toBe('masterSVG');
     });
   });
 
@@ -283,7 +283,7 @@ describe('IconStudioPanel', () => {
 
       await handler({ type: 'scanWorkspace' });
 
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sageboxIconStudio.scanWorkspace');
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('masterSVG.scanWorkspace');
     });
 
     test('mensaje openFile debe abrir documento', async () => {
@@ -418,7 +418,7 @@ describe('IconStudioPanel', () => {
       IconStudioPanel.createOrShow(extensionUri, mockContext as vscode.ExtensionContext);
 
       expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith(
-        'sageboxIconStudio',
+        'masterSVG',
         'Files', // Uses t('treeView.files')
         vscode.ViewColumn.Two,
         expect.anything()
@@ -434,7 +434,7 @@ describe('IconStudioPanel', () => {
       IconStudioPanel.createOrShow(extensionUri, mockContext as vscode.ExtensionContext);
 
       expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith(
-        'sageboxIconStudio',
+        'masterSVG',
         'Files', // Uses t('treeView.files')
         vscode.ViewColumn.One,
         expect.anything()

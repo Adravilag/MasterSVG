@@ -19,7 +19,7 @@ suite('UC-12: Trabajar con Múltiples Frameworks', () => {
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2L2 22h20z"/></svg>';
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }

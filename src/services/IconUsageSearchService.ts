@@ -9,8 +9,8 @@ export class IconUsageSearchService {
    */
   static getSearchPatterns(iconName: string): string[] {
     return [
-      `name="${iconName}"`, // <sg-icon name="icon-name">
-      `name='${iconName}'`, // <sg-icon name='icon-name'>
+      `name="${iconName}"`, // <svg-icon name="icon-name">
+      `name='${iconName}'`, // <svg-icon name='icon-name'>
       `"${iconName}"`, // General string reference
       `'${iconName}'`, // General string reference
       `icon-${iconName}`, // CSS class pattern

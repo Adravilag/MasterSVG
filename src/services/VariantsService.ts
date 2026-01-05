@@ -65,7 +65,7 @@ export class VariantsService {
    * Get the path to the variants.js file
    */
   private _getVariantsFilePath(): string | undefined {
-    const outputDir = getSvgConfig<string>('outputDirectory', 'sagebox-icons');
+    const outputDir = getSvgConfig<string>('outputDirectory', 'mastersvg-icons');
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders || !outputDir) return undefined;
 

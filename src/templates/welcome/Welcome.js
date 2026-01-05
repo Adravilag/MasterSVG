@@ -150,10 +150,6 @@ function toggleAdvanced() {
   arrow.classList.toggle('open');
 }
 
-function setSvgoOptimize(checked) {
-  vscode.postMessage({ command: 'setSvgoOptimize', value: checked });
-}
-
 function setScanOnStartup(checked) {
   vscode.postMessage({ command: 'setScanOnStartup', value: checked });
 }
@@ -167,8 +163,4 @@ function setDefaultIconSize(value) {
 
 function setPreviewBackground(value) {
   vscode.postMessage({ command: 'setPreviewBackground', value: value });
-}
-
-function setLicenseConsent(value) {
-  vscode.postMessage({ command: 'setLicenseConsent', value: value });
 }

@@ -223,7 +223,7 @@ export class SvgToIconCodeActionProvider implements vscode.CodeActionProvider {
     };
 
     action.command = {
-      command: 'sageboxIconStudio.transformSvgReference',
+      command: 'masterSVG.transformSvgReference',
       title: t('commands.transformSvg'),
       arguments: [options],
     };
@@ -271,7 +271,7 @@ export class SvgToIconCodeActionProvider implements vscode.CodeActionProvider {
     };
 
     action.command = {
-      command: 'sageboxIconStudio.transformSvgReference',
+      command: 'masterSVG.transformSvgReference',
       title: t('commands.transformSvg'),
       arguments: [options],
     };
@@ -288,7 +288,7 @@ export class SvgImgDiagnosticProvider {
   private diagnosticCollection: vscode.DiagnosticCollection;
 
   constructor() {
-    this.diagnosticCollection = vscode.languages.createDiagnosticCollection('sageboxIconStudio');
+    this.diagnosticCollection = vscode.languages.createDiagnosticCollection('masterSVG');
   }
 
   public updateDiagnostics(document: vscode.TextDocument): void {
@@ -316,7 +316,7 @@ export class SvgImgDiagnosticProvider {
         vscode.DiagnosticSeverity.Hint
       );
       diagnostic.code = 'svg-to-icon';
-      diagnostic.source = 'sageboxIconStudio';
+      diagnostic.source = 'masterSVG';
 
       diagnostics.push(diagnostic);
     }
@@ -346,7 +346,7 @@ export class SvgImgDiagnosticProvider {
 /**
  * Code Action Provider for missing icons in web components
  *
- * Detects: <sg-icon name="missing-icon"> where icon doesn't exist
+ * Detects: <svg-icon name="missing-icon"> where icon doesn't exist
  * Offers: Import from Iconify or file
  */
 export class MissingIconCodeActionProvider implements vscode.CodeActionProvider {
@@ -364,7 +364,7 @@ export class MissingIconCodeActionProvider implements vscode.CodeActionProvider 
     _token: vscode.CancellationToken
   ): vscode.CodeAction[] | undefined {
     const config = getConfig();
-    const componentName = config.webComponentName || 'sg-icon';
+    const componentName = config.webComponentName || 'svg-icon';
 
     const line = document.lineAt(range.start.line);
     const lineText = line.text;
@@ -455,7 +455,7 @@ export class MissingIconCodeActionProvider implements vscode.CodeActionProvider 
     );
 
     action.command = {
-      command: 'sageboxIconStudio.importIcon',
+      command: 'masterSVG.importIcon',
       title: t('commands.importIcon'),
       arguments: [iconName, document.uri.fsPath, line],
     };
@@ -478,7 +478,7 @@ export class MissingIconCodeActionProvider implements vscode.CodeActionProvider 
     );
 
     action.command = {
-      command: 'sageboxIconStudio.searchIconifyForComponent',
+      command: 'masterSVG.searchIconifyForComponent',
       title: t('commands.searchIconify') || 'Search Iconify',
       arguments: [suggestedQuery, document.uri.fsPath, line],
     };
@@ -500,7 +500,7 @@ export class MissingIconCodeActionProvider implements vscode.CodeActionProvider 
     );
 
     action.command = {
-      command: 'sageboxIconStudio.browseWorkspaceIcons',
+      command: 'masterSVG.browseWorkspaceIcons',
       title: t('commands.browseWorkspaceIcons') || 'Browse Icons',
       arguments: [suggestedName, document.uri.fsPath, line],
     };

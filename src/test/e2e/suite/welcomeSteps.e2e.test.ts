@@ -69,7 +69,7 @@ suite('Welcome Panel Steps State Tests', () => {
 
   suiteSetup(async () => {
     // Ensure extension is activated
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }

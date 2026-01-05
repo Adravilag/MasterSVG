@@ -402,7 +402,7 @@ export class SectionChildrenBuilder {
         : usage.preview;
       item.contextValue = iconNotInLibrary ? 'iconUsageMissing' : 'iconUsage';
       item.command = {
-        command: 'sageboxIconStudio.goToInlineSvg',
+        command: 'masterSVG.goToInlineSvg',
         title: t('commands.goToUsage'),
         arguments: [{ icon: { filePath, line: lineZeroBased } }],
       };

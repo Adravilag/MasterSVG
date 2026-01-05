@@ -138,7 +138,7 @@ describe('WorkspaceSvgProvider', () => {
 describe('WorkspaceSvgProvider - Comportamiento esperado', () => {
   describe('RF-1.1: Escaneo de SVGs', () => {
     test('CA-1.1.1: debe escanear carpetas configuradas en svgFolders', () => {
-      // El provider lee la configuración 'sageboxIconStudio.svgFolders'
+      // El provider lee la configuración 'masterSVG.svgFolders'
       // y escanea esas carpetas en busca de archivos .svg
       expect(true).toBeTruthy();
     });
@@ -278,7 +278,7 @@ describe('Icon usage patterns', () => {
     { pattern: "name='arrow'", expected: 'single quote name' },
     { pattern: 'icon="lucide:arrow"', expected: 'icon attribute with prefix' },
     { pattern: '<Icon name="home" />', expected: 'JSX component' },
-    { pattern: '<sg-icon name="home"></sg-icon>', expected: 'custom element' },
+    { pattern: '<svg-icon name="home"></svg-icon>', expected: 'custom element' },
   ];
 
   usagePatterns.forEach(({ pattern, expected }) => {
@@ -525,7 +525,7 @@ describe('SvgItem class', () => {
 
       expect(item.contextValue).toBe('svgAction');
       expect(item.command).toBeDefined();
-      expect(item.command?.command).toBe('sageboxIconStudio.scanWorkspace');
+      expect(item.command?.command).toBe('masterSVG.scanWorkspace');
     });
   });
 
@@ -550,7 +550,7 @@ describe('SvgItem class', () => {
 
       expect(item.contextValue).toBe('iconUsage');
       expect(item.tooltip).toBe('<Icon name="arrow" />');
-      expect(item.command?.command).toBe('sageboxIconStudio.goToUsage');
+      expect(item.command?.command).toBe('masterSVG.goToUsage');
       expect(item.command?.arguments).toEqual(['/src/App.tsx', 25]);
     });
   });
@@ -637,7 +637,7 @@ describe('SvgItem class', () => {
 
       expect(item.contextValue).toBe('inlineSvg');
       expect(item.description).toBe('L16');
-      expect(item.command?.command).toBe('sageboxIconStudio.goToInlineSvg');
+      expect(item.command?.command).toBe('masterSVG.goToInlineSvg');
     });
 
     test('debe incluir tooltip con usages', () => {
@@ -713,7 +713,7 @@ describe('SvgItem class', () => {
       expect(item.contextValue).toBe('svgIcon');
       // library icons have a command to show details
       expect(item.command).toBeDefined();
-      expect(item.command?.command).toBe('sageboxIconStudio.showDetails');
+      expect(item.command?.command).toBe('masterSVG.showDetails');
     });
 
     test('debe usar iconPath svg para iconos', () => {
@@ -842,7 +842,7 @@ describe('SvgItem class', () => {
       );
 
       item.command = {
-        command: 'sageboxIconStudio.customAction',
+        command: 'masterSVG.customAction',
         title: 'Custom Action',
         arguments: ['arg1', 'arg2'],
       };

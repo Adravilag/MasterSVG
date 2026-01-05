@@ -753,7 +753,7 @@
     window.saveAsPreset = function() {
       const input = document.getElementById('presetName');
       const name = input?.value?.trim();
-      
+
       if (!name) {
         vscode.postMessage({
           command: 'showMessage',
@@ -769,7 +769,7 @@
         animationType: currentAnimation,
         iconName: iconName
       });
-      
+
       input.value = '';
     };
 
@@ -785,7 +785,7 @@
 
     window.applyPreset = function(presetData) {
       if (!presetData) return;
-      
+
       currentAnimation = presetData.type || 'none';
       animationSettings = {
         duration: presetData.duration || 1,

@@ -4,7 +4,7 @@
       grid-template-columns: repeat(5, 1fr);
       gap: 8px;
     }
-    
+
     .animation-type-btn {
       display: flex;
       flex-direction: column;
@@ -19,50 +19,50 @@
       cursor: pointer;
       transition: all 0.15s ease;
     }
-    
+
     .animation-type-btn:hover {
       background: var(--vscode-list-hoverBackground);
       border-color: var(--vscode-focusBorder);
     }
-    
+
     .animation-type-btn.active {
       background: rgba(var(--vscode-button-background-rgb, 0, 122, 204), 0.15);
       border-color: var(--vscode-button-background);
       color: var(--vscode-button-background);
     }
-    
+
     .animation-type-btn .codicon {
       font-size: 18px;
     }
-    
+
     .animation-settings {
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
-    
+
     /* Grid layout for settings */
     .animation-settings.grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 12px 24px;
     }
-    
+
     /* Make sliders span full width of their cell */
     .animation-settings.grid .setting-row {
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
-    
+
     .animation-settings.grid .setting-row label {
       font-size: 11px;
     }
-    
+
     .animation-settings.grid .setting-control {
       width: 100%;
     }
-    
+
     .animation-settings.grid .setting-row select {
       width: 100%;
     }
@@ -73,20 +73,20 @@
       justify-content: space-between;
       gap: 12px;
     }
-    
+
     .setting-row label {
       font-size: 12px;
       color: var(--vscode-descriptionForeground);
       min-width: 70px;
     }
-    
+
     .setting-control {
       display: flex;
       align-items: center;
       gap: 8px;
       flex: 1;
     }
-    
+
     .setting-control input[type="range"] {
       flex: 1;
       height: 4px;
@@ -95,7 +95,7 @@
       appearance: none;
       cursor: pointer;
     }
-    
+
     .setting-control input[type="range"]::-webkit-slider-thumb {
       appearance: none;
       width: 14px;
@@ -104,14 +104,14 @@
       border-radius: 50%;
       cursor: pointer;
     }
-    
+
     .setting-control span {
       font-size: 11px;
       color: var(--vscode-foreground);
       min-width: 35px;
       text-align: right;
     }
-    
+
     .setting-row select {
       flex: 1;
       padding: 6px 10px;
@@ -122,40 +122,40 @@
       font-size: 12px;
       cursor: pointer;
     }
-    
+
     .setting-row select:focus {
       outline: none;
       border-color: var(--vscode-focusBorder);
     }
-    
+
     .animation-export {
       display: flex;
       flex-direction: column;
       gap: 8px;
       align-items: center;
     }
-    
+
     .animation-export .btn {
       width: 100%;
     }
-    
+
     .animation-export .btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
     }
-    
+
     .export-hint {
       font-size: 11px;
       color: var(--vscode-descriptionForeground);
     }
-    
+
     /* Animation category buttons */
     .animation-categories {
       display: flex;
       gap: 6px;
       flex-wrap: wrap;
     }
-    
+
     .anim-category-btn {
       padding: 6px 12px;
       background: var(--vscode-button-secondaryBackground);
@@ -166,17 +166,17 @@
       cursor: pointer;
       transition: all 0.15s ease;
     }
-    
+
     .anim-category-btn:hover {
       background: var(--vscode-button-secondaryHoverBackground);
     }
-    
+
     .anim-category-btn.active {
       background: var(--vscode-button-background);
       color: var(--vscode-button-foreground);
       border-color: var(--vscode-button-background);
     }
-    
+
     .draw-hint {
       display: flex;
       align-items: flex-start;
@@ -189,7 +189,7 @@
       color: var(--vscode-foreground);
       margin-top: 10px;
     }
-    
+
     .draw-hint .codicon {
       flex-shrink: 0;
       margin-top: 1px;
@@ -200,70 +200,70 @@
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
-    
+
     @keyframes pulse {
       0%, 100% { transform: scale(1); opacity: 1; }
       50% { transform: scale(1.1); opacity: 0.8; }
     }
-    
+
     @keyframes bounce {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-8px); }
     }
-    
+
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
       25% { transform: translateX(-4px); }
       75% { transform: translateX(4px); }
     }
-    
+
     @keyframes fade {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.3; }
     }
-    
+
     @keyframes spin-reverse {
       from { transform: rotate(360deg); }
       to { transform: rotate(0deg); }
     }
-    
+
     @keyframes pulse-grow {
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.2); }
     }
-    
+
     @keyframes bounce-horizontal {
       0%, 100% { transform: translateX(0); }
       50% { transform: translateX(8px); }
     }
-    
+
     @keyframes shake-vertical {
       0%, 100% { transform: translateY(0); }
       25% { transform: translateY(-4px); }
       75% { transform: translateY(4px); }
     }
-    
+
     @keyframes float {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-6px); }
     }
-    
+
     @keyframes swing {
       0%, 100% { transform: rotate(0deg); transform-origin: top center; }
       25% { transform: rotate(15deg); }
       75% { transform: rotate(-15deg); }
     }
-    
+
     @keyframes flip {
       0% { transform: perspective(400px) rotateY(0); }
       100% { transform: perspective(400px) rotateY(360deg); }
     }
-    
+
     @keyframes flip-x {
       0% { transform: perspective(400px) rotateX(0); }
       100% { transform: perspective(400px) rotateX(360deg); }
     }
-    
+
     @keyframes heartbeat {
       0%, 100% { transform: scale(1); }
       14% { transform: scale(1.15); }
@@ -271,7 +271,7 @@
       42% { transform: scale(1.15); }
       70% { transform: scale(1); }
     }
-    
+
     @keyframes wobble {
       0%, 100% { transform: translateX(0) rotate(0); }
       15% { transform: translateX(-6px) rotate(-5deg); }
@@ -280,7 +280,7 @@
       60% { transform: translateX(3px) rotate(2deg); }
       75% { transform: translateX(-2px) rotate(-1deg); }
     }
-    
+
     @keyframes rubber-band {
       0%, 100% { transform: scaleX(1); }
       30% { transform: scaleX(1.25) scaleY(0.75); }
@@ -289,7 +289,7 @@
       65% { transform: scaleX(0.95) scaleY(1.05); }
       75% { transform: scaleX(1.05) scaleY(0.95); }
     }
-    
+
     @keyframes jello {
       0%, 11.1%, 100% { transform: skewX(0) skewY(0); }
       22.2% { transform: skewX(-12.5deg) skewY(-12.5deg); }
@@ -297,81 +297,81 @@
       44.4% { transform: skewX(-3.125deg) skewY(-3.125deg); }
       55.5% { transform: skewX(1.5625deg) skewY(1.5625deg); }
     }
-    
+
     @keyframes tada {
       0%, 100% { transform: scale(1) rotate(0); }
       10%, 20% { transform: scale(0.9) rotate(-3deg); }
       30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); }
       40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); }
     }
-    
+
     @keyframes fade-in {
       from { opacity: 0; }
       to { opacity: 1; }
     }
-    
+
     @keyframes fade-out {
       from { opacity: 1; }
       to { opacity: 0; }
     }
-    
+
     @keyframes zoom-in {
       from { transform: scale(0); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
-    
+
     @keyframes zoom-out {
       from { transform: scale(1); opacity: 1; }
       to { transform: scale(0); opacity: 0; }
     }
-    
+
     @keyframes slide-in-up {
       from { transform: translateY(100%); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
-    
+
     @keyframes slide-in-down {
       from { transform: translateY(-100%); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
-    
+
     @keyframes slide-in-left {
       from { transform: translateX(-100%); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
     }
-    
+
     @keyframes slide-in-right {
       from { transform: translateX(100%); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
     }
-    
+
     @keyframes blink {
       0%, 100% { opacity: 1; }
       50% { opacity: 0; }
     }
-    
+
     @keyframes glow {
       0%, 100% { filter: drop-shadow(0 0 2px currentColor); }
       50% { filter: drop-shadow(0 0 10px currentColor) drop-shadow(0 0 20px currentColor); }
     }
-    
+
     @keyframes draw {
       from { stroke-dashoffset: var(--path-length, 1000); }
       to { stroke-dashoffset: 0; }
     }
-    
+
     @keyframes draw-reverse {
       from { stroke-dashoffset: 0; }
       to { stroke-dashoffset: var(--path-length, 1000); }
     }
-    
+
     @keyframes draw-loop {
       0% { stroke-dashoffset: var(--path-length, 1000); }
       45% { stroke-dashoffset: 0; }
       55% { stroke-dashoffset: 0; }
       100% { stroke-dashoffset: var(--path-length, 1000); }
     }
-    
+
     /* Animation classes */
     .anim-spin { animation: spin var(--anim-duration, 1s) var(--anim-timing, linear) var(--anim-delay, 0s) var(--anim-iteration, infinite) var(--anim-direction, normal); transform-origin: center; }
     .anim-spin-reverse { animation: spin-reverse var(--anim-duration, 1s) var(--anim-timing, linear) var(--anim-delay, 0s) var(--anim-iteration, infinite) var(--anim-direction, normal); transform-origin: center; }
@@ -401,7 +401,7 @@
     .anim-slide-in-right { animation: slide-in-right var(--anim-duration, 1s) var(--anim-timing, ease) var(--anim-delay, 0s) var(--anim-iteration, 1) var(--anim-direction, normal); transform-origin: center; }
     .anim-blink { animation: blink var(--anim-duration, 1s) var(--anim-timing, step-end) var(--anim-delay, 0s) var(--anim-iteration, infinite) var(--anim-direction, normal); }
     .anim-glow { animation: glow var(--anim-duration, 2s) var(--anim-timing, ease-in-out) var(--anim-delay, 0s) var(--anim-iteration, infinite) var(--anim-direction, normal); }
-    
+
     /* Draw animations apply to SVG children */
     .anim-draw path, .anim-draw line, .anim-draw polyline, .anim-draw polygon, .anim-draw circle, .anim-draw ellipse, .anim-draw rect {
       --path-length: 1000;

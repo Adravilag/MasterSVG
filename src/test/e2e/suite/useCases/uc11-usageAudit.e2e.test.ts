@@ -44,7 +44,7 @@ export const Footer = () => (
 `;
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -93,14 +93,14 @@ export const Footer = () => (
     test('Debe existir comando scanIconUsages', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.scanIconUsages'),
+        commands.includes('masterSVG.scanIconUsages'),
         'Comando scanIconUsages debe existir'
       );
     });
 
     test('Debe ejecutar escaneo de usos sin errores', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.scanIconUsages');
+        await vscode.commands.executeCommand('masterSVG.scanIconUsages');
         await delay(500);
         assert.ok(true, 'Escaneo ejecutado correctamente');
       } catch (error) {
@@ -158,7 +158,7 @@ import { Icon } from './Icon';
 // Línea 4: primer uso
 export const A = () => <Icon name="home" />;
 
-// Línea 7: segundo uso  
+// Línea 7: segundo uso
 export const B = () => <Icon name="home" />;
 
 // Línea 10: tercer uso
@@ -233,13 +233,13 @@ suite('UC-19: Limpiar Iconos No Utilizados', () => {
   suite('Comandos de eliminación', () => {
     test('Debe existir comando deleteIcon', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.deleteIcon'), 'Comando deleteIcon debe existir');
+      assert.ok(commands.includes('masterSVG.deleteIcon'), 'Comando deleteIcon debe existir');
     });
 
     test('Debe existir comando deleteMultipleIcons', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.deleteMultipleIcons'),
+        commands.includes('masterSVG.deleteMultipleIcons'),
         'Comando deleteMultipleIcons debe existir'
       );
     });
@@ -250,7 +250,7 @@ suite('UC-19: Limpiar Iconos No Utilizados', () => {
       // Verificar que el comando de eliminación múltiple existe
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.deleteMultipleIcons'),
+        commands.includes('masterSVG.deleteMultipleIcons'),
         'Debe soportar eliminación múltiple'
       );
     });
@@ -259,7 +259,7 @@ suite('UC-19: Limpiar Iconos No Utilizados', () => {
       // La confirmación se hace via vscode.window.showWarningMessage
       // Verificamos que el comando existe (la UI de confirmación es interna)
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.deleteIcon'), 'Comando de eliminación debe existir');
+      assert.ok(commands.includes('masterSVG.deleteIcon'), 'Comando de eliminación debe existir');
     });
   });
 });

@@ -11,7 +11,7 @@
   "command.goToUsage": "转到使用位置",
   "command.transformInlineSvg": "将 SVG 转换为图标组件",
   "command.configureProject": "Icon Studio: 配置项目",
-  "command.editIgnoreFile": "Icon Studio: 编辑忽略文件 (.sageboxignore)",
+  "command.editIgnoreFile": "Icon Studio: 编辑忽略文件 (.msignore)",
   "command.refreshIcons": "Icon Studio: 刷新所有视图",
   "command.refreshFiles": "Icon Studio: 刷新文件",
   "command.refreshCode": "Icon Studio: 刷新代码",
@@ -61,9 +61,9 @@
   "config.licenseFormat.description": "许可证文件的默认格式：combined（单个文件）、perCollection（每个集合一个）或 both（两者）",
   "config.autoGenerateLicenses.description": "构建图标时自动生成许可证文件",
   "config.licensesFolder.description": "生成的许可证文件的文件夹名称（相对于输出目录）",
-  "view.sageboxFiles.title": "文件",
-  "view.sageboxCode.title": "代码",
-  "view.sageboxBuilt.title": "已构建",
-  "view.sageboxPreview.title": "预览"
+  "view.mastersvgFiles.title": "文件",
+  "view.mastersvgCode.title": "代码",
+  "view.mastersvgBuilt.title": "已构建",
+  "view.mastersvgPreview.title": "预览"
 }
 

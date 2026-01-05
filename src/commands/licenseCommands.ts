@@ -16,7 +16,7 @@ import { t } from '../i18n';
  * Get license-related configuration
  */
 export function getLicenseConfig() {
-  const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+  const config = vscode.workspace.getConfiguration('masterSVG');
   return {
     format: config.get<string>('licenseFormat', 'combined'),
     autoGenerate: config.get<boolean>('autoGenerateLicenses', false),
@@ -60,7 +60,7 @@ export function registerLicenseCommands(_context: vscode.ExtensionContext): vsco
 
   // Command: Generate license files
   commands.push(
-    vscode.commands.registerCommand('sageboxIconStudio.generateLicenses', async () => {
+    vscode.commands.registerCommand('masterSVG.generateLicenses', async () => {
       const outputPath = getFullOutputPath();
       const licenseConfig = getLicenseConfig();
 
@@ -149,7 +149,7 @@ export function registerLicenseCommands(_context: vscode.ExtensionContext): vsco
 
   // Command: Show license summary (quick overview)
   commands.push(
-    vscode.commands.registerCommand('sageboxIconStudio.showLicenseSummary', async () => {
+    vscode.commands.registerCommand('masterSVG.showLicenseSummary', async () => {
       const outputPath = getFullOutputPath();
 
       if (!outputPath) {
@@ -197,7 +197,7 @@ export function registerLicenseCommands(_context: vscode.ExtensionContext): vsco
           );
 
           if (generate === 'Generate Licenses') {
-            vscode.commands.executeCommand('sageboxIconStudio.generateLicenses');
+            vscode.commands.executeCommand('masterSVG.generateLicenses');
           }
         }
       } catch (error) {

@@ -16,7 +16,7 @@ suite('UC-4: Crear un Sistema de Iconos Consistente', () => {
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -88,13 +88,13 @@ suite('UC-4: Crear un Sistema de Iconos Consistente', () => {
       const commands = await vscode.commands.getCommands(true);
       // Verificar comandos de configuración relacionados
       const configCommands = commands.filter(
-        c => c.includes('sageboxIconStudio') && (c.includes('config') || c.includes('Config'))
+        c => c.includes('masterSVG') && (c.includes('config') || c.includes('Config'))
       );
       assert.ok(configCommands.length > 0, 'Debe haber comandos de configuración');
     });
 
     test('Debe poder configurar múltiples carpetas SVG', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update(
         'svgFolders',
         [
@@ -134,13 +134,13 @@ suite('UC-4: Crear un Sistema de Iconos Consistente', () => {
     test('Debe existir comando exportAsComponent', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.exportComponent'),
+        commands.includes('masterSVG.exportComponent'),
         'Comando exportComponent debe existir'
       );
     });
 
     test('Debe poder seleccionar framework de salida', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const supportedFormats = ['jsx', 'tsx', 'vue', 'svelte', 'astro', 'html'];
 
       for (const format of supportedFormats) {
@@ -155,14 +155,14 @@ suite('UC-4: Crear un Sistema de Iconos Consistente', () => {
     test('Debe existir comando openPanel para catálogo visual', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.openPanel'),
+        commands.includes('masterSVG.openPanel'),
         'Comando openPanel debe existir para visualizar catálogo'
       );
     });
 
     test('Debe poder abrir panel sin errores', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.openPanel');
+        await vscode.commands.executeCommand('masterSVG.openPanel');
         await delay(500);
         assert.ok(true, 'Panel abierto correctamente');
       } catch (error) {

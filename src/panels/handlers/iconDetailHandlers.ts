@@ -99,7 +99,7 @@ export async function handleOpenEditor(ctx: PanelContext): Promise<void> {
       const savedVariants = variantsService.getSavedVariants(ctx.iconDetails.name);
       if (savedVariants[ctx.selectedVariantIndex]) {
         const { colors: currentColors } = colorService.extractAllColorsFromSvg(ctx.iconDetails.svg);
-        
+
         // Restore to original colors
         let restoredSvg = ctx.iconDetails.svg;
         for (let i = 0; i < Math.min(currentColors.length, ctx.originalColors.length); i++) {
@@ -108,8 +108,8 @@ export async function handleOpenEditor(ctx: PanelContext): Promise<void> {
         svgToPass = restoredSvg;
       }
     }
-    
-    await vscode.commands.executeCommand('sageboxIconStudio.colorEditor', {
+
+    await vscode.commands.executeCommand('masterSVG.colorEditor', {
       icon: {
         name: ctx.iconDetails.name,
         svg: svgToPass,
@@ -168,7 +168,7 @@ export async function handleApplyOptimizedSvg(ctx: PanelContext, message: { svg:
     // This will update icons.js or sprite.svg according to user config
     try {
       console.log('[handleApplyOptimizedSvg] Executing buildSingleIcon command...');
-      await vscode.commands.executeCommand('sageboxIconStudio.buildSingleIcon', {
+      await vscode.commands.executeCommand('masterSVG.buildSingleIcon', {
         iconName: ctx.iconDetails.name,
         svgContent: message.svg,
         filePath: ctx.iconDetails.location?.file,

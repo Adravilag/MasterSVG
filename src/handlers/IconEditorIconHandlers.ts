@@ -61,7 +61,7 @@ export async function handleRequestRename(
       const result = await vscode.commands.executeCommand<
         { newName: string; newPath?: string } | undefined
       >(
-        'sageboxIconStudio.renameIcon',
+        'masterSVG.renameIcon',
         {
           icon: {
             name: message.currentName,
@@ -85,7 +85,7 @@ export async function handleRequestRename(
         vscode.window.showInformationMessage(t('messages.renamedTo', { name: result.newName }));
 
         vscode.commands.executeCommand(
-          'sageboxIconStudio.revealInTree',
+          'masterSVG.revealInTree',
           result.newName,
           result.newPath || ctx.iconData.location?.file,
           ctx.iconData.location?.line
@@ -110,7 +110,7 @@ export async function handleRenameIcon(
     const result = await vscode.commands.executeCommand<
       { newName: string; newPath?: string } | undefined
     >(
-      'sageboxIconStudio.renameIcon',
+      'masterSVG.renameIcon',
       {
         icon: {
           name: message.oldName,
@@ -134,7 +134,7 @@ export async function handleRenameIcon(
       vscode.window.showInformationMessage(t('messages.renamedTo', { name: result.newName }));
 
       vscode.commands.executeCommand(
-        'sageboxIconStudio.revealInTree',
+        'masterSVG.revealInTree',
         result.newName,
         result.newPath || ctx.iconData.location?.file,
         ctx.iconData.location?.line
@@ -202,5 +202,5 @@ export function handleSaveAnimation(
  * Handle refresh icons command
  */
 export function handleRefresh(): void {
-  vscode.commands.executeCommand('sageboxIconStudio.refreshIcons');
+  vscode.commands.executeCommand('masterSVG.refreshIcons');
 }

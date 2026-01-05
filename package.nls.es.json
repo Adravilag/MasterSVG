@@ -11,7 +11,7 @@
   "command.goToUsage": "Ir al Uso",
   "command.transformInlineSvg": "Transformar SVG a Componente de Icono",
   "command.configureProject": "Icon Studio: Configurar Proyecto",
-  "command.editIgnoreFile": "Icon Studio: Editar Archivo de Ignorados (.sageboxignore)",
+  "command.editIgnoreFile": "Icon Studio: Editar Archivo de Ignorados (.msignore)",
   "command.refreshIcons": "Icon Studio: Actualizar Todas las Vistas",
   "command.refreshFiles": "Icon Studio: Actualizar Archivos",
   "command.refreshCode": "Icon Studio: Actualizar Código",
@@ -63,9 +63,9 @@
   "config.licenseFormat.description": "Formato por defecto para archivos de licencia: combined (archivo único), perCollection (uno por colección), o both (ambos)",
   "config.autoGenerateLicenses.description": "Generar automáticamente archivos de licencia al construir iconos",
   "config.licensesFolder.description": "Nombre de carpeta para archivos de licencia generados (relativo al directorio de salida)",
-  "view.sageboxFiles.title": "Archivos",
-  "view.sageboxCode.title": "Código",
-  "view.sageboxBuilt.title": "Construidos",
-  "view.sageboxPreview.title": "Vista Previa"
+  "view.mastersvgFiles.title": "Archivos",
+  "view.mastersvgCode.title": "Código",
+  "view.mastersvgBuilt.title": "Construidos",
+  "view.mastersvgPreview.title": "Vista Previa"
 }
 

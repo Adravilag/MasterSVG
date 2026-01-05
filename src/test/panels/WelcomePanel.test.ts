@@ -107,7 +107,7 @@ describe('WelcomePanel', () => {
       WelcomePanel.createOrShow(extensionUri);
 
       expect(vscode.window.createWebviewPanel).toHaveBeenCalledWith(
-        'sageboxIconStudio.welcome',
+        'masterSVG.welcome',
         'Welcome to Icon Studio', // Uses t('welcome.title')
         expect.anything(),
         expect.objectContaining({
@@ -238,7 +238,7 @@ describe('WelcomePanel', () => {
       // Simulate configuration change
       if (configChangeCallbacks.length > 0) {
         configChangeCallbacks[0]({
-          affectsConfiguration: (section: string) => section === 'sageboxIconStudio',
+          affectsConfiguration: (section: string) => section === 'masterSVG',
         });
       }
 
@@ -413,7 +413,7 @@ describe('WelcomePanel', () => {
           if (key === 'svgFolders') return ['svgs'];
           if (key === 'outputDirectory') return 'public/icons';
           if (key === 'buildFormat') return 'icons.ts';
-          if (key === 'webComponentName') return 'sg-icon';
+          if (key === 'webComponentName') return 'svg-icon';
           return defaultValue;
         }),
         update: jest.fn().mockResolvedValue(undefined),

@@ -51,20 +51,20 @@ suite('Settings Deferred Save Tests', () => {
     const settings = readSettingsFile();
     if (!settings) return false;
 
-    return Object.keys(settings).some(key => key.startsWith('sageboxIconStudio.'));
+    return Object.keys(settings).some(key => key.startsWith('masterSVG.'));
   }
 
   // Get specific iconStudio setting from file
   function getIconManagerSettingFromFile(settingName: string): unknown {
     const settings = readSettingsFile();
     if (!settings) return undefined;
-    return settings[`sageboxIconStudio.${settingName}`];
+    return settings[`masterSVG.${settingName}`];
   }
 
   // Clean up before tests
   suiteSetup(async () => {
     // Ensure extension is activated
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -94,7 +94,7 @@ suite('Settings Deferred Save Tests', () => {
   suite('Configuration Persistence Behavior', () => {
     setup(async () => {
       // Clear all iconStudio config before each test
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('svgFolders', undefined, vscode.ConfigurationTarget.Global);
       await config.update('outputDirectory', undefined, vscode.ConfigurationTarget.Global);
       await config.update('buildFormat', undefined, vscode.ConfigurationTarget.Global);
@@ -106,7 +106,7 @@ suite('Settings Deferred Save Tests', () => {
       // This test verifies that using ConfigurationTarget.Global
       // does not create a workspace-level settings.json
 
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
 
       // Make some global config changes
       await config.update('svgFolders', ['test-folder'], vscode.ConfigurationTarget.Global);
@@ -132,7 +132,7 @@ suite('Settings Deferred Save Tests', () => {
     test('Workspace config updates DO create workspace settings.json entries', async () => {
       // This test verifies that ConfigurationTarget.Workspace DOES create settings.json
 
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
 
       // Make a workspace-level config change
       await config.update(
@@ -161,7 +161,7 @@ suite('Settings Deferred Save Tests', () => {
   suite('Welcome Panel Configuration Flow', () => {
     setup(async () => {
       // Clear all iconStudio config
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('svgFolders', undefined, vscode.ConfigurationTarget.Global);
       await config.update('outputDirectory', undefined, vscode.ConfigurationTarget.Global);
       await config.update('buildFormat', undefined, vscode.ConfigurationTarget.Global);

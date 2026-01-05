@@ -31,7 +31,7 @@ export class IconPersistenceService {
    */
   public getOutputPath(): string | undefined {
     const workspaceFolders = vscode.workspace.workspaceFolders;
-    const outputDir = getSvgConfig<string>('outputDirectory', 'sagebox-icons');
+    const outputDir = getSvgConfig<string>('outputDirectory', 'mastersvg-icons');
     if (!workspaceFolders || !outputDir) return undefined;
     return path.join(workspaceFolders[0].uri.fsPath, outputDir);
   }
@@ -115,13 +115,13 @@ export class IconPersistenceService {
     }
 
     // Get output directory from config
-    const outputDir = getSvgConfig<string>('outputDirectory', 'sagebox-icons');
+    const outputDir = getSvgConfig<string>('outputDirectory', 'MasterSVG-icons');
 
     // Look for icons.js in configured output and common locations (with legacy fallbacks)
     const possiblePaths = outputDir
       ? [`${outputDir}/icons.js`, 'svg/icons.js', 'icons.js']
       : [
-          'sagebox-icons/icons.js',
+          'MasterSVG-icons/icons.js',
           'svg/icons.js',
           'dist/icons.js',
           'build/icons.js',

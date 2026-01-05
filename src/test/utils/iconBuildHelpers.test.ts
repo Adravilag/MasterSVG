@@ -50,11 +50,11 @@ jest.mock('fs', () => ({
 jest.mock('../../utils/configHelper', () => ({
   getConfig: jest.fn().mockReturnValue({
     buildFormat: 'icons.js',
-    webComponentName: 'sg-icon',
-    outputDirectory: 'sagebox-icons',
+    webComponentName: 'svg-icon',
+    outputDirectory: 'mastersvg-icons',
   }),
-  getOutputPathOrWarn: jest.fn().mockReturnValue('/workspace/sagebox-icons'),
-  getFullOutputPath: jest.fn().mockReturnValue('/workspace/sagebox-icons'),
+  getOutputPathOrWarn: jest.fn().mockReturnValue('/workspace/mastersvg-icons'),
+  getFullOutputPath: jest.fn().mockReturnValue('/workspace/mastersvg-icons'),
 }));
 
 // Mock iconsFileManager
@@ -137,50 +137,50 @@ describe('iconBuildHelpers', () => {
     beforeEach(() => {
       getConfig.mockReturnValue({
         buildFormat: 'icons.js',
-        webComponentName: 'sg-icon',
-        outputDirectory: 'sagebox-icons',
+        webComponentName: 'svg-icon',
+        outputDirectory: 'mastersvg-icons',
       });
     });
 
     test('should generate web component for HTML', () => {
       const result = generateReplacement('arrow', 'html');
-      expect(result).toBe('<sg-icon name="arrow"></sg-icon>');
+      expect(result).toBe('<svg-icon name="arrow"></svg-icon>');
     });
 
     test('should generate self-closing for JSX', () => {
       const result = generateReplacement('arrow', 'javascriptreact');
-      expect(result).toBe('<sg-icon name="arrow" />');
+      expect(result).toBe('<svg-icon name="arrow" />');
     });
 
     test('should generate self-closing for TSX', () => {
       const result = generateReplacement('arrow', 'typescriptreact');
-      expect(result).toBe('<sg-icon name="arrow" />');
+      expect(result).toBe('<svg-icon name="arrow" />');
     });
 
     test('should generate self-closing for Vue', () => {
       const result = generateReplacement('arrow', 'vue');
-      expect(result).toBe('<sg-icon name="arrow" />');
+      expect(result).toBe('<svg-icon name="arrow" />');
     });
 
     test('should generate self-closing for Svelte', () => {
       const result = generateReplacement('arrow', 'svelte');
-      expect(result).toBe('<sg-icon name="arrow" />');
+      expect(result).toBe('<svg-icon name="arrow" />');
     });
 
     test('should generate self-closing for Astro', () => {
       const result = generateReplacement('arrow', 'astro');
-      expect(result).toBe('<sg-icon name="arrow" />');
+      expect(result).toBe('<svg-icon name="arrow" />');
     });
 
     test('should generate standard HTML for unknown language', () => {
       const result = generateReplacement('arrow', 'plaintext');
-      expect(result).toBe('<sg-icon name="arrow"></sg-icon>');
+      expect(result).toBe('<svg-icon name="arrow"></svg-icon>');
     });
 
     test('should generate sprite reference for sprite format', () => {
       getConfig.mockReturnValue({
         buildFormat: 'sprite.svg',
-        webComponentName: 'sg-icon',
+        webComponentName: 'svg-icon',
       });
 
       const result = generateReplacement('arrow', 'html');
@@ -200,12 +200,12 @@ describe('iconBuildHelpers', () => {
 
     test('should handle icons with hyphens', () => {
       const result = generateReplacement('arrow-right', 'html');
-      expect(result).toBe('<sg-icon name="arrow-right"></sg-icon>');
+      expect(result).toBe('<svg-icon name="arrow-right"></svg-icon>');
     });
 
     test('should handle icons with numbers', () => {
       const result = generateReplacement('icon-2', 'html');
-      expect(result).toBe('<sg-icon name="icon-2"></sg-icon>');
+      expect(result).toBe('<svg-icon name="icon-2"></svg-icon>');
     });
   });
 
@@ -222,7 +222,7 @@ describe('iconBuildHelpers', () => {
     test('should use output path', () => {
       const icon = createBuiltIcon('arrow', '<svg></svg>');
 
-      expect(icon.path).toBe('/workspace/sagebox-icons');
+      expect(icon.path).toBe('/workspace/mastersvg-icons');
     });
 
     test('should use source path as fallback', () => {

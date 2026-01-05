@@ -488,7 +488,7 @@
       "svgFoldersDesc": "Folders to scan for SVG files",
       "componentNameDesc": "Name of the Icon component (e.g. Icon)",
       "outputFormatDesc": "Default output format (jsx, vue, svelte, etc.)",
-      "webComponentNameDesc": "Name for the custom element (e.g. sagebox-icon)"
+      "webComponentNameDesc": "Name for the custom element (e.g. mastersvg-icon)"
     },
     "validation": {
       "nameCannotBeEmpty": "Name cannot be empty",

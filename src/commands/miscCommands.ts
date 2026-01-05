@@ -50,7 +50,7 @@ export function registerMiscCommands(
 
   // Command: Transform SVG reference to web component (unified flow)
   const transformSvgReferenceCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.transformSvgReference',
+    'masterSVG.transformSvgReference',
     async (options: TransformOptions) => {
       const {
         originalPath,
@@ -64,7 +64,7 @@ export function registerMiscCommands(
       const docDir = path.dirname(documentUri);
       const config = getConfig();
       const isSprite = config.buildFormat === 'sprite.svg';
-      const componentName = config.webComponentName || 'sg-icon';
+      const componentName = config.webComponentName || 'svg-icon';
 
       // Build different menu options based on whether it's inline SVG or img reference
       const menuOptions = [

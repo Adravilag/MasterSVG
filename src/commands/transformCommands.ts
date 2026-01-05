@@ -30,7 +30,7 @@ export function registerTransformCommands(
 
   // Command: Transform inline SVG (also handles IMG references)
   commands.push(
-    vscode.commands.registerCommand('sageboxIconStudio.transformInlineSvg', async (item: any) => {
+    vscode.commands.registerCommand('masterSVG.transformInlineSvg', async (item: any) => {
       if (item.icon && item.icon.filePath && item.icon.svg) {
         const document = await vscode.workspace.openTextDocument(
           vscode.Uri.file(item.icon.filePath)
@@ -145,7 +145,7 @@ export function registerTransformCommands(
         const buildFormat = config.buildFormat || 'icons.ts';
         const isSprite = buildFormat === 'sprite.svg';
         const outputDir = config.outputDirectory;
-        const webComponentName = config.webComponentName || 'sg-icon';
+        const webComponentName = config.webComponentName || 'svg-icon';
         const iconName = item.label as string;
 
         let replacement: string;
@@ -186,7 +186,7 @@ export function registerTransformCommands(
 
   // Command: Transform selected SVG
   commands.push(
-    vscode.commands.registerCommand('sageboxIconStudio.transformSvg', async () => {
+    vscode.commands.registerCommand('masterSVG.transformSvg', async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) return;
 
@@ -212,7 +212,7 @@ export function registerTransformCommands(
 
       if (!componentName) return;
 
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const nameAttr = config.get<string>('nameAttribute', 'name');
 
       const result = await svgTransformer.transformToComponent(svgContent, componentName, {
@@ -231,7 +231,7 @@ export function registerTransformCommands(
 
   // Command: Optimize SVG
   commands.push(
-    vscode.commands.registerCommand('sageboxIconStudio.optimizeSvg', async () => {
+    vscode.commands.registerCommand('masterSVG.optimizeSvg', async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) return;
 
@@ -254,7 +254,7 @@ export function registerTransformCommands(
 
   // Command: Insert icon at cursor
   commands.push(
-    vscode.commands.registerCommand('sageboxIconStudio.insertIcon', async (item?: any) => {
+    vscode.commands.registerCommand('masterSVG.insertIcon', async (item?: any) => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) return;
 

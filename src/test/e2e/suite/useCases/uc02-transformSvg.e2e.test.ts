@@ -16,7 +16,7 @@ suite('UC-2: Migrar Iconos Inline a Componentes', () => {
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -25,7 +25,7 @@ suite('UC-2: Migrar Iconos Inline a Componentes', () => {
 
   suite('CA-2.1: Configuración del componente', () => {
     test('CA-2.1.1: Debe configurar componentName', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('componentName', 'Icon', vscode.ConfigurationTarget.Workspace);
       await delay(200);
 
@@ -34,7 +34,7 @@ suite('UC-2: Migrar Iconos Inline a Componentes', () => {
     });
 
     test('CA-2.1.2: Debe configurar componentImport', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update(
         'componentImport',
         '@/components/ui/Icon',
@@ -51,7 +51,7 @@ suite('UC-2: Migrar Iconos Inline a Componentes', () => {
     });
 
     test('CA-2.1.3: Debe configurar iconNameAttribute', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('iconNameAttribute', 'name', vscode.ConfigurationTarget.Workspace);
       await delay(200);
 
@@ -60,7 +60,7 @@ suite('UC-2: Migrar Iconos Inline a Componentes', () => {
     });
 
     test('CA-2.1.4: Debe configurar autoImport', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('autoImport', true, vscode.ConfigurationTarget.Workspace);
       await delay(200);
 
@@ -72,13 +72,13 @@ suite('UC-2: Migrar Iconos Inline a Componentes', () => {
   suite('CA-2.2: Comando de transformación', () => {
     test('Debe existir comando transformSvg', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.transformSvg'), 'Comando transformSvg debe existir');
+      assert.ok(commands.includes('masterSVG.transformSvg'), 'Comando transformSvg debe existir');
     });
 
     test('Debe existir comando transformSvgFromExplorer', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.transformSvgFromExplorer'),
+        commands.includes('masterSVG.transformSvgFromExplorer'),
         'Comando transformSvgFromExplorer debe existir'
       );
     });
@@ -146,7 +146,7 @@ export const MyComponent = () => {
   });
 
   suiteTeardown(async () => {
-    const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+    const config = vscode.workspace.getConfiguration('masterSVG');
     await config.update('componentName', undefined, vscode.ConfigurationTarget.Workspace);
     await config.update('componentImport', undefined, vscode.ConfigurationTarget.Workspace);
     await config.update('iconNameAttribute', undefined, vscode.ConfigurationTarget.Workspace);
@@ -161,7 +161,7 @@ suite('UC-12: Trabajar con Múltiples Frameworks', () => {
 
   suite('Formatos de salida soportados', () => {
     test('Debe soportar formato JSX (React)', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('outputFormat', 'jsx', vscode.ConfigurationTarget.Workspace);
       await delay(200);
 
@@ -170,7 +170,7 @@ suite('UC-12: Trabajar con Múltiples Frameworks', () => {
     });
 
     test('Debe soportar formato Vue', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('outputFormat', 'vue', vscode.ConfigurationTarget.Workspace);
       await delay(200);
 
@@ -179,7 +179,7 @@ suite('UC-12: Trabajar con Múltiples Frameworks', () => {
     });
 
     test('Debe soportar formato Svelte', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('outputFormat', 'svelte', vscode.ConfigurationTarget.Workspace);
       await delay(200);
 
@@ -188,7 +188,7 @@ suite('UC-12: Trabajar con Múltiples Frameworks', () => {
     });
 
     test('Debe soportar formato Astro', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('outputFormat', 'astro', vscode.ConfigurationTarget.Workspace);
       await delay(200);
 
@@ -197,7 +197,7 @@ suite('UC-12: Trabajar con Múltiples Frameworks', () => {
     });
 
     test('Debe soportar formato HTML', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('outputFormat', 'html', vscode.ConfigurationTarget.Workspace);
       await delay(200);
 
@@ -238,7 +238,7 @@ suite('UC-12: Trabajar con Múltiples Frameworks', () => {
   });
 
   suiteTeardown(async () => {
-    const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+    const config = vscode.workspace.getConfiguration('masterSVG');
     await config.update('outputFormat', undefined, vscode.ConfigurationTarget.Workspace);
   });
 });

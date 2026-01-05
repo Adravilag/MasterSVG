@@ -41,7 +41,7 @@ suite('UC-5: Descargar y Localizar Imágenes Remotas', () => {
 `;
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -112,7 +112,7 @@ suite('UC-5: Descargar y Localizar Imágenes Remotas', () => {
       // Buscar comandos relacionados con descarga o importación
       const downloadCommands = commands.filter(
         c =>
-          c.includes('sageboxIconStudio') &&
+          c.includes('masterSVG') &&
           (c.toLowerCase().includes('download') ||
             c.toLowerCase().includes('import') ||
             c.toLowerCase().includes('fetch'))
@@ -120,7 +120,7 @@ suite('UC-5: Descargar y Localizar Imágenes Remotas', () => {
 
       // Al menos debería haber comandos de importación
       assert.ok(
-        commands.includes('sageboxIconStudio.importSvgToLibrary'),
+        commands.includes('masterSVG.importSvgToLibrary'),
         'Debe existir comando de importación'
       );
     });
@@ -161,7 +161,7 @@ suite('UC-5: Descargar y Localizar Imágenes Remotas', () => {
 
   suite('CA-5.4: Conversión de formato', () => {
     test('Configuración de formato de salida', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
 
       // Verificar que existe configuración para conversión
       const imageConfig = vscode.workspace.getConfiguration('assetManager');

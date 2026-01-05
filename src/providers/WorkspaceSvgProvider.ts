@@ -224,7 +224,7 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
           'configure'
         );
         configureItem.command = {
-          command: 'sageboxIconStudio.showWelcome',
+          command: 'masterSVG.showWelcome',
           title: 'Configurar Icon Studio',
         };
         configureItem.iconPath = new vscode.ThemeIcon('gear');

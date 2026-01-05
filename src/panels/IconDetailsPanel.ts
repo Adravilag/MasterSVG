@@ -11,7 +11,7 @@ import {
   IconAnimation,
 } from './handlers/iconDetailHandlers';
 import { t } from '../i18n';
-import { getIconLicenseInfoSync, parseIconifyName } from '../services/LicenseService';
+import { getIconLicenseInfoSync, parseIconifyName, ensureCollectionsLoaded } from '../services/LicenseService';
 import { getKeyframesForAnimation } from '../services/AnimationKeyframes';
 import { scopeSvgIds } from '../utils/svgIdScoper';
 
@@ -33,11 +33,21 @@ export class IconDetailsPanel {
       ? vscode.window.activeTextEditor.viewColumn
       : undefined;
 
+    // Pre-load Iconify collections cache if this is an Iconify icon
+    if (details?.name && parseIconifyName(details.name)) {
+      ensureCollectionsLoaded().then(() => {
+        // Update the panel after collections are loaded to show license info
+        if (IconDetailsPanel.currentPanel) {
+          IconDetailsPanel.currentPanel._update();
+        }
+      });
+    }
+
     if (IconDetailsPanel.currentPanel) {
       IconDetailsPanel.currentPanel._panel.reveal(column);
       if (details) {
         IconDetailsPanel.currentPanel._iconDetails = details;
-        
+
         // For built icons, try to get the original colors from the _original variant
         // This is the source of truth for what colors should be considered "original"
         let originalColors: string[] = [];
@@ -50,12 +60,12 @@ export class IconDetailsPanel {
             console.log(`[IconDetailsPanel.createOrShow] Using _original variant colors:`, originalColors);
           }
         }
-        
+
         // If no _original variant, fall back to extracting from the current SVG
         if (originalColors.length === 0) {
           originalColors = colorService.extractAllColorsFromSvg(details.svg).colors;
         }
-        
+
         IconDetailsPanel.currentPanel._originalColors = originalColors;
         IconDetailsPanel.currentPanel._selectedVariantIndex = -1;
         IconDetailsPanel.currentPanel._update(details);
@@ -81,7 +91,7 @@ export class IconDetailsPanel {
     this._panel = panel;
     this._extensionUri = extensionUri;
     this._iconDetails = details;
-    
+
     if (details) {
       // For built icons, try to get the original colors from the _original variant
       let originalColors: string[] = [];
@@ -94,13 +104,21 @@ export class IconDetailsPanel {
           console.log(`[IconDetailsPanel] Using _original variant colors:`, originalColors);
         }
       }
-      
+
       // If no _original variant, fall back to extracting from the current SVG
       if (originalColors.length === 0) {
         originalColors = colorService.extractAllColorsFromSvg(details.svg).colors;
       }
-      
+
       this._originalColors = originalColors;
+
+      // Pre-load Iconify collections cache if this is an Iconify icon
+      if (parseIconifyName(details.name)) {
+        ensureCollectionsLoaded().then(() => {
+          // Update the panel after collections are loaded to show license info
+          this._update();
+        });
+      }
     }
 
     this._update(details);
@@ -112,7 +130,7 @@ export class IconDetailsPanel {
       e => {
         if (e.webviewPanel.visible && this._iconDetails) {
           vscode.commands.executeCommand(
-            'sageboxIconStudio.revealInTree',
+            'masterSVG.revealInTree',
             this._iconDetails.name,
             this._iconDetails.location?.file,
             this._iconDetails.location?.line

@@ -9,28 +9,28 @@
     <button class="anim-category-btn" data-category="entrance" onclick="showAnimCategory('entrance')">${i18n_categoryEntrance}</button>
     <button class="anim-category-btn" data-category="draw" onclick="showAnimCategory('draw')">${i18n_categoryDraw}</button>
   </div>
-  
+
   <!-- Basic Animations -->
   <div class="anim-category-section" id="category-basic" style="margin-top: 12px;">
     <div class="animation-types">
       ${basicAnimationButtons}
     </div>
   </div>
-  
+
   <!-- Attention Animations -->
   <div class="anim-category-section" id="category-attention" style="display: none; margin-top: 12px;">
     <div class="animation-types">
       ${attentionAnimationButtons}
     </div>
   </div>
-  
+
   <!-- Entrance Animations -->
   <div class="anim-category-section" id="category-entrance" style="display: none; margin-top: 12px;">
     <div class="animation-types">
       ${entranceAnimationButtons}
     </div>
   </div>
-  
+
   <!-- Draw Animations -->
   <div class="anim-category-section" id="category-draw" style="display: none; margin-top: 12px;">
     <div class="animation-types">
@@ -52,7 +52,7 @@
     <div class="setting-row">
       <label>${i18n_duration}</label>
       <div class="setting-control">
-        <input type="range" id="animDuration" min="0.1" max="5" step="0.1" value="${duration}" 
+        <input type="range" id="animDuration" min="0.1" max="5" step="0.1" value="${duration}"
           oninput="updateAnimationSetting('duration', this.value)" />
         <span id="durationValue">${duration}s</span>
       </div>
@@ -60,7 +60,7 @@
     <div class="setting-row">
       <label>${i18n_delay}</label>
       <div class="setting-control">
-        <input type="range" id="animDelay" min="0" max="2" step="0.1" value="${delay}" 
+        <input type="range" id="animDelay" min="0" max="2" step="0.1" value="${delay}"
           oninput="updateAnimationSetting('delay', this.value)" />
         <span id="delayValue">${delay}s</span>
       </div>

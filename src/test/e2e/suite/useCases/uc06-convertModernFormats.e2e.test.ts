@@ -15,7 +15,7 @@ suite('UC-6: Convertir Imágenes a Formatos Modernos', () => {
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -134,8 +134,8 @@ suite('UC-6: Convertir Imágenes a Formatos Modernos', () => {
 
       // Al menos comandos de refresh all deben existir
       assert.ok(
-        commands.includes('sageboxIconStudio.refreshAll') ||
-          commands.includes('sageboxIconStudio.refreshIcons'),
+        commands.includes('masterSVG.refreshAll') ||
+          commands.includes('masterSVG.refreshIcons'),
         'Debe existir algún comando de operación masiva'
       );
     });

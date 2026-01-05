@@ -14,17 +14,17 @@ export function registerNavigationCommands(_context: vscode.ExtensionContext): v
 
   // Command: Handle icon click with double-click detection
   commands.push(
-    vscode.commands.registerCommand('sageboxIconStudio.iconClick', async (icon: any) => {
+    vscode.commands.registerCommand('masterSVG.iconClick', async (icon: any) => {
       if (!icon) return;
-      
+
       const now = Date.now();
       const iconName = icon.name;
-      
+
       if (iconName === lastClickedIconName && (now - lastClickTime) < DOUBLE_CLICK_THRESHOLD) {
         // Double click detected - open details
         lastClickTime = 0;
         lastClickedIconName = undefined;
-        await vscode.commands.executeCommand('sageboxIconStudio.showDetails', icon);
+        await vscode.commands.executeCommand('masterSVG.showDetails', icon);
       } else {
         // Single click - just record the click (preview is updated by selection handler)
         lastClickTime = now;
@@ -35,7 +35,7 @@ export function registerNavigationCommands(_context: vscode.ExtensionContext): v
 
   // Command: Go to usage location
   commands.push(
-    vscode.commands.registerCommand('sageboxIconStudio.goToUsage', async (item: any) => {
+    vscode.commands.registerCommand('masterSVG.goToUsage', async (item: any) => {
       if (item.resourceUri) {
         const document = await vscode.workspace.openTextDocument(item.resourceUri);
         const editor = await vscode.window.showTextDocument(document);
@@ -52,7 +52,7 @@ export function registerNavigationCommands(_context: vscode.ExtensionContext): v
 
   // Command: Go to inline SVG
   commands.push(
-    vscode.commands.registerCommand('sageboxIconStudio.goToInlineSvg', async (iconOrItem: any) => {
+    vscode.commands.registerCommand('masterSVG.goToInlineSvg', async (iconOrItem: any) => {
       // Handle both direct icon object and item with icon property
       const icon = iconOrItem?.icon || iconOrItem;
       if (icon && icon.filePath && icon.line !== undefined) {
@@ -74,28 +74,28 @@ export function registerNavigationCommands(_context: vscode.ExtensionContext): v
 
           // Check if this is an IMG reference or inline SVG
           const isImgRef = icon.category === 'img-ref';
-          
+
           if (isImgRef) {
             // For IMG references, find and select the <img> tag
             // Search on the exact line first, then nearby lines (file may have changed)
             let foundLine = -1;
             let imgTagIndex = -1;
-            
+
             // Build search pattern for this specific SVG path
             const iconName = icon.name;
             const searchPatterns = [
               new RegExp(`<img[^>]*${iconName}\\.svg`, 'i'),
               /<img[^>]*\.svg/i
             ];
-            
+
             // Search on the exact line and ±2 lines
             for (let offset = 0; offset <= 2; offset++) {
               for (const lineOffset of [0, -offset, offset]) {
                 if (lineOffset === 0 && offset !== 0) continue; // Skip 0 offset when offset > 0
-                
+
                 const checkLine = startLine + lineOffset;
                 if (checkLine < 0 || checkLine >= lines.length) continue;
-                
+
                 const lineText = lines[checkLine];
                 for (const pattern of searchPatterns) {
                   const match = lineText.match(pattern);
@@ -109,7 +109,7 @@ export function registerNavigationCommands(_context: vscode.ExtensionContext): v
               }
               if (foundLine !== -1) break;
             }
-            
+
             if (foundLine !== -1 && imgTagIndex !== -1) {
               const lineText = lines[foundLine];
               // Find the closing > of the img tag
@@ -119,7 +119,7 @@ export function registerNavigationCommands(_context: vscode.ExtensionContext): v
               } else {
                 endCol = lineText.length;
               }
-              
+
               const startPos = new vscode.Position(foundLine, imgTagIndex);
               const endPos = new vscode.Position(foundLine, endCol);
               const range = new vscode.Range(startPos, endPos);
@@ -178,7 +178,7 @@ export function registerNavigationCommands(_context: vscode.ExtensionContext): v
 
   // Command: Go to Code (for items in Code view with line info)
   commands.push(
-    vscode.commands.registerCommand('sageboxIconStudio.goToCode', async (iconOrItem: any) => {
+    vscode.commands.registerCommand('masterSVG.goToCode', async (iconOrItem: any) => {
       const icon = iconOrItem?.icon || iconOrItem;
       if (icon && icon.filePath && icon.line !== undefined) {
         const document = await vscode.workspace.openTextDocument(vscode.Uri.file(icon.filePath));
@@ -203,7 +203,7 @@ export function registerNavigationCommands(_context: vscode.ExtensionContext): v
 
   // Command: Open SVG File (opens SVG as preview/image)
   commands.push(
-    vscode.commands.registerCommand('sageboxIconStudio.openSvgFile', async (iconOrItem: any) => {
+    vscode.commands.registerCommand('masterSVG.openSvgFile', async (iconOrItem: any) => {
       const icon = iconOrItem?.icon || iconOrItem;
       if (icon && icon.path) {
         const uri = vscode.Uri.file(icon.path);
@@ -217,7 +217,7 @@ export function registerNavigationCommands(_context: vscode.ExtensionContext): v
 
   // Command: Copy Icon Name
   commands.push(
-    vscode.commands.registerCommand('sageboxIconStudio.copyIconName', async (iconOrItem: any) => {
+    vscode.commands.registerCommand('masterSVG.copyIconName', async (iconOrItem: any) => {
       const icon = iconOrItem?.icon || iconOrItem;
       if (icon && icon.name) {
         await vscode.env.clipboard.writeText(icon.name);

@@ -41,7 +41,7 @@ export function registerSpriteCommands(
 
   // Command: Generate sprite
   const generateSpriteCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.generateSprite',
+    'masterSVG.generateSprite',
     async () => {
       const icons = await workspaceSvgProvider.getAllIcons();
       if (icons.length === 0) {
@@ -120,7 +120,7 @@ export function registerSpriteCommands(
 
   // Command: View Sprite Content
   const viewSpriteCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.viewSprite',
+    'masterSVG.viewSprite',
     async (itemOrUri?: vscode.Uri | SvgItem) => {
       let spritePath: string;
 
@@ -175,7 +175,7 @@ export function registerSpriteCommands(
   disposables.push(viewSpriteCmd);
 
   // Command: Clean Sprite
-  const cleanSpriteCmd = vscode.commands.registerCommand('sageboxIconStudio.cleanSprite', async () => {
+  const cleanSpriteCmd = vscode.commands.registerCommand('masterSVG.cleanSprite', async () => {
     const outputPath = getOutputPathOrWarn();
     if (!outputPath) return;
 
@@ -194,7 +194,7 @@ export function registerSpriteCommands(
 
   // Command: View Icons File Content
   const viewIconsFileCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.viewIconsFile',
+    'masterSVG.viewIconsFile',
     async (item?: SvgItem) => {
       let iconsFilePath: string | undefined;
 
@@ -260,7 +260,7 @@ export function registerSpriteCommands(
 
   // Command: Delete built file
   const deleteBuiltFileCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.deleteBuiltFile',
+    'masterSVG.deleteBuiltFile',
     async (item?: SvgItem) => {
       if (!item?.category?.startsWith('built:')) {
         vscode.window.showWarningMessage(t('messages.noFileSelected'));

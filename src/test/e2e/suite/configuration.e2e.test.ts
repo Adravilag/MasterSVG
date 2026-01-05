@@ -16,7 +16,7 @@ suite('Configuration E2E Tests', () => {
   const originalValues: Record<string, unknown> = {};
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -64,7 +64,7 @@ suite('Configuration E2E Tests', () => {
   suite('Component Configuration', () => {
     test('componentName debe tener valor por defecto', () => {
       const config = vscode.workspace.getConfiguration('iconStudio');
-      const componentName = config.get<string>('componentName', 'iw-icon');
+      const componentName = config.get<string>('componentName', 'sg-icon');
 
       assert.ok(typeof componentName === 'string', 'componentName debe ser string');
       assert.ok(componentName.length > 0, 'componentName no debe estar vacío');

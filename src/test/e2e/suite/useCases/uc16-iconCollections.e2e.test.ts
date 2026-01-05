@@ -14,7 +14,7 @@ suite('UC-16: Gestionar Colecciones de Iconos', () => {
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -26,8 +26,8 @@ suite('UC-16: Gestionar Colecciones de Iconos', () => {
       const commands = await vscode.commands.getCommands(true);
 
       assert.ok(
-        commands.includes('sageboxIconStudio.addSvgToCollection') ||
-          commands.includes('sageboxIconStudio.addToCollection'),
+        commands.includes('masterSVG.addSvgToCollection') ||
+          commands.includes('masterSVG.addToCollection'),
         'Debe existir comando para añadir a colección'
       );
     });
@@ -36,8 +36,8 @@ suite('UC-16: Gestionar Colecciones de Iconos', () => {
       const commands = await vscode.commands.getCommands(true);
 
       assert.ok(
-        commands.includes('sageboxIconStudio.removeFromBuilt') ||
-          commands.includes('sageboxIconStudio.removeFromCollection'),
+        commands.includes('masterSVG.removeFromBuilt') ||
+          commands.includes('masterSVG.removeFromCollection'),
         'Debe existir comando para remover de colección'
       );
     });
@@ -180,8 +180,8 @@ suite('UC-16: Gestionar Colecciones de Iconos', () => {
       const commands = await vscode.commands.getCommands(true);
 
       assert.ok(
-        commands.includes('sageboxIconStudio.buildSelected') ||
-          commands.includes('sageboxIconStudio.buildIcons'),
+        commands.includes('masterSVG.buildSelected') ||
+          commands.includes('masterSVG.buildIcons'),
         'Debe existir comando de build para colección'
       );
     });

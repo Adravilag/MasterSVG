@@ -62,8 +62,8 @@ describe('IconPreviewProvider', () => {
   // =====================================================
 
   describe('propiedades estáticas', () => {
-    test('viewType debe ser "sageboxIconStudio.preview"', () => {
-      expect(IconPreviewProvider.viewType).toBe('sageboxIconStudio.preview');
+    test('viewType debe ser "masterSVG.preview"', () => {
+      expect(IconPreviewProvider.viewType).toBe('masterSVG.preview');
     });
   });
 

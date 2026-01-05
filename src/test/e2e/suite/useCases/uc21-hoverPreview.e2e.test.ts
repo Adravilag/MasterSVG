@@ -34,29 +34,29 @@ export const NavBar = () => (
     vueWithIconRef: `
 <template>
   <div>
-    <iw-icon name="heart" :size="32" />
-    <iw-icon name="warning" :size="32" />
+    <svg-icon name="heart" :size="32" />
+    <svg-icon name="warning" :size="32" />
   </div>
 </template>
 
 <script setup>
-import { IwIcon } from '@/components/icons';
+import { SgIcon } from '@/components/icons';
 </script>
 `,
     htmlWithIconRef: `
 <!DOCTYPE html>
 <html>
 <body>
-  <sg-icon name="check"></sg-icon>
-  <sg-icon name="error"></sg-icon>
-  <sg-icon name="info"></sg-icon>
+  <svg-icon name="check"></svg-icon>
+  <svg-icon name="error"></svg-icon>
+  <svg-icon name="info"></svg-icon>
 </body>
 </html>
 `,
   };
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -90,7 +90,7 @@ import { IwIcon } from '@/components/icons';
       ];
 
       // Verificar que la extensión está activa (indica que los providers están registrados)
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       assert.ok(ext?.isActive, 'Extensión debe estar activa para que HoverProvider funcione');
 
       supportedLanguages.forEach(lang => {
@@ -236,7 +236,7 @@ import { IwIcon } from '@/components/icons';
   suite('CA-21.6: Configuración del Hover', () => {
     test('Debe respetar configuración componentName', () => {
       const config = vscode.workspace.getConfiguration('iconStudio');
-      const componentName = config.get<string>('componentName', 'iw-icon');
+      const componentName = config.get<string>('componentName', 'svg-icon');
 
       assert.ok(typeof componentName === 'string', 'componentName debe ser string');
       assert.ok(componentName.length > 0, 'componentName no debe estar vacío');

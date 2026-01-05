@@ -77,28 +77,11 @@ export class SvgContentCache {
   }
 
   /**
-   * Check if SVG is rasterized (cached result)
+   * Check if SVG is rasterized (disabled - allow all SVGs)
    */
-  isRasterized(filePath: string): boolean {
-    const cached = this.cache.get(filePath);
-    if (cached && cached.isRasterized !== undefined) {
-      return cached.isRasterized;
-    }
-
-    const content = this.getContent(filePath);
-    if (!content) return false;
-
-    const colorCount = this.countColors(content);
-    const isRasterized = colorCount > 50;
-
-    // Update cache with computed value
-    const entry = this.cache.get(filePath);
-    if (entry) {
-      entry.isRasterized = isRasterized;
-      entry.colorCount = colorCount;
-    }
-
-    return isRasterized;
+  isRasterized(_filePath: string): boolean {
+    // Rasterized check disabled - allow building any SVG
+    return false;
   }
 
   /**

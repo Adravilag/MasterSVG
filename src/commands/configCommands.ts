@@ -11,8 +11,8 @@ export function registerConfigCommands(_context: vscode.ExtensionContext): vscod
 
   // Command: Configure icon manager for project
   commands.push(
-    vscode.commands.registerCommand('sageboxIconStudio.configureProject', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+    vscode.commands.registerCommand('masterSVG.configureProject', async () => {
+      const config = vscode.workspace.getConfiguration('masterSVG');
 
       const items: vscode.QuickPickItem[] = [
         {
@@ -41,7 +41,7 @@ export function registerConfigCommands(_context: vscode.ExtensionContext): vscod
       }
 
       if (selection.label.includes(t('ui.labels.openWelcome'))) {
-        vscode.commands.executeCommand('sageboxIconStudio.showWelcome');
+        vscode.commands.executeCommand('masterSVG.showWelcome');
       } else if (selection.label.includes(t('ui.labels.componentName'))) {
         const name = await vscode.window.showInputBox({
           prompt: t('ui.prompts.enterComponentName'),
@@ -66,20 +66,20 @@ export function registerConfigCommands(_context: vscode.ExtensionContext): vscod
     })
   );
 
-  // Command: Edit .sageboxignore file
+  // Command: Edit .msignore file
   commands.push(
-    vscode.commands.registerCommand('sageboxIconStudio.editIgnoreFile', async () => {
+    vscode.commands.registerCommand('masterSVG.editIgnoreFile', async () => {
       const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
       if (!workspaceFolder) {
         vscode.window.showWarningMessage(t('messages.noWorkspace'));
         return;
       }
 
-      const ignoreFilePath = path.join(workspaceFolder.uri.fsPath, '.sageboxignore');
+      const ignoreFilePath = path.join(workspaceFolder.uri.fsPath, '.msignore');
 
       // Create file with template if it doesn't exist
       if (!fs.existsSync(ignoreFilePath)) {
-        const template = `# Sagebox - Ignore File
+        const template = `# MasterSVG - Ignore File
 # This file works similar to .gitignore
 # Patterns listed here will be excluded from scanning
 
@@ -113,14 +113,14 @@ export function registerConfigCommands(_context: vscode.ExtensionContext): vscod
 
   // Command: Configure SVG Folder (quick folder picker)
   commands.push(
-    vscode.commands.registerCommand('sageboxIconStudio.configureSvgFolder', async () => {
+    vscode.commands.registerCommand('masterSVG.configureSvgFolder', async () => {
       const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
       if (!workspaceFolder) {
         vscode.window.showWarningMessage(t('messages.noWorkspace'));
         return;
       }
 
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const currentFolders = config.get<string[]>('svgFolders') || [];
 
       const options: vscode.QuickPickItem[] = [
@@ -178,7 +178,7 @@ export function registerConfigCommands(_context: vscode.ExtensionContext): vscod
             vscode.window.showInformationMessage(
               t('messages.addedSvgFolder', { path: relativePath })
             );
-            vscode.commands.executeCommand('sageboxIconStudio.refreshIcons');
+            vscode.commands.executeCommand('masterSVG.refreshIcons');
           } else {
             vscode.window.showWarningMessage(t('messages.selectFolderInsideWorkspace'));
           }
@@ -202,7 +202,7 @@ export function registerConfigCommands(_context: vscode.ExtensionContext): vscod
               ? t('messages.svgFoldersUpdatedList', { folders: folders.join(', ') })
               : t('messages.svgFoldersUpdatedNone')
           );
-          vscode.commands.executeCommand('sageboxIconStudio.refreshIcons');
+          vscode.commands.executeCommand('masterSVG.refreshIcons');
         }
       } else if (selection.label.startsWith('$(trash)')) {
         // Remove folder - folder path is stored in description
@@ -212,7 +212,7 @@ export function registerConfigCommands(_context: vscode.ExtensionContext): vscod
         vscode.window.showInformationMessage(
           t('messages.removedSvgFolder', { folder: folderToRemove })
         );
-        vscode.commands.executeCommand('sageboxIconStudio.refreshIcons');
+        vscode.commands.executeCommand('masterSVG.refreshIcons');
       }
     })
   );

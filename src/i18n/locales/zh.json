@@ -484,7 +484,7 @@
       "svgFoldersDesc": "要扫描 SVG 文件的文件夹",
       "componentNameDesc": "Icon 组件的名称（例如 Icon）",
       "outputFormatDesc": "默认输出格式（jsx、vue、svelte 等）",
-      "webComponentNameDesc": "自定义元素的名称（例如 sagebox-icon）"
+      "webComponentNameDesc": "自定义元素的名称（例如 mastersvg-icon）"
     },
     "validation": {
       "nameCannotBeEmpty": "名称不能为空",

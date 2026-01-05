@@ -14,7 +14,7 @@ suite('UC-15: Exportar Iconos como Componentes', () => {
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -25,7 +25,7 @@ suite('UC-15: Exportar Iconos como Componentes', () => {
     test('Debe existir comando exportAsComponent', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.exportAsComponent'),
+        commands.includes('masterSVG.exportAsComponent'),
         'Comando exportAsComponent debe existir'
       );
     });
@@ -33,7 +33,7 @@ suite('UC-15: Exportar Iconos como Componentes', () => {
     test('Debe existir comando copyAsComponent', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.copyAsComponent'),
+        commands.includes('masterSVG.copyAsComponent'),
         'Comando copyAsComponent debe existir'
       );
     });
@@ -76,10 +76,10 @@ interface ${componentName}Props extends React.SVGProps<SVGSVGElement> {
   color?: string;
 }
 
-export const ${componentName}: React.FC<${componentName}Props> = ({ 
-  size = 24, 
-  color = 'currentColor', 
-  ...props 
+export const ${componentName}: React.FC<${componentName}Props> = ({
+  size = 24,
+  color = 'currentColor',
+  ...props
 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -167,7 +167,7 @@ defineProps({
 suite('UC-21: Exportar con Wrapper de Framework', () => {
   suite('CA-21.1: Configuración de wrappers', () => {
     test('Debe tener configuración componentWrapper', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const wrappers = config.get('componentWrapper');
 
       // La configuración puede no existir, pero el tipo debe ser correcto si existe
@@ -233,7 +233,7 @@ suite('UC-25 & UC-34: Web Components', () => {
     test('Debe existir comando exportAsWebComponent', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.exportAsWebComponent'),
+        commands.includes('masterSVG.exportAsWebComponent'),
         'Comando exportAsWebComponent debe existir'
       );
     });
@@ -263,7 +263,7 @@ suite('UC-25 & UC-34: Web Components', () => {
   render() {
     const size = this.getAttribute('size') || '24';
     const color = this.getAttribute('color') || 'currentColor';
-    
+
     this.shadowRoot.innerHTML = \`
       <style>
         :host {
@@ -394,7 +394,7 @@ if (!customElements.get('icon-home')) {
 suite('Configuración de Exportación', () => {
   suite('Settings de exportación', () => {
     test('Debe tener configuración componentNameFormat', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const format = config.get<string>('componentName.format');
 
       // Formatos válidos: PascalCase, camelCase, kebab-case
@@ -405,7 +405,7 @@ suite('Configuración de Exportación', () => {
     });
 
     test('Debe tener configuración componentImportStyle', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const importStyle = config.get<string>('componentImport.style');
 
       // Estilos: named, default, both
@@ -416,7 +416,7 @@ suite('Configuración de Exportación', () => {
     });
 
     test('Debe tener configuración componentAttributes', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const attrs = config.get('componentAttributes');
 
       assert.ok(

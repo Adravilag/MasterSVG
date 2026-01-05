@@ -33,7 +33,7 @@ export function registerImportCommands(
 
   // Command: Import SVG to library
   const importSvgToLibraryCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.importSvgToLibrary',
+    'masterSVG.importSvgToLibrary',
     async (item?: any) => {
       let svgPath: string | undefined;
       let svgContent: string | undefined;
@@ -78,7 +78,7 @@ export function registerImportCommands(
 
   // Command: Check and import inline SVG
   const checkAndImportSvgCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.checkAndImportSvg',
+    'masterSVG.checkAndImportSvg',
     async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) return;
@@ -132,7 +132,7 @@ export function registerImportCommands(
 
   // Command: Add SVG to build (uses buildFormat from config)
   const addSvgToCollectionCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.addSvgToCollection',
+    'masterSVG.addSvgToCollection',
     async (item: any) => {
       const icon = item?.icon;
       if (!icon) {

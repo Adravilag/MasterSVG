@@ -7,7 +7,7 @@ let ignorePatterns: string[] = [];
 let ignoreFileWatcher: vscode.FileSystemWatcher | undefined;
 
 /**
- * Read and parse .sageboxignore file
+ * Read and parse .msignore file
  * Supports gitignore-like patterns:
  * - Lines starting with # are comments
  * - Empty lines are ignored
@@ -19,7 +19,7 @@ function loadIgnorePatterns(): string[] {
   const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   if (!workspaceRoot) return [];
 
-  const ignoreFile = path.join(workspaceRoot, '.sageboxignore');
+  const ignoreFile = path.join(workspaceRoot, '.msignore');
 
   if (!fs.existsSync(ignoreFile)) {
     return [];
@@ -39,7 +39,7 @@ function loadIgnorePatterns(): string[] {
 }
 
 /**
- * Check if a path should be ignored based on .sageboxignore patterns
+ * Check if a path should be ignored based on .msignore patterns
  * @param filePath Absolute path to check
  * @returns true if the path should be ignored
  */
@@ -105,23 +105,23 @@ function matchIgnorePattern(relativePath: string, pattern: string): boolean {
 }
 
 /**
- * Initialize the .sageboxignore file watcher
+ * Initialize the .msignore file watcher
  */
 export function initIgnoreFileWatcher(context: vscode.ExtensionContext): void {
   // Load initial patterns
   ignorePatterns = loadIgnorePatterns();
 
-  // Watch for changes to .sageboxignore
+  // Watch for changes to .msignore
   const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   if (workspaceRoot) {
     ignoreFileWatcher = vscode.workspace.createFileSystemWatcher(
-      new vscode.RelativePattern(workspaceRoot, '.sageboxignore')
+      new vscode.RelativePattern(workspaceRoot, '.msignore')
     );
 
     const reloadPatterns = () => {
       ignorePatterns = loadIgnorePatterns();
       // Fire event to refresh tree (will be handled by the provider)
-      vscode.commands.executeCommand('sageboxIconStudio.refresh');
+      vscode.commands.executeCommand('masterSVG.refresh');
     };
 
     ignoreFileWatcher.onDidCreate(reloadPatterns);

@@ -121,7 +121,7 @@ export class PreviewTemplateService {
       if (svgTagMatch && svgTagMatch[1]) {
         const svgTag = svgTagMatch[1];
         let newSvgTag: string;
-        
+
         if (svgTag.includes('style="')) {
           // Append to existing style on the root svg tag
           newSvgTag = svgTag.replace(/style="([^"]*)"/, `style="$1; ${animationStyle}"`);

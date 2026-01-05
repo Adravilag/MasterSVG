@@ -19,7 +19,7 @@ suite('UC-1: Gestión de Iconos en Proyecto Nuevo', () => {
 
   suiteSetup(async () => {
     // Activar extensión
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -28,7 +28,7 @@ suite('UC-1: Gestión de Iconos en Proyecto Nuevo', () => {
 
   suite('CA-1.1: Configuración de carpetas SVG', () => {
     test('CA-1.1.1: Debe configurar svgFolders correctamente', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('svgFolders', [svgsFolder], vscode.ConfigurationTarget.Workspace);
       await delay(300);
 
@@ -57,7 +57,7 @@ suite('UC-1: Gestión de Iconos en Proyecto Nuevo', () => {
 
       // El escáner debe excluir node_modules por defecto
       // Este test verifica que la configuración de exclusión existe
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const excludePatterns = config.get<string[]>('excludePatterns', [
         'node_modules',
         'dist',
@@ -81,7 +81,7 @@ suite('UC-1: Gestión de Iconos en Proyecto Nuevo', () => {
     test('CA-1.1.4: Debe ejecutar escaneo al abrir workspace', async () => {
       // El comando refreshIcons debe ejecutarse sin errores
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.refreshIcons');
+        await vscode.commands.executeCommand('masterSVG.refreshIcons');
         await delay(1000);
         assert.ok(true, 'El escaneo se ejecutó correctamente');
       } catch (error) {
@@ -93,11 +93,11 @@ suite('UC-1: Gestión de Iconos en Proyecto Nuevo', () => {
       // Verificar que el comando de refresh existe y funciona
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.refreshIcons'),
+        commands.includes('masterSVG.refreshIcons'),
         'Comando refreshIcons debe estar registrado'
       );
       assert.ok(
-        commands.includes('sageboxIconStudio.refreshFiles'),
+        commands.includes('masterSVG.refreshFiles'),
         'Comando refreshFiles debe estar registrado'
       );
     });
@@ -105,7 +105,7 @@ suite('UC-1: Gestión de Iconos en Proyecto Nuevo', () => {
     test('CA-1.1.6: Debe usar operaciones asíncronas (no bloquear)', async () => {
       // Ejecutar escaneo y verificar que no bloquea
       const startTime = Date.now();
-      const scanPromise = vscode.commands.executeCommand('sageboxIconStudio.refreshIcons');
+      const scanPromise = vscode.commands.executeCommand('masterSVG.refreshIcons');
 
       // El comando debe retornar inmediatamente (no bloquear)
       const afterCommandTime = Date.now();
@@ -118,7 +118,7 @@ suite('UC-1: Gestión de Iconos en Proyecto Nuevo', () => {
   suite('CA-1.3: Panel de iconos', () => {
     test('Debe abrir el panel de iconos', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.openPanel');
+        await vscode.commands.executeCommand('masterSVG.openPanel');
         await delay(500);
         assert.ok(true, 'Panel abierto correctamente');
       } catch (error) {
@@ -128,13 +128,13 @@ suite('UC-1: Gestión de Iconos en Proyecto Nuevo', () => {
 
     test('Debe tener comando de búsqueda de iconos', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.searchIcons'), 'Comando searchIcons debe existir');
+      assert.ok(commands.includes('masterSVG.searchIcons'), 'Comando searchIcons debe existir');
     });
   });
 
   suiteTeardown(async () => {
     // Limpiar configuración
-    const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+    const config = vscode.workspace.getConfiguration('masterSVG');
     await config.update('svgFolders', undefined, vscode.ConfigurationTarget.Workspace);
   });
 });
@@ -181,13 +181,13 @@ suite('UC-4: Sistema de Iconos Consistente', () => {
     test('Debe tener comando de configuración', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.openWelcome'),
+        commands.includes('masterSVG.openWelcome'),
         'Comando openWelcome debe existir para configuración'
       );
     });
 
     test('Debe configurar outputDirectory', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('outputDirectory', outputDir, vscode.ConfigurationTarget.Workspace);
       await delay(200);
 
@@ -196,7 +196,7 @@ suite('UC-4: Sistema de Iconos Consistente', () => {
     });
 
     test('Debe configurar formato de build', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('buildFormat', 'both', vscode.ConfigurationTarget.Workspace);
       await delay(200);
 
@@ -209,14 +209,14 @@ suite('UC-4: Sistema de Iconos Consistente', () => {
     test('Debe tener comando exportAsComponent', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.exportAsComponent'),
+        commands.includes('masterSVG.exportAsComponent'),
         'Comando exportAsComponent debe existir'
       );
     });
   });
 
   suiteTeardown(async () => {
-    const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+    const config = vscode.workspace.getConfiguration('masterSVG');
     await config.update('outputDirectory', undefined, vscode.ConfigurationTarget.Workspace);
     await config.update('buildFormat', undefined, vscode.ConfigurationTarget.Workspace);
   });

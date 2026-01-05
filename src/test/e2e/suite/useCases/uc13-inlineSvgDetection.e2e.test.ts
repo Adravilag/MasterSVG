@@ -76,7 +76,7 @@ defineProps<{ size?: number }>();
 
   suiteSetup(async () => {
     // Activar extensión
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -99,7 +99,7 @@ defineProps<{ size?: number }>();
     test('Debe existir comando goToInlineSvg', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.goToInlineSvg'),
+        commands.includes('masterSVG.goToInlineSvg'),
         'Comando goToInlineSvg debe estar registrado'
       );
     });
@@ -107,7 +107,7 @@ defineProps<{ size?: number }>();
     test('Debe existir comando transformInlineSvg', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.transformInlineSvg'),
+        commands.includes('masterSVG.transformInlineSvg'),
         'Comando transformInlineSvg debe estar registrado'
       );
     });
@@ -200,7 +200,7 @@ defineProps<{ size?: number }>();
     test('Debe poder convertir SVG inline a referencia de componente', () => {
       const inlineSvg =
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2"/></svg>';
-      const componentName = 'iw-icon';
+      const componentName = 'svg-icon';
       const iconName = 'my-icon';
 
       // Simulación de la transformación esperada
@@ -253,7 +253,7 @@ defineProps<{ size?: number }>();
     test('Debe ofrecer acción "Extraer a archivo SVG"', async () => {
       // Verificar que el comando existe
       const commands = await vscode.commands.getCommands(true);
-      const hasSvgCommands = commands.some(cmd => cmd.includes('sageboxIconStudio'));
+      const hasSvgCommands = commands.some(cmd => cmd.includes('masterSVG'));
 
       assert.ok(hasSvgCommands, 'Debe tener comandos de iconStudio registrados');
     });
@@ -303,7 +303,7 @@ defineProps<{ size?: number }>();
     test('Debe existir comando refreshCode', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.refreshCode'),
+        commands.includes('masterSVG.refreshCode'),
         'Comando refreshCode debe existir'
       );
     });

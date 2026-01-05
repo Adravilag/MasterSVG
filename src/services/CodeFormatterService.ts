@@ -509,7 +509,7 @@ ${animationRule}`;
   generateUsageCodeHtml(
     iconName: string,
     animationType?: string,
-    tagName: string = 'sg-icon'
+    tagName: string = 'svg-icon'
   ): string {
     const lines: string[] = [
       `<!-- Web Component -->`,

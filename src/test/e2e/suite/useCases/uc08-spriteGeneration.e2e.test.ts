@@ -24,7 +24,7 @@ suite('UC-8: Generar SVG Sprites', () => {
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -40,7 +40,7 @@ suite('UC-8: Generar SVG Sprites', () => {
     test('Debe existir comando generateSprite', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.generateSprite'),
+        commands.includes('masterSVG.generateSprite'),
         'Comando generateSprite debe existir'
       );
     });
@@ -48,7 +48,7 @@ suite('UC-8: Generar SVG Sprites', () => {
     test('Debe existir comando generateSpriteFromFolder', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.generateSpriteFromFolder'),
+        commands.includes('masterSVG.generateSpriteFromFolder'),
         'Comando generateSpriteFromFolder debe existir'
       );
     });
@@ -56,7 +56,7 @@ suite('UC-8: Generar SVG Sprites', () => {
     test('Debe existir comando generateSpriteFromSelection', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.generateSpriteFromSelection'),
+        commands.includes('masterSVG.generateSpriteFromSelection'),
         'Comando generateSpriteFromSelection debe existir'
       );
     });
@@ -99,14 +99,14 @@ suite('UC-8: Generar SVG Sprites', () => {
 
   suite('CA-8.3: Configuración del sprite', () => {
     test('Configuración de prefijo de ID', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const spriteIdPrefix = config.get<string>('sprite.idPrefix') || 'icon';
 
       assert.ok(typeof spriteIdPrefix === 'string', 'spriteIdPrefix debe ser string');
     });
 
     test('Configuración de nombre de archivo de salida', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const spriteFileName = config.get<string>('sprite.fileName') || 'sprite.svg';
 
       assert.ok(spriteFileName.endsWith('.svg'), 'Archivo sprite debe ser .svg');

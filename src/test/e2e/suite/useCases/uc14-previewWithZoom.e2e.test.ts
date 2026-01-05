@@ -14,7 +14,7 @@ suite('UC-14: Previsualizar Iconos con Zoom', () => {
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -27,7 +27,7 @@ suite('UC-14: Previsualizar Iconos con Zoom', () => {
 
       const detailCommands = commands.filter(
         c =>
-          c.includes('sageboxIconStudio') &&
+          c.includes('masterSVG') &&
           (c.toLowerCase().includes('detail') ||
             c.toLowerCase().includes('preview') ||
             c.toLowerCase().includes('show'))
@@ -39,8 +39,8 @@ suite('UC-14: Previsualizar Iconos con Zoom', () => {
     test('Debe existir comando previewIcon', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.previewIcon') ||
-          commands.includes('sageboxIconStudio.showIconDetails'),
+        commands.includes('masterSVG.previewIcon') ||
+          commands.includes('masterSVG.showIconDetails'),
         'Debe existir comando de previsualización'
       );
     });
@@ -139,7 +139,7 @@ suite('UC-14: Previsualizar Iconos con Zoom', () => {
       const commands = await vscode.commands.getCommands(true);
 
       assert.ok(
-        commands.includes('sageboxIconStudio.focusPreviewPanel') ||
+        commands.includes('masterSVG.focusPreviewPanel') ||
           commands.some(c => c.includes('preview')),
         'Debe existir funcionalidad de preview en sidebar'
       );

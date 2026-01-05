@@ -12,7 +12,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -23,7 +23,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
     test('Debe tener comando searchIcons accesible', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.searchIcons'),
+        commands.includes('masterSVG.searchIcons'),
         'Comando searchIcons debe estar registrado'
       );
     });
@@ -31,7 +31,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
     test('Debe tener comando openPanel accesible', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.openPanel'),
+        commands.includes('masterSVG.openPanel'),
         'Comando openPanel debe estar registrado'
       );
     });
@@ -39,7 +39,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
     test('Debe tener comando refreshIcons accesible', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.refreshIcons'),
+        commands.includes('masterSVG.refreshIcons'),
         'Comando refreshIcons debe estar registrado'
       );
     });
@@ -47,7 +47,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
     test('Debe tener comando buildIcons accesible', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.buildIcons'),
+        commands.includes('masterSVG.buildIcons'),
         'Comando buildIcons debe estar registrado'
       );
     });
@@ -57,7 +57,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
     test('Debe tener comando expandAll', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.expandAll'),
+        commands.includes('masterSVG.expandAll'),
         'Comando expandAll debe existir'
       );
     });
@@ -65,7 +65,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
     test('Debe tener comando collapseAll', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.collapseAll'),
+        commands.includes('masterSVG.collapseAll'),
         'Comando collapseAll debe existir'
       );
     });
@@ -74,12 +74,12 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
       const commands = await vscode.commands.getCommands(true);
 
       const navigationCommands = [
-        'sageboxIconStudio.expandAll',
-        'sageboxIconStudio.collapseAll',
-        'sageboxIconStudio.expandBuiltIcons',
-        'sageboxIconStudio.collapseBuiltIcons',
-        'sageboxIconStudio.expandSvgFiles',
-        'sageboxIconStudio.collapseSvgFiles',
+        'masterSVG.expandAll',
+        'masterSVG.collapseAll',
+        'masterSVG.expandBuiltIcons',
+        'masterSVG.collapseBuiltIcons',
+        'masterSVG.expandSvgFiles',
+        'masterSVG.collapseSvgFiles',
       ];
 
       navigationCommands.forEach(cmd => {
@@ -92,7 +92,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
     test('Debe tener comando copyIconName', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.copyIconName'),
+        commands.includes('masterSVG.copyIconName'),
         'Comando copyIconName debe existir para copiar rápidamente'
       );
     });
@@ -100,7 +100,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
     test('Debe tener comando insertIcon', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.insertIcon'),
+        commands.includes('masterSVG.insertIcon'),
         'Comando insertIcon debe existir para inserción rápida'
       );
     });
@@ -108,7 +108,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
     test('Debe tener comando goToCode', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.goToCode'),
+        commands.includes('masterSVG.goToCode'),
         'Comando goToCode debe existir para navegación rápida'
       );
     });
@@ -116,7 +116,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
     test('Debe tener comando openSvgFile', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.openSvgFile'),
+        commands.includes('masterSVG.openSvgFile'),
         'Comando openSvgFile debe existir'
       );
     });
@@ -124,7 +124,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
 
   suite('CA-23.4: Command Palette', () => {
     test('Comandos deben tener títulos descriptivos', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       assert.ok(ext, 'Extensión debe existir');
 
       const packageJson = ext.packageJSON;
@@ -142,7 +142,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
     });
 
     test('Comandos deben tener iconos donde corresponda', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       assert.ok(ext, 'Extensión debe existir');
 
       const packageJson = ext.packageJSON;
@@ -162,7 +162,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
 
   suite('CA-23.5: Menús Contextuales', () => {
     test('Extensión debe contribuir menús', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       assert.ok(ext, 'Extensión debe existir');
 
       const packageJson = ext.packageJSON;
@@ -172,22 +172,22 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
     });
 
     test('Debe tener submenú Icon Studio', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       assert.ok(ext, 'Extensión debe existir');
 
       const packageJson = ext.packageJSON;
       const submenus = packageJson.contributes?.submenus || [];
 
       const iconStudioSubmenu = submenus.find(
-        (menu: { id: string }) => menu.id === 'sageboxIconStudio.svgMenu'
+        (menu: { id: string }) => menu.id === 'masterSVG.svgMenu'
       );
-      assert.ok(iconStudioSubmenu, 'Debe existir submenú sageboxIconStudio.svgMenu');
+      assert.ok(iconStudioSubmenu, 'Debe existir submenú masterSVG.svgMenu');
     });
   });
 
   suite('CA-23.6: Accesibilidad de Vistas', () => {
     test('Debe tener vistas contribuidas', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       assert.ok(ext, 'Extensión debe existir');
 
       const packageJson = ext.packageJSON;
@@ -197,7 +197,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
     });
 
     test('Vistas deben tener títulos accesibles', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       assert.ok(ext, 'Extensión debe existir');
 
       const packageJson = ext.packageJSON;
@@ -215,7 +215,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
 
   suite('CA-23.7: Configuración de Atajos', () => {
     test('Extensión puede contribuir keybindings', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       assert.ok(ext, 'Extensión debe existir');
 
       const packageJson = ext.packageJSON;
@@ -270,7 +270,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
     test('Debe tener comando renameIcon', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.renameIcon'),
+        commands.includes('masterSVG.renameIcon'),
         'Comando renameIcon debe existir'
       );
     });
@@ -278,7 +278,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
     test('Debe tener comando deleteIcons', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.deleteIcons'),
+        commands.includes('masterSVG.deleteIcons'),
         'Comando deleteIcons debe existir'
       );
     });
@@ -286,7 +286,7 @@ suite('UC-23: Atajos de Teclado y Accesibilidad', () => {
     test('Debe tener comando findAndReplace', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.findAndReplace'),
+        commands.includes('masterSVG.findAndReplace'),
         'Comando findAndReplace debe existir'
       );
     });

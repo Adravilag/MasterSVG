@@ -19,8 +19,8 @@ suite('UC-3: Optimizar SVGs para Producción', () => {
   const unoptimizedSvg = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <!-- Generator: Adobe Illustrator 24.0.0, SVG Export Plug-In -->
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
-     viewBox="0 0 24 24" width="24px" height="24px" 
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     viewBox="0 0 24 24" width="24px" height="24px"
      data-name="Layer 1" id="Layer_1">
   <metadata>
     <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -36,7 +36,7 @@ suite('UC-3: Optimizar SVGs para Producción', () => {
 </svg>`;
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -46,13 +46,13 @@ suite('UC-3: Optimizar SVGs para Producción', () => {
   suite('CA-3.1: Comando de optimización', () => {
     test('Debe existir comando optimizeSvg', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.optimizeSvg'), 'Comando optimizeSvg debe existir');
+      assert.ok(commands.includes('masterSVG.optimizeSvg'), 'Comando optimizeSvg debe existir');
     });
 
     test('Debe existir comando optimizeSelectedSvg', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.optimizeSelectedSvg'),
+        commands.includes('masterSVG.optimizeSelectedSvg'),
         'Comando optimizeSelectedSvg debe existir'
       );
     });

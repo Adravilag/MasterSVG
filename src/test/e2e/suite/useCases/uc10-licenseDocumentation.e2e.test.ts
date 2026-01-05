@@ -16,7 +16,7 @@ suite('UC-10: Documentar Licencias de Iconos', () => {
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -38,8 +38,8 @@ suite('UC-10: Documentar Licencias de Iconos', () => {
     test('Debe existir comando generateLicenses', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.generateLicenses') ||
-          commands.includes('sageboxIconStudio.generateLicenseFile'),
+        commands.includes('masterSVG.generateLicenses') ||
+          commands.includes('masterSVG.generateLicenseFile'),
         'Debe existir comando de generación de licencias'
       );
     });
@@ -47,8 +47,8 @@ suite('UC-10: Documentar Licencias de Iconos', () => {
     test('Debe existir comando showLicenseInfo', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.showLicenseInfo') ||
-          commands.includes('sageboxIconStudio.viewLicense'),
+        commands.includes('masterSVG.showLicenseInfo') ||
+          commands.includes('masterSVG.viewLicense'),
         'Debe existir comando para ver información de licencia'
       );
     });

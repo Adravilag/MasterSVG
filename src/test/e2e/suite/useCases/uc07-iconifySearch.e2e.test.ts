@@ -13,7 +13,7 @@ suite('UC-7: Integración con Iconify', () => {
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -24,7 +24,7 @@ suite('UC-7: Integración con Iconify', () => {
     test('Debe existir comando searchIconify', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.searchIconify'),
+        commands.includes('masterSVG.searchIconify'),
         'Comando searchIconify debe existir'
       );
     });
@@ -32,7 +32,7 @@ suite('UC-7: Integración con Iconify', () => {
     test('Debe existir comando openIconifySearch', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.openIconifySearch'),
+        commands.includes('masterSVG.openIconifySearch'),
         'Comando openIconifySearch debe existir'
       );
     });
@@ -89,14 +89,14 @@ suite('UC-7: Integración con Iconify', () => {
     test('Debe existir comando downloadFromIconify', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.downloadFromIconify'),
+        commands.includes('masterSVG.downloadFromIconify'),
         'Comando downloadFromIconify debe existir'
       );
     });
 
     test('Debe existir comando addToProject (desde Iconify)', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.addToProject'), 'Comando addToProject debe existir');
+      assert.ok(commands.includes('masterSVG.addToProject'), 'Comando addToProject debe existir');
     });
 
     test('Debe generar nombre de archivo válido desde identificador', () => {
@@ -119,7 +119,7 @@ suite('UC-26: Gestionar Iconos desde Búsqueda Iconify', () => {
 
   suite('CA-26.1: Colecciones de iconos', () => {
     test('Configuración de colecciones favoritas', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
 
       // La configuración puede incluir colecciones favoritas
       const favoriteCollections = config.get<string[]>('iconify.favoriteCollections') || [];
@@ -155,7 +155,7 @@ suite('UC-26: Gestionar Iconos desde Búsqueda Iconify', () => {
 
   suite('CA-26.3: Importación a proyecto', () => {
     test('Debe poder especificar carpeta de destino', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const svgFolders = config.get<string[]>('svgFolders') || [];
 
       // Si hay carpetas configuradas, la primera podría ser el destino por defecto

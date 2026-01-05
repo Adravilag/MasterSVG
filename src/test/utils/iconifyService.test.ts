@@ -32,6 +32,7 @@ import {
   getIconInfo,
   getCollections,
   IconifySearchResult,
+  clearAllCaches,
 } from '../../utils/iconifyService';
 
 const mockHttpsGet = https.get as jest.MockedFunction<typeof https.get>;
@@ -39,6 +40,7 @@ const mockHttpsGet = https.get as jest.MockedFunction<typeof https.get>;
 describe('iconifyService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    clearAllCaches();
   });
 
   describe('IconifySearchResult interface', () => {

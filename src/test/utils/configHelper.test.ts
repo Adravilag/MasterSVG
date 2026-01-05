@@ -63,7 +63,7 @@ describe('configHelper', () => {
 
       const config = getConfig();
 
-      expect(config.outputDirectory).toBe('sagebox-icons');
+      expect(config.outputDirectory).toBe('mastersvg-icons');
       expect(config.componentName).toBe('Icon');
       expect(config.nameAttribute).toBe('name');
       expect(config.defaultSize).toBe(24);

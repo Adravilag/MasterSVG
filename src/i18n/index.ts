@@ -73,7 +73,7 @@ class I18nService {
     // Only register the configuration change listener if the API is available
     if (typeof vscode.workspace.onDidChangeConfiguration === 'function') {
       this._configListener = vscode.workspace.onDidChangeConfiguration(e => {
-        if (e.affectsConfiguration('sageboxIconStudio.language')) {
+        if (e.affectsConfiguration('masterSVG.language')) {
           const prev = this.currentLocale;
           this.initializeLocale();
           if (this.currentLocale !== prev) {
@@ -100,7 +100,7 @@ class I18nService {
    * Initialize locale from configuration or system
    */
   private initializeLocale(): void {
-    const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+    const config = vscode.workspace.getConfiguration('masterSVG');
     const configuredLocale = config.get<string>('language', 'auto');
 
     if (configuredLocale === 'auto') {
@@ -146,7 +146,7 @@ class I18nService {
    * Get configured locale (may be 'auto')
    */
   public getConfiguredLocale(): SupportedLocale {
-    const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+    const config = vscode.workspace.getConfiguration('masterSVG');
     return config.get<SupportedLocale>('language', 'auto');
   }
 
@@ -154,7 +154,7 @@ class I18nService {
    * Set locale and reload translations
    */
   public async setLocale(locale: SupportedLocale): Promise<void> {
-    const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+    const config = vscode.workspace.getConfiguration('masterSVG');
     await config.update('language', locale, vscode.ConfigurationTarget.Global);
 
     if (locale === 'auto') {

@@ -17,7 +17,7 @@ export class IconHoverProvider implements vscode.HoverProvider {
     _token: vscode.CancellationToken
   ): Promise<vscode.Hover | null> {
     const componentName = getSvgConfig<string>('componentName', 'Icon');
-    const webComponentName = getSvgConfig<string>('webComponentName', 'sg-icon');
+    const webComponentName = getSvgConfig<string>('webComponentName', 'svg-icon');
     const nameAttr = getSvgConfig<string>('iconNameAttribute', 'name');
 
     // Get the line and try to find icon reference
@@ -27,7 +27,7 @@ export class IconHoverProvider implements vscode.HoverProvider {
     const patterns = [
       // <Icon name="icon-name" /> or <icon name="icon-name">
       new RegExp(`<${componentName}[^>]*${nameAttr}=["']([^"']+)["']`, 'gi'),
-      // <sg-icon name="icon-name" /> (web component)
+      // <svg-icon name="icon-name" /> (web component)
       new RegExp(`<${webComponentName}[^>]*${nameAttr}=["']([^"']+)["']`, 'gi'),
       // <iconify-icon icon="prefix:name" />
       /<iconify-icon[^>]*icon=["']([^"']+)["']/gi,
@@ -134,7 +134,7 @@ export class IconHoverProvider implements vscode.HoverProvider {
             );
 
             // Action links using HTML to avoid long command tooltips
-            const editCmd = `command:sageboxIconStudio.colorEditor?${encodeURIComponent(JSON.stringify(icon.name))}`;
+            const editCmd = `command:masterSVG.colorEditor?${encodeURIComponent(JSON.stringify(icon.name))}`;
             const detailsData = {
               name: icon.name,
               svg: icon.svg,
@@ -146,7 +146,7 @@ export class IconHoverProvider implements vscode.HoverProvider {
               isBuilt: icon.isBuilt,
               animation: effectiveAnimation ? { type: effectiveAnimation } : undefined,
             };
-            const detailsCmd = `command:sageboxIconStudio.showDetails?${encodeURIComponent(JSON.stringify(detailsData))}`;
+            const detailsCmd = `command:masterSVG.showDetails?${encodeURIComponent(JSON.stringify(detailsData))}`;
 
             markdown.appendMarkdown(`\n\n`);
             
@@ -164,7 +164,7 @@ export class IconHoverProvider implements vscode.HoverProvider {
                 svgContent: icon.svg,
                 filePath: icon.path,
               };
-              const buildCmd = `command:sageboxIconStudio.buildSingleIcon?${encodeURIComponent(JSON.stringify(buildData))}`;
+              const buildCmd = `command:masterSVG.buildSingleIcon?${encodeURIComponent(JSON.stringify(buildData))}`;
               markdown.appendMarkdown(
                 `[$(package) ${t('commands.build') || 'Build'}](${buildCmd} "Add to library") · ` +
                 `[$(edit) Edit](${editCmd} "Edit icon") · ` +
@@ -185,7 +185,7 @@ export class IconHoverProvider implements vscode.HoverProvider {
             markdown.appendMarkdown(`This icon is not in your workspace or library.\n\n`);
 
             // Import from Iconify (will search and optionally replace the reference)
-            const importCmd = `command:sageboxIconStudio.importIcon?${encodeURIComponent(JSON.stringify([iconName, document.uri.fsPath, position.line]))}`;
+            const importCmd = `command:masterSVG.importIcon?${encodeURIComponent(JSON.stringify([iconName, document.uri.fsPath, position.line]))}`;
 
             markdown.appendMarkdown(
               `[$(cloud-download) Import](${importCmd} "Import or replace icon")`

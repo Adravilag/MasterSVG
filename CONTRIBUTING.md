@@ -1,6 +1,6 @@
-# Contributing to SageBox Icon Studio
+# Contributing to MasterSVG Icon Studio
 
-Thank you for your interest in contributing to SageBox Icon Studio! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to MasterSVG Icon Studio! This document provides guidelines and instructions for contributing.
 
 ## 📋 Table of Contents
 
@@ -20,8 +20,8 @@ Please be respectful and constructive in all interactions. We welcome contributo
 ## Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/sagebox-icon-studio.git`
-3. Add upstream remote: `git remote add upstream https://github.com/adravilag/sagebox-icon-studio.git`
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/MasterSVG-icon-studio.git`
+3. Add upstream remote: `git remote add upstream https://github.com/adravilag/MasterSVG-icon-studio.git`
 
 ## Development Setup
 

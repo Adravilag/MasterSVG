@@ -7,7 +7,7 @@ import { i18n, t, SUPPORTED_LOCALES, SupportedLocale } from '../i18n';
 
 export class WelcomePanel {
   public static currentPanel: WelcomePanel | undefined;
-  public static readonly viewType = 'sageboxIconStudio.welcome';
+  public static readonly viewType = 'masterSVG.welcome';
 
   private readonly _panel: vscode.WebviewPanel;
   private readonly _extensionUri: vscode.Uri;
@@ -17,7 +17,6 @@ export class WelcomePanel {
     outputDirectory: string;
     buildFormat: string;
     webComponentName: string;
-    svgoOptimize: boolean;
     scanOnStartup: boolean;
     defaultIconSize: number;
     previewBackground: string;
@@ -49,7 +48,7 @@ export class WelcomePanel {
   }
 
   public static isConfigured(): boolean {
-    const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+    const config = vscode.workspace.getConfiguration('masterSVG');
     const outputDir = config.get<string>('outputDirectory', '');
     return !!outputDir;
   }
@@ -59,13 +58,12 @@ export class WelcomePanel {
     this._extensionUri = extensionUri;
 
     // Initialize session config with current values (but don't save until finishSetup)
-    const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+    const config = vscode.workspace.getConfiguration('masterSVG');
     this._sessionConfig = {
       svgFolders: config.get<string[]>('svgFolders', []),
       outputDirectory: config.get<string>('outputDirectory', ''),
-      buildFormat: config.get<string>('buildFormat', ''),
+      buildFormat: config.get<string>('buildFormat', 'icons.ts'),
       webComponentName: config.get<string>('webComponentName', ''),
-      svgoOptimize: config.get<boolean>('svgoOptimize', true),
       scanOnStartup: config.get<boolean>('scanOnStartup', true),
       defaultIconSize: config.get<number>('defaultIconSize', 24),
       previewBackground: config.get<string>('previewBackground', 'transparent'),
@@ -100,9 +98,6 @@ export class WelcomePanel {
           case 'setLanguage':
             await this._setLanguage(message.language);
             break;
-          case 'setSvgoOptimize':
-            await this._setSvgoOptimize(message.value);
-            break;
           case 'setScanOnStartup':
             await this._setScanOnStartup(message.value);
             break;
@@ -112,14 +107,11 @@ export class WelcomePanel {
           case 'setPreviewBackground':
             await this._setPreviewBackground(message.value);
             break;
-          case 'setLicenseConsent':
-            await this._setLicenseConsent(message.value);
-            break;
           case 'openSettings':
-            vscode.commands.executeCommand('workbench.action.openSettings', 'sageboxIconStudio');
+            vscode.commands.executeCommand('workbench.action.openSettings', 'masterSVG');
             break;
           case 'searchIcons':
-            vscode.commands.executeCommand('sageboxIconStudio.searchIcons');
+            vscode.commands.executeCommand('masterSVG.searchIcons');
             this._panel.dispose();
             break;
           case 'close':
@@ -144,7 +136,7 @@ export class WelcomePanel {
     // Listen for configuration changes to ensure UI stays in sync
     this._disposables.push(
       vscode.workspace.onDidChangeConfiguration(e => {
-        if (e.affectsConfiguration('sageboxIconStudio')) {
+        if (e.affectsConfiguration('masterSVG')) {
           this._update();
         }
       })
@@ -234,11 +226,6 @@ export class WelcomePanel {
     // Update is triggered by onDidChangeLocale listener
   }
 
-  private async _setSvgoOptimize(value: boolean): Promise<void> {
-    // Update session config only - will be persisted on finishSetup
-    this._sessionConfig.svgoOptimize = value;
-  }
-
   private async _setScanOnStartup(value: boolean): Promise<void> {
     // Update session config only - will be persisted on finishSetup
     this._sessionConfig.scanOnStartup = value;
@@ -252,12 +239,6 @@ export class WelcomePanel {
   private async _setPreviewBackground(value: string): Promise<void> {
     // Update session config only - will be persisted on finishSetup
     this._sessionConfig.previewBackground = value;
-  }
-
-  private async _setLicenseConsent(value: boolean): Promise<void> {
-    // Update session config only - will be persisted on finishSetup
-    this._sessionConfig.autoGenerateLicenses = value;
-    this._update();
   }
 
   private async _finishSetup(): Promise<void> {
@@ -281,7 +262,7 @@ export class WelcomePanel {
 
     try {
       // NOW persist all session config to workspace settings
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update(
         'svgFolders',
         this._sessionConfig.svgFolders,
@@ -303,11 +284,6 @@ export class WelcomePanel {
         vscode.ConfigurationTarget.Workspace
       );
       await config.update(
-        'svgoOptimize',
-        this._sessionConfig.svgoOptimize,
-        vscode.ConfigurationTarget.Workspace
-      );
-      await config.update(
         'scanOnStartup',
         this._sessionConfig.scanOnStartup,
         vscode.ConfigurationTarget.Workspace
@@ -320,11 +296,6 @@ export class WelcomePanel {
       await config.update(
         'previewBackground',
         this._sessionConfig.previewBackground,
-        vscode.ConfigurationTarget.Workspace
-      );
-      await config.update(
-        'autoGenerateLicenses',
-        this._sessionConfig.autoGenerateLicenses,
         vscode.ConfigurationTarget.Workspace
       );
 
@@ -343,7 +314,7 @@ export class WelcomePanel {
       }
 
       // Refresh views to show the new files
-      vscode.commands.executeCommand('sageboxIconStudio.refreshIcons');
+      vscode.commands.executeCommand('masterSVG.refreshIcons');
     } catch (error: any) {
       vscode.window.showErrorMessage(`❌ ${t('welcome.errorCreatingFiles')}: ${error.message}`);
     }
@@ -532,15 +503,8 @@ declare global {
       step4Title: t('welcome.webComponentName'),
       step4Desc: t('welcome.webComponentDesc'),
 
-      // Step 5 - License Consent
-      step5Title: t('welcome.licenseConsentTitle'),
-      step5Desc: t('welcome.licenseConsentDesc'),
-      step5Checkbox: t('welcome.licenseConsentCheckbox'),
-      step5Info: t('welcome.licenseConsentInfo'),
-
       // Advanced Options
       advancedTitle: t('welcome.advancedOptions'),
-      svgoOptimizeLabel: t('welcome.svgoOptimize'),
       scanOnStartupLabel: t('welcome.scanOnStartup'),
       defaultIconSizeLabel: t('welcome.defaultIconSize'),
       previewBackgroundLabel: t('welcome.previewBackground'),
@@ -579,7 +543,6 @@ declare global {
     const outputDir = this._sessionConfig.outputDirectory;
     const buildFormat = this._sessionConfig.buildFormat;
     const webComponentName = this._sessionConfig.webComponentName;
-    const svgoOptimize = this._sessionConfig.svgoOptimize;
     const scanOnStartup = this._sessionConfig.scanOnStartup;
     const defaultIconSize = this._sessionConfig.defaultIconSize;
     const previewBackground = this._sessionConfig.previewBackground;
@@ -665,7 +628,7 @@ declare global {
         <div class="step-content">
           <p class="step-description">${tr.step4Desc}</p>
           <div class="input-group">
-            <input type="text" id="webComponentName" value="${webComponentName}" placeholder="sg-icon" onkeypress="handleTagKeypress(event)" ${isStep4Unlocked ? '' : 'disabled'} />
+            <input type="text" id="webComponentName" value="${webComponentName}" placeholder="svg-icon" onkeypress="handleTagKeypress(event)" ${isStep4Unlocked ? '' : 'disabled'} />
             <button class="btn-secondary" onclick="applyWebComponentName()" ${isStep4Unlocked ? '' : 'disabled'}>${tr.step1Apply}</button>
           </div>
         </div>
@@ -673,35 +636,8 @@ declare global {
     `
         : '';
 
-    // Step 5 - License consent for Iconify icons
-    const autoGenerateLicenses = this._sessionConfig.autoGenerateLicenses;
-    const isStep5Complete = autoGenerateLicenses;
-    const step5Section = `
-      <div class="step">
-        <div class="step-header">
-          <div class="step-number${isStep5Complete ? ' completed' : ''}"><span>5</span></div>
-          <div class="step-title">${tr.step5Title}</div>
-          ${isStep5Complete ? `<span class="step-summary">✓</span>` : ''}
-        </div>
-        <div class="step-content">
-          <p class="step-description">${tr.step5Desc}</p>
-          <div class="license-consent-box">
-            <label class="consent-checkbox">
-              <input type="checkbox" id="licenseConsent" ${autoGenerateLicenses ? 'checked' : ''} onchange="setLicenseConsent(this.checked)">
-              <span class="consent-checkmark"></span>
-              <span class="consent-text">${tr.step5Checkbox}</span>
-            </label>
-            <p class="consent-info">
-              <svg viewBox="0 0 24 24" class="info-icon"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
-              ${tr.step5Info}
-            </p>
-          </div>
-        </div>
-      </div>
-    `;
-
     const outputDirDisplay = outputDir || 'public/icons';
-    const webComponentDisplay = webComponentName || 'sg-icon';
+    const webComponentDisplay = webComponentName || 'svg-icon';
 
     // Generate framework-specific preview code
     const getFrameworkPreview = (): string => {
@@ -967,15 +903,11 @@ declare global {
       .replace(/\$\{spritePro2\}/g, tr.spritePro2)
       // Step 4 - Web Component Name
       .replace(/\$\{step4Section\}/g, step4Section)
-      // Step 5 - License Consent
-      .replace(/\$\{step5Section\}/g, step5Section)
       // Advanced Options
       .replace(/\$\{advancedTitle\}/g, tr.advancedTitle)
-      .replace(/\$\{svgoOptimizeLabel\}/g, tr.svgoOptimizeLabel)
       .replace(/\$\{scanOnStartupLabel\}/g, tr.scanOnStartupLabel)
       .replace(/\$\{defaultIconSizeLabel\}/g, tr.defaultIconSizeLabel)
       .replace(/\$\{previewBackgroundLabel\}/g, tr.previewBackgroundLabel)
-      .replace(/\$\{svgoOptimizeChecked\}/g, svgoOptimize ? 'checked' : '')
       .replace(/\$\{scanOnStartupChecked\}/g, scanOnStartup ? 'checked' : '')
       .replace(/\$\{defaultIconSize\}/g, String(defaultIconSize))
       .replace(/\$\{bgTransparent\}/g, previewBackground === 'transparent' ? 'selected' : '')

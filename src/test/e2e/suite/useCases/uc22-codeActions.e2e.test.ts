@@ -35,7 +35,7 @@ export function Logo() {
 `;
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -97,17 +97,17 @@ export function Logo() {
         {
           title: 'Transform SVG to Icon Component',
           kind: vscode.CodeActionKind.RefactorExtract,
-          command: 'sageboxIconStudio.transformInlineSvg',
+          command: 'masterSVG.transformInlineSvg',
         },
         {
           title: 'Optimize SVG',
           kind: vscode.CodeActionKind.RefactorRewrite,
-          command: 'sageboxIconStudio.optimizeSelectedSvg',
+          command: 'masterSVG.optimizeSelectedSvg',
         },
         {
           title: 'Save SVG to Library',
           kind: vscode.CodeActionKind.RefactorExtract,
-          command: 'sageboxIconStudio.importSvgToLibrary',
+          command: 'masterSVG.importSvgToLibrary',
         },
       ];
 
@@ -190,7 +190,7 @@ export function Logo() {
     test('Debe existir comando transformInlineSvg', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.transformInlineSvg'),
+        commands.includes('masterSVG.transformInlineSvg'),
         'Comando transformInlineSvg debe existir'
       );
     });
@@ -198,7 +198,7 @@ export function Logo() {
     test('Debe existir comando optimizeSelectedSvg', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.optimizeSelectedSvg'),
+        commands.includes('masterSVG.optimizeSelectedSvg'),
         'Comando optimizeSelectedSvg debe existir'
       );
     });
@@ -206,7 +206,7 @@ export function Logo() {
     test('Debe existir comando importSvgToLibrary', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.importSvgToLibrary'),
+        commands.includes('masterSVG.importSvgToLibrary'),
         'Comando importSvgToLibrary debe existir'
       );
     });

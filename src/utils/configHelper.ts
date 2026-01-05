@@ -17,9 +17,9 @@ export interface IconStudioConfig {
  * Get icon manager configuration
  */
 export function getConfig(): IconStudioConfig {
-  const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+  const config = vscode.workspace.getConfiguration('masterSVG');
   return {
-    outputDirectory: config.get<string>('outputDirectory', 'sagebox-icons'),
+    outputDirectory: config.get<string>('outputDirectory', 'mastersvg-icons'),
     componentName: config.get<string>('componentName', 'Icon'),
     nameAttribute: config.get<string>('nameAttribute', 'name'),
     defaultSize: config.get<number>('defaultSize', 24),
@@ -72,7 +72,7 @@ export function iconsJsExists(): boolean {
  */
 export function updateIconsJsContext(): void {
   const exists = iconsJsExists();
-  vscode.commands.executeCommand('setContext', 'sageboxIconStudio.iconsJsExists', exists);
+  vscode.commands.executeCommand('setContext', 'masterSVG.iconsJsExists', exists);
 }
 
 /**
@@ -96,7 +96,7 @@ export function ensureOutputDirectory(): string | undefined {
  * Update output directory configuration
  */
 export async function setOutputDirectory(dir: string): Promise<void> {
-  const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+  const config = vscode.workspace.getConfiguration('masterSVG');
   await config.update('outputDirectory', dir, vscode.ConfigurationTarget.Workspace);
 }
 

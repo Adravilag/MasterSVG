@@ -17,17 +17,17 @@ suite('Extension Lifecycle E2E Tests', () => {
 
   suite('Extension Activation', () => {
     test('Extensión debe existir', () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       assert.ok(ext, 'Extensión debe estar instalada');
     });
 
     test('Extensión debe tener ID correcto', () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
-      assert.strictEqual(ext?.id, 'sagebox.sagebox-icon-studio', 'ID debe coincidir');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
+      assert.strictEqual(ext?.id, 'mastersvg.mastersvg-icon-studio', 'ID debe coincidir');
     });
 
     test('Extensión debe activarse', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       assert.ok(ext, 'Extensión debe existir');
 
       if (!ext.isActive) {
@@ -38,7 +38,7 @@ suite('Extension Lifecycle E2E Tests', () => {
     });
 
     test('Extensión debe activarse con eventos correctos', () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const packageJson = ext?.packageJSON;
 
       const activationEvents = packageJson?.activationEvents || [];
@@ -59,18 +59,18 @@ suite('Extension Lifecycle E2E Tests', () => {
 
   suite('Extension Package JSON', () => {
     test('Debe tener nombre correcto', () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const packageJson = ext?.packageJSON;
 
       assert.strictEqual(
         packageJson?.name,
-        'sagebox-icon-studio',
+        'MasterSVG-icon-studio',
         'Nombre debe coincidir'
       );
     });
 
     test('Debe tener versión definida', () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const packageJson = ext?.packageJSON;
 
       assert.ok(packageJson?.version, 'Debe tener versión');
@@ -81,21 +81,21 @@ suite('Extension Lifecycle E2E Tests', () => {
     });
 
     test('Debe tener publisher definido', () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const packageJson = ext?.packageJSON;
 
-      assert.strictEqual(packageJson?.publisher, 'sagebox', 'Publisher debe ser sagebox');
+      assert.strictEqual(packageJson?.publisher, 'MasterSVG', 'Publisher debe seMasterSVGrsvg');
     });
 
     test('Debe tener engine vscode definido', () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const packageJson = ext?.packageJSON;
 
       assert.ok(packageJson?.engines?.vscode, 'Debe tener versión de VS Code requerida');
     });
 
     test('Debe tener categorías definidas', () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const packageJson = ext?.packageJSON;
 
       assert.ok(Array.isArray(packageJson?.categories), 'Debe tener categorías');
@@ -105,7 +105,7 @@ suite('Extension Lifecycle E2E Tests', () => {
 
   suite('Extension Contributions', () => {
     test('Debe contribuir comandos', () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const contributes = ext?.packageJSON?.contributes;
 
       assert.ok(contributes?.commands, 'Debe contribuir comandos');
@@ -120,48 +120,48 @@ suite('Extension Lifecycle E2E Tests', () => {
     });
 
     test('Debe contribuir configuración', () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const contributes = ext?.packageJSON?.contributes;
 
       assert.ok(contributes?.configuration, 'Debe contribuir configuración');
     });
 
     test('Debe contribuir vistas', () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const contributes = ext?.packageJSON?.contributes;
 
       assert.ok(contributes?.views, 'Debe contribuir vistas');
     });
 
     test('Debe contribuir viewsContainers', () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const contributes = ext?.packageJSON?.contributes;
 
       assert.ok(contributes?.viewsContainers, 'Debe contribuir viewsContainers');
     });
 
     test('Debe contribuir menús', () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const contributes = ext?.packageJSON?.contributes;
 
       assert.ok(contributes?.menus, 'Debe contribuir menús');
     });
 
     test('Debe contribuir lenguajes', () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const contributes = ext?.packageJSON?.contributes;
 
       assert.ok(contributes?.languages, 'Debe contribuir lenguajes');
 
-      // Debe contribuir sageboxignore
+      // Debe contribuir msignore
       const hasIgnoreLanguage = contributes.languages.some(
-        (lang: { id: string }) => lang.id === 'sageboxignore'
+        (lang: { id: string }) => lang.id === 'msignore'
       );
-      assert.ok(hasIgnoreLanguage, 'Debe contribuir lenguaje sageboxignore');
+      assert.ok(hasIgnoreLanguage, 'Debe contribuir lenguaje msignore');
     });
 
     test('Debe contribuir grammars', () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const contributes = ext?.packageJSON?.contributes;
 
       assert.ok(contributes?.grammars, 'Debe contribuir grammars');
@@ -170,7 +170,7 @@ suite('Extension Lifecycle E2E Tests', () => {
 
   suite('Extension Exports', () => {
     test('Extensión puede exportar API pública', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
 
       if (!ext?.isActive) {
         await ext?.activate();
@@ -204,7 +204,7 @@ suite('Extension Lifecycle E2E Tests', () => {
 
   suite('Extension State', () => {
     test('Extensión debe mantener estado después de comandos', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
 
       if (!ext?.isActive) {
         await ext?.activate();
@@ -212,7 +212,7 @@ suite('Extension Lifecycle E2E Tests', () => {
 
       // Ejecutar un comando
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.refreshIcons');
+        await vscode.commands.executeCommand('masterSVG.refreshIcons');
         await delay(500);
       } catch {
         // Puede fallar si no hay contexto, pero extensión debe seguir activa
@@ -222,14 +222,14 @@ suite('Extension Lifecycle E2E Tests', () => {
     });
 
     test('Extensión debe manejar configuración cambiante', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
 
       if (!ext?.isActive) {
         await ext?.activate();
       }
 
       // Cambiar configuración
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('defaultIconSize', 32, vscode.ConfigurationTarget.Global);
       await delay(200);
 
@@ -242,7 +242,7 @@ suite('Extension Lifecycle E2E Tests', () => {
 
   suite('Error Recovery', () => {
     test('Extensión debe sobrevivir a comando con argumentos inválidos', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
 
       if (!ext?.isActive) {
         await ext?.activate();
@@ -250,7 +250,7 @@ suite('Extension Lifecycle E2E Tests', () => {
 
       try {
         // Ejecutar comando sin los argumentos requeridos
-        await vscode.commands.executeCommand('sageboxIconStudio.showDetails', undefined);
+        await vscode.commands.executeCommand('masterSVG.showDetails', undefined);
       } catch {
         // Error esperado
       }
@@ -259,7 +259,7 @@ suite('Extension Lifecycle E2E Tests', () => {
     });
 
     test('Extensión debe manejar archivos SVG inválidos', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const invalidSvgPath = path.join(testWorkspace, 'temp-invalid.svg');
 
       try {
@@ -267,7 +267,7 @@ suite('Extension Lifecycle E2E Tests', () => {
         fs.writeFileSync(invalidSvgPath, 'not a valid svg content');
 
         // Intentar refrescar
-        await vscode.commands.executeCommand('sageboxIconStudio.refreshFiles');
+        await vscode.commands.executeCommand('masterSVG.refreshFiles');
         await delay(300);
       } catch {
         // Error manejado
@@ -286,7 +286,7 @@ suite('Extension Lifecycle E2E Tests', () => {
     test('Debe cerrar paneles webview correctamente', async () => {
       try {
         // Abrir panel
-        await vscode.commands.executeCommand('sageboxIconStudio.openWelcome');
+        await vscode.commands.executeCommand('masterSVG.openWelcome');
         await delay(300);
 
         // Cerrar todos los editores (incluye webviews)

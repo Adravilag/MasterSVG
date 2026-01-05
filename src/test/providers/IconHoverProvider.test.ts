@@ -326,7 +326,7 @@ describe('IconHoverProvider', () => {
 
   describe('variantes en hover preview', () => {
     test('debe detectar atributo variant en el tag', async () => {
-      const lineText = '<sg-icon name="star" variant="custom"></sg-icon>';
+      const lineText = '<svg-icon name="star" variant="custom"></svg-icon>';
       mockDocument = createMockDocument(lineText);
       (mockSvgProvider.getIcon as jest.Mock).mockReturnValue({
         ...mockIcon,
@@ -351,7 +351,7 @@ describe('IconHoverProvider', () => {
     });
 
     test('debe mostrar hover sin variant cuando no está especificado', async () => {
-      const lineText = '<sg-icon name="star"></sg-icon>';
+      const lineText = '<svg-icon name="star"></svg-icon>';
       mockDocument = createMockDocument(lineText);
       (mockSvgProvider.getIcon as jest.Mock).mockReturnValue({
         ...mockIcon,
@@ -375,7 +375,7 @@ describe('IconHoverProvider', () => {
     });
 
     test('debe detectar atributo animation en el tag', async () => {
-      const lineText = '<sg-icon name="star" animation="pulse"></sg-icon>';
+      const lineText = '<svg-icon name="star" animation="pulse"></svg-icon>';
       mockDocument = createMockDocument(lineText);
       (mockSvgProvider.getIcon as jest.Mock).mockReturnValue({
         ...mockIcon,
@@ -400,7 +400,7 @@ describe('IconHoverProvider', () => {
     });
 
     test('debe mostrar variante y animación juntas', async () => {
-      const lineText = '<sg-icon name="star" variant="custom" animation="spin"></sg-icon>';
+      const lineText = '<svg-icon name="star" variant="custom" animation="spin"></svg-icon>';
       mockDocument = createMockDocument(lineText);
       (mockSvgProvider.getIcon as jest.Mock).mockReturnValue({
         ...mockIcon,

@@ -17,7 +17,7 @@ suite('UC-18: Build de Iconos para Producción', () => {
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -27,12 +27,12 @@ suite('UC-18: Build de Iconos para Producción', () => {
   suite('CA-18.1: Comandos de build', () => {
     test('Debe existir comando buildIcons', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.buildIcons'), 'Comando buildIcons debe existir');
+      assert.ok(commands.includes('masterSVG.buildIcons'), 'Comando buildIcons debe existir');
     });
 
     test('Debe existir comando exportAll', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.exportAll'), 'Comando exportAll debe existir');
+      assert.ok(commands.includes('masterSVG.exportAll'), 'Comando exportAll debe existir');
     });
   });
 
@@ -105,7 +105,7 @@ export declare const UserIcon: React.FC<IconProps>;
 
   suite('CA-18.3: Configuración de build', () => {
     test('Debe tener configuración buildOutputPath', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const outputPath = config.get<string>('build.outputPath');
 
       assert.ok(
@@ -115,7 +115,7 @@ export declare const UserIcon: React.FC<IconProps>;
     });
 
     test('Debe tener configuración buildFormats', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const formats = config.get<string[]>('build.formats');
 
       // Formatos posibles: 'svg', 'jsx', 'tsx', 'vue', 'svelte', 'astro', 'webcomponent'
@@ -132,20 +132,20 @@ suite('UC-5: Incorporar Nuevos Iconos', () => {
   suite('CA-5.1: Importación de iconos', () => {
     test('Debe existir comando importIcons', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.importIcons'), 'Comando importIcons debe existir');
+      assert.ok(commands.includes('masterSVG.importIcons'), 'Comando importIcons debe existir');
     });
 
     test('Debe existir comando importFromFolder', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.importFromFolder'),
+        commands.includes('masterSVG.importFromFolder'),
         'Comando importFromFolder debe existir'
       );
     });
 
     test('Debe existir comando addToProject', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.addToProject'), 'Comando addToProject debe existir');
+      assert.ok(commands.includes('masterSVG.addToProject'), 'Comando addToProject debe existir');
     });
   });
 
@@ -250,7 +250,7 @@ suite('UC-6: Actualizar o Reemplazar Iconos', () => {
   suite('CA-6.1: Comandos de actualización', () => {
     test('Debe existir comando replaceIcon', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.replaceIcon'), 'Comando replaceIcon debe existir');
+      assert.ok(commands.includes('masterSVG.replaceIcon'), 'Comando replaceIcon debe existir');
     });
 
     test('Debe existir comando updateIcon', async () => {

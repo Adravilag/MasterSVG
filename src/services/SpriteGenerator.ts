@@ -348,7 +348,7 @@ ${iconIds.map(id => `    '${id}'`).join(',\n')}
 
   private generateVanillaHelper(iconIds: string[], options: SpriteOptions): string {
     const spritePath = options.filename || 'sprite';
-    const componentName = options.webComponentName || 'sagebox-icon';
+    const componentName = options.webComponentName || 'mastersvg-icon';
 
     return `/**
  * Icon Web Component

@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-  "name": "SageBox Ignore",
-  "scopeName": "source.sageboxignore",
+  "name": "MasterSVG Ignore",
+  "scopeName": "source.msignore",
   "patterns": [
     {
       "include": "#comment"
@@ -22,35 +22,35 @@
   "repository": {
     "comment": {
       "match": "^\\s*#.*$",
-      "name": "comment.line.number-sign.sageboxignore"
+      "name": "comment.line.number-sign.msignore"
     },
     "negation": {
       "match": "^!",
-      "name": "keyword.operator.negation.sageboxignore"
+      "name": "keyword.operator.negation.msignore"
     },
     "directory": {
       "match": "/$",
-      "name": "punctuation.definition.directory.sageboxignore"
+      "name": "punctuation.definition.directory.msignore"
     },
     "wildcard": {
       "patterns": [
         {
           "match": "\\*\\*",
-          "name": "constant.other.wildcard.asterisk.double.sageboxignore"
+          "name": "constant.other.wildcard.asterisk.double.msignore"
         },
         {
           "match": "\\*",
-          "name": "constant.other.wildcard.asterisk.sageboxignore"
+          "name": "constant.other.wildcard.asterisk.msignore"
         },
         {
           "match": "\\?",
-          "name": "constant.other.wildcard.questionmark.sageboxignore"
+          "name": "constant.other.wildcard.questionmark.msignore"
         }
       ]
     },
     "pattern": {
       "match": "[^#\\s*?/]+",
-      "name": "string.unquoted.path.sageboxignore"
+      "name": "string.unquoted.path.msignore"
     }
   }
 }

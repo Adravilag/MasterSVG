@@ -16,7 +16,7 @@ export interface PreviewAnimation {
 }
 
 export class IconPreviewProvider implements vscode.WebviewViewProvider {
-  public static readonly viewType = 'sageboxIconStudio.preview';
+  public static readonly viewType = 'masterSVG.preview';
 
   private _view?: vscode.WebviewView;
   private _currentSvg?: string;
@@ -124,7 +124,7 @@ export class IconPreviewProvider implements vscode.WebviewViewProvider {
         case 'previewComponent':
           if (this._currentName && this._currentSvg) {
             // Pass full icon data including location for save functionality
-            vscode.commands.executeCommand('sageboxIconStudio.colorEditor', {
+            vscode.commands.executeCommand('masterSVG.colorEditor', {
               icon: {
                 name: this._currentName,
                 svg: this._currentSvg,

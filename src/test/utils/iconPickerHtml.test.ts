@@ -356,7 +356,8 @@ describe('iconPickerHtml', () => {
     it('should include query in title', () => {
       const html = getIconPickerHtml(mockIcons, 'test-query');
       expect(html).toContain('<title>Icon Picker</title>');
-      expect(html).toContain('Search Results for "test-query"');
+      expect(html).toContain('Iconify Browser');
+      expect(html).toContain('test-query');
     });
 
     it('should include icon count', () => {

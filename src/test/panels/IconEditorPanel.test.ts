@@ -475,7 +475,7 @@ describe('IconEditorPanel', () => {
 
       await handler({ command: 'refresh' });
 
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sageboxIconStudio.refreshIcons');
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('masterSVG.refreshIcons');
     });
   });
 
@@ -596,7 +596,7 @@ describe('IconEditorPanel', () => {
 
       // Debe ejecutar comando de rename
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
-        'sageboxIconStudio.renameIcon',
+        'masterSVG.renameIcon',
         expect.objectContaining({
           icon: expect.objectContaining({
             name: 'test-icon',
@@ -621,7 +621,7 @@ describe('IconEditorPanel', () => {
 
       // Debe revelar en tree view con nuevo nombre y path
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
-        'sageboxIconStudio.revealInTree',
+        'masterSVG.revealInTree',
         'new-icon-name',
         '/test/icons/new-icon-name.svg',
         1
@@ -653,7 +653,7 @@ describe('IconEditorPanel', () => {
 
       // Verificar que revealInTree se llama con el nuevo path
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
-        'sageboxIconStudio.revealInTree',
+        'masterSVG.revealInTree',
         'renamed-svg',
         '/test/icons/renamed-svg.svg',
         1
@@ -677,7 +677,7 @@ describe('IconEditorPanel', () => {
 
       // No debe ejecutar comando de rename
       expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith(
-        'sageboxIconStudio.renameIcon',
+        'masterSVG.renameIcon',
         expect.anything(),
         expect.anything()
       );
@@ -746,14 +746,14 @@ describe('IconEditorPanel', () => {
 
       // Debe ejecutar comando de rename
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
-        'sageboxIconStudio.renameIcon',
+        'masterSVG.renameIcon',
         expect.anything(),
         'webview-renamed'
       );
 
       // Debe revelar en tree view
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
-        'sageboxIconStudio.revealInTree',
+        'masterSVG.revealInTree',
         'webview-renamed',
         '/test/icons/webview-renamed.svg',
         1

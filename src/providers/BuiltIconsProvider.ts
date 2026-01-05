@@ -209,7 +209,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
 
     this.builtIcons.clear();
 
-    const outputDir = getSvgConfig<string>('outputDirectory', 'sagebox-svg');
+    const outputDir = getSvgConfig<string>('outputDirectory', 'mastersvg-svg');
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) return;
 
@@ -368,7 +368,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
           'configure'
         );
         setupItem.command = {
-          command: 'sageboxIconStudio.showWelcome',
+          command: 'masterSVG.showWelcome',
           title: t('commands.openSetup'),
         };
         setupItem.iconPath = new vscode.ThemeIcon('gear');
@@ -389,7 +389,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
 
     if (this.builtIcons.size === 0) {
       // Check if output directory is configured
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const outputDir = config.get<string>('outputDirectory', '');
 
       if (!outputDir) {
@@ -403,7 +403,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
           undefined
         );
         setupItem.command = {
-          command: 'sageboxIconStudio.openWelcome',
+          command: 'masterSVG.openWelcome',
           title: t('commands.openSetup'),
         };
         setupItem.tooltip = t('messages.clickToConfigureOutput');

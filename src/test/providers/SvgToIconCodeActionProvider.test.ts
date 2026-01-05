@@ -107,7 +107,7 @@ describe('SvgToIconCodeActionProvider', () => {
       const transformAction = actions!.find(a => a.title.includes('Transform'));
       expect(transformAction).toBeDefined();
       expect(transformAction!.command).toBeDefined();
-      expect(transformAction!.command!.command).toBe('sageboxIconStudio.transformSvgReference');
+      expect(transformAction!.command!.command).toBe('masterSVG.transformSvgReference');
     });
 
     // CA-4.5.4: Extrae nombre de icono correctamente

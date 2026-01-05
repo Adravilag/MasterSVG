@@ -17,7 +17,7 @@ suite('UC-20: Editor Panel de Iconos', () => {
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -28,7 +28,7 @@ suite('UC-20: Editor Panel de Iconos', () => {
     test('Debe existir comando colorEditor', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.colorEditor'),
+        commands.includes('masterSVG.colorEditor'),
         'Comando colorEditor debe estar registrado'
       );
     });
@@ -36,7 +36,7 @@ suite('UC-20: Editor Panel de Iconos', () => {
     test('Debe existir comando openPanel', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.openPanel'),
+        commands.includes('masterSVG.openPanel'),
         'Comando openPanel debe estar registrado'
       );
     });
@@ -44,14 +44,14 @@ suite('UC-20: Editor Panel de Iconos', () => {
     test('Debe existir comando showDetails', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.showDetails'),
+        commands.includes('masterSVG.showDetails'),
         'Comando showDetails debe estar registrado'
       );
     });
 
     test('Debe poder ejecutar comando openPanel sin errores', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.openPanel');
+        await vscode.commands.executeCommand('masterSVG.openPanel');
         await delay(500);
         assert.ok(true, 'Panel abierto correctamente');
       } catch (error) {
@@ -123,7 +123,7 @@ suite('UC-20: Editor Panel de Iconos', () => {
 
   suite('CA-20.3: Manipulación de Tamaño', () => {
     test('Debe existir configuración defaultIconSize', () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const defaultSize = config.get<number>('defaultIconSize', 24);
 
       assert.ok(typeof defaultSize === 'number', 'defaultIconSize debe ser número');
@@ -183,7 +183,7 @@ suite('UC-20: Editor Panel de Iconos', () => {
 
   suite('CA-20.5: Previsualización en Tiempo Real', () => {
     test('Debe existir configuración previewBackground', () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const background = config.get<string>('previewBackground', 'checkered');
 
       const validBackgrounds = ['transparent', 'light', 'dark', 'checkered'];
@@ -194,14 +194,14 @@ suite('UC-20: Editor Panel de Iconos', () => {
     });
 
     test('Debe poder cambiar configuración de preview', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const originalBg = config.get<string>('previewBackground', 'checkered');
 
       await config.update('previewBackground', 'dark', vscode.ConfigurationTarget.Global);
       await delay(200);
 
       const newBg = vscode.workspace
-        .getConfiguration('sageboxIconStudio')
+        .getConfiguration('masterSVG')
         .get<string>('previewBackground', '');
       assert.strictEqual(newBg, 'dark', 'Background debe cambiar a dark');
 
@@ -214,13 +214,13 @@ suite('UC-20: Editor Panel de Iconos', () => {
     test('Debe existir comando exportComponent', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.exportComponent'),
+        commands.includes('masterSVG.exportComponent'),
         'Comando exportComponent debe existir'
       );
     });
 
     test('Debe existir configuración outputFormat', () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const format = config.get<string>('outputFormat', 'jsx');
 
       const validFormats = ['jsx', 'vue', 'svelte', 'astro', 'html'];
@@ -235,7 +235,7 @@ suite('UC-20: Editor Panel de Iconos', () => {
 
   suite('CA-20.7: Animaciones en Editor', () => {
     test('Debe existir configuración defaultAnimation', () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       const animation = config.get<string>('defaultAnimation', 'none');
 
       assert.ok(typeof animation === 'string', 'defaultAnimation debe ser string');

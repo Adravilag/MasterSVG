@@ -11,7 +11,7 @@
   "command.goToUsage": "Перейти к использованию",
   "command.transformInlineSvg": "Преобразовать SVG в компонент иконки",
   "command.configureProject": "Icon Studio: Настроить проект",
-  "command.editIgnoreFile": "Icon Studio: Редактировать файл игнорирования (.sageboxignore)",
+  "command.editIgnoreFile": "Icon Studio: Редактировать файл игнорирования (.msignore)",
   "command.refreshIcons": "Icon Studio: Обновить все представления",
   "command.refreshFiles": "Icon Studio: Обновить файлы",
   "command.refreshCode": "Icon Studio: Обновить код",
@@ -59,9 +59,9 @@
   "config.outputFormat.description": "Формат вывода для экспорта",
   "config.codeUsagePatterns.description": "Паттерны для поиска использований иконок в коде",  "config.licenseFormat.description": "Формат по умолчанию для файлов лицензий: combined (один файл), perCollection (по одному на коллекцию), или both (оба)",
   "config.autoGenerateLicenses.description": "Автоматически генерировать файлы лицензий при сборке иконок",
-  "config.licensesFolder.description": "Имя папки для сгенерированных файлов лицензий (относительно выходного каталога)",  "view.sageboxFiles.title": "Файлы",
-  "view.sageboxCode.title": "Код",
-  "view.sageboxBuilt.title": "Собранные",
-  "view.sageboxPreview.title": "Предпросмотр"
+  "config.licensesFolder.description": "Имя папки для сгенерированных файлов лицензий (относительно выходного каталога)",  "view.mastersvgFiles.title": "Файлы",
+  "view.mastersvgCode.title": "Код",
+  "view.mastersvgBuilt.title": "Собранные",
+  "view.mastersvgPreview.title": "Предпросмотр"
 }
 

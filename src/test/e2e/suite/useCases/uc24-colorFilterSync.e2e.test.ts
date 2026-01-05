@@ -13,7 +13,7 @@ suite('UC-24: Sincronización de Filtros de Color', () => {
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -98,21 +98,21 @@ suite('UC-24: Sincronización de Filtros de Color', () => {
     test('Filtros neutros no deben cambiar el color', () => {
       const originalColor = '#ff5500';
       const filtered = applyColorFilters(originalColor, 0, 100, 100);
-      
+
       // Con filtros neutros, el color debe ser igual (o muy cercano por redondeo)
-      assert.strictEqual(filtered.toLowerCase(), originalColor.toLowerCase(), 
+      assert.strictEqual(filtered.toLowerCase(), originalColor.toLowerCase(),
         'Filtros neutros (0deg, 100%, 100%) no deben modificar el color');
     });
 
     test('Hue-rotate 180deg debe invertir tonos', () => {
       const red = '#ff0000';
       const filtered = applyColorFilters(red, 180, 100, 100);
-      
+
       // Rojo con hue-rotate 180deg debería dar un tono cyan/azul
       const r = parseInt(filtered.slice(1, 3), 16);
       const g = parseInt(filtered.slice(3, 5), 16);
       const b = parseInt(filtered.slice(5, 7), 16);
-      
+
       // El componente rojo debe ser menor que el azul después de rotar 180deg
       assert.ok(b > r, 'Hue-rotate 180deg en rojo debe aumentar el componente azul');
     });
@@ -120,11 +120,11 @@ suite('UC-24: Sincronización de Filtros de Color', () => {
     test('Saturación 0% debe dar escala de grises', () => {
       const red = '#ff0000';
       const filtered = applyColorFilters(red, 0, 0, 100);
-      
+
       const r = parseInt(filtered.slice(1, 3), 16);
       const g = parseInt(filtered.slice(3, 5), 16);
       const b = parseInt(filtered.slice(5, 7), 16);
-      
+
       // En escala de grises, R, G, B deben ser similares
       const tolerance = 5;
       assert.ok(Math.abs(r - g) <= tolerance && Math.abs(g - b) <= tolerance,
@@ -135,25 +135,25 @@ suite('UC-24: Sincronización de Filtros de Color', () => {
       const pastel = '#ff8888'; // Rojo pastel
       const original = applyColorFilters(pastel, 0, 100, 100);
       const saturated = applyColorFilters(pastel, 0, 200, 100);
-      
+
       const origR = parseInt(original.slice(1, 3), 16);
       const origG = parseInt(original.slice(3, 5), 16);
       const satR = parseInt(saturated.slice(1, 3), 16);
       const satG = parseInt(saturated.slice(3, 5), 16);
-      
+
       // La diferencia entre R y G debe ser mayor con saturación alta
       const origDiff = Math.abs(origR - origG);
       const satDiff = Math.abs(satR - satG);
-      
+
       assert.ok(satDiff >= origDiff, 'Saturación 200% debe intensificar la diferencia entre canales');
     });
 
     test('Brillo 50% debe oscurecer', () => {
       const white = '#ffffff';
       const darkened = applyColorFilters(white, 0, 100, 50);
-      
+
       const r = parseInt(darkened.slice(1, 3), 16);
-      
+
       // El blanco con brillo 50% debe ser gris medio (~128)
       assert.ok(r >= 120 && r <= 135, `Brillo 50% de blanco debe dar ~128, obtuvo ${r}`);
     });
@@ -161,19 +161,19 @@ suite('UC-24: Sincronización de Filtros de Color', () => {
     test('Brillo 200% debe aclarar (hasta máximo 255)', () => {
       const gray = '#808080';
       const brightened = applyColorFilters(gray, 0, 100, 200);
-      
+
       const r = parseInt(brightened.slice(1, 3), 16);
-      
+
       // Gris medio con brillo 200% debe ser blanco o casi blanco
       assert.ok(r >= 250, `Brillo 200% de gris debe dar ~255, obtuvo ${r}`);
     });
 
     test('Filtros combinados deben aplicarse en orden correcto', () => {
       const original = '#4080c0'; // Azul medio
-      
+
       // Aplicar hue 90deg + saturación 150% + brillo 120%
       const filtered = applyColorFilters(original, 90, 150, 120);
-      
+
       // Solo verificar que el resultado es un hex válido
       assert.ok(/^#[0-9a-f]{6}$/i.test(filtered), 'Debe producir un color hex válido');
       assert.notStrictEqual(filtered.toLowerCase(), original.toLowerCase(),
@@ -185,7 +185,7 @@ suite('UC-24: Sincronización de Filtros de Color', () => {
     test('Debe existir comando openIconEditor', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.openIconEditor'),
+        commands.includes('masterSVG.openIconEditor'),
         'Comando openIconEditor debe existir'
       );
     });
@@ -195,7 +195,7 @@ suite('UC-24: Sincronización de Filtros de Color', () => {
       // El comando applyFilters se maneja internamente en el webview
       // Verificamos que existen comandos relacionados con el editor
       const hasEditorCommands = commands.some(
-        cmd => cmd.includes('sageboxIconStudio') && 
+        cmd => cmd.includes('masterSVG') &&
                (cmd.includes('Editor') || cmd.includes('Icon'))
       );
       assert.ok(hasEditorCommands, 'Deben existir comandos del editor de iconos');
@@ -206,7 +206,7 @@ suite('UC-24: Sincronización de Filtros de Color', () => {
     test('Colores calculados deben coincidir entre JS y TS', () => {
       // Test que verifica que ambas implementaciones (JS webview y TS backend)
       // producen los mismos resultados
-      
+
       const testCases = [
         { color: '#ff0000', hue: 0, sat: 100, bright: 100 },
         { color: '#00ff00', hue: 120, sat: 100, bright: 100 },
@@ -257,7 +257,7 @@ suite('UC-24: Sincronización de Filtros de Color', () => {
 
     test('Filtros deben ser reversibles con valores inversos', () => {
       const original = '#4080c0';
-      
+
       // Aplicar hue +90
       const hex = original.slice(1);
       let r = parseInt(hex.slice(0, 2), 16);
@@ -293,14 +293,14 @@ suite('UC-24: Sincronización de Filtros de Color', () => {
                  b1 * (0.072 + cos2 * 0.928 + sin2 * 0.072);
 
       const clamp = (x: number): number => Math.max(0, Math.min(255, Math.round(x)));
-      
+
       // Los valores deben estar cerca del original (tolerancia por redondeo)
       const tolerance = 10;
-      assert.ok(Math.abs(clamp(r2) - r) <= tolerance, 
+      assert.ok(Math.abs(clamp(r2) - r) <= tolerance,
         `Hue rotate debe ser reversible R: ${clamp(r2)} vs ${r}`);
-      assert.ok(Math.abs(clamp(g2) - g) <= tolerance, 
+      assert.ok(Math.abs(clamp(g2) - g) <= tolerance,
         `Hue rotate debe ser reversible G: ${clamp(g2)} vs ${g}`);
-      assert.ok(Math.abs(clamp(b2) - b) <= tolerance, 
+      assert.ok(Math.abs(clamp(b2) - b) <= tolerance,
         `Hue rotate debe ser reversible B: ${clamp(b2)} vs ${b}`);
     });
   });
@@ -310,7 +310,7 @@ suite('UC-24: Sincronización de Filtros de Color', () => {
       // Simular el comportamiento esperado:
       // Cuando el usuario cambia un color con el picker,
       // los filtros deben resetearse a valores neutros
-      
+
       const neutralFilters = {
         hue: 0,
         saturation: 100,
@@ -328,14 +328,14 @@ suite('UC-24: Sincronización de Filtros de Color', () => {
       // 1. Color original: #ff0000
       // 2. Usuario cambia a: #00ff00
       // 3. data-original-color debe ser #00ff00
-      
+
       const originalColor = '#ff0000';
       const newColor = '#00ff00';
-      
+
       // Simular actualización del data-original-color
       const mockElement = { dataset: { originalColor: originalColor } };
       mockElement.dataset.originalColor = newColor;
-      
+
       assert.strictEqual(mockElement.dataset.originalColor, newColor,
         'data-original-color debe actualizarse al nuevo color');
     });
@@ -347,11 +347,11 @@ suite('UC-24: Sincronización de Filtros de Color', () => {
       // 1. Colores actuales: #ff0000, #00ff00, #0000ff
       // 2. Filtros neutros (0, 100, 100)
       // 3. Al build, los colores guardados deben ser exactamente los actuales
-      
+
       const currentColors = ['#ff0000', '#00ff00', '#0000ff'];
       const filters = { hue: 0, saturation: 100, brightness: 100 };
-      const filtersAreNeutral = filters.hue === 0 && 
-                                 filters.saturation === 100 && 
+      const filtersAreNeutral = filters.hue === 0 &&
+                                 filters.saturation === 100 &&
                                  filters.brightness === 100;
 
       if (filtersAreNeutral) {
@@ -365,10 +365,10 @@ suite('UC-24: Sincronización de Filtros de Color', () => {
     test('Build con filtros activos debe aplicar filtros a colores originales', () => {
       // Este test verifica que cuando hay filtros activos,
       // el build aplica los filtros correctamente
-      
+
       const originalColor = '#ff0000';
       const filters = { hue: 180, saturation: 100, brightness: 100 };
-      
+
       // Aplicar filtros
       const hex = originalColor.slice(1);
       let r = parseInt(hex.slice(0, 2), 16);
@@ -393,12 +393,12 @@ suite('UC-24: Sincronización de Filtros de Color', () => {
     test('Filtros deben estar deshabilitados para variante original', () => {
       // Cuando la variante "original" está seleccionada (index -1),
       // los filtros globales deben estar deshabilitados
-      
+
       const selectedVariantIndex = -1; // -1 = original
       const isOriginalSelected = selectedVariantIndex === -1;
-      
+
       assert.ok(isOriginalSelected, 'Index -1 debe indicar variante original');
-      
+
       // En este caso, los controles de filtro deben tener el atributo disabled
       const filtersDisabled = isOriginalSelected ? ' disabled' : '';
       assert.strictEqual(filtersDisabled, ' disabled',
@@ -408,9 +408,9 @@ suite('UC-24: Sincronización de Filtros de Color', () => {
     test('Variante custom debe permitir filtros', () => {
       const selectedVariantIndex: number = 0; // 0+ = variante custom
       const isOriginalSelected = selectedVariantIndex === -1;
-      
+
       assert.ok(!isOriginalSelected, 'Index >= 0 debe indicar variante custom');
-      
+
       const filtersDisabled = isOriginalSelected ? ' disabled' : '';
       assert.strictEqual(filtersDisabled, '',
         'Filtros NO deben estar disabled para variante custom');
@@ -420,11 +420,11 @@ suite('UC-24: Sincronización de Filtros de Color', () => {
   suite('CA-24.7: Toggle de filtros', () => {
     test('Toggle debe cambiar estado de habilitado', () => {
       let filtersEnabled = true;
-      
+
       // Simular toggle
       filtersEnabled = !filtersEnabled;
       assert.strictEqual(filtersEnabled, false, 'Primer toggle debe deshabilitar');
-      
+
       filtersEnabled = !filtersEnabled;
       assert.strictEqual(filtersEnabled, true, 'Segundo toggle debe habilitar');
     });
@@ -432,7 +432,7 @@ suite('UC-24: Sincronización de Filtros de Color', () => {
     test('Filtros deshabilitados no deben aplicarse al SVG', () => {
       const filtersEnabled = false;
       const filterString = 'hue-rotate(90deg) saturate(150%) brightness(120%)';
-      
+
       // Cuando filtersEnabled es false, el filtro CSS debe ser vacío
       const appliedFilter = filtersEnabled ? filterString : '';
       assert.strictEqual(appliedFilter, '',

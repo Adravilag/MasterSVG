@@ -19,82 +19,82 @@ suite('Commands Integration Tests', () => {
   // Lista completa de comandos esperados
   const expectedCommands = {
     panel: [
-      'sageboxIconStudio.openPanel',
-      'sageboxIconStudio.openWelcome',
-      'sageboxIconStudio.showDetails',
-      'sageboxIconStudio.colorEditor',
+      'masterSVG.openPanel',
+      'masterSVG.openWelcome',
+      'masterSVG.showDetails',
+      'masterSVG.colorEditor',
     ],
     scan: [
-      'sageboxIconStudio.scanWorkspace',
-      'sageboxIconStudio.scanUsages',
-      'sageboxIconStudio.refreshIcons',
-      'sageboxIconStudio.refreshFiles',
-      'sageboxIconStudio.refreshCode',
-      'sageboxIconStudio.refreshBuilt',
+      'masterSVG.scanWorkspace',
+      'masterSVG.scanUsages',
+      'masterSVG.refreshIcons',
+      'masterSVG.refreshFiles',
+      'masterSVG.refreshCode',
+      'masterSVG.refreshBuilt',
     ],
     build: [
-      'sageboxIconStudio.buildIcons',
-      'sageboxIconStudio.buildAllReferences',
-      'sageboxIconStudio.buildAllFiles',
-      'sageboxIconStudio.generateSprite',
+      'masterSVG.buildIcons',
+      'masterSVG.buildAllReferences',
+      'masterSVG.buildAllFiles',
+      'masterSVG.generateSprite',
     ],
     transform: [
-      'sageboxIconStudio.transformSvgToIcon',
-      'sageboxIconStudio.transformSvg',
-      'sageboxIconStudio.optimizeSvg',
-      'sageboxIconStudio.transformInlineSvg',
+      'masterSVG.transformSvgToIcon',
+      'masterSVG.transformSvg',
+      'masterSVG.optimizeSvg',
+      'masterSVG.transformInlineSvg',
     ],
     navigation: [
-      'sageboxIconStudio.searchIcons',
-      'sageboxIconStudio.goToCode',
-      'sageboxIconStudio.goToInlineSvg',
-      'sageboxIconStudio.goToUsage',
-      'sageboxIconStudio.openSvgFile',
+      'masterSVG.searchIcons',
+      'masterSVG.goToCode',
+      'masterSVG.goToInlineSvg',
+      'masterSVG.goToUsage',
+      'masterSVG.openSvgFile',
     ],
     edit: [
-      'sageboxIconStudio.insertIcon',
-      'sageboxIconStudio.copyIconName',
-      'sageboxIconStudio.renameIcon',
-      'sageboxIconStudio.deleteIcons',
-      'sageboxIconStudio.removeFromBuilt',
-      'sageboxIconStudio.findAndReplace',
+      'masterSVG.insertIcon',
+      'masterSVG.copyIconName',
+      'masterSVG.renameIcon',
+      'masterSVG.deleteIcons',
+      'masterSVG.removeFromBuilt',
+      'masterSVG.findAndReplace',
     ],
     tree: [
-      'sageboxIconStudio.expandAll',
-      'sageboxIconStudio.collapseAll',
-      'sageboxIconStudio.expandBuiltIcons',
-      'sageboxIconStudio.collapseBuiltIcons',
-      'sageboxIconStudio.expandSvgFiles',
-      'sageboxIconStudio.collapseSvgFiles',
+      'masterSVG.expandAll',
+      'masterSVG.collapseAll',
+      'masterSVG.expandBuiltIcons',
+      'masterSVG.collapseBuiltIcons',
+      'masterSVG.expandSvgFiles',
+      'masterSVG.collapseSvgFiles',
     ],
     config: [
-      'sageboxIconStudio.configureProject',
-      'sageboxIconStudio.configureSvgFolder',
-      'sageboxIconStudio.editIgnoreFile',
+      'masterSVG.configureProject',
+      'masterSVG.configureSvgFolder',
+      'masterSVG.editIgnoreFile',
     ],
     iconify: [
-      'sageboxIconStudio.searchIconify',
-      'sageboxIconStudio.openIconifySearch',
-      'sageboxIconStudio.downloadFromIconify',
-      'sageboxIconStudio.addToProject',
+      'masterSVG.searchIconify',
+      'masterSVG.openIconifySearch',
+      'masterSVG.downloadFromIconify',
+      'masterSVG.addToProject',
     ],
     sprite: [
-      'sageboxIconStudio.viewSprite',
-      'sageboxIconStudio.cleanSprite',
-      'sageboxIconStudio.deleteBuiltFile',
-      'sageboxIconStudio.viewIconsFile',
+      'masterSVG.viewSprite',
+      'masterSVG.cleanSprite',
+      'masterSVG.deleteBuiltFile',
+      'masterSVG.viewIconsFile',
     ],
-    export: ['sageboxIconStudio.exportComponent', 'sageboxIconStudio.previewIcon'],
+    export: ['masterSVG.exportComponent', 'masterSVG.previewIcon'],
     misc: [
-      'sageboxIconStudio.addSvgToCollection',
-      'sageboxIconStudio.removeReference',
-      'sageboxIconStudio.generateLicenses',
-      'sageboxIconStudio.showLicenseSummary',
+      'masterSVG.addSvgToCollection',
+      'masterSVG.removeReference',
+      'masterSVG.generateLicenses',
+      'masterSVG.showLicenseSummary',
     ],
   };
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -112,7 +112,7 @@ suite('Commands Integration Tests', () => {
 
     test('openPanel debe ejecutarse sin errores', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.openPanel');
+        await vscode.commands.executeCommand('masterSVG.openPanel');
         await delay(300);
         assert.ok(true, 'Comando ejecutado correctamente');
       } catch (error) {
@@ -123,7 +123,7 @@ suite('Commands Integration Tests', () => {
 
     test('openWelcome debe ejecutarse sin errores', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.openWelcome');
+        await vscode.commands.executeCommand('masterSVG.openWelcome');
         await delay(300);
         assert.ok(true, 'Welcome panel abierto');
       } catch (error) {
@@ -143,7 +143,7 @@ suite('Commands Integration Tests', () => {
 
     test('refreshIcons debe ejecutarse', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.refreshIcons');
+        await vscode.commands.executeCommand('masterSVG.refreshIcons');
         await delay(500);
         assert.ok(true, 'Refresh ejecutado');
       } catch (error) {
@@ -153,7 +153,7 @@ suite('Commands Integration Tests', () => {
 
     test('refreshFiles debe ejecutarse', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.refreshFiles');
+        await vscode.commands.executeCommand('masterSVG.refreshFiles');
         await delay(500);
         assert.ok(true, 'RefreshFiles ejecutado');
       } catch (error) {
@@ -194,7 +194,7 @@ suite('Commands Integration Tests', () => {
     test('searchIcons debe ejecutarse', async () => {
       try {
         // El comando puede mostrar un QuickPick
-        await vscode.commands.executeCommand('sageboxIconStudio.searchIcons');
+        await vscode.commands.executeCommand('masterSVG.searchIcons');
         await delay(300);
         // Cerrar el QuickPick si está abierto
         await vscode.commands.executeCommand('workbench.action.closeQuickOpen');
@@ -226,7 +226,7 @@ suite('Commands Integration Tests', () => {
 
     test('expandAll debe ejecutarse', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.expandAll');
+        await vscode.commands.executeCommand('masterSVG.expandAll');
         assert.ok(true, 'ExpandAll ejecutado');
       } catch (error) {
         assert.ok(true, 'ExpandAll requiere TreeView visible');
@@ -235,7 +235,7 @@ suite('Commands Integration Tests', () => {
 
     test('collapseAll debe ejecutarse', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.collapseAll');
+        await vscode.commands.executeCommand('masterSVG.collapseAll');
         assert.ok(true, 'CollapseAll ejecutado');
       } catch (error) {
         assert.ok(true, 'CollapseAll requiere TreeView visible');
@@ -296,7 +296,7 @@ suite('Commands Integration Tests', () => {
   suite('Command Count Verification', () => {
     test('Debe tener número total esperado de comandos', async () => {
       const commands = await vscode.commands.getCommands(true);
-      const iconStudioCommands = commands.filter(cmd => cmd.startsWith('sageboxIconStudio.'));
+      const iconStudioCommands = commands.filter(cmd => cmd.startsWith('masterSVG.'));
 
       const totalExpected = Object.values(expectedCommands).flat().length;
 
@@ -309,10 +309,10 @@ suite('Commands Integration Tests', () => {
 
     test('Todos los comandos iconStudio deben ser accesibles', async () => {
       const commands = await vscode.commands.getCommands(true);
-      const iconStudioCommands = commands.filter(cmd => cmd.startsWith('sageboxIconStudio.'));
+      const iconStudioCommands = commands.filter(cmd => cmd.startsWith('masterSVG.'));
 
       iconStudioCommands.forEach(cmd => {
-        assert.ok(cmd.startsWith('sageboxIconStudio.'), `${cmd} debe tener prefijo iconStudio`);
+        assert.ok(cmd.startsWith('masterSVG.'), `${cmd} debe tener prefijo iconStudio`);
       });
     });
   });
@@ -321,7 +321,7 @@ suite('Commands Integration Tests', () => {
     test('Comandos deben manejar argumentos faltantes', async () => {
       // Ejecutar comando sin argumentos cuando podría requerirlos
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.showDetails');
+        await vscode.commands.executeCommand('masterSVG.showDetails');
         // Si no lanza error, está bien
         assert.ok(true, 'Comando manejó argumentos faltantes');
       } catch (error) {
@@ -332,7 +332,7 @@ suite('Commands Integration Tests', () => {
 
     test('Comandos de build sin configuración deben informar', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.buildIcons');
+        await vscode.commands.executeCommand('masterSVG.buildIcons');
         await delay(500);
         assert.ok(true, 'Build manejó falta de configuración');
       } catch (error) {

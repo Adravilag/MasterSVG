@@ -133,7 +133,7 @@ export async function showDeleteOriginalPrompt(options?: DeletePromptOptions): P
 export function generateReplacement(iconName: string, languageId: string): string {
   const config = getConfig();
   const isSprite = config.buildFormat === 'sprite.svg';
-  const componentName = config.webComponentName || 'sg-icon';
+  const componentName = config.webComponentName || 'svg-icon';
 
   if (isSprite) {
     return `<svg class="icon" aria-hidden="true"><use href="sprite.svg#${iconName}"></use></svg>`;

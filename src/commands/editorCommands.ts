@@ -27,7 +27,7 @@ export function registerEditorCommands(
   const disposables: vscode.Disposable[] = [];
 
   // Command: Preview icon
-  const previewIconCmd = vscode.commands.registerCommand('sageboxIconStudio.previewIcon', (item: any) => {
+  const previewIconCmd = vscode.commands.registerCommand('masterSVG.previewIcon', (item: any) => {
     if (item?.icon?.svg) {
       const svgData = workspaceSvgProvider.getSvgData(item);
       if (svgData) {
@@ -45,7 +45,7 @@ export function registerEditorCommands(
 
   // Command: Open color editor (uses full IconEditorPanel with animations, variants, etc.)
   const colorEditorCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.colorEditor',
+    'masterSVG.colorEditor',
     async (iconNameOrItem?: string | SvgItem | vscode.Uri) => {
       let iconName: string | undefined;
       let svg: string | undefined;
@@ -147,17 +147,17 @@ export function registerEditorCommands(
       });
 
       // Reveal icon in tree view
-      vscode.commands.executeCommand('sageboxIconStudio.revealInTree', iconName, filePath, lineNumber);
+      vscode.commands.executeCommand('masterSVG.revealInTree', iconName, filePath, lineNumber);
     }
   );
   disposables.push(colorEditorCmd);
 
   // Command: Show icon details (uses full IconDetailsPanel with zoom, optimization, etc.)
   const showDetailsCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.showDetails',
+    'masterSVG.showDetails',
     async (item?: SvgItem | WorkspaceIcon | vscode.Uri) => {
-      
-      
+
+
       let iconName: string | undefined;
       let svg: string | undefined;
       let filePath: string | undefined;
@@ -219,7 +219,7 @@ export function registerEditorCommands(
         });
 
         // Reveal icon in tree view
-        vscode.commands.executeCommand('sageboxIconStudio.revealInTree', iconName, filePath, lineNumber);
+        vscode.commands.executeCommand('masterSVG.revealInTree', iconName, filePath, lineNumber);
       }
     }
   );
@@ -227,7 +227,7 @@ export function registerEditorCommands(
 
   // Command: Export as component
   const exportComponentCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.exportComponent',
+    'masterSVG.exportComponent',
     async (item?: any) => {
       if (!item?.icon?.svg) {
         vscode.window.showWarningMessage(t('messages.selectIconToExport'));

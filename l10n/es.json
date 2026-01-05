@@ -504,7 +504,7 @@
       "svgFoldersDesc": "Carpetas para escanear archivos SVG",
       "componentNameDesc": "Nombre del componente Icon (ej. Icon)",
       "outputFormatDesc": "Formato de salida por defecto (jsx, vue, svelte, etc.)",
-      "webComponentNameDesc": "Nombre del elemento personalizado (ej. sagebox-icon)",
+      "webComponentNameDesc": "Nombre del elemento personalizado (ej. mastersvg-icon)",
       "openWelcomeDesc": "Abrir panel de bienvenida con todas las opciones"
     },
     "validation": {

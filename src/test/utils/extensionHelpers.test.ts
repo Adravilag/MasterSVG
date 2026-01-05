@@ -93,9 +93,9 @@ describe('extensionHelpers', () => {
     });
 
     test('debe generar snippet HTML con tag de cierre', () => {
-      const result = generateIconSnippet('menu', 'sg-icon', 'name', 'html');
-      expect(result).toContain('<sg-icon name="menu"');
-      expect(result).toContain('</sg-icon>');
+      const result = generateIconSnippet('menu', 'svg-icon', 'name', 'html');
+      expect(result).toContain('<svg-icon name="menu"');
+      expect(result).toContain('</svg-icon>');
     });
   });
 
@@ -158,7 +158,7 @@ describe('extensionHelpers', () => {
   // =====================================================
   describe('toCustomElementName', () => {
     test('debe convertir a kebab-case', () => {
-      expect(toCustomElementName('SgIcon')).toBe('sg-icon');
+      expect(toCustomElementName('SgIcon')).toBe('svg-icon');
       expect(toCustomElementName('IconComponent')).toBe('icon-component');
     });
 
@@ -169,7 +169,7 @@ describe('extensionHelpers', () => {
 
     test('debe mantener nombres ya con guión', () => {
       expect(toCustomElementName('my-icon')).toBe('my-icon');
-      expect(toCustomElementName('sg-icon')).toBe('sg-icon');
+      expect(toCustomElementName('svg-icon')).toBe('svg-icon');
     });
   });
 

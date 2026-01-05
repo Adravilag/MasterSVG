@@ -17,21 +17,21 @@ suite('TreeView Navigation Tests', () => {
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
     await delay(1000);
 
     // Configurar carpeta de SVGs para las pruebas
-    const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+    const config = vscode.workspace.getConfiguration('masterSVG');
     await config.update('svgFolders', [svgsFolder], vscode.ConfigurationTarget.Workspace);
     await delay(300);
   });
 
   suite('TreeView Registration', () => {
     test('Extensión debe contribuir viewsContainers', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       assert.ok(ext, 'Extensión debe existir');
 
       const packageJson = ext.packageJSON;
@@ -41,7 +41,7 @@ suite('TreeView Navigation Tests', () => {
     });
 
     test('Extensión debe contribuir views', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       assert.ok(ext, 'Extensión debe existir');
 
       const packageJson = ext.packageJSON;
@@ -51,7 +51,7 @@ suite('TreeView Navigation Tests', () => {
     });
 
     test('Debe tener viewContainer en activitybar', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const packageJson = ext?.packageJSON;
       const activitybar = packageJson?.contributes?.viewsContainers?.activitybar;
 
@@ -63,7 +63,7 @@ suite('TreeView Navigation Tests', () => {
 
   suite('Built Icons TreeView', () => {
     test('Debe existir vista de iconos construidos', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const packageJson = ext?.packageJSON;
       const views = packageJson?.contributes?.views;
 
@@ -78,7 +78,7 @@ suite('TreeView Navigation Tests', () => {
 
     test('Comando refreshBuilt debe actualizar vista', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.refreshBuilt');
+        await vscode.commands.executeCommand('masterSVG.refreshBuilt');
         await delay(500);
         assert.ok(true, 'RefreshBuilt ejecutado');
       } catch (error) {
@@ -89,7 +89,7 @@ suite('TreeView Navigation Tests', () => {
 
   suite('SVG Files TreeView', () => {
     test('Debe existir vista de archivos SVG', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const packageJson = ext?.packageJSON;
       const views = packageJson?.contributes?.views;
 
@@ -103,7 +103,7 @@ suite('TreeView Navigation Tests', () => {
 
     test('Comando refreshFiles debe actualizar vista', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.refreshFiles');
+        await vscode.commands.executeCommand('masterSVG.refreshFiles');
         await delay(500);
         assert.ok(true, 'RefreshFiles ejecutado');
       } catch (error) {
@@ -114,7 +114,7 @@ suite('TreeView Navigation Tests', () => {
 
   suite('Code References TreeView', () => {
     test('Debe existir vista de referencias en código', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const packageJson = ext?.packageJSON;
       const views = packageJson?.contributes?.views;
 
@@ -128,7 +128,7 @@ suite('TreeView Navigation Tests', () => {
 
     test('Comando refreshCode debe actualizar vista', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.refreshCode');
+        await vscode.commands.executeCommand('masterSVG.refreshCode');
         await delay(500);
         assert.ok(true, 'RefreshCode ejecutado');
       } catch (error) {
@@ -140,7 +140,7 @@ suite('TreeView Navigation Tests', () => {
   suite('TreeView Expand/Collapse', () => {
     test('expandAll debe funcionar', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.expandAll');
+        await vscode.commands.executeCommand('masterSVG.expandAll');
         assert.ok(true, 'ExpandAll funcionó');
       } catch (error) {
         // Puede requerir que la vista esté visible
@@ -150,7 +150,7 @@ suite('TreeView Navigation Tests', () => {
 
     test('collapseAll debe funcionar', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.collapseAll');
+        await vscode.commands.executeCommand('masterSVG.collapseAll');
         assert.ok(true, 'CollapseAll funcionó');
       } catch (error) {
         assert.ok(true, 'CollapseAll requiere vista visible');
@@ -159,7 +159,7 @@ suite('TreeView Navigation Tests', () => {
 
     test('expandBuiltIcons debe funcionar', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.expandBuiltIcons');
+        await vscode.commands.executeCommand('masterSVG.expandBuiltIcons');
         assert.ok(true, 'ExpandBuiltIcons funcionó');
       } catch (error) {
         assert.ok(true, 'Requiere vista visible');
@@ -168,7 +168,7 @@ suite('TreeView Navigation Tests', () => {
 
     test('expandSvgFiles debe funcionar', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.expandSvgFiles');
+        await vscode.commands.executeCommand('masterSVG.expandSvgFiles');
         assert.ok(true, 'ExpandSvgFiles funcionó');
       } catch (error) {
         assert.ok(true, 'Requiere vista visible');
@@ -180,7 +180,7 @@ suite('TreeView Navigation Tests', () => {
     test('Debe poder copiar nombre de icono', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.copyIconName'),
+        commands.includes('masterSVG.copyIconName'),
         'Comando copyIconName debe existir'
       );
     });
@@ -188,7 +188,7 @@ suite('TreeView Navigation Tests', () => {
     test('Debe poder abrir archivo SVG', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.openSvgFile'),
+        commands.includes('masterSVG.openSvgFile'),
         'Comando openSvgFile debe existir'
       );
     });
@@ -196,7 +196,7 @@ suite('TreeView Navigation Tests', () => {
     test('Debe poder mostrar detalles', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.showDetails'),
+        commands.includes('masterSVG.showDetails'),
         'Comando showDetails debe existir'
       );
     });
@@ -204,7 +204,7 @@ suite('TreeView Navigation Tests', () => {
     test('Debe poder ir al código', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.goToCode'),
+        commands.includes('masterSVG.goToCode'),
         'Comando goToCode debe existir'
       );
     });
@@ -212,7 +212,7 @@ suite('TreeView Navigation Tests', () => {
 
   suite('TreeView Context Menus', () => {
     test('Extensión debe contribuir view/item/context menus', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const packageJson = ext?.packageJSON;
       const menus = packageJson?.contributes?.menus;
 
@@ -227,7 +227,7 @@ suite('TreeView Navigation Tests', () => {
     });
 
     test('Extensión debe contribuir view/title menus', async () => {
-      const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+      const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
       const packageJson = ext?.packageJSON;
       const menus = packageJson?.contributes?.menus;
 
@@ -261,7 +261,7 @@ suite('TreeView Navigation Tests', () => {
     test('searchIcons debe estar disponible', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.searchIcons'),
+        commands.includes('masterSVG.searchIcons'),
         'Comando searchIcons debe existir'
       );
     });
@@ -363,7 +363,7 @@ suite('TreeView Navigation Tests', () => {
 
   suiteTeardown(async () => {
     // Limpiar configuración
-    const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+    const config = vscode.workspace.getConfiguration('masterSVG');
     await config.update('svgFolders', undefined, vscode.ConfigurationTarget.Workspace);
   });
 });

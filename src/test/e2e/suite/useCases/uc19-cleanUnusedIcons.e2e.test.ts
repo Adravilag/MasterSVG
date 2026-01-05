@@ -14,7 +14,7 @@ suite('UC-19: Limpiar Iconos No Utilizados', () => {
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -67,7 +67,7 @@ suite('UC-19: Limpiar Iconos No Utilizados', () => {
 
       const cleanupCommands = commands.filter(
         c =>
-          c.includes('sageboxIconStudio') &&
+          c.includes('masterSVG') &&
           (c.toLowerCase().includes('unused') ||
             c.toLowerCase().includes('clean') ||
             c.toLowerCase().includes('audit'))
@@ -80,8 +80,8 @@ suite('UC-19: Limpiar Iconos No Utilizados', () => {
       const commands = await vscode.commands.getCommands(true);
 
       assert.ok(
-        commands.includes('sageboxIconStudio.deleteIcons') ||
-          commands.includes('sageboxIconStudio.removeUnused'),
+        commands.includes('masterSVG.deleteIcons') ||
+          commands.includes('masterSVG.removeUnused'),
         'Debe existir comando de eliminación'
       );
     });

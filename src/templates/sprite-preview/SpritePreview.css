@@ -20,6 +20,15 @@ body {
 .header h1 {
   font-size: 16px;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .stats {
@@ -41,10 +50,19 @@ body {
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .toolbar button:hover {
   background: var(--vscode-button-secondaryHoverBackground);
+}
+
+.btn-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 .grid {
@@ -116,6 +134,12 @@ body {
 
 .context-menu-item:hover {
   background: var(--vscode-menu-selectionBackground);
+}
+
+.menu-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 .context-menu-separator {

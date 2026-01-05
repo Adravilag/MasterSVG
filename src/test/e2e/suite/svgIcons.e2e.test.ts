@@ -18,7 +18,7 @@ suite('SVG Icons E2E Tests', () => {
 
   suiteSetup(async () => {
     // Ensure extension is activated
-    const ext = vscode.extensions.getExtension('sagebox.sagebox-icon-studio');
+    const ext = vscode.extensions.getExtension('mastersvg.mastersvg-icon-studio');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
@@ -69,42 +69,42 @@ suite('SVG Icons E2E Tests', () => {
 
   suite('Configuration with SVG Folders', () => {
     test('Should configure svgFolders with test path', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('svgFolders', [svgsFolder], vscode.ConfigurationTarget.Global);
       await delay(300);
 
       const folders = vscode.workspace
-        .getConfiguration('sageboxIconStudio')
+        .getConfiguration('masterSVG')
         .get<string[]>('svgFolders', []);
       assert.ok(folders.includes(svgsFolder), 'SVG folders should include test path');
     });
 
     test('Should configure output directory', async () => {
       const outputDir = path.join(testWorkspace, 'output');
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('outputDirectory', outputDir, vscode.ConfigurationTarget.Global);
       await delay(300);
 
       const configuredOutput = vscode.workspace
-        .getConfiguration('sageboxIconStudio')
+        .getConfiguration('masterSVG')
         .get<string>('outputDirectory', '');
       assert.strictEqual(configuredOutput, outputDir, 'Output directory should be set');
     });
 
     test('Should configure web component name', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('webComponentName', 'test-icon', vscode.ConfigurationTarget.Global);
       await delay(300);
 
       const name = vscode.workspace
-        .getConfiguration('sageboxIconStudio')
+        .getConfiguration('masterSVG')
         .get<string>('webComponentName', '');
       assert.strictEqual(name, 'test-icon', 'Web component name should be set');
     });
 
     suiteTeardown(async () => {
       // Clean up config
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('svgFolders', undefined, vscode.ConfigurationTarget.Global);
       await config.update('outputDirectory', undefined, vscode.ConfigurationTarget.Global);
       await config.update('webComponentName', undefined, vscode.ConfigurationTarget.Global);
@@ -114,47 +114,47 @@ suite('SVG Icons E2E Tests', () => {
   suite('Commands Registration', () => {
     test('buildIcons command should be registered', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.buildIcons'), 'buildIcons command should exist');
+      assert.ok(commands.includes('masterSVG.buildIcons'), 'buildIcons command should exist');
     });
 
     test('refreshIcons command should be registered', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.refreshIcons'), 'refreshIcons command should exist');
+      assert.ok(commands.includes('masterSVG.refreshIcons'), 'refreshIcons command should exist');
     });
 
     test('refreshFiles command should be registered', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.refreshFiles'), 'refreshFiles command should exist');
+      assert.ok(commands.includes('masterSVG.refreshFiles'), 'refreshFiles command should exist');
     });
 
     test('generateSprite command should be registered', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.generateSprite'),
+        commands.includes('masterSVG.generateSprite'),
         'generateSprite command should exist'
       );
     });
 
     test('transformSvg command should be registered', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.transformSvg'), 'transformSvg command should exist');
+      assert.ok(commands.includes('masterSVG.transformSvg'), 'transformSvg command should exist');
     });
 
     test('optimizeSvg command should be registered', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.optimizeSvg'), 'optimizeSvg command should exist');
+      assert.ok(commands.includes('masterSVG.optimizeSvg'), 'optimizeSvg command should exist');
     });
 
     test('searchIcons command should be registered', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.searchIcons'), 'searchIcons command should exist');
+      assert.ok(commands.includes('masterSVG.searchIcons'), 'searchIcons command should exist');
     });
   });
 
   suite('Refresh Commands', () => {
     test('refreshIcons should execute without errors', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.refreshIcons');
+        await vscode.commands.executeCommand('masterSVG.refreshIcons');
         await delay(500);
         assert.ok(true, 'refreshIcons executed successfully');
       } catch (error) {
@@ -164,7 +164,7 @@ suite('SVG Icons E2E Tests', () => {
 
     test('refreshFiles should execute without errors', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.refreshFiles');
+        await vscode.commands.executeCommand('masterSVG.refreshFiles');
         await delay(500);
         assert.ok(true, 'refreshFiles executed successfully');
       } catch (error) {
@@ -174,7 +174,7 @@ suite('SVG Icons E2E Tests', () => {
 
     test('refreshCode should execute without errors', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.refreshCode');
+        await vscode.commands.executeCommand('masterSVG.refreshCode');
         await delay(500);
         assert.ok(true, 'refreshCode executed successfully');
       } catch (error) {
@@ -184,7 +184,7 @@ suite('SVG Icons E2E Tests', () => {
 
     test('refreshBuilt should execute without errors', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.refreshBuilt');
+        await vscode.commands.executeCommand('masterSVG.refreshBuilt');
         await delay(500);
         assert.ok(true, 'refreshBuilt executed successfully');
       } catch (error) {
@@ -195,40 +195,40 @@ suite('SVG Icons E2E Tests', () => {
 
   suite('Build Format Configuration', () => {
     test('Should set build format to icons.ts', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('buildFormat', 'icons.ts', vscode.ConfigurationTarget.Global);
       await delay(200);
 
       const format = vscode.workspace
-        .getConfiguration('sageboxIconStudio')
+        .getConfiguration('masterSVG')
         .get<string>('buildFormat', '');
       assert.strictEqual(format, 'icons.ts', 'Build format should be icons.ts');
     });
 
     test('Should set build format to icons.js', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('buildFormat', 'icons.js', vscode.ConfigurationTarget.Global);
       await delay(200);
 
       const format = vscode.workspace
-        .getConfiguration('sageboxIconStudio')
+        .getConfiguration('masterSVG')
         .get<string>('buildFormat', '');
       assert.strictEqual(format, 'icons.js', 'Build format should be icons.js');
     });
 
     test('Should set build format to sprite.svg', async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('buildFormat', 'sprite.svg', vscode.ConfigurationTarget.Global);
       await delay(200);
 
       const format = vscode.workspace
-        .getConfiguration('sageboxIconStudio')
+        .getConfiguration('masterSVG')
         .get<string>('buildFormat', '');
       assert.strictEqual(format, 'sprite.svg', 'Build format should be sprite.svg');
     });
 
     suiteTeardown(async () => {
-      const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+      const config = vscode.workspace.getConfiguration('masterSVG');
       await config.update('buildFormat', undefined, vscode.ConfigurationTarget.Global);
     });
   });
@@ -236,18 +236,18 @@ suite('SVG Icons E2E Tests', () => {
   suite('Tree View Commands', () => {
     test('expandAll command should exist', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.expandAll'), 'expandAll should be registered');
+      assert.ok(commands.includes('masterSVG.expandAll'), 'expandAll should be registered');
     });
 
     test('collapseAll command should exist', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.collapseAll'), 'collapseAll should be registered');
+      assert.ok(commands.includes('masterSVG.collapseAll'), 'collapseAll should be registered');
     });
 
     test('expandSvgFiles command should exist', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.expandSvgFiles'),
+        commands.includes('masterSVG.expandSvgFiles'),
         'expandSvgFiles should be registered'
       );
     });
@@ -255,7 +255,7 @@ suite('SVG Icons E2E Tests', () => {
     test('collapseSvgFiles command should exist', async () => {
       const commands = await vscode.commands.getCommands(true);
       assert.ok(
-        commands.includes('sageboxIconStudio.collapseSvgFiles'),
+        commands.includes('masterSVG.collapseSvgFiles'),
         'collapseSvgFiles should be registered'
       );
     });
@@ -264,7 +264,7 @@ suite('SVG Icons E2E Tests', () => {
   suite('Panel Commands', () => {
     test('openWelcome command should open panel', async () => {
       try {
-        await vscode.commands.executeCommand('sageboxIconStudio.openWelcome');
+        await vscode.commands.executeCommand('masterSVG.openWelcome');
         await delay(500);
         assert.ok(true, 'Welcome panel opened successfully');
       } catch (error) {
@@ -274,7 +274,7 @@ suite('SVG Icons E2E Tests', () => {
 
     test('openPanel command should exist', async () => {
       const commands = await vscode.commands.getCommands(true);
-      assert.ok(commands.includes('sageboxIconStudio.openPanel'), 'openPanel should be registered');
+      assert.ok(commands.includes('masterSVG.openPanel'), 'openPanel should be registered');
     });
   });
 });

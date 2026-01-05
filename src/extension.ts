@@ -37,6 +37,7 @@ import { registerSpriteCommands } from './commands/spriteCommands';
 import { registerMiscCommands } from './commands/miscCommands';
 import { registerImportCommands } from './commands/importCommands';
 import { registerLicenseCommands } from './commands/licenseCommands';
+import { registerLibraryCommands } from './commands/libraryCommands';
 import { getAnimationService } from './services/AnimationAssignmentService';
 
 /**
@@ -77,7 +78,7 @@ let svgWatcher: vscode.FileSystemWatcher | undefined;
  * Shows onboarding wizard for first-time users
  */
 async function showOnboardingWizard(context: vscode.ExtensionContext): Promise<void> {
-  const config = vscode.workspace.getConfiguration('sageboxIconStudio');
+  const config = vscode.workspace.getConfiguration('masterSVG');
   const outputDir = config.get<string>('outputDirectory', '');
 
   // Skip if already configured
@@ -98,7 +99,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Show onboarding for first-time users
   showOnboardingWizard(context);
 
-  // Initialize .sageboxignore file watcher
+  // Initialize .msignore file watcher
   initIgnoreFileWatcher(context);
 
   // Set initial context for icons.js existence
@@ -110,7 +111,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register the SVG Files tree view
   svgFilesProvider = new SvgFilesProvider(workspaceSvgProvider);
-  svgFilesTreeView = vscode.window.createTreeView('sageboxIconStudio.svgFiles', {
+  svgFilesTreeView = vscode.window.createTreeView('masterSVG.svgFiles', {
     treeDataProvider: svgFilesProvider,
     showCollapseAll: false,
   });
@@ -137,7 +138,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register the Built Icons tree view
   builtIconsProvider = new BuiltIconsProvider(workspaceSvgProvider);
-  const builtIconsTreeView = vscode.window.createTreeView('sageboxIconStudio.builtIcons', {
+  const builtIconsTreeView = vscode.window.createTreeView('masterSVG.builtIcons', {
     treeDataProvider: builtIconsProvider,
     showCollapseAll: false,
     canSelectMany: true,
@@ -173,7 +174,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   // Update preview when tree item is selected
-  const treeView = vscode.window.createTreeView('sageboxIconStudio.workspaceIcons', {
+  const treeView = vscode.window.createTreeView('masterSVG.workspaceIcons', {
     treeDataProvider: workspaceSvgProvider,
     showCollapseAll: false,
     canSelectMany: true,
@@ -318,6 +319,13 @@ export function activate(context: vscode.ExtensionContext) {
   // Register license commands
   const licenseCommands = registerLicenseCommands(context);
   context.subscriptions.push(...licenseCommands);
+
+  // Register library commands (Astro icon library)
+  registerLibraryCommands(context, {
+    workspaceSvgProvider,
+    builtIconsProvider,
+    svgTransformer,
+  });
 
   // Register completion provider
   const completionDisposable = vscode.languages.registerCompletionItemProvider(

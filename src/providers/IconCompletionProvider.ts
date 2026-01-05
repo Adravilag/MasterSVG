@@ -20,15 +20,15 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
 
     // Check if we're in an icon-related context
     const componentName = getSvgConfig<string>('componentName', 'Icon');
-    const webComponentName = getSvgConfig<string>('webComponentName', 'sg-icon');
+    const webComponentName = getSvgConfig<string>('webComponentName', 'svg-icon');
     const nameAttr = getSvgConfig<string>('iconNameAttribute', 'name');
 
     // Check if we're inside an icon component tag and need attribute names
     const iconTagPatterns = [
       new RegExp(`<${componentName}[^>]*\\s+$`), // <Icon ... |
-      new RegExp(`<${webComponentName}[^>]*\\s+$`), // <sg-icon ... |
+      new RegExp(`<${webComponentName}[^>]*\\s+$`), // <svg-icon ... |
       new RegExp(`<${componentName}[^>]*\\s+[a-z]*$`, 'i'), // <Icon ... var|
-      new RegExp(`<${webComponentName}[^>]*\\s+[a-z]*$`, 'i'), // <sg-icon ... var|
+      new RegExp(`<${webComponentName}[^>]*\\s+[a-z]*$`, 'i'), // <svg-icon ... var|
     ];
 
     const shouldCompleteAttribute = iconTagPatterns.some(p => p.test(linePrefix));
@@ -376,7 +376,7 @@ export class IconCompletionProvider implements vscode.CompletionItemProvider {
 
           md.appendMarkdown(`🎨 **${preset.name}**\n\n`);
           md.appendMarkdown(`*Animación: ${preset.type}*\n\n`);
-          
+
           if (preset.duration) {
             md.appendMarkdown(`• Duración: ${preset.duration}s\n`);
           }

@@ -5,7 +5,7 @@ import {
   WorkspaceSvgProvider,
   BuiltIconsProvider,
 } from '../providers/WorkspaceSvgProvider';
-import { searchIconify, fetchIconSvg, IconifySearchResult } from '../utils/iconifyService';
+import { searchIconify, fetchIconSvg, IconifySearchResult, searchInCollection } from '../utils/iconifyService';
 import { addToIconsJs, addToSpriteSvg } from '../utils/iconsFileManager';
 import { getConfig, getOutputPathOrWarn } from '../utils/configHelper';
 import { getIconPickerHtml } from '../utils/iconPickerHtml';
@@ -232,10 +232,22 @@ export function showIconPickerPanel(
         vscode.window.showErrorMessage(t('messages.failedToAddIcon', { error: String(error) }));
       }
     } else if (message.command === 'search') {
-      // Handle search from within the picker
-      const newQuery = message.query;
-      const newResults = await searchIconify(newQuery);
-      panel.title = `Icons: ${newQuery}`;
+      // Handle search from within the picker (supports collection filter)
+      const { query: newQuery, collection } = message;
+      let newResults: IconifySearchResult[];
+      
+      if (collection && !newQuery) {
+        // Browse collection without specific query
+        newResults = await searchInCollection(collection, undefined, 100);
+      } else if (collection) {
+        // Search within specific collection
+        newResults = await searchIconify(newQuery, { limit: 100, prefixes: [collection] });
+      } else {
+        // General search
+        newResults = await searchIconify(newQuery);
+      }
+      
+      panel.title = `Icons: ${newQuery || collection || 'Browse'}`;
       panel.webview.postMessage({ command: 'updateResults', icons: newResults, query: newQuery });
     } else if (message.command === 'close') {
       panel.dispose();
@@ -504,7 +516,7 @@ export function registerIconifyCommands(
   const { workspaceSvgProvider, builtIconsProvider, svgTransformer } = providers;
 
   // Command: Search icons (Iconify)
-  const searchIconsCmd = vscode.commands.registerCommand('sageboxIconStudio.searchIcons', async () => {
+  const searchIconsCmd = vscode.commands.registerCommand('masterSVG.searchIcons', async () => {
     const query = await vscode.window.showInputBox({
       prompt: t('ui.prompts.searchIconifyFull'),
       placeHolder: t('ui.placeholders.enterSearchTerm'),
@@ -524,7 +536,7 @@ export function registerIconifyCommands(
 
   // Command: Search Iconify with pre-filled query (for hover links)
   const searchIconifyCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.searchIconify',
+    'masterSVG.searchIconify',
     async (query?: string) => {
       // If no query provided, show input box
       const searchTerm =
@@ -560,7 +572,7 @@ export function registerIconifyCommands(
 
   // Command: Import missing icon (for web components with missing icons)
   const importIconCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.importIcon',
+    'masterSVG.importIcon',
     async (iconName: string, sourceFile?: string, line?: number) => {
       const config = getConfig();
       const isSprite = config.buildFormat === 'sprite.svg';
@@ -699,11 +711,11 @@ export function registerIconifyCommands(
 
   // Command: Search Iconify for component (triggered from code action)
   const searchIconifyForComponentCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.searchIconifyForComponent',
+    'masterSVG.searchIconifyForComponent',
     async (suggestedQuery?: string, sourceFile?: string, line?: number) => {
       const config = getConfig();
       const isSprite = config.buildFormat === 'sprite.svg';
-      const componentName = config.webComponentName || 'sg-icon';
+      const componentName = config.webComponentName || 'svg-icon';
 
       // Ask for search query
       const query = await vscode.window.showInputBox({
@@ -807,10 +819,10 @@ export function registerIconifyCommands(
 
   // Command: Browse workspace icons (triggered from code action)
   const browseWorkspaceIconsCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.browseWorkspaceIcons',
+    'masterSVG.browseWorkspaceIcons',
     async (suggestedName?: string, sourceFile?: string, line?: number) => {
       const config = getConfig();
-      const componentName = config.webComponentName || 'sg-icon';
+      const componentName = config.webComponentName || 'svg-icon';
 
       // Get all available icons from the workspace
       const allIcons = await workspaceSvgProvider.getAllIcons();
@@ -877,7 +889,7 @@ export function registerIconifyCommands(
 
   // Command: Import missing icon from tree view
   const importMissingIconCmd = vscode.commands.registerCommand(
-    'sageboxIconStudio.importMissingIcon',
+    'masterSVG.importMissingIcon',
     async (item: any) => {
       // Get the icon name from the tree item
       const iconName = item?.icon?.name || item?.label;
