@@ -86,12 +86,11 @@ Generate a complete icon system with one command:
 
 ```
 mastersvg-icons/
-├── icons.js          # Icon definitions as JavaScript module
+├── icons.js          # Icon definitions with optional animation config
 ├── icons.d.ts        # TypeScript type definitions
 ├── sprite.svg        # SVG sprite sheet with symbols
 ├── icon.js           # Custom Web Component
-├── variants.js       # Color variant definitions
-└── animations.js     # CSS animation keyframes
+└── variants.js       # Color variant definitions (optional)
 ```
 
 ### Build Formats
@@ -100,7 +99,6 @@ mastersvg-icons/
 
 ### Output Includes
 - TypeScript type definitions for icon names
-- CSS animations file
 - Variant color mappings
 
 ---
