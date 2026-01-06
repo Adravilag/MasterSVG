@@ -2,9 +2,13 @@
   "name": "mastersvg-icon-studio",
   "displayName": "Master SVG",
   "description": "Professional SVG icon management studio. Preview, edit, transform and build icon components for your design system.",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "icon": "resources/icon.png",
   "publisher": "MasterSVG",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AdraDavilaG/MasterSVG"
+  },
   "author": {
     "name": "Adrián Dávila Guerra",
     "url": "https://adravilag.github.io/MasterSVG/"
@@ -387,9 +391,9 @@
         "masterSVG.svgFolders": {
           "type": "array",
           "default": [
-            "svgs",
             "src/assets/icons",
             "src/icons",
+            "src/assets/svg",
             "public/icons",
             "assets/icons",
             "icons",
@@ -429,6 +433,21 @@
           "type": "string",
           "default": "",
           "description": "Directory where icons.js or sprite.svg will be generated (relative to workspace root)"
+        },
+        "masterSVG.framework": {
+          "type": "string",
+          "enum": [
+            "html",
+            "react",
+            "vue",
+            "angular",
+            "svelte",
+            "solid",
+            "qwik",
+            "astro"
+          ],
+          "default": "html",
+          "markdownDescription": "Target framework for icon components. This affects how icons are transformed and imported in your code."
         },
         "masterSVG.buildFormat": {
           "type": "string",

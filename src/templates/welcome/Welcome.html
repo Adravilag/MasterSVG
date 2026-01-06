@@ -26,6 +26,26 @@
   <div class="main-layout">
     <!-- Left Column: Configuration -->
     <div class="config-column">
+      <!-- Step 0: Frontend Root -->
+      <div class="step ${step0Class}">
+        <div class="step-header">
+          <div class="step-number ${step0NumberClass}"><span>0</span></div>
+          <div class="step-title">${step0Title}</div>
+          ${step0Summary}
+        </div>
+        <div class="step-content">
+          <p class="step-description">${step0Desc}</p>
+
+          <div class="options-grid">
+            ${frontendRootOptions}
+            <div class="option browse" onclick="chooseFrontendFolder()">
+              <span class="option-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg></span>
+              <span class="option-label">${browse}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Step 1: Source Directory -->
       <div class="step ${step1SourceClass}">
         <div class="step-header">
@@ -35,26 +55,15 @@
         </div>
         <div class="step-content">
           <p class="step-description">${step1SourceDesc}</p>
-          
+
           <div class="options-grid">
-            <div class="option ${srcAssetsSvgSelected}" onclick="setSourceDirectory('src/assets/svg')">
-              <span class="option-icon"><svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg></span>
-              <span class="option-label">src/assets/svg</span>
-            </div>
-            <div class="option ${srcIconsSvgSelected}" onclick="setSourceDirectory('src/icons')">
-              <span class="option-icon"><svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg></span>
-              <span class="option-label">src/icons</span>
-            </div>
-            <div class="option ${iconsFolderSelected}" onclick="setSourceDirectory('icons')">
-              <span class="option-icon"><svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg></span>
-              <span class="option-label">icons</span>
-            </div>
+            ${sourceDirectoryOptions}
             <div class="option browse" onclick="chooseSourceFolder()">
               <span class="option-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg></span>
               <span class="option-label">${browse}</span>
             </div>
           </div>
-          
+
           <div class="input-group">
             <input type="text" id="sourceDir" placeholder="${step1SourcePlaceholder}" value="${sourceDir}" onkeypress="handleSourcePathKeypress(event)" />
             <button class="btn-secondary" onclick="applyCustomSourcePath()">${step1Apply}</button>
@@ -71,26 +80,15 @@
         </div>
         <div class="step-content">
           <p class="step-description">${step2Desc}</p>
-          
+
           <div class="options-grid">
-            <div class="option ${srcIconsSelected}" onclick="setDirectory('src/icons')" ${step2Disabled}>
-              <span class="option-icon"><svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg></span>
-              <span class="option-label">src/icons</span>
-            </div>
-            <div class="option ${srcAssetsSelected}" onclick="setDirectory('src/assets/icons')" ${step2Disabled}>
-              <span class="option-icon"><svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg></span>
-              <span class="option-label">src/assets/icons</span>
-            </div>
-            <div class="option ${publicIconsSelected}" onclick="setDirectory('public/icons')" ${step2Disabled}>
-              <span class="option-icon"><svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg></span>
-              <span class="option-label">public/icons</span>
-            </div>
+            ${outputDirectoryOptions}
             <div class="option browse" onclick="chooseFolder()" ${step2Disabled}>
               <span class="option-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg></span>
               <span class="option-label">${browse}</span>
             </div>
           </div>
-          
+
           <div class="input-group">
             <input type="text" id="outputDir" placeholder="${step2Placeholder}" value="${outputDir}" onkeypress="handlePathKeypress(event)" ${step2Disabled} />
             <button class="btn-secondary" onclick="applyCustomPath()" ${step2Disabled}>${step1Apply}</button>
@@ -107,10 +105,41 @@
         </div>
         <div class="step-content">
           <p class="step-description">
-            ${step3Desc} 
+            ${step3Desc}
             <span class="help-link" onclick="toggleHelp()">${step3Help} ▾</span>
           </p>
-          
+
+          <!-- Framework Selector -->
+          <div class="framework-selector">
+            <label class="framework-label">${frameworkLabel}</label>
+            <div class="framework-options">
+              <div class="framework-option ${frameworkHtmlSelected}" onclick="setFramework('html')" title="HTML + Web Components">
+                <span class="framework-icon"><svg viewBox="0 0 128 128"><path fill="#e44d26" d="M19.037 113.876L9.032 1.661h109.936l-10.016 112.198l-45.019 12.48z"/><path fill="#f16529" d="m64 116.8l36.378-10.086l8.559-95.878H64z"/><path fill="#ebebeb" d="M64 52.455H45.788L44.53 38.361H64V24.599H29.489l.33 3.692l3.382 37.927H64zm0 35.743l-.061.017l-15.327-4.14l-.979-10.975H33.816l1.928 21.609l28.193 7.826l.063-.017z"/><path fill="#fff" d="M63.952 52.455v13.763h16.947l-1.597 17.849l-15.35 4.143v14.319l28.215-7.82l.207-2.325l3.234-36.233l.335-3.696h-3.708zm0-27.856v13.762h33.244l.276-3.092l.628-6.978l.329-3.692z"/></svg></span>
+                <span class="framework-name">HTML</span>
+              </div>
+              <div class="framework-option ${frameworkReactSelected}" onclick="setFramework('react')" title="React / Next.js">
+                <span class="framework-icon"><svg viewBox="0 0 32 32"><circle cx="16" cy="15.974" r="2.5" fill="#00d8ff"/><path fill="#00d8ff" d="M16 21.706a28.4 28.4 0 0 1-8.88-1.2a11.3 11.3 0 0 1-3.657-1.958A3.54 3.54 0 0 1 2 15.974c0-1.653 1.816-3.273 4.858-4.333A28.8 28.8 0 0 1 16 10.293a28.7 28.7 0 0 1 9.022 1.324a11.4 11.4 0 0 1 3.538 1.866A3.4 3.4 0 0 1 30 15.974c0 1.718-2.03 3.459-5.3 4.541a28.8 28.8 0 0 1-8.7 1.191m0-10.217a28 28 0 0 0-8.749 1.282c-2.8.977-4.055 2.313-4.055 3.2c0 .928 1.349 2.387 4.311 3.4A27.2 27.2 0 0 0 16 20.51a27.6 27.6 0 0 0 8.325-1.13C27.4 18.361 28.8 16.9 28.8 15.974a2.33 2.33 0 0 0-1.01-1.573a10.2 10.2 0 0 0-3.161-1.654A27.5 27.5 0 0 0 16 11.489"/><path fill="#00d8ff" d="M10.32 28.443a2.64 2.64 0 0 1-1.336-.328c-1.432-.826-1.928-3.208-1.327-6.373a28.8 28.8 0 0 1 3.4-8.593a28.7 28.7 0 0 1 5.653-7.154a11.4 11.4 0 0 1 3.384-2.133a3.4 3.4 0 0 1 2.878 0c1.489.858 1.982 3.486 1.287 6.859a28.8 28.8 0 0 1-3.316 8.133a28.4 28.4 0 0 1-5.476 7.093a11.3 11.3 0 0 1-3.523 2.189a4.9 4.9 0 0 1-1.624.307m1.773-14.7a28 28 0 0 0-3.26 8.219c-.553 2.915-.022 4.668.75 5.114c.8.463 2.742.024 5.1-2.036a27.2 27.2 0 0 0 5.227-6.79a27.6 27.6 0 0 0 3.181-7.776c.654-3.175.089-5.119-.713-5.581a2.33 2.33 0 0 0-1.868.089A10.2 10.2 0 0 0 17.5 6.9a27.5 27.5 0 0 0-5.4 6.849Z"/><path fill="#00d8ff" d="M21.677 28.456c-1.355 0-3.076-.82-4.868-2.361a28.8 28.8 0 0 1-5.747-7.237a28.7 28.7 0 0 1-3.374-8.471a11.4 11.4 0 0 1-.158-4A3.4 3.4 0 0 1 8.964 3.9c1.487-.861 4.01.024 6.585 2.31a28.8 28.8 0 0 1 5.39 6.934a28.4 28.4 0 0 1 3.41 8.287a11.3 11.3 0 0 1 .137 4.146a3.54 3.54 0 0 1-1.494 2.555a2.6 2.6 0 0 1-1.315.324m-9.58-10.2a28 28 0 0 0 5.492 6.929c2.249 1.935 4.033 2.351 4.8 1.9c.8-.465 1.39-2.363.782-5.434A27.2 27.2 0 0 0 19.9 13.74a27.6 27.6 0 0 0-5.145-6.64c-2.424-2.152-4.39-2.633-5.191-2.169a2.33 2.33 0 0 0-.855 1.662a10.2 10.2 0 0 0 .153 3.565a27.5 27.5 0 0 0 3.236 8.1Z"/></svg></span>
+                <span class="framework-name">React</span>
+              </div>
+              <div class="framework-option ${frameworkVueSelected}" onclick="setFramework('vue')" title="Vue.js / Nuxt">
+                <span class="framework-icon"><svg viewBox="0 0 256 221"><path fill="#41b883" d="M204.8 0H256L128 220.8L0 0h97.92L128 51.2L157.44 0z"/><path fill="#41b883" d="m0 0l128 220.8L256 0h-51.2L128 132.48L50.56 0z"/><path fill="#35495e" d="M50.56 0L128 133.12L204.8 0h-47.36L128 51.2L97.92 0z"/></svg></span>
+                <span class="framework-name">Vue</span>
+              </div>
+              <div class="framework-option ${frameworkAngularSelected}" onclick="setFramework('angular')" title="Angular">
+                <span class="framework-icon"><svg viewBox="0 0 128 128"><defs><linearGradient id="angularGrad1" x1="14.704" x2="110.985" y1="46.27" y2="92.024" gradientTransform="matrix(1 0 0 -1 0 130)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#e40035"/><stop offset=".24" stop-color="#f60a48"/><stop offset=".352" stop-color="#f20755"/><stop offset=".494" stop-color="#dc087d"/><stop offset=".745" stop-color="#9717e7"/><stop offset="1" stop-color="#6c00f5"/></linearGradient><linearGradient id="angularGrad2" x1="28.733" x2="91.742" y1="117.071" y2="45.195" gradientTransform="matrix(1 0 0 -1 0 130)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ff31d9"/><stop offset="1" stop-color="#ff5be1" stop-opacity="0"/></linearGradient></defs><path fill="url(#angularGrad1)" d="m124.5 21.3l-4.4 68.6L78.3 0zm-29 88.7L64 128l-31.5-18l6.4-15.5h50.3zM64 34.1l16.5 40.2h-33zM7.9 89.9L3.5 21.3L49.7 0z"/><path fill="url(#angularGrad2)" d="m124.5 21.3l-4.4 68.6L78.3 0zm-29 88.7L64 128l-31.5-18l6.4-15.5h50.3zM64 34.1l16.5 40.2h-33zM7.9 89.9L3.5 21.3L49.7 0z"/></svg></span>
+                <span class="framework-name">Angular</span>
+              </div>
+              <div class="framework-option ${frameworkSvelteSelected}" onclick="setFramework('svelte')" title="Svelte / SvelteKit">
+                <span class="framework-icon"><svg viewBox="0 0 128 128"><path fill="#ff3e00" d="M110.43 16.936C98.553-.076 75.09-5.118 58.13 5.696l-29.792 19a34.2 34.2 0 0 0-15.48 22.897a25.478 30.64 0 0 0-.572 6.396a36.15 36.15 0 0 0 4.163 16.73A34.4 34.4 0 0 0 11.34 83.5a25.348 30.483 0 0 0 .345 14.412a36.5 36.5 0 0 0 5.9 13.152c11.878 17.01 35.394 22.053 52.3 11.24l29.762-19.001a34.13 34.13 0 0 0 15.438-22.918a35.5 35.5 0 0 0 .572-6.386a36.2 36.2 0 0 0-4.112-16.71a34.4 34.4 0 0 0 5.112-12.77c.369-2.11.557-4.245.562-6.386a36.4 36.4 0 0 0-6.787-21.178z"/><path fill="#fff" d="M55.219 112.662a28.463 34.23 0 0 1-5.954.76a23.64 23.64 0 0 1-19.435-10.187a21.9 21.9 0 0 1-4.08-12.74a15.658 18.83 0 0 1 .333-3.833a15.425 18.55 0 0 1 .72-2.782l.561-1.708l1.52 1.156a38.7 38.7 0 0 0 11.658 5.834l1.104.333l-.104 1.104v.573a6.63 6.63 0 0 0 1.228 3.854a7.1 7.1 0 0 0 2.538 2.288a8.262 9.936 0 0 0 3.312.837a8.251 9.923 0 0 0 1.79-.229a7.272 8.745 0 0 0 1.833-.802l29.76-19.094a6.26 6.26 0 0 0 2.904-5.302a6.62 6.62 0 0 0-1.26-3.844a7.14 7.14 0 0 0-2.553-2.252a8.313 9.997 0 0 0-3.307-.81a8.246 9.917 0 0 0-1.79.23a6.938 8.344 0 0 0-1.822.801l-11.346 7.25a24.376 29.314 0 0 1-6.048 2.656a23.64 23.64 0 0 1-25.39-9.416a21.94 21.94 0 0 1-4.08-12.74c.002-1.285.114-2.567.333-3.833a20.65 20.65 0 0 1 9.286-13.781l29.792-18.99a21.9 21.9 0 0 1 6.048-2.667a24 24 0 0 1 5.954-.75A23.68 23.68 0 0 1 98.22 24.745a21.94 21.94 0 0 1 4.029 12.75a15.748 18.939 0 0 1-.334 3.844a15.407 18.529 0 0 1-.718 2.781l-.562 1.708l-1.52-1.114a38.4 38.4 0 0 0-11.658-5.834l-1.104-.343l.104-1.105v-.572a6.7 6.7 0 0 0-1.228-3.865a7.1 7.1 0 0 0-2.55-2.25a8.309 9.992 0 0 0-3.3-.813a8.221 9.887 0 0 0-1.77.271a6.819 8.2 0 0 0-1.831.802l-29.793 18.99a5.88 7.071 0 0 0-1.836 1.79a4.75 5.713 0 0 0-.963 2.377a5.037 6.057 0 0 0-.136 1.104a6.62 6.62 0 0 0 1.228 3.844a7.1 7.1 0 0 0 2.549 2.25a8.299 9.98 0 0 0 3.301.812a8.247 9.918 0 0 0 1.79-.23a6.943 8.35 0 0 0 1.833-.801l11.367-7.292a24.218 29.125 0 0 1 6.048-2.656a28.526 34.305 0 0 1 5.954-.76A23.66 23.66 0 0 1 96.566 60.61a21.94 21.94 0 0 1 3.737 16.614a20.6 20.6 0 0 1-9.286 13.781l-29.74 18.99a24.308 29.233 0 0 1-6.057 2.667z"/></svg></span>
+                <span class="framework-name">Svelte</span>
+              </div>
+              <div class="framework-option ${frameworkAstroSelected}" onclick="setFramework('astro')" title="Astro">
+                <span class="framework-icon"><svg viewBox="0 0 128 128"><defs><linearGradient id="astroGrad1" x1="882.997" x2="638.955" y1="27.113" y2="866.902" gradientTransform="scale(.1)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#000014"/><stop offset="1" stop-color="#150426"/></linearGradient><linearGradient id="astroGrad2" x1="1001.68" x2="790.326" y1="652.45" y2="1094.91" gradientTransform="scale(.1)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ff1639"/><stop offset="1" stop-color="#ff1639" stop-opacity="0"/></linearGradient></defs><path fill="url(#astroGrad1)" d="M81.504 9.465c.973 1.207 1.469 2.836 2.457 6.09l21.656 71.136a90 90 0 0 0-25.89-8.765L65.629 30.28a1.833 1.833 0 0 0-3.52.004L48.18 77.902a90.1 90.1 0 0 0-26.003 8.778l21.758-71.14c.996-3.25 1.492-4.876 2.464-6.083a8 8 0 0 1 3.243-2.398c1.433-.575 3.136-.575 6.535-.575H71.72c3.402 0 5.105 0 6.543.579a8 8 0 0 1 3.242 2.402Zm0 0"/><path fill="#ff5d01" d="M84.094 90.074c-3.57 3.055-10.696 5.137-18.903 5.137c-10.07 0-18.515-3.137-20.754-7.356c-.8 2.418-.98 5.184-.98 6.954c0 0-.527 8.675 5.508 14.71a5.67 5.67 0 0 1 5.672-5.671c5.37 0 5.367 4.683 5.363 8.488v.336c0 5.773 3.527 10.719 8.543 12.805a11.6 11.6 0 0 1-1.172-5.098c0-5.508 3.23-7.555 6.988-9.938c2.989-1.894 6.309-4 8.594-8.222a15.5 15.5 0 0 0 1.875-7.41a15.6 15.6 0 0 0-.734-4.735m0 0"/><path fill="url(#astroGrad2)" d="M84.094 90.074c-3.57 3.055-10.696 5.137-18.903 5.137c-10.07 0-18.515-3.137-20.754-7.356c-.8 2.418-.98 5.184-.98 6.954c0 0-.527 8.675 5.508 14.71a5.67 5.67 0 0 1 5.672-5.671c5.37 0 5.367 4.683 5.363 8.488v.336c0 5.773 3.527 10.719 8.543 12.805a11.6 11.6 0 0 1-1.172-5.098c0-5.508 3.23-7.555 6.988-9.938c2.989-1.894 6.309-4 8.594-8.222a15.5 15.5 0 0 0 1.875-7.41a15.6 15.6 0 0 0-.734-4.735m0 0"/></svg></span>
+                <span class="framework-name">Astro</span>
+              </div>
+            </div>
+          </div>
+
           <div class="help-panel" id="helpPanel">
             <div class="help-content">
               <div class="help-row">
@@ -131,7 +160,7 @@
               </div>
             </div>
           </div>
-          
+
           <div class="format-grid">
             <div class="format-card ${jsModuleSelected}" onclick="setBuildFormat('icons.ts')">
               <h3>
@@ -201,7 +230,7 @@
           <span class="workflow-path">${previewFileName}</span>
         </div>
       </div>
-      
+
       <div class="preview-window">
         <div class="preview-window-header">
           <div class="preview-dot red"></div>
@@ -217,7 +246,7 @@
           ${previewGallery}
         </div>
       </div>
-      
+
       ${previewSummary}
 
       <!-- Main Action Button - Always Visible -->

@@ -123,7 +123,17 @@ export class SvgTransformer {
     // First unwrap the content, then remove empty wrappers
     body = body.replace(/<g[^>]*class=["']icon-anim-\d+["'][^>]*>([\s\S]*?)<\/g>/gi, '$1');
 
-    return body.trim();
+    // Normalize whitespace: collapse multiple spaces/newlines into single space
+    // but preserve structure of the SVG elements
+    body = body
+      .replace(/\s+/g, ' ')           // Collapse all whitespace to single space
+      .replace(/>\s+</g, '><')        // Remove space between tags
+      .replace(/\s+\/>/g, ' />')      // Normalize self-closing tags
+      .replace(/"\s+/g, '" ')         // Normalize space after quotes
+      .replace(/\s+="/g, '="')        // Remove space before =
+      .trim();
+
+    return body;
   }
 
   /**

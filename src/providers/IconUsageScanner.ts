@@ -31,8 +31,19 @@ export class IconUsageScanner {
   /**
    * File patterns to exclude from search
    */
-  static readonly EXCLUDE_PATTERN =
-    '**/node_modules/**,**/dist/**,**/build/**,**/.git/**,**/svgs/**';
+  static readonly EXCLUDE_PATTERN = '{' + [
+    '**/node_modules/**',
+    '**/dist/**',
+    '**/build/**',
+    '**/.git/**',
+    '**/svgs/**',
+    '**/coverage/**',
+    '**/package-lock.json',
+    '**/yarn.lock',
+    '**/pnpm-lock.yaml',
+    '**/bun.lockb',
+    '**/*.min.js',
+  ].join(',') + '}';
 
   /**
    * Maximum number of files to search (legacy - now uses config)

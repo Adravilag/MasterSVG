@@ -237,7 +237,7 @@ All settings under the `masterSVG.*` namespace:
 ```json
 {
   "masterSVG.svgFolders": [
-    "svgs", "src/assets/icons", "src/icons",
+    "src/assets/icons", "src/icons", "src/assets/svg",
     "public/icons", "assets/icons", "icons",
     "svg", "assets/svg"
   ],

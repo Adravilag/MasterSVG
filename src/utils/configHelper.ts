@@ -3,6 +3,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { t } from '../i18n';
 
+export type FrameworkType = 'html' | 'react' | 'vue' | 'angular' | 'svelte' | 'solid' | 'qwik' | 'astro';
+
 export interface IconStudioConfig {
   outputDirectory: string;
   componentName: string;
@@ -11,6 +13,7 @@ export interface IconStudioConfig {
   defaultColor: string;
   webComponentName: string;
   buildFormat: 'icons.ts' | 'sprite.svg';
+  framework: FrameworkType;
 }
 
 /**
@@ -26,6 +29,7 @@ export function getConfig(): IconStudioConfig {
     defaultColor: config.get<string>('defaultColor', 'currentColor'),
     webComponentName: config.get<string>('webComponentName', 'icon-wrap'),
     buildFormat: config.get<'icons.ts' | 'sprite.svg'>('buildFormat', 'icons.ts'),
+    framework: config.get<FrameworkType>('framework', 'html'),
   };
 }
 
@@ -145,4 +149,114 @@ export function getOutputPathOrWarn(): string | undefined {
   }
 
   return fullPath;
+}
+
+/**
+ * Convert kebab-case to PascalCase for component names
+ */
+export function toPascalCase(str: string): string {
+  return str
+    .split(/[-_\s]+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join('');
+}
+
+/**
+ * Get the icon usage code for the configured framework
+ */
+export function getFrameworkIconUsage(iconName: string, isSprite: boolean): string {
+  const config = getConfig();
+  const framework = config.framework;
+  const outputDir = config.outputDirectory;
+  const webComponentName = config.webComponentName || 'svg-icon';
+  const componentName = toPascalCase(iconName) + 'Icon';
+
+  // Sprite format is similar across frameworks (uses SVG <use>)
+  if (isSprite) {
+    switch (framework) {
+      case 'react':
+        return `<svg className="icon" aria-hidden="true"><use href="${outputDir}/sprite.svg#${iconName}"></use></svg>`;
+      case 'vue':
+      case 'angular':
+      case 'svelte':
+      case 'solid':
+      case 'qwik':
+      case 'astro':
+        return `<svg class="icon" aria-hidden="true"><use href="${outputDir}/sprite.svg#${iconName}"></use></svg>`;
+      case 'html':
+      default:
+        return `<svg class="icon" aria-hidden="true"><use href="${outputDir}/sprite.svg#${iconName}"></use></svg>`;
+    }
+  }
+
+  // Component/icons.js format varies by framework
+  switch (framework) {
+    case 'react':
+      return `<${componentName} />`;
+    case 'vue':
+      return `<${componentName} />`;
+    case 'angular':
+      return `<app-${iconName}-icon></app-${iconName}-icon>`;
+    case 'svelte':
+      return `<${componentName} />`;
+    case 'solid':
+      return `<${componentName} />`;
+    case 'qwik':
+      return `<${componentName} />`;
+    case 'astro':
+      return `<${componentName} />`;
+    case 'html':
+    default:
+      // Web Component format
+      return `<${webComponentName} name="${iconName}"></${webComponentName}>`;
+  }
+}
+
+/**
+ * Get the import statement for the configured framework
+ */
+export function getFrameworkImportStatement(iconName: string): string | null {
+  const config = getConfig();
+  const framework = config.framework;
+  const outputDir = config.outputDirectory;
+  const componentName = toPascalCase(iconName) + 'Icon';
+
+  switch (framework) {
+    case 'react':
+      return `import { ${componentName} } from '${outputDir}/icons';`;
+    case 'vue':
+      return `import ${componentName} from '${outputDir}/${componentName}.vue';`;
+    case 'angular':
+      // Angular uses modules, import is done differently
+      return null;
+    case 'svelte':
+      return `import ${componentName} from '${outputDir}/${componentName}.svelte';`;
+    case 'solid':
+      return `import { ${componentName} } from '${outputDir}/icons';`;
+    case 'qwik':
+      return `import { ${componentName} } from '${outputDir}/icons';`;
+    case 'astro':
+      return `import ${componentName} from '${outputDir}/${componentName}.astro';`;
+    case 'html':
+    default:
+      return null; // Web Components don't need imports
+  }
+}
+
+/**
+ * Get framework display name
+ */
+export function getFrameworkDisplayName(framework?: FrameworkType): string {
+  const fw = framework || getConfig().framework;
+  const names: Record<FrameworkType, string> = {
+    html: 'HTML (Web Components)',
+    react: 'React',
+    vue: 'Vue',
+    angular: 'Angular',
+    svelte: 'Svelte',
+    solid: 'SolidJS',
+    qwik: 'Qwik',
+    astro: 'Astro',
+  };
+  return names[fw] || fw;
 }

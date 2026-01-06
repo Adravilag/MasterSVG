@@ -15,6 +15,23 @@ export interface IconUsage {
 
 export class UsageFinderService {
   /**
+   * Directories and files to exclude from usage search
+   */
+  private static readonly EXCLUDE_PATTERN = '{' + [
+    '**/node_modules/**',
+    '**/dist/**',
+    '**/build/**',
+    '**/.git/**',
+    '**/coverage/**',
+    '**/package-lock.json',
+    '**/yarn.lock',
+    '**/pnpm-lock.yaml',
+    '**/bun.lockb',
+    '**/*.min.js',
+    '**/*.min.css',
+  ].join(',') + '}';
+
+  /**
    * Find all usages of an icon in the workspace
    */
   async findIconUsages(iconName: string): Promise<IconUsage[]> {
@@ -39,7 +56,7 @@ export class UsageFinderService {
     ];
 
     for (const filePattern of filePatterns) {
-      const files = await vscode.workspace.findFiles(filePattern, '**/node_modules/**');
+      const files = await vscode.workspace.findFiles(filePattern, UsageFinderService.EXCLUDE_PATTERN);
 
       for (const file of files) {
         try {

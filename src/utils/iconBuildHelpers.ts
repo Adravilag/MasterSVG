@@ -128,23 +128,110 @@ export async function showDeleteOriginalPrompt(options?: DeletePromptOptions): P
 }
 
 /**
- * Generate a replacement string for a web component or sprite reference.
+ * Attributes that should be preserved when transforming inline SVG to icon component.
+ * These are framework directives and common HTML attributes that affect behavior.
  */
-export function generateReplacement(iconName: string, languageId: string): string {
+const PRESERVED_ATTRIBUTES = [
+  // Angular directives
+  '*ngIf', '*ngFor', '*ngSwitch', '*ngSwitchCase', '*ngSwitchDefault',
+  '[ngClass]', '[ngStyle]', '[class]', '[style]',
+  '(click)', '(mouseenter)', '(mouseleave)', '(focus)', '(blur)',
+  '@if', '@for', '@switch',
+  // Vue directives  
+  'v-if', 'v-else', 'v-else-if', 'v-show', 'v-for', 'v-bind', 'v-on',
+  ':class', ':style', '@click', '@mouseenter', '@mouseleave',
+  // React/JSX
+  'onClick', 'onMouseEnter', 'onMouseLeave', 'onFocus', 'onBlur',
+  // Svelte
+  'on:click', 'on:mouseenter', 'on:mouseleave',
+  // Common HTML
+  'class', 'id', 'style', 'title', 'tabindex', 'role', 'aria-label', 'aria-hidden',
+  'data-testid', 'data-cy', 'data-test',
+];
+
+/**
+ * Extract preserved attributes from original SVG content
+ */
+export function extractPreservedAttributes(svgContent: string): Record<string, string> {
+  const preserved: Record<string, string> = {};
+  
+  // Match the opening <svg tag
+  const svgTagMatch = svgContent.match(/<svg([^>]*)>/i);
+  if (!svgTagMatch) return preserved;
+  
+  const attributesStr = svgTagMatch[1];
+  
+  // Match attributes - handles both quoted and binding syntax
+  // Pattern matches: attr="value", [attr]="value", (attr)="value", *attr="value", @attr="value", :attr="value", v-attr="value"
+  const attrRegex = /(\*?[@:(\[]?[\w.-]+[\])]?)=["']([^"']*)["']/g;
+  
+  let match;
+  while ((match = attrRegex.exec(attributesStr)) !== null) {
+    const attrName = match[1];
+    const attrValue = match[2];
+    
+    // Check if this attribute should be preserved
+    const shouldPreserve = PRESERVED_ATTRIBUTES.some(preserved => {
+      // Exact match
+      if (attrName === preserved) return true;
+      // Prefix match for data-* attributes
+      if (attrName.startsWith('data-')) return true;
+      // Prefix match for aria-* attributes
+      if (attrName.startsWith('aria-')) return true;
+      // Angular/Vue binding syntax variations
+      if (preserved.startsWith('[') && attrName === preserved) return true;
+      if (preserved.startsWith('(') && attrName === preserved) return true;
+      if (preserved.startsWith('*') && attrName === preserved) return true;
+      if (preserved.startsWith('@') && attrName === preserved) return true;
+      if (preserved.startsWith(':') && attrName === preserved) return true;
+      if (preserved.startsWith('v-') && attrName === preserved) return true;
+      return false;
+    });
+    
+    if (shouldPreserve) {
+      preserved[attrName] = attrValue;
+    }
+  }
+  
+  return preserved;
+}
+
+/**
+ * Format preserved attributes as a string for insertion into HTML
+ */
+function formatPreservedAttributes(preserved: Record<string, string>): string {
+  const entries = Object.entries(preserved);
+  if (entries.length === 0) return '';
+  
+  return ' ' + entries.map(([key, value]) => `${key}="${value}"`).join(' ');
+}
+
+/**
+ * Generate a replacement string for a web component or sprite reference.
+ * @param iconName - The name of the icon
+ * @param languageId - The language ID of the document
+ * @param preservedAttrs - Optional attributes to preserve from original SVG
+ */
+export function generateReplacement(
+  iconName: string, 
+  languageId: string,
+  preservedAttrs?: Record<string, string>
+): string {
   const config = getConfig();
   const isSprite = config.buildFormat === 'sprite.svg';
   const componentName = config.webComponentName || 'svg-icon';
+  const attrsStr = preservedAttrs ? formatPreservedAttributes(preservedAttrs) : '';
 
   if (isSprite) {
-    return `<svg class="icon" aria-hidden="true"><use href="sprite.svg#${iconName}"></use></svg>`;
+    return `<svg${attrsStr} aria-hidden="true"><use href="sprite.svg#${iconName}"></use></svg>`;
   }
 
   // For web component, use self-closing in JSX-like languages
   if (['javascriptreact', 'typescriptreact', 'vue', 'svelte', 'astro'].includes(languageId)) {
-    return `<${componentName} name="${iconName}" />`;
+    return `<${componentName} name="${iconName}"${attrsStr} />`;
   }
 
-  return `<${componentName} name="${iconName}"></${componentName}>`;
+  return `<${componentName} name="${iconName}"${attrsStr}></${componentName}>`;
 }
 
 /**

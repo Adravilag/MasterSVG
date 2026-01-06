@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial development version
 
+## [0.1.1] - 2026-01-05
+
+### Changed
+- 🏷️ Renamed extension from "Icon Studio" to "Master SVG" for consistency
+- 📝 Updated all user-facing text and command prefixes
+- 🌐 Updated translations for all supported languages (en, es, ru, zh)
+
 ## [0.1.0] - 2025-12-31
 
 ### Added

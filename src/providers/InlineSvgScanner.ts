@@ -249,6 +249,18 @@ export class InlineSvgScanner {
         continue;
       }
 
+      // Skip sprite references (<use href="#icon-..."> or <use xlink:href="#...">)
+      // These are references to icons in sprite.svg, not actual inline SVGs
+      if (/<use\s+[^>]*(href|xlink:href)=["']#/i.test(svgContent)) {
+        continue;
+      }
+
+      // Skip dynamic Angular SVGs with bindings or control flow
+      // [attr.width], [attr.height], @switch, @case, @if, @for, etc.
+      if (/\[attr\.|\[ngClass\]|\[ngStyle\]|@switch|@case|@if|@for|@default/.test(svgContent)) {
+        continue;
+      }
+
       // Calculate line number efficiently
       const textBeforeMatch = text.substring(0, match.index);
       const lineNumber = (textBeforeMatch.match(/\n/g) || []).length;
@@ -294,31 +306,163 @@ export class InlineSvgScanner {
   ): string {
     // Try to extract from id attribute
     const idMatch = svgContent.match(/id=["']([^"']+)["']/);
-    if (idMatch) return idMatch[1];
+    if (idMatch) return this.cleanName(idMatch[1]);
 
     // Try to extract from aria-label
     const ariaMatch = svgContent.match(/aria-label=["']([^"']+)["']/);
-    if (ariaMatch) return ariaMatch[1].toLowerCase().replace(/\s+/g, '-');
+    if (ariaMatch) return this.cleanName(ariaMatch[1]);
+
+    // Try to extract from data-icon, data-name, or data-testid
+    const dataMatch = svgContent.match(/data-(?:icon|name|testid)=["']([^"']+)["']/i);
+    if (dataMatch) return this.cleanName(dataMatch[1]);
+
+    // Try to extract from <title> element inside SVG
+    const titleMatch = svgContent.match(/<title>([^<]+)<\/title>/i);
+    if (titleMatch) return this.cleanName(titleMatch[1]);
 
     // Try to extract from class name that looks like icon name
     const classMatch = svgContent.match(/class=["']([^"']*icon[^"']*)["']/i);
     if (classMatch) {
       const iconClass = classMatch[1].split(/\s+/).find(c => c.includes('icon'));
-      if (iconClass) return iconClass.replace(/icon-?/i, '') || 'icon';
+      if (iconClass) {
+        const cleaned = iconClass.replace(/icon-?/i, '');
+        if (cleaned) return this.cleanName(cleaned);
+      }
     }
 
+    const lines = fullText.split('\n');
+    
     // Try to look at the line above for variable assignment or component name
-    if (lineNumber > 0) {
-      const lines = fullText.split('\n');
-      if (lineNumber > 0 && lineNumber <= lines.length) {
-        const prevLine = lines[lineNumber - 1];
-        const varMatch = prevLine.match(/(?:const|let|var)\s+(\w+Icon|\w+Svg)\s*=/i);
-        if (varMatch) return varMatch[1].replace(/Icon$|Svg$/i, '').toLowerCase();
+    if (lineNumber > 0 && lineNumber <= lines.length) {
+      const prevLine = lines[lineNumber - 1];
+      
+      // Check for variable assignment: const CheckIcon = ...
+      const varMatch = prevLine.match(/(?:const|let|var)\s+(\w+Icon|\w+Svg)\s*=/i);
+      if (varMatch) return this.cleanName(varMatch[1].replace(/Icon$|Svg$/i, ''));
+      
+      // Check for HTML comment: <!-- check icon -->
+      const commentMatch = prevLine.match(/<!--\s*([^-]+?)\s*(?:icon)?\s*-->/i);
+      if (commentMatch) return this.cleanName(commentMatch[1]);
+    }
+
+    // Try to find parent component name (React/Vue style): <CheckIcon>, <IconCheck>
+    const svgStartIndex = fullText.lastIndexOf('<svg', fullText.indexOf(svgContent));
+    if (svgStartIndex > 0) {
+      const textBefore = fullText.substring(Math.max(0, svgStartIndex - 200), svgStartIndex);
+      // Look for component opening tag: <CheckIcon or <Icon.Check
+      const componentMatch = textBefore.match(/<([A-Z][a-zA-Z]*(?:Icon|Svg)|Icon\.([A-Z][a-zA-Z]*))[^>]*>\s*$/i);
+      if (componentMatch) {
+        const name = componentMatch[2] || componentMatch[1];
+        return this.cleanName(name.replace(/Icon$|Svg$/i, ''));
       }
+    }
+
+    // Try to infer from path d attribute (common shapes)
+    const pathMatch = svgContent.match(/d=["']([^"']+)["']/);
+    if (pathMatch) {
+      const pathName = this.inferNameFromPath(pathMatch[1]);
+      if (pathName) return pathName;
     }
 
     // Default to svg-{line}
     return `svg-${lineNumber + 1}`;
+  }
+
+  /**
+   * Clean a string to be a valid icon name
+   */
+  private static cleanName(name: string): string {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      .substring(0, 50) || 'icon';
+  }
+
+  /**
+   * Try to infer icon name from SVG path data
+   */
+  private static inferNameFromPath(pathData: string): string | null {
+    const normalized = pathData.toLowerCase();
+    
+    // Common checkmark patterns
+    if (/m\s*5.*l\s*4\s*4.*l.*7|m.*l.*4\s*4.*19\s*7/i.test(pathData)) {
+      return 'check';
+    }
+    
+    // X/close patterns (two crossing lines)
+    if (/m\s*6.*18.*m\s*6.*6.*18/i.test(pathData) || /m.*6\s*6.*18\s*18.*m.*6\s*18.*18\s*6/i.test(pathData)) {
+      return 'close';
+    }
+    
+    // Arrow patterns
+    if (normalized.includes('arrow') || /m.*12.*l.*-?[48].*-?[48]/i.test(pathData)) {
+      if (pathData.includes('-4') && !pathData.includes('4 4')) return 'arrow-left';
+      if (pathData.includes('4 4') || pathData.includes('4,4')) return 'arrow-right';
+    }
+    
+    // Plus pattern
+    if (/m\s*12\s*5.*v\s*14.*m\s*5\s*12.*h\s*14/i.test(pathData)) {
+      return 'plus';
+    }
+    
+    // Minus pattern
+    if (/m\s*5\s*12.*h\s*14/i.test(pathData) && !/v/i.test(pathData)) {
+      return 'minus';
+    }
+
+    // Adjustments/sliders pattern (horizontal lines with circles - Heroicons adjustments)
+    // Pattern: M10.5 6h9.75M10.5 6a1.5... multiple horizontal lines at y=6, 12, 18
+    if (/M\d+\.?\d*\s*6.*M\d+\.?\d*\s*6a.*M.*12.*M.*18|h\d+.*m.*h\d+.*m.*h\d+/i.test(pathData)) {
+      return 'adjustments';
+    }
+
+    // Menu/hamburger pattern (3 horizontal lines)
+    if (/M3.*h18.*M3.*12.*h18.*M3.*h18|m\s*4\s*6.*h\s*16.*m.*h\s*16.*m.*h\s*16/i.test(pathData)) {
+      return 'menu';
+    }
+
+    // Search/magnifier pattern (circle + line)
+    if (/M21\s*21.*l.*-5.*-5|circle.*line|m.*10.*a.*8.*8/i.test(pathData)) {
+      return 'search';
+    }
+
+    // Home pattern
+    if (/M3\s*12.*l.*9.*-9.*9.*9|m.*10.*20.*v.*-6.*h.*4.*v.*6/i.test(pathData)) {
+      return 'home';
+    }
+
+    // User/person pattern (circle head + body path)  
+    if (/M15\.75\s*6.*a.*3\.75|M17\.982.*15\.75.*a.*9/i.test(pathData)) {
+      return 'user';
+    }
+
+    // Cog/settings pattern (gear with circle in center)
+    if (/M9\.594.*3\.94|M10\.343.*3\.94|cog|gear/i.test(pathData)) {
+      return 'settings';
+    }
+
+    // Heart pattern
+    if (/M21\s*8\.25.*c.*0.*-3.*-2\.25|M11\.645.*20\.91/i.test(pathData)) {
+      return 'heart';
+    }
+
+    // Star pattern
+    if (/M11\.48.*3\.499|M12\s*2.*l.*3\.09.*6\.26/i.test(pathData)) {
+      return 'star';
+    }
+
+    // Trash/delete pattern
+    if (/M14\.74\s*9.*l.*-0\.346.*9|M19\s*7.*l.*-0\.867/i.test(pathData)) {
+      return 'trash';
+    }
+
+    // Edit/pencil pattern
+    if (/M16\.862.*4\.487|m.*16\.862.*4\.487|M11\s*5.*H6.*a.*2/i.test(pathData)) {
+      return 'edit';
+    }
+
+    return null;
   }
 
   /**

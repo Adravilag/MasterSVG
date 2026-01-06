@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { SvgTransformer } from '../services/SvgTransformer';
-import { getConfig, getFullOutputPath } from '../utils/configHelper';
+import { getConfig, getFullOutputPath, getFrameworkIconUsage, getFrameworkDisplayName } from '../utils/configHelper';
 import { addToIconsJs, addToSpriteSvg } from '../utils/iconsFileManager';
 import { t } from '../i18n';
 
@@ -31,10 +31,17 @@ export function registerTransformCommands(
   // Command: Transform inline SVG (also handles IMG references)
   commands.push(
     vscode.commands.registerCommand('masterSVG.transformInlineSvg', async (item: any) => {
-      if (item.icon && item.icon.filePath && item.icon.svg) {
-        const document = await vscode.workspace.openTextDocument(
-          vscode.Uri.file(item.icon.filePath)
+      // Validate that item has the required structure
+      if (!item || !item.icon || !item.icon.filePath || !item.icon.svg) {
+        vscode.window.showWarningMessage(
+          t('messages.selectInlineSvgFirst') || 'Please select an inline SVG from the workspace icons tree first.'
         );
+        return;
+      }
+
+      const document = await vscode.workspace.openTextDocument(
+        vscode.Uri.file(item.icon.filePath)
+      );
         const editor = await vscode.window.showTextDocument(document);
 
         const text = document.getText();
@@ -144,22 +151,19 @@ export function registerTransformCommands(
         const config = getConfig();
         const buildFormat = config.buildFormat || 'icons.ts';
         const isSprite = buildFormat === 'sprite.svg';
-        const outputDir = config.outputDirectory;
-        const webComponentName = config.webComponentName || 'svg-icon';
         const iconName = item.label as string;
-
-        let replacement: string;
         const fullOutputPath = getFullOutputPath();
 
+        // Generate replacement based on framework configuration
+        const replacement = getFrameworkIconUsage(iconName, isSprite);
+
         if (isSprite) {
-          // Sprite format
-          replacement = `<svg class="icon" aria-hidden="true"><use href="${outputDir}/sprite.svg#${iconName}"></use></svg>`;
+          // Add to sprite file
           if (fullOutputPath) {
             await addToSpriteSvg(fullOutputPath, iconName, item.icon.svg, svgTransformer);
           }
         } else {
-          // Web Component format
-          replacement = `<${webComponentName} name="${iconName}"></${webComponentName}>`;
+          // Add to icons.js
           if (fullOutputPath) {
             await addToIconsJs({
               outputPath: fullOutputPath,
@@ -176,11 +180,10 @@ export function registerTransformCommands(
 
         workspaceSvgProvider.refresh();
         builtIconsProvider.refresh();
-        const formatName = isSprite ? 'Sprite' : 'Web Component';
+        const formatName = isSprite ? 'Sprite' : getFrameworkDisplayName();
         vscode.window.showInformationMessage(
           t('messages.transformedToFormat', { format: formatName })
         );
-      }
     })
   );
 

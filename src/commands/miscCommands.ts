@@ -16,6 +16,7 @@ import {
   buildIcon,
   showDeleteOriginalPrompt,
   generateReplacement,
+  extractPreservedAttributes,
   checkScriptImport,
 } from '../utils/iconBuildHelpers';
 import { t } from '../i18n';
@@ -253,7 +254,13 @@ export function registerMiscCommands(
       // Replace in document
       try {
         const document = await vscode.workspace.openTextDocument(documentUri);
-        const replacement = generateReplacement(finalIconName, document.languageId);
+        
+        // Extract preserved attributes from original SVG (for inline SVGs)
+        const preservedAttrs = isInlineSvg && svgContent 
+          ? extractPreservedAttributes(svgContent) 
+          : undefined;
+        
+        const replacement = generateReplacement(finalIconName, document.languageId, preservedAttrs);
         const edit = new vscode.WorkspaceEdit();
 
         if (isInlineSvg && options.startOffset !== undefined && options.endOffset !== undefined) {

@@ -2,6 +2,15 @@ const vscode = acquireVsCodeApi();
 const helpOpenText = '${helpOpenText}';
 const helpClosedText = '${helpClosedText}';
 
+// Frontend Root functions (Step 0)
+function setFrontendRoot(dir) {
+  vscode.postMessage({ command: 'setFrontendRoot', directory: dir });
+}
+
+function chooseFrontendFolder() {
+  vscode.postMessage({ command: 'chooseFrontendFolder' });
+}
+
 // Source Directory functions
 function setSourceDirectory(dir) {
   document.getElementById('sourceDir').value = dir;
@@ -59,6 +68,14 @@ function setBuildFormat(format) {
   // Visual feedback for format cards is handled by CSS :active and page refresh
 }
 
+function setFramework(framework) {
+  // Update visual selection
+  document.querySelectorAll('.framework-option').forEach(opt => opt.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  // Send message to extension
+  vscode.postMessage({ command: 'setFramework', framework: framework });
+}
+
 function setLanguage(lang) {
   vscode.postMessage({ command: 'setLanguage', language: lang });
 }
@@ -66,11 +83,10 @@ function setLanguage(lang) {
 function applyWebComponentName() {
   const input = document.getElementById('webComponentName');
   const name = input.value.trim();
-  if (name && name.includes('-')) {
+  // Accept any non-empty name - server-side validation handles framework-specific rules
+  if (name) {
     vscode.postMessage({ command: 'setWebComponentName', name: name });
     showApplySuccess('webComponentName');
-  } else if (name && !name.includes('-')) {
-    showApplyError('webComponentName');
   }
 }
 

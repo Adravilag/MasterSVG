@@ -243,6 +243,7 @@ describe('configHelper', () => {
         defaultColor: 'currentColor',
         webComponentName: 'icon-wrap',
         buildFormat: 'icons.ts',
+        framework: 'html',
       };
 
       expect(config.outputDirectory).toBe('icons');
@@ -251,6 +252,7 @@ describe('configHelper', () => {
       expect(config.defaultSize).toBe(24);
       expect(config.defaultColor).toBe('currentColor');
       expect(config.buildFormat).toBe('icons.ts');
+      expect(config.framework).toBe('html');
     });
   });
 });

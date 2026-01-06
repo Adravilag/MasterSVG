@@ -43,7 +43,7 @@ export async function updateSvgConfig<T>(
  * Step 1: Source directory (svgFolders)
  * Step 2: Output directory (outputDirectory)
  * Step 3: Build format (buildFormat)
- * Step 4: Web component name (webComponentName with hyphen)
+ * Step 4: Component name (webComponentName - must have hyphen for HTML, any non-empty for others)
  * @returns true if all configuration steps are complete
  */
 export function isFullyConfigured(): boolean {
@@ -53,11 +53,15 @@ export function isFullyConfigured(): boolean {
   const outputDirectory = config.get<string>('outputDirectory', '');
   const buildFormat = config.get<string>('buildFormat', 'icons.ts');
   const webComponentName = config.get<string>('webComponentName', '');
+  const framework = config.get<string>('framework', 'html');
 
   const isStep1Complete = svgFolders.length > 0 && svgFolders[0].length > 0;
   const isStep2Complete = !!outputDirectory;
   const isStep3Complete = !!buildFormat;
-  const isStep4Complete = webComponentName.includes('-');
+  // HTML web components require hyphen, other frameworks just need a non-empty name
+  const isStep4Complete = framework === 'html' 
+    ? webComponentName.includes('-') 
+    : webComponentName.length > 0;
 
   return isStep1Complete && isStep2Complete && isStep3Complete && isStep4Complete;
 }
