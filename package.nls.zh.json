@@ -26,6 +26,7 @@
   "command.goToCode": "转到代码",
   "command.openSvgFile": "打开 SVG 文件",
   "command.copyIconName": "复制图标名称",
+  "command.copyImport": "复制导入语句",
   "command.colorEditor": "在编辑器中打开",
   "command.expandAll": "全部展开",
   "command.collapseAll": "全部折叠",

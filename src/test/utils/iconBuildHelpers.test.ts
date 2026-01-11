@@ -51,10 +51,10 @@ jest.mock('../../utils/configHelper', () => ({
   getConfig: jest.fn().mockReturnValue({
     buildFormat: 'icons.js',
     webComponentName: 'svg-icon',
-    outputDirectory: 'mastersvg-icons',
+    outputDirectory: 'icons',
   }),
-  getOutputPathOrWarn: jest.fn().mockReturnValue('/workspace/mastersvg-icons'),
-  getFullOutputPath: jest.fn().mockReturnValue('/workspace/mastersvg-icons'),
+  getOutputPathOrWarn: jest.fn().mockReturnValue('/workspace/icons'),
+  getFullOutputPath: jest.fn().mockReturnValue('/workspace/icons'),
 }));
 
 // Mock iconsFileManager
@@ -138,7 +138,7 @@ describe('iconBuildHelpers', () => {
       getConfig.mockReturnValue({
         buildFormat: 'icons.js',
         webComponentName: 'svg-icon',
-        outputDirectory: 'mastersvg-icons',
+        outputDirectory: 'icons',
       });
     });
 
@@ -222,7 +222,7 @@ describe('iconBuildHelpers', () => {
     test('should use output path', () => {
       const icon = createBuiltIcon('arrow', '<svg></svg>');
 
-      expect(icon.path).toBe('/workspace/mastersvg-icons');
+      expect(icon.path).toBe('/workspace/icons');
     });
 
     test('should use source path as fallback', () => {

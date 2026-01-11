@@ -26,6 +26,7 @@
   "command.goToCode": "Перейти к коду",
   "command.openSvgFile": "Открыть SVG файл",
   "command.copyIconName": "Копировать имя иконки",
+  "command.copyImport": "Копировать импорт",
   "command.colorEditor": "Открыть в редакторе",
   "command.expandAll": "Развернуть все",
   "command.collapseAll": "Свернуть все",

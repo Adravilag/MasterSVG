@@ -292,6 +292,8 @@
     "spriteNotFound": "未找到 sprite.svg",
     "noIconsInSprite": "sprite.svg 中未找到图标",
     "iconCopied": "已复制：{name}",
+    "importCopied": "导入语句已复制: {name}",
+    "noImportNeeded": "Web Components 不需要导入语句",
     "failedToExportComponent": "导出组件失败：{error}",
     "iconRenamedTo": "图标已重命名为：{name}",
     "confirmDeleteIcon": "从精灵图中删除 \"{name}\"？",

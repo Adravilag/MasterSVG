@@ -26,6 +26,7 @@
   "command.goToCode": "Go to Code",
   "command.openSvgFile": "Open SVG File",
   "command.copyIconName": "Copy Icon Name",
+  "command.copyImport": "Copy Import Statement",
   "command.colorEditor": "Open in Editor",
   "command.expandAll": "Expand All",
   "command.collapseAll": "Collapse All",

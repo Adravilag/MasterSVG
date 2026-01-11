@@ -82,32 +82,36 @@ export class SvgTransformer {
 
   /**
    * Clean and normalize SVG content
+   * Handles both standard SVG and JSX/React SVG syntax
    */
   cleanSvg(svg: string): string {
-    return (
-      svg
-        // Remove XML declaration
-        .replace(/<\?xml[^>]*\?>/gi, '')
-        // Remove DOCTYPE
-        .replace(/<!DOCTYPE[^>]*>/gi, '')
-        // Remove comments
-        .replace(/<!--[\s\S]*?-->/g, '')
-        // Remove unnecessary whitespace
-        .replace(/\s+/g, ' ')
-        // Remove editor metadata
-        .replace(/<metadata[\s\S]*?<\/metadata>/gi, '')
-        .replace(/data-name="[^"]*"/g, '')
-        // Clean up attributes
-        .replace(/xmlns:xlink="[^"]*"/g, '')
-        .replace(/xml:space="[^"]*"/g, '')
-        // Normalize
-        .trim()
-    );
+    let cleaned = svg
+      // Remove XML declaration
+      .replace(/<\?xml[^>]*\?>/gi, '')
+      // Remove DOCTYPE
+      .replace(/<!DOCTYPE[^>]*>/gi, '')
+      // Remove HTML/XML comments
+      .replace(/<!--[\s\S]*?-->/g, '')
+      // Remove editor metadata
+      .replace(/<metadata[\s\S]*?<\/metadata>/gi, '')
+      .replace(/data-name="[^"]*"/g, '')
+      // Clean up attributes
+      .replace(/xmlns:xlink="[^"]*"/g, '')
+      .replace(/xml:space="[^"]*"/g, '');
+
+    // Convert JSX to standard SVG
+    cleaned = this.convertJsxToSvg(cleaned);
+
+    // Remove unnecessary whitespace and normalize
+    return cleaned
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   /**
    * Extract SVG body (content inside <svg> tags)
    * Also removes existing animation styles to prevent duplicates when rebuilding
+   * Converts JSX/React syntax to standard SVG
    */
   extractSvgBody(svg: string): string {
     const match = svg.match(/<svg[^>]*>([\s\S]*)<\/svg>/i);
@@ -123,6 +127,9 @@ export class SvgTransformer {
     // First unwrap the content, then remove empty wrappers
     body = body.replace(/<g[^>]*class=["']icon-anim-\d+["'][^>]*>([\s\S]*?)<\/g>/gi, '$1');
 
+    // Convert JSX/React syntax to standard SVG
+    body = this.convertJsxToSvg(body);
+
     // Normalize whitespace: collapse multiple spaces/newlines into single space
     // but preserve structure of the SVG elements
     body = body
@@ -134,6 +141,41 @@ export class SvgTransformer {
       .trim();
 
     return body;
+  }
+
+  /**
+   * Convert JSX/React SVG syntax to standard SVG
+   */
+  private convertJsxToSvg(content: string): string {
+    return content
+      // Remove JSX comments {/* ... */}
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
+      // Convert JSX expressions with variables to sensible defaults
+      .replace(/=\{(?:props\.)?color\}/gi, '="currentColor"')
+      .replace(/=\{(?:props\.)?size\}/gi, '="24"')
+      .replace(/=\{(?:props\.)?(?:speed|duration)\}/gi, '="1s"')
+      // Generic {expression} -> remove the braces, keep as string if possible
+      .replace(/=\{["']([^"']+)["']\}/g, '="$1"') // ={'value'} or ={"value"} -> ="value"
+      .replace(/=\{([^}]+)\}/g, '=""') // Other expressions -> empty
+      // Convert camelCase SVG attributes to kebab-case
+      .replace(/strokeWidth=/gi, 'stroke-width=')
+      .replace(/strokeLinecap=/gi, 'stroke-linecap=')
+      .replace(/strokeLinejoin=/gi, 'stroke-linejoin=')
+      .replace(/strokeDasharray=/gi, 'stroke-dasharray=')
+      .replace(/strokeDashoffset=/gi, 'stroke-dashoffset=')
+      .replace(/strokeMiterlimit=/gi, 'stroke-miterlimit=')
+      .replace(/strokeOpacity=/gi, 'stroke-opacity=')
+      .replace(/fillOpacity=/gi, 'fill-opacity=')
+      .replace(/fillRule=/gi, 'fill-rule=')
+      .replace(/clipPath=/gi, 'clip-path=')
+      .replace(/clipRule=/gi, 'clip-rule=')
+      .replace(/fontFamily=/gi, 'font-family=')
+      .replace(/fontSize=/gi, 'font-size=')
+      .replace(/fontWeight=/gi, 'font-weight=')
+      .replace(/textAnchor=/gi, 'text-anchor=')
+      .replace(/dominantBaseline=/gi, 'dominant-baseline=')
+      .replace(/stopColor=/gi, 'stop-color=')
+      .replace(/stopOpacity=/gi, 'stop-opacity=');
   }
 
   /**

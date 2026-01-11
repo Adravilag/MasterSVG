@@ -206,6 +206,11 @@
         "icon": "$(copy)"
       },
       {
+        "command": "masterSVG.copyImport",
+        "title": "%command.copyImport%",
+        "icon": "$(file-code)"
+      },
+      {
         "command": "masterSVG.colorEditor",
         "title": "%command.colorEditor%",
         "icon": "$(edit)"
@@ -769,9 +774,14 @@
           "group": "1_copy@1"
         },
         {
-          "command": "masterSVG.exportComponent",
+          "command": "masterSVG.copyImport",
           "when": "view == masterSVG.svgFiles && viewItem =~ /svgIcon|svgIconBuilt/",
           "group": "1_copy@2"
+        },
+        {
+          "command": "masterSVG.exportComponent",
+          "when": "view == masterSVG.svgFiles && viewItem =~ /svgIcon|svgIconBuilt/",
+          "group": "1_copy@3"
         },
         {
           "command": "masterSVG.renameIcon",
@@ -819,9 +829,14 @@
           "group": "1_copy@1"
         },
         {
+          "command": "masterSVG.copyImport",
+          "when": "view == masterSVG.workspaceIcons && viewItem =~ /inlineSvg|imgRef|builtIcon|inlineSvgBuilt/",
+          "group": "1_copy@2"
+        },
+        {
           "command": "masterSVG.exportComponent",
           "when": "view == masterSVG.workspaceIcons && viewItem =~ /inlineSvg|imgRef|inlineSvgBuilt/",
-          "group": "1_copy@2"
+          "group": "1_copy@3"
         },
         {
           "command": "masterSVG.deleteIcons",
@@ -879,9 +894,14 @@
           "group": "1_copy@1"
         },
         {
-          "command": "masterSVG.exportComponent",
+          "command": "masterSVG.copyImport",
           "when": "view == masterSVG.builtIcons && viewItem == builtIcon",
           "group": "1_copy@2"
+        },
+        {
+          "command": "masterSVG.exportComponent",
+          "when": "view == masterSVG.builtIcons && viewItem == builtIcon",
+          "group": "1_copy@3"
         },
         {
           "command": "masterSVG.renameIcon",

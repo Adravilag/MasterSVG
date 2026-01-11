@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import { WorkspaceIcon, IconAnimation } from '../types/icons';
 import { SvgItem } from './SvgItem';
+import { getAnimationService } from '../services/AnimationAssignmentService';
 
 export interface SvgDataResult {
   name: string;
@@ -104,12 +105,29 @@ export class IconLookupService {
 
     const icon = item.icon;
 
+    // For built icons, check AnimationAssignmentService first for the most up-to-date animation
+    let animation: IconAnimation | undefined = icon.animation;
+    if (icon.isBuilt) {
+      const animService = getAnimationService();
+      const assigned = animService.getAnimation(icon.name);
+      if (assigned?.type && assigned.type !== 'none') {
+        animation = {
+          type: assigned.type,
+          duration: assigned.duration ?? 1,
+          timing: assigned.timing ?? 'ease',
+          iteration: assigned.iteration ?? 'infinite',
+          delay: assigned.delay,
+          direction: assigned.direction,
+        };
+      }
+    }
+
     if (icon.svg) {
       return {
         name: icon.name,
         svg: icon.svg,
         location: icon.filePath && icon.line ? { file: icon.filePath, line: icon.line } : undefined,
-        animation: icon.animation,
+        animation,
       };
     }
 

@@ -479,7 +479,11 @@ export class SvgManipulationService {
   }
 
   public static detectAnimationFromSvg(svg: string): DetectedAnimation | null {
-    // Try DOM parsing first
+    // First check for native SMIL animations
+    const smilAnimation = this.detectSmilAnimation(svg);
+    if (smilAnimation) return smilAnimation;
+
+    // Try DOM parsing for CSS animations
     try {
       let hasError = false;
       const parser = new DOMParser({
@@ -509,6 +513,76 @@ export class SvgManipulationService {
 
     // Fallback to regex on full string
     return this.analyzeCssContent(svg);
+  }
+
+  /**
+   * Detect native SMIL animations in SVG
+   */
+  private static detectSmilAnimation(svg: string): DetectedAnimation | null {
+    // Check for SMIL animation elements
+    const hasAnimateTransform = /<animateTransform\b/i.test(svg);
+    const hasAnimate = /<animate\b/i.test(svg);
+    const hasAnimateMotion = /<animateMotion\b/i.test(svg);
+    const hasSet = /<set\b/i.test(svg);
+
+    if (!hasAnimateTransform && !hasAnimate && !hasAnimateMotion && !hasSet) {
+      return null;
+    }
+
+    // Try to extract animation details
+    let duration = 1;
+    let iteration = 'infinite';
+
+    // Extract duration from dur attribute
+    const durMatch = svg.match(/\bdur=["']([^"']+)["']/i);
+    if (durMatch) {
+      const durStr = durMatch[1];
+      // Parse duration (e.g., "1s", "500ms", "2")
+      if (durStr.endsWith('ms')) {
+        duration = parseFloat(durStr) / 1000;
+      } else if (durStr.endsWith('s')) {
+        duration = parseFloat(durStr);
+      } else {
+        duration = parseFloat(durStr) || 1;
+      }
+    }
+
+    // Check repeatCount
+    const repeatMatch = svg.match(/\brepeatCount=["']([^"']+)["']/i);
+    if (repeatMatch) {
+      iteration = repeatMatch[1];
+    }
+
+    // Determine animation type based on what's found
+    let type = 'native';
+    if (hasAnimateTransform) {
+      // Check the type of transform
+      const typeMatch = svg.match(/<animateTransform[^>]*type=["']([^"']+)["']/i);
+      if (typeMatch) {
+        const transformType = typeMatch[1].toLowerCase();
+        if (transformType === 'rotate') type = 'native-rotate';
+        else if (transformType === 'scale') type = 'native-scale';
+        else if (transformType === 'translate') type = 'native-translate';
+        else type = `native-${transformType}`;
+      } else {
+        type = 'native-transform';
+      }
+    } else if (hasAnimateMotion) {
+      type = 'native-motion';
+    } else if (hasAnimate) {
+      type = 'native-animate';
+    }
+
+    return {
+      type,
+      settings: {
+        duration,
+        timing: 'linear',
+        iteration,
+        delay: 0,
+        direction: 'normal',
+      },
+    };
   }
 
   private static analyzeCssContent(content: string): DetectedAnimation | null {

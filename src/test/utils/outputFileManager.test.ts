@@ -718,9 +718,9 @@ export const icons = {
   });
 
   describe('path utilities', () => {
-    it('getIconsFilePath should return icons.js path', () => {
+    it('getIconsFilePath should return svg-data.js path', () => {
       const result = getIconsFilePath('/output');
-      expect(result).toMatch(/icons\.js$/);
+      expect(result).toMatch(/svg-data\.js$/);
     });
 
     it('getSpriteFilePath should return sprite.svg path', () => {
@@ -728,19 +728,19 @@ export const icons = {
       expect(result).toMatch(/sprite\.svg$/);
     });
 
-    it('getWebComponentFilePath should return icon.js path', () => {
+    it('getWebComponentFilePath should return svg-element.js path', () => {
       const result = getWebComponentFilePath('/output');
-      expect(result).toMatch(/icon\.js$/);
+      expect(result).toMatch(/svg-element\.js$/);
     });
 
-    it('getVariantsFilePath should return variants.js path', () => {
+    it('getVariantsFilePath should return svg-variants.js path', () => {
       const result = getVariantsFilePath('/output');
-      expect(result).toMatch(/variants\.js$/);
+      expect(result).toMatch(/svg-variants\.js$/);
     });
 
-    it('getAnimationsFilePath should return animations.js path', () => {
+    it('getAnimationsFilePath should return svg-animations.js path', () => {
       const result = getAnimationsFilePath('/output');
-      expect(result).toMatch(/animations\.js$/);
+      expect(result).toMatch(/svg-animations\.js$/);
     });
   });
 

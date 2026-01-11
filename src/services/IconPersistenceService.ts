@@ -31,18 +31,18 @@ export class IconPersistenceService {
    */
   public getOutputPath(): string | undefined {
     const workspaceFolders = vscode.workspace.workspaceFolders;
-    const outputDir = getSvgConfig<string>('outputDirectory', 'mastersvg-icons');
+    const outputDir = getSvgConfig<string>('outputDirectory', 'icons');
     if (!workspaceFolders || !outputDir) return undefined;
     return path.join(workspaceFolders[0].uri.fsPath, outputDir);
   }
 
   /**
-   * Get the path to icons.js file
+   * Get the path to svg-data.js file
    */
   public getIconsFilePath(): string | undefined {
     const outputPath = this.getOutputPath();
     if (!outputPath) return undefined;
-    return path.join(outputPath, 'icons.js');
+    return path.join(outputPath, 'svg-data.js');
   }
 
   /**
@@ -115,13 +115,14 @@ export class IconPersistenceService {
     }
 
     // Get output directory from config
-    const outputDir = getSvgConfig<string>('outputDirectory', 'MasterSVG-icons');
+    const outputDir = getSvgConfig<string>('outputDirectory', 'icons');
 
-    // Look for icons.js in configured output and common locations (with legacy fallbacks)
+    // Look for svg-data.js in configured output and common locations (with legacy fallbacks)
     const possiblePaths = outputDir
-      ? [`${outputDir}/icons.js`, 'svg/icons.js', 'icons.js']
+      ? [`${outputDir}/svg-data.js`, `${outputDir}/icons.js`, 'svg/icons.js', 'icons.js']
       : [
-          'MasterSVG-icons/icons.js',
+          'icons/svg-data.js',
+          'icons/icons.js',
           'svg/icons.js',
           'dist/icons.js',
           'build/icons.js',

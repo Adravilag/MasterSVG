@@ -8,11 +8,11 @@ import { t } from '../i18n';
  */
 export interface ColorHandlerContext {
   iconData:
-    | {
-        name: string;
-        svg: string;
-      }
-    | undefined;
+  | {
+    name: string;
+    svg: string;
+  }
+  | undefined;
   selectedVariantIndex: number;
   colorService: ColorService;
   variantsService: VariantsService;

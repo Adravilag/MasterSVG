@@ -14,35 +14,42 @@ export interface FolderTreeNode {
  */
 export class FolderTreeBuilder {
   /**
+   * Get or create a node in the tree
+   */
+  private static getOrCreateNode(
+    tree: Map<string, FolderTreeNode>,
+    nodePath: string
+  ): FolderTreeNode {
+    let node = tree.get(nodePath);
+    if (!node) {
+      node = { subfolders: new Set(), files: [] };
+      tree.set(nodePath, node);
+    }
+    return node;
+  }
+
+  /**
    * Build a tree structure from paths
    */
   static buildFolderTree(paths: string[]): Map<string, FolderTreeNode> {
     const tree = new Map<string, FolderTreeNode>();
 
-    for (const p of paths) {
-      const parts = p.split('/');
+    for (const filePath of paths) {
+      const parts = filePath.split('/');
       let currentPath = '';
 
+      // Build folder hierarchy
       for (let i = 0; i < parts.length - 1; i++) {
         const parentPath = currentPath;
         currentPath = currentPath ? `${currentPath}/${parts[i]}` : parts[i];
 
-        if (!tree.has(parentPath)) {
-          tree.set(parentPath, { subfolders: new Set(), files: [] });
-        }
-        tree.get(parentPath)!.subfolders.add(currentPath);
-
-        if (!tree.has(currentPath)) {
-          tree.set(currentPath, { subfolders: new Set(), files: [] });
-        }
+        this.getOrCreateNode(tree, parentPath).subfolders.add(currentPath);
+        this.getOrCreateNode(tree, currentPath);
       }
 
       // Add file to its parent directory
       const parentDir = parts.slice(0, -1).join('/');
-      if (!tree.has(parentDir)) {
-        tree.set(parentDir, { subfolders: new Set(), files: [] });
-      }
-      tree.get(parentDir)!.files.push(p);
+      this.getOrCreateNode(tree, parentDir).files.push(filePath);
     }
 
     return tree;
@@ -60,7 +67,7 @@ export class FolderTreeBuilder {
    */
   static toRelativePaths(absolutePaths: string[], workspaceRoot?: string): string[] {
     const root = workspaceRoot || this.getWorkspaceRoot();
-    return absolutePaths.map(p => path.relative(root, p).replace(/\\\\/g, '/'));
+    return absolutePaths.map(p => path.relative(root, p).replace(/\\/g, '/'));
   }
 
   /**
@@ -86,21 +93,16 @@ export class FolderTreeBuilder {
   }
 
   /**
-   * Count items in a subtree
+   * Count files in a subtree that match the given criteria
    */
   static countInSubtree(
     subfolder: string,
     allPaths: string[],
     matcher?: (path: string) => boolean
   ): number {
-    let count = 0;
-    for (const p of allPaths) {
-      if (p.startsWith(subfolder + '/') || p === subfolder) {
-        if (!matcher || matcher(p)) {
-          count++;
-        }
-      }
-    }
-    return count;
+    const prefix = subfolder + '/';
+    return allPaths.filter(p =>
+      p.startsWith(prefix) && (!matcher || matcher(p))
+    ).length;
   }
 }

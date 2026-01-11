@@ -135,7 +135,7 @@ export async function addToIconsJs(options: AddToIconsJsOptions): Promise<void> 
       throw new Error(`Invalid SVG content for "${iconName}": ${validation.error}`);
     }
 
-    const iconsPath = path.join(outputPath, 'icons.js');
+    const iconsPath = path.join(outputPath, 'svg-data.js');
     const varName = toVariableName(iconName);
     const body = transformer.extractSvgBody(svgContent);
     const attrs = transformer.extractSvgAttributes(svgContent);
@@ -174,18 +174,18 @@ export async function addToIconsJs(options: AddToIconsJsOptions): Promise<void> 
     if (!skipWebComponentGeneration) {
       await generateWebComponent(outputPath);
     }
-  }, `adding icon ${iconName} to icons.js`);
+  }, `adding icon ${iconName} to svg-data.js`);
 }
 
 /**
- * Update animation for an existing icon in icons.js
+ * Update animation for an existing icon in svg-data.js
  */
 export async function updateIconAnimation(
   outputPath: string,
   iconName: string,
   animation: AnimationConfig | null
 ): Promise<boolean> {
-  const iconsPath = path.join(outputPath, 'icons.js');
+  const iconsPath = path.join(outputPath, 'svg-data.js');
   if (!fs.existsSync(iconsPath)) return false;
 
   const varName = toVariableName(iconName);
@@ -241,7 +241,7 @@ export async function generateWebComponent(
 ): Promise<{ path: string; content: string }> {
   const config = getConfig();
   const tagName = config.webComponentName;
-  const componentPath = path.join(outputPath, 'icon.js');
+  const componentPath = path.join(outputPath, 'svg-element.js');
 
   // Load template and replace placeholders
   const template = loadTemplate('IconWebComponent.js');
@@ -299,10 +299,10 @@ ${symbolEntry}
 }
 
 /**
- * Remove icons from the icons.js library
+ * Remove icons from the svg-data.js library
  */
 export function removeFromIconsJs(outputPath: string, iconNames: string[]): boolean {
-  const iconsPath = path.join(outputPath, 'icons.js');
+  const iconsPath = path.join(outputPath, 'svg-data.js');
 
   if (!fs.existsSync(iconsPath)) {
     return false;
@@ -333,10 +333,10 @@ export function removeFromIconsJs(outputPath: string, iconNames: string[]): bool
 }
 
 /**
- * Get list of icon names from icons.js
+ * Get list of icon names from svg-data.js
  */
 export function getIconNamesFromFile(outputPath: string): string[] {
-  const iconsPath = path.join(outputPath, 'icons.js');
+  const iconsPath = path.join(outputPath, 'svg-data.js');
 
   if (!fs.existsSync(iconsPath)) {
     return [];

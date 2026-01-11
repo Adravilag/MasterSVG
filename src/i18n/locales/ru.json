@@ -273,6 +273,8 @@
     "spriteNotFound": "sprite.svg не найден",
     "noIconsInSprite": "Иконки не найдены в sprite.svg",
     "iconCopied": "Скопировано: {name}",
+    "importCopied": "Импорт скопирован: {name}",
+    "noImportNeeded": "Импорт не нужен для Web Components",
     "failedToExportComponent": "Не удалось экспортировать компонент: {error}",
     "iconRenamedTo": "Иконка переименована в: {name}",
     "confirmDeleteIcon": "Удалить \"{name}\" из спрайта?",

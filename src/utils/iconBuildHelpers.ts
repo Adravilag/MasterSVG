@@ -137,7 +137,7 @@ const PRESERVED_ATTRIBUTES = [
   '[ngClass]', '[ngStyle]', '[class]', '[style]',
   '(click)', '(mouseenter)', '(mouseleave)', '(focus)', '(blur)',
   '@if', '@for', '@switch',
-  // Vue directives  
+  // Vue directives
   'v-if', 'v-else', 'v-else-if', 'v-show', 'v-for', 'v-bind', 'v-on',
   ':class', ':style', '@click', '@mouseenter', '@mouseleave',
   // React/JSX
@@ -154,22 +154,22 @@ const PRESERVED_ATTRIBUTES = [
  */
 export function extractPreservedAttributes(svgContent: string): Record<string, string> {
   const preserved: Record<string, string> = {};
-  
+
   // Match the opening <svg tag
   const svgTagMatch = svgContent.match(/<svg([^>]*)>/i);
   if (!svgTagMatch) return preserved;
-  
+
   const attributesStr = svgTagMatch[1];
-  
+
   // Match attributes - handles both quoted and binding syntax
   // Pattern matches: attr="value", [attr]="value", (attr)="value", *attr="value", @attr="value", :attr="value", v-attr="value"
   const attrRegex = /(\*?[@:(\[]?[\w.-]+[\])]?)=["']([^"']*)["']/g;
-  
+
   let match;
   while ((match = attrRegex.exec(attributesStr)) !== null) {
     const attrName = match[1];
     const attrValue = match[2];
-    
+
     // Check if this attribute should be preserved
     const shouldPreserve = PRESERVED_ATTRIBUTES.some(preserved => {
       // Exact match
@@ -187,12 +187,12 @@ export function extractPreservedAttributes(svgContent: string): Record<string, s
       if (preserved.startsWith('v-') && attrName === preserved) return true;
       return false;
     });
-    
+
     if (shouldPreserve) {
       preserved[attrName] = attrValue;
     }
   }
-  
+
   return preserved;
 }
 
@@ -202,7 +202,7 @@ export function extractPreservedAttributes(svgContent: string): Record<string, s
 function formatPreservedAttributes(preserved: Record<string, string>): string {
   const entries = Object.entries(preserved);
   if (entries.length === 0) return '';
-  
+
   return ' ' + entries.map(([key, value]) => `${key}="${value}"`).join(' ');
 }
 
@@ -213,7 +213,7 @@ function formatPreservedAttributes(preserved: Record<string, string>): string {
  * @param preservedAttrs - Optional attributes to preserve from original SVG
  */
 export function generateReplacement(
-  iconName: string, 
+  iconName: string,
   languageId: string,
   preservedAttrs?: Record<string, string>
 ): string {
@@ -251,10 +251,11 @@ export async function checkScriptImport(
   if (!['html', 'htm'].includes(ext)) return;
 
   const fullText = document.getText();
-  const hasIconScript = fullText.includes('icon.js') || fullText.includes('icons.js');
+  const hasIconScript = fullText.includes('svg-element.js') || fullText.includes('svg-data.js') ||
+                        fullText.includes('icon.js') || fullText.includes('icons.js'); // Legacy support
 
   if (!hasIconScript) {
-    const outputDir = config.outputDirectory || 'icon-studio-icons';
+    const outputDir = config.outputDirectory || 'icons';
     const addScript = await vscode.window.showWarningMessage(
       `⚠️ ${t('messages.missingScriptImport', { outputDir })}`,
       t('messages.copyToClipboard'),
@@ -262,7 +263,7 @@ export async function checkScriptImport(
     );
 
     if (addScript === t('messages.copyToClipboard')) {
-      const scriptTag = `<script type="module" src="./${outputDir}/icon.js"></script>`;
+      const scriptTag = `<script type="module" src="./${outputDir}/svg-element.js"></script>`;
       await vscode.env.clipboard.writeText(scriptTag);
       vscode.window.showInformationMessage(t('messages.scriptCopiedToClipboard'));
     }

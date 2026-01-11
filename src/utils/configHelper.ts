@@ -22,7 +22,7 @@ export interface IconStudioConfig {
 export function getConfig(): IconStudioConfig {
   const config = vscode.workspace.getConfiguration('masterSVG');
   return {
-    outputDirectory: config.get<string>('outputDirectory', 'mastersvg-icons'),
+    outputDirectory: config.get<string>('outputDirectory', 'icons'),
     componentName: config.get<string>('componentName', 'Icon'),
     nameAttribute: config.get<string>('nameAttribute', 'name'),
     defaultSize: config.get<number>('defaultSize', 24),
@@ -62,21 +62,39 @@ export function isOutputConfigured(): boolean {
 }
 
 /**
- * Check if icons.js file exists in the output directory
+ * Check if svg-data.js (or legacy icons.js) file exists in the output directory
  */
-export function iconsJsExists(): boolean {
+export function svgDataExists(): boolean {
   const fullPath = getFullOutputPath();
   if (!fullPath) return false;
-  return fs.existsSync(path.join(fullPath, 'icons.js'));
+  // Check new name first, then legacy name for backwards compatibility
+  return fs.existsSync(path.join(fullPath, 'svg-data.js')) ||
+         fs.existsSync(path.join(fullPath, 'icons.js'));
 }
 
 /**
- * Update the VS Code context for icons.js existence
+ * @deprecated Use svgDataExists instead
+ */
+export function iconsJsExists(): boolean {
+  return svgDataExists();
+}
+
+/**
+ * Update the VS Code context for svg-data.js existence
  * Should be called when icons are built or removed
  */
-export function updateIconsJsContext(): void {
-  const exists = iconsJsExists();
+export function updateSvgDataContext(): void {
+  const exists = svgDataExists();
+  vscode.commands.executeCommand('setContext', 'masterSVG.svgDataExists', exists);
+  // Keep legacy context for backwards compatibility
   vscode.commands.executeCommand('setContext', 'masterSVG.iconsJsExists', exists);
+}
+
+/**
+ * @deprecated Use updateSvgDataContext instead
+ */
+export function updateIconsJsContext(): void {
+  updateSvgDataContext();
 }
 
 /**

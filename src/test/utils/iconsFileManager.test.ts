@@ -281,7 +281,7 @@ export const arrowLeft = {
     it('should generate web component content', async () => {
       const result = await generateWebComponent('/output');
 
-      expect(result.path).toContain('icon.js');
+      expect(result.path).toContain('svg-element.js');
       expect(result.content).toContain('class IconElement extends HTMLElement');
       expect(result.content).toContain('customElements.define');
     });

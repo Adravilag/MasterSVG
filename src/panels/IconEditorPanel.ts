@@ -576,7 +576,7 @@ export class IconEditorPanel {
   // Animation storage methods - use animations.js in output directory
   private _getOutputPath(): string | undefined {
     const workspaceFolders = vscode.workspace.workspaceFolders;
-    const outputDir = getSvgConfig<string>('outputDirectory', 'mastersvg-icons');
+    const outputDir = getSvgConfig<string>('outputDirectory', 'icons');
     if (!workspaceFolders || !outputDir) return undefined;
     return path.join(workspaceFolders[0].uri.fsPath, outputDir);
   }

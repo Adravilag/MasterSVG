@@ -131,8 +131,13 @@ export class SvgItem extends vscode.TreeItem {
       if (!animationType && icon.animation?.type && icon.animation.type !== 'none') {
         animationType = icon.animation.type;
       }
-      // Note: We intentionally don't detect CSS animations for built icons here
-      // since the user's choice in the editor (AnimationAssignmentService) should be respected
+      // Check for native SMIL animations embedded in the SVG body
+      if (!animationType && icon.svg) {
+        const hasNativeAnimation = this.detectNativeAnimation(icon.svg);
+        if (hasNativeAnimation) {
+          animationType = hasNativeAnimation;
+        }
+      }
     } else {
       // For non-built icons, use the original detection logic
       animationType =
@@ -149,7 +154,9 @@ export class SvgItem extends vscode.TreeItem {
       // Build description with animation info for built icons
       const parts: string[] = [];
       if (animationType) {
-        parts.push(`⚡ ${animationType}`);
+        // Use different icon for native animations
+        const isNative = animationType.startsWith('native');
+        parts.push(`${isNative ? '🔄' : '⚡'} ${animationType}`);
       }
       if (icon.usageCount !== undefined) {
         if (icon.usageCount === 0) {
@@ -394,6 +401,40 @@ export class SvgItem extends vscode.TreeItem {
     }
 
     return null;
+  }
+
+  /**
+   * Detect native SMIL animation from SVG content
+   * Returns animation type string or null
+   */
+  private detectNativeAnimation(svg: string): string | null {
+    // Check for SMIL animation elements
+    const hasAnimateTransform = /<animateTransform\b/i.test(svg);
+    const hasAnimate = /<animate\b/i.test(svg);
+    const hasAnimateMotion = /<animateMotion\b/i.test(svg);
+    const hasSet = /<set\b/i.test(svg);
+
+    if (!hasAnimateTransform && !hasAnimate && !hasAnimateMotion && !hasSet) {
+      return null;
+    }
+
+    // Determine specific animation type
+    if (hasAnimateTransform) {
+      // Check the type of transform
+      const typeMatch = svg.match(/<animateTransform[^>]*type=["']([^"']+)["']/i);
+      if (typeMatch) {
+        const transformType = typeMatch[1].toLowerCase();
+        return `native-${transformType}`;
+      }
+      return 'native-transform';
+    }
+    if (hasAnimateMotion) {
+      return 'native-motion';
+    }
+    if (hasAnimate) {
+      return 'native-animate';
+    }
+    return 'native';
   }
 
   /**

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { t } from '../i18n';
+import { getFrameworkImportStatement } from '../utils/configHelper';
 
 // Double-click detection state
 let lastClickTime = 0;
@@ -222,6 +223,23 @@ export function registerNavigationCommands(_context: vscode.ExtensionContext): v
       if (icon && icon.name) {
         await vscode.env.clipboard.writeText(icon.name);
         vscode.window.showInformationMessage(t('messages.iconCopied', { name: icon.name }));
+      }
+    })
+  );
+
+  // Command: Copy Import Statement
+  commands.push(
+    vscode.commands.registerCommand('masterSVG.copyImport', async (iconOrItem: any) => {
+      const icon = iconOrItem?.icon || iconOrItem;
+      if (icon && icon.name) {
+        const importStatement = getFrameworkImportStatement(icon.name);
+        if (importStatement) {
+          await vscode.env.clipboard.writeText(importStatement);
+          vscode.window.showInformationMessage(t('messages.importCopied', { name: icon.name }));
+        } else {
+          // For HTML/Web Components, no import needed
+          vscode.window.showInformationMessage(t('messages.noImportNeeded'));
+        }
       }
     })
   );

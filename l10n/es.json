@@ -292,6 +292,8 @@
     "spriteNotFound": "sprite.svg no encontrado",
     "noIconsInSprite": "No se encontraron iconos en sprite.svg",
     "iconCopied": "Copiado: {name}",
+    "importCopied": "Import copiado: {name}",
+    "noImportNeeded": "No se necesita import para Web Components",
     "failedToExportComponent": "Error al exportar componente: {error}",
     "iconRenamedTo": "Icono renombrado a: {name}",
     "confirmDeleteIcon": "¿Eliminar \"{name}\" del sprite?",

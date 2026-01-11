@@ -62,14 +62,14 @@ export class VariantsService {
   }
 
   /**
-   * Get the path to the variants.js file
+   * Get the path to the svg-variants.js file
    */
   private _getVariantsFilePath(): string | undefined {
-    const outputDir = getSvgConfig<string>('outputDirectory', 'mastersvg-icons');
+    const outputDir = getSvgConfig<string>('outputDirectory', 'icons');
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders || !outputDir) return undefined;
 
-    return path.join(workspaceFolders[0].uri.fsPath, outputDir, 'variants.js');
+    return path.join(workspaceFolders[0].uri.fsPath, outputDir, 'svg-variants.js');
   }
 
   /**

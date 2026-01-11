@@ -25,8 +25,8 @@ describe('FrameworkWrapperService', () => {
   });
 
   describe('getWrapperFilename', () => {
-    it('should return web-component.js for html', () => {
-      expect(service.getWrapperFilename('html', 'svg-icon')).toBe('web-component.js');
+    it('should return svg-element.js for html', () => {
+      expect(service.getWrapperFilename('html', 'svg-icon')).toBe('svg-element.js');
     });
 
     it('should return .tsx for react', () => {
@@ -87,24 +87,24 @@ describe('FrameworkWrapperService', () => {
       expect(service.getDefaultComponentName('html')).toBe('svg-icon');
     });
 
-    it('should return app-icon for angular', () => {
-      expect(service.getDefaultComponentName('angular')).toBe('app-icon');
+    it('should return svg-icon for angular', () => {
+      expect(service.getDefaultComponentName('angular')).toBe('svg-icon');
     });
 
-    it('should return Icon for react', () => {
-      expect(service.getDefaultComponentName('react')).toBe('Icon');
+    it('should return SvgIcon for react', () => {
+      expect(service.getDefaultComponentName('react')).toBe('SvgIcon');
     });
 
-    it('should return Icon for vue', () => {
-      expect(service.getDefaultComponentName('vue')).toBe('Icon');
+    it('should return SvgIcon for vue', () => {
+      expect(service.getDefaultComponentName('vue')).toBe('SvgIcon');
     });
 
-    it('should return Icon for svelte', () => {
-      expect(service.getDefaultComponentName('svelte')).toBe('Icon');
+    it('should return SvgIcon for svelte', () => {
+      expect(service.getDefaultComponentName('svelte')).toBe('SvgIcon');
     });
 
-    it('should return Icon for astro', () => {
-      expect(service.getDefaultComponentName('astro')).toBe('Icon');
+    it('should return SvgIcon for astro', () => {
+      expect(service.getDefaultComponentName('astro')).toBe('SvgIcon');
     });
   });
 
@@ -145,7 +145,7 @@ describe('FrameworkWrapperService', () => {
       service.generateWrapper(mockOutputPath, 'html', 'svg-icon');
 
       expect(fs.writeFileSync).toHaveBeenCalledWith(
-        path.join(mockOutputPath, 'web-component.js'),
+        path.join(mockOutputPath, 'svg-element.js'),
         expect.stringContaining('customElements.define'),
         'utf-8'
       );

@@ -591,10 +591,17 @@ export function buildSpriteFileContent(
 // ==================== Path Utilities ====================
 
 /**
- * Get icons.js file path
+ * Get svg-data.js file path (icon definitions)
+ */
+export function getSvgDataFilePath(outputPath: string): string {
+  return path.join(outputPath, 'svg-data.js');
+}
+
+/**
+ * @deprecated Use getSvgDataFilePath instead
  */
 export function getIconsFilePath(outputPath: string): string {
-  return path.join(outputPath, 'icons.js');
+  return getSvgDataFilePath(outputPath);
 }
 
 /**
@@ -605,24 +612,45 @@ export function getSpriteFilePath(outputPath: string): string {
 }
 
 /**
- * Get icon.js (web component) file path
+ * Get svg-element.js (web component) file path
+ */
+export function getSvgElementFilePath(outputPath: string): string {
+  return path.join(outputPath, 'svg-element.js');
+}
+
+/**
+ * @deprecated Use getSvgElementFilePath instead
  */
 export function getWebComponentFilePath(outputPath: string): string {
-  return path.join(outputPath, 'icon.js');
+  return getSvgElementFilePath(outputPath);
 }
 
 /**
- * Get variants.js file path
+ * Get svg-variants.js file path
+ */
+export function getSvgVariantsFilePath(outputPath: string): string {
+  return path.join(outputPath, 'svg-variants.js');
+}
+
+/**
+ * @deprecated Use getSvgVariantsFilePath instead
  */
 export function getVariantsFilePath(outputPath: string): string {
-  return path.join(outputPath, 'variants.js');
+  return getSvgVariantsFilePath(outputPath);
 }
 
 /**
- * Get animations.js file path
+ * Get svg-animations.js file path
+ */
+export function getSvgAnimationsFilePath(outputPath: string): string {
+  return path.join(outputPath, 'svg-animations.js');
+}
+
+/**
+ * @deprecated Use getSvgAnimationsFilePath instead
  */
 export function getAnimationsFilePath(outputPath: string): string {
-  return path.join(outputPath, 'animations.js');
+  return getSvgAnimationsFilePath(outputPath);
 }
 
 /**
