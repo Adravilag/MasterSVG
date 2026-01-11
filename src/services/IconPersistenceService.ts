@@ -28,9 +28,9 @@ export class IconPersistenceService {
 
   /**
    * Get the output path for generated icon files.
-   * 
+   *
    * Combines the workspace root with the configured output directory.
-   * 
+   *
    * @returns The absolute path to the output directory, or undefined if no workspace is open
    * @example
    * ```typescript
@@ -47,9 +47,9 @@ export class IconPersistenceService {
 
   /**
    * Get the full path to the svg-data.js file.
-   * 
+   *
    * This file contains all icon definitions as JavaScript exports.
-   * 
+   *
    * @returns Absolute path to svg-data.js, or undefined if workspace unavailable
    * @example
    * ```typescript
@@ -65,10 +65,10 @@ export class IconPersistenceService {
 
   /**
    * Update an existing icon in a sprite.svg file.
-   * 
+   *
    * Finds the symbol by ID and replaces its content and viewBox.
    * Also regenerates the TypeScript definition file.
-   * 
+   *
    * @param iconName - The icon identifier (must match symbol id in sprite)
    * @param svg - The new SVG content to replace with
    * @param spriteFile - Absolute path to the sprite.svg file
@@ -138,10 +138,10 @@ export class IconPersistenceService {
 
   /**
    * Update an existing icon in the svg-data.js file.
-   * 
+   *
    * Searches for the icon export and replaces its body content.
    * Supports legacy icons.js filename for backward compatibility.
-   * 
+   *
    * @param iconName - The icon name (will be converted to variable format)
    * @param svg - The new SVG content
    * @returns Promise resolving to true if update succeeded, false otherwise

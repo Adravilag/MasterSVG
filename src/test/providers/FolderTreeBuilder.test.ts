@@ -106,7 +106,7 @@ describe('FolderTreeBuilder', () => {
       // We test this by verifying the result doesn't contain backslashes
       const absolutePaths = ['/workspace/src/icons/home.svg'];
       const result = FolderTreeBuilder.toRelativePaths(absolutePaths, '/workspace');
-      
+
       // Result should not contain backslashes
       expect(result[0]).not.toContain('\\');
       // Result should be a valid forward-slash path

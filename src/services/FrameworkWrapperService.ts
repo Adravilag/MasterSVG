@@ -19,10 +19,10 @@ export class FrameworkWrapperService {
 
   /**
    * Generate and write a framework-specific icon wrapper component.
-   * 
+   *
    * Creates the appropriate component file based on the target framework,
    * with proper imports, props handling, and styling.
-   * 
+   *
    * @param outputPath - Directory where the component file will be created
    * @param framework - Target framework ('react', 'vue', 'svelte', etc.)
    * @param componentName - Name for the generated component
@@ -54,14 +54,14 @@ export class FrameworkWrapperService {
 
   /**
    * Get the appropriate filename for a wrapper component.
-   * 
+   *
    * Returns framework-specific filename with correct extension and casing:
    * - React/Solid/Qwik: PascalCase.tsx
    * - Vue: PascalCase.vue
    * - Svelte: PascalCase.svelte
    * - Angular: kebab-case.component.ts
    * - HTML: svg-element.js
-   * 
+   *
    * @param framework - Target framework
    * @param componentName - Base component name
    * @returns Filename with appropriate extension
@@ -98,10 +98,10 @@ export class FrameworkWrapperService {
 
   /**
    * Get the recommended default component name for a framework.
-   * 
+   *
    * Web Components (HTML) and Angular require hyphenated names,
    * while other frameworks use PascalCase.
-   * 
+   *
    * @param framework - Target framework
    * @returns Default component name ('SvgIcon' or 'svg-icon')
    * @example
@@ -124,10 +124,10 @@ export class FrameworkWrapperService {
 
   /**
    * Get a usage example for the generated component.
-   * 
+   *
    * Returns JSX-style self-closing tags for most frameworks,
    * or explicit closing tags for HTML/Angular.
-   * 
+   *
    * @param framework - Target framework
    * @param componentName - Component name to use in example
    * @returns HTML/JSX code snippet demonstrating component usage
@@ -150,10 +150,10 @@ export class FrameworkWrapperService {
 
   /**
    * Check if the framework requires hyphenated component names.
-   * 
+   *
    * Web Components specification requires custom elements to have a hyphen
    * in their tag name. Angular also uses this convention.
-   * 
+   *
    * @param framework - Target framework to check
    * @returns True if component name must contain a hyphen
    * @example
