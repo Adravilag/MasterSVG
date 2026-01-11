@@ -72,13 +72,14 @@ export async function buildIcon(options: BuildIconOptions): Promise<BuildResult>
       outputPath,
       format: isSprite ? 'sprite' : 'icons',
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return {
       success: false,
       iconName,
       outputPath,
       format: isSprite ? 'sprite' : 'icons',
-      error: error.message,
+      error: errorMessage,
     };
   }
 }

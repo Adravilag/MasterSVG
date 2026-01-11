@@ -272,7 +272,12 @@ export interface IconifySearchResult {
   name: string;
 }
 
-export function parseIconifySearchResults(data: any): IconifySearchResult[] {
+/** Raw response from Iconify search API */
+export interface IconifySearchResponse {
+  icons?: string[];
+}
+
+export function parseIconifySearchResults(data: IconifySearchResponse): IconifySearchResult[] {
   const icons: IconifySearchResult[] = [];
 
   if (data.icons && Array.isArray(data.icons)) {

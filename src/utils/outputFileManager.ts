@@ -5,6 +5,13 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import {
+  SVG_DATA_FILE,
+  SPRITE_FILE,
+  SVG_VARIANTS_FILE,
+  SVG_ANIMATIONS_FILE,
+  DEFAULT_VIEWBOX,
+} from './constants';
 
 /**
  * SVG attributes extracted from SVG content
@@ -75,7 +82,7 @@ export function toIconName(varName: string): string {
 export function generateIconEntry(
   iconName: string,
   body: string,
-  viewBox: string = '0 0 24 24'
+  viewBox: string = DEFAULT_VIEWBOX
 ): IconEntry {
   return {
     name: iconName,
@@ -90,7 +97,7 @@ export function generateIconEntry(
 export function generateIconExport(
   iconName: string,
   body: string,
-  viewBox: string = '0 0 24 24',
+  viewBox: string = DEFAULT_VIEWBOX,
   animation?: IconAnimationConfig
 ): string {
   const varName = toVariableName(iconName);
@@ -406,9 +413,9 @@ export function addIconToIconsFile(
   outputPath: string,
   iconName: string,
   body: string,
-  viewBox: string = '0 0 24 24'
+  viewBox: string = DEFAULT_VIEWBOX
 ): void {
-  const iconsPath = path.join(outputPath, 'icons.js');
+  const iconsPath = path.join(outputPath, SVG_DATA_FILE);
   const existingContent = readFileIfExists(iconsPath);
 
   if (existingContent) {
@@ -427,9 +434,9 @@ export function addIconToSpriteFile(
   outputPath: string,
   iconName: string,
   body: string,
-  viewBox: string = '0 0 24 24'
+  viewBox: string = DEFAULT_VIEWBOX
 ): void {
-  const spritePath = path.join(outputPath, 'sprite.svg');
+  const spritePath = path.join(outputPath, SPRITE_FILE);
   const existingContent = readFileIfExists(spritePath);
 
   if (existingContent) {
@@ -448,8 +455,8 @@ export function createSupportingFilesIfNeeded(outputPath: string): {
   variantsCreated: boolean;
   animationsCreated: boolean;
 } {
-  const variantsPath = path.join(outputPath, 'variants.js');
-  const animationsPath = path.join(outputPath, 'animations.js');
+  const variantsPath = path.join(outputPath, SVG_VARIANTS_FILE);
+  const animationsPath = path.join(outputPath, SVG_ANIMATIONS_FILE);
 
   return {
     variantsCreated: createFileIfNotExists(variantsPath, generateDefaultVariantsContent()),

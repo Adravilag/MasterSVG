@@ -27,7 +27,16 @@ export class IconPersistenceService {
   }
 
   /**
-   * Get the output path for icon files
+   * Get the output path for generated icon files.
+   * 
+   * Combines the workspace root with the configured output directory.
+   * 
+   * @returns The absolute path to the output directory, or undefined if no workspace is open
+   * @example
+   * ```typescript
+   * const outputPath = service.getOutputPath();
+   * // Returns: '/workspace/icons' (based on config)
+   * ```
    */
   public getOutputPath(): string | undefined {
     const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -37,7 +46,16 @@ export class IconPersistenceService {
   }
 
   /**
-   * Get the path to svg-data.js file
+   * Get the full path to the svg-data.js file.
+   * 
+   * This file contains all icon definitions as JavaScript exports.
+   * 
+   * @returns Absolute path to svg-data.js, or undefined if workspace unavailable
+   * @example
+   * ```typescript
+   * const filePath = service.getIconsFilePath();
+   * // Returns: '/workspace/icons/svg-data.js'
+   * ```
    */
   public getIconsFilePath(): string | undefined {
     const outputPath = this.getOutputPath();
@@ -46,7 +64,24 @@ export class IconPersistenceService {
   }
 
   /**
-   * Update icon in sprite.svg file
+   * Update an existing icon in a sprite.svg file.
+   * 
+   * Finds the symbol by ID and replaces its content and viewBox.
+   * Also regenerates the TypeScript definition file.
+   * 
+   * @param iconName - The icon identifier (must match symbol id in sprite)
+   * @param svg - The new SVG content to replace with
+   * @param spriteFile - Absolute path to the sprite.svg file
+   * @param viewBox - Optional viewBox value; extracted from svg if not provided
+   * @returns Promise resolving to true if update succeeded, false otherwise
+   * @example
+   * ```typescript
+   * const success = await service.updateSpriteFile(
+   *   'home',
+   *   '<svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>',
+   *   '/workspace/icons/sprite.svg'
+   * );
+   * ```
    */
   public async updateSpriteFile(
     iconName: string,
@@ -102,7 +137,21 @@ export class IconPersistenceService {
   }
 
   /**
-   * Update icon in icons.js file
+   * Update an existing icon in the svg-data.js file.
+   * 
+   * Searches for the icon export and replaces its body content.
+   * Supports legacy icons.js filename for backward compatibility.
+   * 
+   * @param iconName - The icon name (will be converted to variable format)
+   * @param svg - The new SVG content
+   * @returns Promise resolving to true if update succeeded, false otherwise
+   * @example
+   * ```typescript
+   * const success = await service.updateBuiltIconsFile(
+   *   'arrow-left',
+   *   '<svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>'
+   * );
+   * ```
    */
   public async updateBuiltIconsFile(iconName: string, svg: string): Promise<boolean> {
     if (!iconName) {

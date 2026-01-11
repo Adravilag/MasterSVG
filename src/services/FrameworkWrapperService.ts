@@ -18,7 +18,20 @@ export class FrameworkWrapperService {
   }
 
   /**
-   * Generate the wrapper component for the specified framework
+   * Generate and write a framework-specific icon wrapper component.
+   * 
+   * Creates the appropriate component file based on the target framework,
+   * with proper imports, props handling, and styling.
+   * 
+   * @param outputPath - Directory where the component file will be created
+   * @param framework - Target framework ('react', 'vue', 'svelte', etc.)
+   * @param componentName - Name for the generated component
+   * @throws Error if unable to write to the output path
+   * @example
+   * ```typescript
+   * service.generateWrapper('/workspace/icons', 'react', 'SvgIcon');
+   * // Creates: /workspace/icons/SvgIcon.tsx
+   * ```
    */
   public generateWrapper(outputPath: string, framework: FrameworkType, componentName: string): void {
     const generators: Record<FrameworkType, () => string> = {
@@ -40,7 +53,23 @@ export class FrameworkWrapperService {
   }
 
   /**
-   * Get the wrapper filename for the framework
+   * Get the appropriate filename for a wrapper component.
+   * 
+   * Returns framework-specific filename with correct extension and casing:
+   * - React/Solid/Qwik: PascalCase.tsx
+   * - Vue: PascalCase.vue
+   * - Svelte: PascalCase.svelte
+   * - Angular: kebab-case.component.ts
+   * - HTML: svg-element.js
+   * 
+   * @param framework - Target framework
+   * @param componentName - Base component name
+   * @returns Filename with appropriate extension
+   * @example
+   * ```typescript
+   * service.getWrapperFilename('react', 'SvgIcon');  // 'SvgIcon.tsx'
+   * service.getWrapperFilename('angular', 'SvgIcon'); // 'svg-icon.component.ts'
+   * ```
    */
   public getWrapperFilename(framework: FrameworkType, componentName: string): string {
     // Convert to PascalCase for frameworks that use it (React, Vue, Svelte, Astro, Solid, Qwik)
@@ -68,7 +97,19 @@ export class FrameworkWrapperService {
   }
 
   /**
-   * Get default component name for framework
+   * Get the recommended default component name for a framework.
+   * 
+   * Web Components (HTML) and Angular require hyphenated names,
+   * while other frameworks use PascalCase.
+   * 
+   * @param framework - Target framework
+   * @returns Default component name ('SvgIcon' or 'svg-icon')
+   * @example
+   * ```typescript
+   * service.getDefaultComponentName('react');   // 'SvgIcon'
+   * service.getDefaultComponentName('html');    // 'svg-icon'
+   * service.getDefaultComponentName('angular'); // 'svg-icon'
+   * ```
    */
   public getDefaultComponentName(framework: FrameworkType): string {
     switch (framework) {
@@ -82,7 +123,19 @@ export class FrameworkWrapperService {
   }
 
   /**
-   * Get component usage example
+   * Get a usage example for the generated component.
+   * 
+   * Returns JSX-style self-closing tags for most frameworks,
+   * or explicit closing tags for HTML/Angular.
+   * 
+   * @param framework - Target framework
+   * @param componentName - Component name to use in example
+   * @returns HTML/JSX code snippet demonstrating component usage
+   * @example
+   * ```typescript
+   * service.getUsageExample('react', 'SvgIcon');  // '<SvgIcon name="home" />'
+   * service.getUsageExample('html', 'svg-icon');  // '<svg-icon name="home"></svg-icon>'
+   * ```
    */
   public getUsageExample(framework: FrameworkType, componentName: string): string {
     switch (framework) {
@@ -96,7 +149,19 @@ export class FrameworkWrapperService {
   }
 
   /**
-   * Check if component name requires hyphen (Web Components)
+   * Check if the framework requires hyphenated component names.
+   * 
+   * Web Components specification requires custom elements to have a hyphen
+   * in their tag name. Angular also uses this convention.
+   * 
+   * @param framework - Target framework to check
+   * @returns True if component name must contain a hyphen
+   * @example
+   * ```typescript
+   * service.requiresHyphen('html');   // true
+   * service.requiresHyphen('angular'); // true
+   * service.requiresHyphen('react');   // false
+   * ```
    */
   public requiresHyphen(framework: FrameworkType): boolean {
     return framework === 'html' || framework === 'angular';
