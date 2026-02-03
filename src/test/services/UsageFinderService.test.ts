@@ -1,4 +1,4 @@
-import { UsageFinderService } from '../../services/UsageFinderService';
+import { UsageFinderService } from '../../services/icon/UsageFinderService';
 import * as vscode from 'vscode';
 
 describe('UsageFinderService', () => {

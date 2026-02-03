@@ -1,46 +1,21 @@
 import * as path from 'node:path';
 import * as fs from 'node:fs';
-import { SvgTransformer } from '../services/SvgTransformer';
+import { SvgTransformer } from '../services/svg/SvgTransformer';
 import { toVariableName, loadTemplate } from './extensionHelpers';
 import { getConfig } from './configHelper';
 import { ErrorHandler } from './errorHandler';
 import { validateSvgContent } from './svgValidation';
 import { extractIconsObjectContent } from './outputFileManager';
+import {
+  IconAnimationConfig,
+  IconEntryOptions as CentralizedIconEntryOptions,
+  AddToIconsJsOptions as CentralizedAddToIconsJsOptions,
+} from '../services/types/mastersvgTypes';
 
-/**
- * Animation settings interface
- */
-export interface AnimationConfig {
-  type: string;
-  duration: number;
-  timing: string;
-  iteration: string;
-  delay?: number;
-  direction?: string;
-}
-
-/**
- * Options for creating an icon entry
- */
-export interface IconEntryOptions {
-  varName: string;
-  iconName: string;
-  body: string;
-  viewBox: string;
-  animation?: AnimationConfig;
-}
-
-/**
- * Options for adding an icon to icons.js
- */
-export interface AddToIconsJsOptions {
-  outputPath: string;
-  iconName: string;
-  svgContent: string;
-  transformer: SvgTransformer;
-  animation?: AnimationConfig;
-  skipWebComponentGeneration?: boolean;
-}
+// Re-export for backwards compatibility
+export type AnimationConfig = IconAnimationConfig;
+export type IconEntryOptions = CentralizedIconEntryOptions;
+export type AddToIconsJsOptions = CentralizedAddToIconsJsOptions;
 
 /**
  * Create an icon entry string with optional animation

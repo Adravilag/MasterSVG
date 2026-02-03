@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import { IconPreviewProvider } from '../../providers/IconPreviewProvider';
+import { IconPreviewProvider } from '../../providers/editor/IconPreviewProvider';
 
 // Mock de svgo
 jest.mock('svgo', () => ({
@@ -213,22 +213,23 @@ describe('IconPreviewProvider', () => {
     });
 
     test('debe actualizar HTML con nuevo SVG', () => {
-      provider.updatePreview('test-icon', '<svg><path/></svg>');
+      provider.updatePreview({ name: 'test-icon', svg: '<svg><path/></svg>' });
 
       expect(mockWebviewView.webview.html).toContain('test-icon');
     });
 
     test('debe actualizar con location', () => {
-      provider.updatePreview('test-icon', '<svg><path/></svg>', {
-        file: '/test/icons.tsx',
-        line: 15,
+      provider.updatePreview({
+        name: 'test-icon',
+        svg: '<svg><path/></svg>',
+        location: { file: '/test/icons.tsx', line: 15 },
       });
 
       expect((provider as any)._currentLocation).toEqual({ file: '/test/icons.tsx', line: 15 });
     });
 
     test('debe actualizar con isBuilt flag', () => {
-      provider.updatePreview('test-icon', '<svg><path/></svg>', undefined, true);
+      provider.updatePreview({ name: 'test-icon', svg: '<svg><path/></svg>', isBuilt: true });
 
       expect((provider as any)._isBuilt).toBe(true);
     });

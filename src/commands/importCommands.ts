@@ -3,11 +3,11 @@ import * as path from 'path';
 import * as fs from 'fs';
 import {
   WorkspaceSvgProvider,
-  WorkspaceIcon,
   BuiltIconsProvider,
   SvgFilesProvider,
-} from '../providers/WorkspaceSvgProvider';
-import { SvgTransformer } from '../services/SvgTransformer';
+} from '../providers';
+import type { WorkspaceIcon } from '../providers';
+import { SvgTransformer } from '../services';
 import { getFullOutputPath } from '../utils/configHelper';
 import { buildIcon, showDeleteOriginalPrompt, showBuildSuccess } from '../utils/iconBuildHelpers';
 import { t } from '../i18n';

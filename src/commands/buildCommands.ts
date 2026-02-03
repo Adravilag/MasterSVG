@@ -6,8 +6,8 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import type { IconAnimation } from '../types/icons';
-import { SvgTransformer } from '../services/SvgTransformer';
-import { getSpriteGenerator, SpriteIcon } from '../services/SpriteGenerator';
+import { SvgTransformer, getSpriteGenerator } from '../services';
+import type { SpriteIcon } from '../services';
 import { addToIconsJs, addToSpriteSvg, generateWebComponent } from '../utils/iconsFileManager';
 import {
   getConfig,

@@ -7,13 +7,13 @@
  * - RF-4.3: Autocompletado de animaciones
  */
 
-import * as fs from 'node:fs';
-
-// Mock de vscode y fs - IconCompletionProvider uses 'fs' not 'node:fs'
+// Mock de fs - debe declararse antes del import
 jest.mock('fs', () => ({
   existsSync: jest.fn().mockReturnValue(true),
   readFileSync: jest.fn(),
 }));
+
+import * as fs from 'fs';
 
 const mockFs = fs as jest.Mocked<typeof fs>;
 
@@ -38,8 +38,8 @@ export const Variants = {
 `;
 
 import * as vscode from 'vscode';
-import { IconCompletionProvider } from '../../providers/IconCompletionProvider';
-import { WorkspaceSvgProvider } from '../../providers/WorkspaceSvgProvider';
+import { IconCompletionProvider } from '../../providers/editor/IconCompletionProvider';
+import { WorkspaceSvgProvider } from '../../providers/tree/WorkspaceSvgProvider';
 
 // Mock icons data
 const mockIcons = [
@@ -197,11 +197,9 @@ describe('IconCompletionProvider', () => {
 
   // =====================================================
   // RF-4.2: Autocompletado de variantes
-  // NOTE: These tests require filesystem integration.
-  // Skipped until proper integration test setup is available.
   // =====================================================
 
-  describe.skip('RF-4.2: Autocompletado de variantes', () => {
+  describe('RF-4.2: Autocompletado de variantes', () => {
     beforeEach(() => {
       // Setup mock to return variants file content
       mockFs.existsSync.mockReturnValue(true);

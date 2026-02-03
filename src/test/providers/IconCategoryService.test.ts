@@ -9,7 +9,7 @@ import {
   IconCategoryService,
   IconStorageMapsForCategory,
   CategoryInfo,
-} from '../../providers/IconCategoryService';
+} from '../../services/icon/IconCategoryService';
 import { WorkspaceIcon } from '../../types/icons';
 
 // Mock path module

@@ -2,19 +2,14 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { t } from '../i18n';
+import {
+  FrameworkType as CentralizedFrameworkType,
+  IconStudioConfig as CentralizedIconStudioConfig,
+} from '../services/types/mastersvgTypes';
 
-export type FrameworkType = 'html' | 'react' | 'vue' | 'angular' | 'svelte' | 'solid' | 'qwik' | 'astro';
-
-export interface IconStudioConfig {
-  outputDirectory: string;
-  componentName: string;
-  nameAttribute: string;
-  defaultSize: number;
-  defaultColor: string;
-  webComponentName: string;
-  buildFormat: 'icons.ts' | 'sprite.svg';
-  framework: FrameworkType;
-}
+// Re-export for backwards compatibility
+export type FrameworkType = CentralizedFrameworkType;
+export type IconStudioConfig = CentralizedIconStudioConfig;
 
 /**
  * Get icon manager configuration

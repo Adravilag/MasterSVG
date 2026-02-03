@@ -1,14 +1,18 @@
 import * as vscode from 'vscode';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { SvgOptimizer } from '../services/SvgOptimizer';
-import { SvgManipulationService } from '../services/SvgManipulationService';
-import { SvgTransformer } from '../services/SvgTransformer';
-import { getColorService, ColorService } from '../services/ColorService';
-import { getVariantsService, VariantsService } from '../services/VariantsService';
-import { getIconPersistenceService } from '../services/IconPersistenceService';
-import { getIconEditorTemplateService } from '../services/IconEditorTemplateService';
-import { AnimationSettings } from '../services/AnimationService';
+import {
+  SvgOptimizer,
+  SvgManipulationService,
+  SvgTransformer,
+  ColorService,
+  getColorService,
+  getVariantsService,
+  VariantsService,
+  getIconPersistenceService,
+  getIconEditorTemplateService,
+} from '../services';
+import type { AnimationSettings } from '../services';
 import { getSvgConfig } from '../utils/config';
 import {
   updateIconAnimation,
@@ -64,7 +68,7 @@ import {
   handleDeleteAnimationPreset,
   handleGetAnimationPresets,
 } from '../handlers/IconEditorAnimationHandlers';
-import { getAnimationService } from '../services/AnimationAssignmentService';
+import { getAnimationService } from '../services';
 
 interface IconAnimation {
   type: string;

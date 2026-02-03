@@ -3,9 +3,7 @@
  * Extracted to reduce complexity and improve maintainability
  */
 import * as vscode from 'vscode';
-import { SvgOptimizer } from '../../services/SvgOptimizer';
-import { ColorService } from '../../services/ColorService';
-import { getVariantsService } from '../../services/VariantsService';
+import { SvgOptimizer, ColorService, getVariantsService } from '../../services';
 import { t } from '../../i18n';
 
 const svgOptimizer = new SvgOptimizer();

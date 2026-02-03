@@ -227,7 +227,7 @@ describe('IconEditorPanel', () => {
       );
     });
 
-    test.skip('CA-5.2.2: comando applyOptimizedSvg debe actualizar SVG (requires fs mocks)', async () => {
+    test('CA-5.2.2: comando applyOptimizedSvg debe actualizar SVG', async () => {
       const extensionUri = vscode.Uri.file('/test/extension');
       const optimizedSvg = '<svg viewBox="0 0 24 24"><path d="M12 2"/></svg>';
 
@@ -237,8 +237,11 @@ describe('IconEditorPanel', () => {
 
       await handler({ command: 'applyOptimizedSvg', svg: optimizedSvg });
 
-      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
-        'Optimized SVG applied and saved'
+      // El handler envía mensaje al webview confirmando que se aplicó
+      expect(mockPanel.webview.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          command: 'optimizedSvgApplied',
+        })
       );
     });
   });
@@ -343,7 +346,8 @@ describe('IconEditorPanel', () => {
   // =====================================================
 
   describe('goToSource', () => {
-    test.skip('comando goToSource debe abrir archivo en la posición (OBSOLETE: no handler)', async () => {
+    // Note: goToSource handler was removed. This test is kept skipped for documentation.
+    test.skip('comando goToSource debe abrir archivo en la posición (handler removed)', async () => {
       const extensionUri = vscode.Uri.file('/test/extension');
 
       IconEditorPanel.createOrShow(extensionUri, testIconData);

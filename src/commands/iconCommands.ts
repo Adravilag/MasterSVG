@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { getFullOutputPath, updateIconsJsContext } from '../utils/configHelper';
 import { removeFromIconsJs } from '../utils/iconsFileManager';
-import { VariantsService } from '../services/VariantsService';
+import { VariantsService } from '../services';
 import { t } from '../i18n';
 
 /**

@@ -16,7 +16,7 @@ import * as vscode from 'vscode';
 import {
   SvgToIconCodeActionProvider,
   SvgImgDiagnosticProvider,
-} from '../../providers/SvgToIconCodeActionProvider';
+} from '../../providers/editor/SvgToIconCodeActionProvider';
 
 describe('SvgToIconCodeActionProvider', () => {
   let provider: SvgToIconCodeActionProvider;

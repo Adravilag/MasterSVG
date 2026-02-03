@@ -1,26 +1,18 @@
 import * as https from 'https';
+import {
+  IconifySearchResult as CentralizedIconifySearchResult,
+  IconifySearchResultExtended as CentralizedIconifySearchResultExtended,
+  IconifySearchOptions as CentralizedIconifySearchOptions,
+  IconifyIconSet as CentralizedIconifyIconSet,
+  IconifyCollection as CentralizedIconifyCollection,
+} from '../services/types/mastersvgTypes';
 
-export interface IconifySearchResult {
-  prefix: string;
-  name: string;
-}
-
-/**
- * Extended search result with collection info
- */
-export interface IconifySearchResultExtended extends IconifySearchResult {
-  collectionName?: string;
-  collectionTotal?: number;
-}
-
-/**
- * Search options for Iconify API
- */
-export interface IconifySearchOptions {
-  limit?: number;
-  prefixes?: string[];
-  category?: string;
-}
+// Re-export for backwards compatibility
+export type IconifySearchResult = CentralizedIconifySearchResult;
+export type IconifySearchResultExtended = CentralizedIconifySearchResultExtended;
+export type IconifySearchOptions = CentralizedIconifySearchOptions;
+export type IconifyIconSet = CentralizedIconifyIconSet;
+export type IconifyCollection = CentralizedIconifyCollection;
 
 /**
  * Cache for search results and collections
@@ -221,16 +213,6 @@ export async function fetchIconSvg(
 }
 
 /**
- * Iconify icon set response
- */
-export interface IconifyIconSet {
-  prefix: string;
-  icons: Record<string, { body: string; width?: number; height?: number }>;
-  width?: number;
-  height?: number;
-}
-
-/**
  * Get icon info from Iconify
  */
 export async function getIconInfo(prefix: string, name: string): Promise<IconifyIconSet | null> {
@@ -255,18 +237,6 @@ export async function getIconInfo(prefix: string, name: string): Promise<Iconify
       })
       .on('error', () => resolve(null));
   });
-}
-
-/**
- * Iconify collection info
- */
-export interface IconifyCollection {
-  name: string;
-  total: number;
-  author?: { name: string; url?: string };
-  license?: { title: string; spdx?: string; url?: string };
-  samples?: string[];
-  category?: string;
 }
 
 /**

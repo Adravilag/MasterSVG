@@ -11,7 +11,7 @@ import {
   matchIgnorePattern,
   shouldIgnorePath,
   reloadIgnorePatterns,
-} from '../../providers/IgnorePatterns';
+} from '../../utils/IgnorePatterns';
 
 // Mock vscode
 jest.mock('vscode', () => ({

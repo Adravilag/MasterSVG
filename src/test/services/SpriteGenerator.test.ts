@@ -14,7 +14,7 @@ jest.mock('fs', () => ({
   readFileSync: jest.fn(),
 }));
 
-import { SpriteGenerator, SpriteIcon, SpriteOptions } from '../../services/SpriteGenerator';
+import { SpriteGenerator, SpriteIcon, SpriteOptions } from '../../services/svg/SpriteGenerator';
 
 describe('SpriteGenerator', () => {
   let generator: SpriteGenerator;
@@ -613,7 +613,7 @@ describe('SpriteGenerator', () => {
 
   describe('getSpriteGenerator', () => {
     test('debe importar y usar el singleton', async () => {
-      const { getSpriteGenerator } = await import('../../services/SpriteGenerator');
+      const { getSpriteGenerator } = await import('../../services/svg/SpriteGenerator');
 
       const generator1 = getSpriteGenerator();
       const generator2 = getSpriteGenerator();

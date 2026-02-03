@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { WorkspaceSvgProvider, SvgItem } from '../providers/WorkspaceSvgProvider';
+import { WorkspaceSvgProvider, SvgItem } from '../providers';
 import { searchIconify } from '../utils/iconifyService';
 import { showIconifyReplacementPicker } from './iconifyCommands';
 import { t } from '../i18n';

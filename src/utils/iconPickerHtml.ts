@@ -3,21 +3,16 @@
  * Pure functions for generating the icon picker webview HTML
  */
 
-export interface IconSearchResult {
-  prefix: string;
-  name: string;
-}
+import {
+  IconifySearchResult,
+  ColorPreset as CentralizedColorPreset,
+  PopularCollection as CentralizedPopularCollection,
+} from '../services/types/mastersvgTypes';
 
-export interface ColorPreset {
-  color: string;
-  title: string;
-}
-
-export interface PopularCollection {
-  prefix: string;
-  name: string;
-  total?: number;
-}
+// Re-export for backwards compatibility
+export type IconSearchResult = IconifySearchResult;
+export type ColorPreset = CentralizedColorPreset;
+export type PopularCollection = CentralizedPopularCollection;
 
 export const DEFAULT_COLOR_PRESETS: ColorPreset[] = [
   { color: '#ffffff', title: 'White' },
@@ -413,7 +408,7 @@ export function getIconPickerScript(): string {
     let currentQuery = '';
     let currentCollection = '';
     let isSearching = false;
-    
+
     function updateIconColors(color) {
       currentColor = color;
       const encodedColor = encodeURIComponent(color);
@@ -421,35 +416,35 @@ export function getIconPickerScript(): string {
         const src = img.src;
         img.src = src.replace(/color=[^&]*/, 'color=' + encodedColor);
       });
-      
+
       document.querySelectorAll('.color-preset').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.color === color);
       });
-      
+
       document.getElementById('colorPicker').value = color;
     }
-    
+
     function showLoading(show) {
       isSearching = show;
       document.getElementById('loading').classList.toggle('show', show);
       document.getElementById('searchBtn').disabled = show;
     }
-    
+
     function doSearch(query, collection) {
       if (!query && !collection) return;
       if (isSearching) return;
-      
+
       currentQuery = query || '';
       currentCollection = collection || '';
-      
+
       showLoading(true);
-      vscode.postMessage({ 
-        command: 'search', 
+      vscode.postMessage({
+        command: 'search',
         query: currentQuery,
         collection: currentCollection
       });
     }
-    
+
     function selectCollection(prefix) {
       document.querySelectorAll('.collection-chip').forEach(chip => {
         chip.classList.toggle('active', chip.dataset.prefix === prefix);
@@ -458,13 +453,13 @@ export function getIconPickerScript(): string {
       const searchInput = document.getElementById('searchInput');
       doSearch(searchInput.value, prefix);
     }
-    
+
     function updateGrid(icons, query) {
       showLoading(false);
       const grid = document.getElementById('iconGrid');
       const subtitle = document.getElementById('subtitle');
       const encodedColor = encodeURIComponent(currentColor);
-      
+
       if (icons.length === 0) {
         grid.innerHTML = \`
           <div class="empty-state" style="grid-column: 1 / -1;">
@@ -476,7 +471,7 @@ export function getIconPickerScript(): string {
         subtitle.textContent = 'No results';
         return;
       }
-      
+
       grid.innerHTML = icons.map(icon => \`
         <div class="icon-card" data-prefix="\${icon.prefix}" data-name="\${icon.name}">
           <div class="icon-preview">
@@ -491,46 +486,46 @@ export function getIconPickerScript(): string {
           </button>
         </div>
       \`).join('');
-      
+
       subtitle.textContent = \`Found \${icons.length} icons\${query ? ' for "' + query + '"' : ''}\`;
     }
-    
+
     // Event listeners
     document.getElementById('colorPicker').addEventListener('input', (e) => {
       updateIconColors(e.target.value);
     });
-    
+
     document.querySelectorAll('.color-preset').forEach(btn => {
       btn.addEventListener('click', () => {
         updateIconColors(btn.dataset.color);
       });
     });
-    
+
     document.getElementById('searchInput').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         doSearch(e.target.value, currentCollection);
       }
     });
-    
+
     document.getElementById('searchBtn').addEventListener('click', () => {
       const searchInput = document.getElementById('searchInput');
       doSearch(searchInput.value, currentCollection);
     });
-    
+
     document.querySelectorAll('.collection-chip').forEach(chip => {
       chip.addEventListener('click', () => {
         selectCollection(chip.dataset.prefix);
       });
     });
-    
+
     document.getElementById('closeBtn')?.addEventListener('click', () => {
       vscode.postMessage({ command: 'close' });
     });
-    
+
     function addIcon(prefix, name) {
       vscode.postMessage({ command: 'selectIcon', prefix, name, color: currentColor });
     }
-    
+
     window.addEventListener('message', event => {
       const message = event.data;
       if (message.command === 'updateResults') {
@@ -643,11 +638,11 @@ export function getIconPickerHtml(
     <h1><svg class="header-icon" viewBox="0 0 24 24"><path d="M12 22C6.49 22 2 17.51 2 12S6.49 2 12 2s10 4.04 10 9c0 3.31-2.69 6-6 6h-1.77c-.28 0-.5.22-.5.5 0 .12.05.23.13.33.41.47.64 1.06.64 1.67A2.5 2.5 0 0 1 12 22zm0-18c-4.41 0-8 3.59-8 8s3.59 8 8 8c.28 0 .5-.22.5-.5a.54.54 0 0 0-.14-.35c-.41-.46-.63-1.05-.63-1.65a2.5 2.5 0 0 1 2.5-2.5H16c2.21 0 4-1.79 4-4 0-3.86-3.59-7-8-7z" fill="currentColor"/><circle cx="6.5" cy="11.5" r="1.5" fill="currentColor"/><circle cx="9.5" cy="7.5" r="1.5" fill="currentColor"/><circle cx="14.5" cy="7.5" r="1.5" fill="currentColor"/><circle cx="17.5" cy="11.5" r="1.5" fill="currentColor"/></svg> Iconify Browser</h1>
     <button id="closeBtn" class="close-btn">Close</button>
   </div>
-  
+
   ${searchBar}
   ${collectionsBar}
   ${toolbar}
-  
+
   <div class="results-info">
     <p id="subtitle" class="subtitle">Found ${icons.length} icons${query ? ` for "${escapedQuery}"` : ''}</p>
     <div id="loading" class="loading">
@@ -655,11 +650,11 @@ export function getIconPickerHtml(
       <span>Searching...</span>
     </div>
   </div>
-  
+
   <div id="iconGrid" class="grid">
     ${gridContent}
   </div>
-  
+
   <script>${script}</script>
 </body>
 </html>`;

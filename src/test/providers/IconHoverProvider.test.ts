@@ -7,8 +7,8 @@
 
 // Mock de vscode
 import * as vscode from 'vscode';
-import { IconHoverProvider } from '../../providers/IconHoverProvider';
-import { WorkspaceSvgProvider } from '../../providers/WorkspaceSvgProvider';
+import { IconHoverProvider } from '../../providers/editor/IconHoverProvider';
+import { WorkspaceSvgProvider } from '../../providers/tree/WorkspaceSvgProvider';
 
 // Mock de WorkspaceSvgProvider
 const mockSvgProvider: Partial<WorkspaceSvgProvider> = {

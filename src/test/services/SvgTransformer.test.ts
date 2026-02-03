@@ -7,7 +7,7 @@
  */
 
 // Mock de vscode antes de importar el módulo
-import { SvgTransformer } from '../../services/SvgTransformer';
+import { SvgTransformer } from '../../services/svg/SvgTransformer';
 
 describe('SvgTransformer', () => {
   let transformer: SvgTransformer;

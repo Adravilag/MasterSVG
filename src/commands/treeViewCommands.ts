@@ -3,7 +3,7 @@
  * Commands for managing expand/collapse state of tree views
  */
 import * as vscode from 'vscode';
-import type { SvgItem } from '../providers/WorkspaceSvgProvider';
+import type { SvgItem } from '../providers';
 
 export interface TreeViews {
   workspace: vscode.TreeView<SvgItem>;

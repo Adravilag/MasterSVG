@@ -1,4 +1,4 @@
-import { FrameworkWrapperService } from '../../services/FrameworkWrapperService';
+import { FrameworkWrapperService } from '../../services/framework/FrameworkWrapperService';
 import * as fs from 'fs';
 import * as path from 'path';
 

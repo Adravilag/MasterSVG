@@ -3,10 +3,9 @@
  */
 
 import * as vscode from 'vscode';
-import { AstroLibraryPanel } from '../services/AstroLibraryPanel';
-import { getAstroLibraryService, IconSelectionResult } from '../services/AstroLibraryService';
-import { SvgTransformer } from '../services/SvgTransformer';
-import { WorkspaceSvgProvider, BuiltIconsProvider } from '../providers/WorkspaceSvgProvider';
+import { AstroLibraryPanel, getAstroLibraryService, SvgTransformer } from '../services';
+import type { IconSelectionResult } from '../services';
+import { WorkspaceSvgProvider, BuiltIconsProvider } from '../providers';
 import { addToIconsJs, addToSpriteSvg } from '../utils/iconsFileManager';
 import { getConfig, getOutputPathOrWarn } from '../utils/configHelper';
 import { t } from '../i18n';
@@ -96,7 +95,7 @@ function createBrowseIconifyCommand(
 function createToggleServerCommand(): vscode.Disposable {
   return vscode.commands.registerCommand('masterSVG.toggleLibraryServer', async () => {
     const service = getAstroLibraryService();
-    
+
     if (service.running) {
       service.stopServer();
       vscode.window.showInformationMessage('Icon library server stopped');
@@ -162,7 +161,7 @@ async function handleIconSelection(
 ): Promise<void> {
   const config = getConfig();
   const outputPath = getOutputPathOrWarn();
-  
+
   if (!outputPath) return;
 
   const isSprite = config.buildFormat === 'sprite.svg';

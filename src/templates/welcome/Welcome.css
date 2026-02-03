@@ -39,7 +39,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  background: var(--card-bg);
+  background: var(--vscode-editor-background);
   border: 1px solid var(--card-border);
   border-radius: 12px;
   margin-bottom: 20px;
@@ -692,24 +692,33 @@ body {
   font-weight: 600;
   font-size: 13px;
   flex-shrink: 0;
+  position: relative;
 }
 
 .step-number.completed {
   background: var(--success);
 }
 
+/* Keep number visible, don't hide it */
 .step-number.completed span {
-  display: none;
+  display: block;
 }
 
+/* Small checkmark badge in corner */
 .step-number.completed::after {
   content: '';
-  display: block;
-  width: 14px;
-  height: 14px;
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--success);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
-  background-size: contain;
+  background-size: 8px 8px;
+  background-position: center;
   background-repeat: no-repeat;
+  border-radius: 50%;
+  border: 2px solid var(--vscode-editor-background);
 }
 
 .step-title {
@@ -1233,6 +1242,28 @@ button {
 
 .toggle-label input:checked + .toggle-switch::after {
   transform: translateX(16px);
+}
+
+/* Msignore Option */
+.msignore-option {
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: rgba(0, 120, 212, 0.08);
+  border: 1px solid rgba(0, 120, 212, 0.2);
+  border-radius: 8px;
+}
+
+.msignore-option .toggle-label span {
+  display: flex;
+  align-items: center;
+}
+
+.msignore-hint {
+  margin-top: 6px;
+  margin-left: 22px;
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  line-height: 1.4;
 }
 
 /* Select Label */

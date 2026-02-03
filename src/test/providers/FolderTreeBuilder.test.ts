@@ -1,4 +1,4 @@
-import { FolderTreeBuilder, FolderTreeNode } from '../../providers/FolderTreeBuilder';
+import { FolderTreeBuilder, FolderTreeNode } from '../../providers/tree/FolderTreeBuilder';
 import * as vscode from 'vscode';
 import * as path from 'path';
 

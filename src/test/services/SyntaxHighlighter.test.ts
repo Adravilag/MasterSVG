@@ -4,7 +4,7 @@
  * Tests syntax highlighting for SVG, CSS, HTML, and JavaScript code
  */
 
-import { SyntaxHighlighter, getSyntaxHighlighter } from '../../services/SyntaxHighlighter';
+import { SyntaxHighlighter, getSyntaxHighlighter } from '../../services/template/SyntaxHighlighter';
 
 describe('SyntaxHighlighter', () => {
   let highlighter: SyntaxHighlighter;

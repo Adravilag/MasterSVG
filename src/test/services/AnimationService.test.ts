@@ -1,4 +1,4 @@
-import { AnimationService, ANIMATION_KEYFRAMES, AnimationSettings } from '../../services/AnimationService';
+import { AnimationService, ANIMATION_KEYFRAMES, AnimationSettings } from '../../services/animation/AnimationService';
 
 describe('AnimationService', () => {
   describe('ANIMATION_KEYFRAMES', () => {

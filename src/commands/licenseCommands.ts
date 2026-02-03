@@ -9,7 +9,7 @@ import { getFullOutputPath } from '../utils/configHelper';
 import {
   generateLicenseFiles,
   getLicenseSummary,
-} from '../services/LicenseService';
+} from '../services';
 import { t } from '../i18n';
 
 /**

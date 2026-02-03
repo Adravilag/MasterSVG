@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { t } from '../i18n';
-import { getAnimationService } from '../services/AnimationAssignmentService';
+import { getAnimationService } from '../services';
 
 /**
  * Icon location data

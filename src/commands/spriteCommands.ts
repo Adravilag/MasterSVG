@@ -5,8 +5,9 @@ import {
   WorkspaceSvgProvider,
   BuiltIconsProvider,
   SvgItem,
-} from '../providers/WorkspaceSvgProvider';
-import { getSpriteGenerator, SpriteIcon } from '../services/SpriteGenerator';
+} from '../providers';
+import { getSpriteGenerator } from '../services';
+import type { SpriteIcon } from '../services';
 import { cleanSpriteSvg } from '../utils/iconsFileManager';
 import { getConfig, getOutputPathOrWarn } from '../utils/configHelper';
 import { t } from '../i18n';

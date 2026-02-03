@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import { SvgTransformer } from '../services/SvgTransformer';
+import { SvgTransformer } from '../services';
 import {
   WorkspaceSvgProvider,
   BuiltIconsProvider,
-} from '../providers/WorkspaceSvgProvider';
+} from '../providers';
 import { searchIconify, fetchIconSvg, IconifySearchResult, searchInCollection } from '../utils/iconifyService';
 import { addToIconsJs, addToSpriteSvg } from '../utils/iconsFileManager';
 import { getConfig, getOutputPathOrWarn } from '../utils/configHelper';
@@ -235,7 +235,7 @@ export function showIconPickerPanel(
       // Handle search from within the picker (supports collection filter)
       const { query: newQuery, collection } = message;
       let newResults: IconifySearchResult[];
-      
+
       if (collection && !newQuery) {
         // Browse collection without specific query
         newResults = await searchInCollection(collection, undefined, 100);
@@ -246,7 +246,7 @@ export function showIconPickerPanel(
         // General search
         newResults = await searchIconify(newQuery);
       }
-      
+
       panel.title = `Icons: ${newQuery || collection || 'Browse'}`;
       panel.webview.postMessage({ command: 'updateResults', icons: newResults, query: newQuery });
     } else if (message.command === 'close') {
@@ -893,7 +893,7 @@ export function registerIconifyCommands(
     async (item: any) => {
       // Get the icon name from the tree item
       const iconName = item?.icon?.name || item?.label;
-      
+
       if (!iconName) {
         vscode.window.showWarningMessage(
           t('messages.noIconNameFound') || 'No icon name found'

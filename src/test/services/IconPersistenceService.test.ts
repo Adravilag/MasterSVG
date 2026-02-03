@@ -64,7 +64,7 @@ jest.mock('vscode', () => {
 });
 
 import * as fs from 'node:fs';
-import { IconPersistenceService, getIconPersistenceService } from '../../services/IconPersistenceService';
+import { IconPersistenceService, getIconPersistenceService } from '../../services/icon/IconPersistenceService';
 
 // Get mocked fs for type-safe access
 const mockFs = fs as jest.Mocked<typeof fs>;

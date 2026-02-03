@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
-import { ColorService } from '../services/ColorService';
-import { VariantsService } from '../services/VariantsService';
+import { ColorService, VariantsService } from '../services';
 import { t } from '../i18n';
 
 /**

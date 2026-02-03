@@ -264,18 +264,14 @@ export function generateScriptTag(relativePath: string): string {
   return `    <script type="module" src="${relativePath}"></script>\n`;
 }
 
-/**
- * Parsea resultados de búsqueda de Iconify
- */
-export interface IconifySearchResult {
-  prefix: string;
-  name: string;
-}
+// Import and re-export centralized types
+import {
+  IconifySearchResult as CentralizedIconifySearchResult,
+  IconifySearchResponse as CentralizedIconifySearchResponse,
+} from '../services/types/mastersvgTypes';
 
-/** Raw response from Iconify search API */
-export interface IconifySearchResponse {
-  icons?: string[];
-}
+export type IconifySearchResult = CentralizedIconifySearchResult;
+export type IconifySearchResponse = CentralizedIconifySearchResponse;
 
 export function parseIconifySearchResults(data: IconifySearchResponse): IconifySearchResult[] {
   const icons: IconifySearchResult[] = [];

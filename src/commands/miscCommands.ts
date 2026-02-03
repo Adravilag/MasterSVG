@@ -6,12 +6,12 @@ import {
   SvgItem,
   BuiltIconsProvider,
   SvgFilesProvider,
-} from '../providers/WorkspaceSvgProvider';
-import { SvgTransformer } from '../services/SvgTransformer';
+} from '../providers';
+import type { TransformOptions } from '../providers';
+import { SvgTransformer } from '../services';
 import { searchIconify } from '../utils/iconifyService';
 import { getConfig } from '../utils/configHelper';
 import { showIconifyReplacementPicker, handleDuplicateIconName } from './iconifyCommands';
-import { TransformOptions } from '../providers/SvgToIconCodeActionProvider';
 import {
   buildIcon,
   showDeleteOriginalPrompt,
@@ -254,12 +254,12 @@ export function registerMiscCommands(
       // Replace in document
       try {
         const document = await vscode.workspace.openTextDocument(documentUri);
-        
+
         // Extract preserved attributes from original SVG (for inline SVGs)
-        const preservedAttrs = isInlineSvg && svgContent 
-          ? extractPreservedAttributes(svgContent) 
+        const preservedAttrs = isInlineSvg && svgContent
+          ? extractPreservedAttributes(svgContent)
           : undefined;
-        
+
         const replacement = generateReplacement(finalIconName, document.languageId, preservedAttrs);
         const edit = new vscode.WorkspaceEdit();
 

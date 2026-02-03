@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { SvgTransformer } from '../services/SvgTransformer';
+import { SvgTransformer } from '../services';
 import { getConfig, getFullOutputPath, getFrameworkIconUsage, getFrameworkDisplayName } from '../utils/configHelper';
 import { addToIconsJs, addToSpriteSvg } from '../utils/iconsFileManager';
 import { t } from '../i18n';
@@ -61,7 +61,7 @@ export function registerTransformCommands(
             'gi'
           );
 
-          
+
 
           // Search around the recorded line
           if (item.icon.line !== undefined) {
@@ -75,7 +75,7 @@ export function registerTransformCommands(
               if (imgTagMatch) {
                 svgStart = document.offsetAt(line.range.start) + imgTagMatch.index;
                 imgTagText = imgTagMatch[0];
-                
+
                 break;
               }
               imgRegex.lastIndex = 0; // Reset regex for next line
@@ -93,7 +93,7 @@ export function registerTransformCommands(
           }
 
           if (svgStart === -1) {
-            
+
             vscode.window.showWarningMessage(
               t('messages.couldNotFindImgRef') + ' ' + t('messages.refreshIcons')
             );

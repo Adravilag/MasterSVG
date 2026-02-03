@@ -1,5 +1,5 @@
-import { SvgManipulationService } from '../../services/SvgManipulationService';
-import { AnimationSettings } from '../../services/AnimationService';
+import { SvgManipulationService } from '../../services/svg/SvgManipulationService';
+import { AnimationSettings } from '../../services/animation/AnimationService';
 
 describe('SvgManipulationService', () => {
   // =====================================================

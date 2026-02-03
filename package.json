@@ -439,6 +439,11 @@
           "default": "",
           "description": "Directory where icons.js or sprite.svg will be generated (relative to workspace root)"
         },
+        "masterSVG.separateOutputStructure": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "When enabled, separates generated files into `components/` (Icon.tsx, types.d.ts) and `assets/` (svg-data.ts) directories under the output directory. Recommended for larger projects."
+        },
         "masterSVG.framework": {
           "type": "string",
           "enum": [

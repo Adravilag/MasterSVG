@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as crypto from 'crypto';
-import { SvgContentCache } from './SvgContentCache';
+import { SvgContentCache } from '../utils/SvgContentCache';
 
 // Directory for temporary SVG icon files
 let tempIconDir: string | undefined;

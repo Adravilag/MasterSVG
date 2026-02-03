@@ -10,7 +10,7 @@
 
 import * as vscode from 'vscode';
 import { WorkspaceIcon } from '../../types/icons';
-import { WorkspaceSvgProvider, SvgItem } from '../../providers/WorkspaceSvgProvider';
+import { WorkspaceSvgProvider, SvgItem } from '../../providers/tree/WorkspaceSvgProvider';
 
 // Mock fs module
 jest.mock('fs', () => ({
@@ -355,7 +355,7 @@ describe('WorkspaceSvgProvider class', () => {
 
   describe('getTreeItem', () => {
     test('debe retornar el mismo elemento', () => {
-      const item = new SvgItem('test', 0, vscode.TreeItemCollapsibleState.None, 'icon');
+      const item = SvgItem.create('test', 0, vscode.TreeItemCollapsibleState.None, 'icon');
       const result = provider.getTreeItem(item);
       expect(result).toBe(item);
     });
@@ -419,7 +419,7 @@ describe('WorkspaceSvgProvider class', () => {
 
   describe('getSvgData', () => {
     test('debe retornar undefined para item sin icon', () => {
-      const item = new SvgItem('test', 0, vscode.TreeItemCollapsibleState.None, 'category');
+      const item = SvgItem.create('test', 0, vscode.TreeItemCollapsibleState.None, 'category');
       const data = provider.getSvgData(item);
       expect(data).toBeUndefined();
     });
@@ -431,7 +431,7 @@ describe('WorkspaceSvgProvider class', () => {
         source: 'library',
         svg: '<svg viewBox="0 0 24 24"><path/></svg>',
       };
-      const item = new SvgItem('test', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
+      const item = SvgItem.create('test', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
       const data = provider.getSvgData(item);
 
       expect(data).toBeDefined();
@@ -448,7 +448,7 @@ describe('WorkspaceSvgProvider class', () => {
         filePath: '/test/Component.tsx',
         line: 10,
       };
-      const item = new SvgItem('test', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
+      const item = SvgItem.create('test', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
       const data = provider.getSvgData(item);
 
       expect(data?.location).toBeDefined();
@@ -465,7 +465,7 @@ describe('WorkspaceSvgProvider class', () => {
 describe('SvgItem class', () => {
   describe('category type', () => {
     test('debe crear item de categoría con count', () => {
-      const item = new SvgItem(
+      const item = SvgItem.create(
         'navigation',
         5,
         vscode.TreeItemCollapsibleState.Collapsed,
@@ -480,7 +480,7 @@ describe('SvgItem class', () => {
     });
 
     test('debe usar iconPath folder para categorías normales', () => {
-      const item = new SvgItem(
+      const item = SvgItem.create(
         'icons',
         3,
         vscode.TreeItemCollapsibleState.Collapsed,
@@ -493,7 +493,7 @@ describe('SvgItem class', () => {
     });
 
     test('debe usar iconPath package para categorías con 📦', () => {
-      const item = new SvgItem(
+      const item = SvgItem.create(
         '📦 icons.json',
         10,
         vscode.TreeItemCollapsibleState.Collapsed,
@@ -506,7 +506,7 @@ describe('SvgItem class', () => {
     });
 
     test('debe usar iconPath file-code para categorías con 📄', () => {
-      const item = new SvgItem(
+      const item = SvgItem.create(
         '📄 Component.tsx',
         2,
         vscode.TreeItemCollapsibleState.Collapsed,
@@ -521,7 +521,7 @@ describe('SvgItem class', () => {
 
   describe('action type', () => {
     test('debe crear item de acción con comando', () => {
-      const item = new SvgItem('Click to scan', 0, vscode.TreeItemCollapsibleState.None, 'action');
+      const item = SvgItem.create('Click to scan', 0, vscode.TreeItemCollapsibleState.None, 'action');
 
       expect(item.contextValue).toBe('svgAction');
       expect(item.command).toBeDefined();
@@ -538,7 +538,7 @@ describe('SvgItem class', () => {
         source: 'workspace',
       };
 
-      const item = new SvgItem(
+      const item = SvgItem.create(
         'App.tsx:25',
         0,
         vscode.TreeItemCollapsibleState.None,
@@ -563,7 +563,7 @@ describe('SvgItem class', () => {
         source: 'workspace',
       };
 
-      const item = new SvgItem(
+      const item = SvgItem.create(
         'home',
         0,
         vscode.TreeItemCollapsibleState.None,
@@ -584,7 +584,7 @@ describe('SvgItem class', () => {
         usageCount: 3,
       };
 
-      const item = new SvgItem('arrow', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
+      const item = SvgItem.create('arrow', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
 
       expect(item.contextValue).toBe('builtIcon');
       expect(item.description).toBe('3 uses');
@@ -599,7 +599,7 @@ describe('SvgItem class', () => {
         usageCount: 0,
       };
 
-      const item = new SvgItem(
+      const item = SvgItem.create(
         'unused-icon',
         0,
         vscode.TreeItemCollapsibleState.None,
@@ -619,7 +619,7 @@ describe('SvgItem class', () => {
         usageCount: 1,
       };
 
-      const item = new SvgItem('single-use', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
+      const item = SvgItem.create('single-use', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
 
       expect(item.description).toBe('1 use');
     });
@@ -633,7 +633,7 @@ describe('SvgItem class', () => {
         line: 15,
       };
 
-      const item = new SvgItem('inline-svg', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
+      const item = SvgItem.create('inline-svg', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
 
       expect(item.contextValue).toBe('inlineSvg');
       expect(item.description).toBe('L16');
@@ -653,7 +653,7 @@ describe('SvgItem class', () => {
         usageCount: 2,
       };
 
-      const item = new SvgItem(
+      const item = SvgItem.create(
         'used-icon',
         0,
         vscode.TreeItemCollapsibleState.Collapsed,
@@ -682,7 +682,7 @@ describe('SvgItem class', () => {
         usageCount: 10,
       };
 
-      const item = new SvgItem(
+      const item = SvgItem.create(
         'many-uses',
         0,
         vscode.TreeItemCollapsibleState.Collapsed,
@@ -701,7 +701,7 @@ describe('SvgItem class', () => {
         category: 'custom',
       };
 
-      const item = new SvgItem(
+      const item = SvgItem.create(
         'library-icon',
         0,
         vscode.TreeItemCollapsibleState.None,
@@ -723,7 +723,7 @@ describe('SvgItem class', () => {
         source: 'workspace',
       };
 
-      const item = new SvgItem('svg-icon', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
+      const item = SvgItem.create('svg-icon', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
 
       expect(item.iconPath).toBeDefined();
     });
@@ -738,7 +738,7 @@ describe('SvgItem class', () => {
         svg: '<svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>',
       };
 
-      const item = new SvgItem('with-svg', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
+      const item = SvgItem.create('with-svg', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
 
       expect(item.label).toBe('with-svg');
     });
@@ -752,7 +752,7 @@ describe('SvgItem class', () => {
         usageCount: 0, // Debe tener usageCount para mostrar unused
       };
 
-      const item = new SvgItem(
+      const item = SvgItem.create(
         'no-usage-info',
         0,
         vscode.TreeItemCollapsibleState.None,
@@ -773,7 +773,7 @@ describe('SvgItem class', () => {
         // usageCount no definido
       };
 
-      const item = new SvgItem(
+      const item = SvgItem.create(
         'undefined-usage',
         0,
         vscode.TreeItemCollapsibleState.None,
@@ -793,7 +793,7 @@ describe('SvgItem class', () => {
         category: 'lucide',
       };
 
-      const item = new SvgItem(
+      const item = SvgItem.create(
         'lucide:arrow-right',
         0,
         vscode.TreeItemCollapsibleState.None,
@@ -808,7 +808,7 @@ describe('SvgItem class', () => {
 
   describe('category variations', () => {
     test('debe usar iconPath symbol-misc para categorías con 🔧', () => {
-      const item = new SvgItem(
+      const item = SvgItem.create(
         '🔧 Tools',
         5,
         vscode.TreeItemCollapsibleState.Collapsed,
@@ -821,7 +821,7 @@ describe('SvgItem class', () => {
     });
 
     test('debe crear categoría expandida', () => {
-      const item = new SvgItem(
+      const item = SvgItem.create(
         'expanded-category',
         10,
         vscode.TreeItemCollapsibleState.Expanded,
@@ -834,7 +834,7 @@ describe('SvgItem class', () => {
 
   describe('action variations', () => {
     test('debe crear acción con argumentos', () => {
-      const item = new SvgItem(
+      const item = SvgItem.create(
         'Action with args',
         0,
         vscode.TreeItemCollapsibleState.None,
@@ -865,7 +865,7 @@ describe('SvgItem class', () => {
         source: 'workspace',
       };
 
-      const item = new SvgItem(
+      const item = SvgItem.create(
         'nested/VeryLongComponentName.tsx:100',
         0,
         vscode.TreeItemCollapsibleState.None,
@@ -908,7 +908,7 @@ describe('WorkspaceSvgProvider additional features', () => {
 
   describe('tree item resolution', () => {
     test('getTreeItem debe retornar el elemento pasado', () => {
-      const item = new SvgItem('test', 0, vscode.TreeItemCollapsibleState.None, 'action');
+      const item = SvgItem.create('test', 0, vscode.TreeItemCollapsibleState.None, 'action');
 
       const result = provider.getTreeItem(item);
       expect(result).toBe(item);
@@ -988,7 +988,7 @@ describe('WorkspaceSvgProvider additional features', () => {
         svg: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>',
       };
 
-      const item = new SvgItem('data-icon', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
+      const item = SvgItem.create('data-icon', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
 
       const result = provider.getSvgData(item);
 
@@ -998,7 +998,7 @@ describe('WorkspaceSvgProvider additional features', () => {
     });
 
     test('debe retornar undefined para SvgItem sin icono', () => {
-      const item = new SvgItem(
+      const item = SvgItem.create(
         'category',
         5,
         vscode.TreeItemCollapsibleState.Collapsed,
@@ -1039,7 +1039,7 @@ describe('WorkspaceSvgProvider additional features', () => {
           svg: '<svg></svg>',
         };
 
-        const item = new SvgItem(
+        const item = SvgItem.create(
           'cached-icon',
           0,
           vscode.TreeItemCollapsibleState.None,
@@ -1062,7 +1062,7 @@ describe('WorkspaceSvgProvider additional features', () => {
           svg: '<svg></svg>',
         };
 
-        const item = new SvgItem(
+        const item = SvgItem.create(
           'path-icon',
           0,
           vscode.TreeItemCollapsibleState.None,
@@ -1091,7 +1091,7 @@ describe('WorkspaceSvgProvider additional features', () => {
           svg: '<svg></svg>',
         };
 
-        const item = new SvgItem('id-icon', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
+        const item = SvgItem.create('id-icon', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
 
         provider.getTreeItem(item);
 
@@ -1161,7 +1161,7 @@ describe('WorkspaceSvgProvider additional features', () => {
         };
 
         // Crear y cachear el item primero
-        const item = new SvgItem(
+        const item = SvgItem.create(
           'pre-cached',
           0,
           vscode.TreeItemCollapsibleState.None,
@@ -1183,7 +1183,7 @@ describe('WorkspaceSvgProvider additional features', () => {
       });
 
       test('debe retornar undefined para secciones (root level)', () => {
-        const section = new SvgItem(
+        const section = SvgItem.create(
           'SVG Files',
           10,
           vscode.TreeItemCollapsibleState.Collapsed,
@@ -1205,7 +1205,7 @@ describe('WorkspaceSvgProvider additional features', () => {
           isBuilt: true,
         };
 
-        const item = new SvgItem(
+        const item = SvgItem.create(
           'built-child',
           0,
           vscode.TreeItemCollapsibleState.None,
@@ -1231,7 +1231,7 @@ describe('WorkspaceSvgProvider additional features', () => {
           svg: '<svg></svg>',
         };
 
-        const item = new SvgItem(
+        const item = SvgItem.create(
           'folder-child',
           0,
           vscode.TreeItemCollapsibleState.None,
@@ -1255,7 +1255,7 @@ describe('WorkspaceSvgProvider additional features', () => {
           svg: '<svg></svg>',
         };
 
-        const item = new SvgItem(
+        const item = SvgItem.create(
           'to-be-cleared',
           0,
           vscode.TreeItemCollapsibleState.None,

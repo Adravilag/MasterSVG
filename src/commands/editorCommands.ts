@@ -3,9 +3,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { IconEditorPanel } from '../panels/IconEditorPanel';
 import { IconDetailsPanel } from '../panels/IconDetailsPanel';
-import { WorkspaceSvgProvider, SvgItem, WorkspaceIcon } from '../providers/WorkspaceSvgProvider';
-import { IconPreviewProvider } from '../providers/IconPreviewProvider';
-import { getComponentExporter } from '../services/ComponentExporter';
+import { WorkspaceSvgProvider, SvgItem, IconPreviewProvider } from '../providers';
+import type { WorkspaceIcon } from '../providers';
+import { getComponentExporter } from '../services';
 import { t } from '../i18n';
 
 /**
@@ -31,13 +31,13 @@ export function registerEditorCommands(
     if (item?.icon?.svg) {
       const svgData = workspaceSvgProvider.getSvgData(item);
       if (svgData) {
-        iconPreviewProvider.updatePreview(
-          svgData.name,
-          svgData.svg,
-          svgData.location,
-          item.contextValue === 'builtIcon',
-          svgData.animation
-        );
+        iconPreviewProvider.updatePreview({
+          name: svgData.name,
+          svg: svgData.svg,
+          location: svgData.location,
+          isBuilt: item.contextValue === 'builtIcon',
+          animation: svgData.animation,
+        });
       }
     }
   });

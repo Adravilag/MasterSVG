@@ -6,45 +6,18 @@
 import * as https from 'https';
 import * as path from 'path';
 import * as fs from 'fs';
+import {
+  IconifyLicenseInfo,
+  IconifyAuthorInfo,
+  IconifyCollectionInfo,
+  IconifyAttribution,
+} from './types/mastersvgTypes';
 
-/**
- * License information from Iconify collection
- */
-export interface LicenseInfo {
-  title: string;
-  spdx: string;
-  url?: string;
-}
-
-/**
- * Author information from Iconify collection
- */
-export interface AuthorInfo {
-  name: string;
-  url?: string;
-}
-
-/**
- * Collection metadata from Iconify
- */
-export interface CollectionInfo {
-  name: string;
-  total: number;
-  author: AuthorInfo;
-  license: LicenseInfo;
-  category?: string;
-}
-
-/**
- * Icon attribution entry
- */
-export interface IconAttribution {
-  iconName: string;
-  prefix: string;
-  collection: string;
-  author: AuthorInfo;
-  license: LicenseInfo;
-}
+// Re-export with original names for backwards compatibility
+export type LicenseInfo = IconifyLicenseInfo;
+export type AuthorInfo = IconifyAuthorInfo;
+export type CollectionInfo = IconifyCollectionInfo;
+export type IconAttribution = IconifyAttribution;
 
 /**
  * Collections cache

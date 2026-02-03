@@ -12,45 +12,18 @@ import {
   SVG_ANIMATIONS_FILE,
   DEFAULT_VIEWBOX,
 } from './constants';
+import {
+  SvgAttributes as CentralizedSvgAttributes,
+  IconAnimationConfig as CentralizedIconAnimationConfig,
+  IconEntry as CentralizedIconEntry,
+  SvgTransformerInterface as CentralizedSvgTransformerInterface,
+} from '../services/types/mastersvgTypes';
 
-/**
- * SVG attributes extracted from SVG content
- */
-export interface SvgAttributes {
-  viewBox?: string;
-  width?: string;
-  height?: string;
-}
-
-/**
- * Animation config for icons
- */
-export interface IconAnimationConfig {
-  type: string;
-  duration: number;
-  timing: string;
-  iteration: string;
-  delay?: number;
-  direction?: string;
-}
-
-/**
- * Icon entry in the icons file
- */
-export interface IconEntry {
-  name: string;
-  body: string;
-  viewBox: string;
-  animation?: IconAnimationConfig;
-}
-
-/**
- * Transformer interface for SVG operations
- */
-export interface SvgTransformerInterface {
-  extractSvgBody(svg: string): string;
-  extractSvgAttributes(svg: string): SvgAttributes;
-}
+// Re-export for backwards compatibility
+export type SvgAttributes = CentralizedSvgAttributes;
+export type IconAnimationConfig = CentralizedIconAnimationConfig;
+export type IconEntry = CentralizedIconEntry;
+export type SvgTransformerInterface = CentralizedSvgTransformerInterface;
 
 // ==================== Variable Name Conversion ====================
 

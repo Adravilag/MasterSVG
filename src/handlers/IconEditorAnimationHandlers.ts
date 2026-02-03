@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import { getVariantsService, AnimationPreset } from '../services/VariantsService';
+import { getVariantsService } from '../services';
+import type { AnimationPreset } from '../services';
 
 /**
  * Handle saving a custom animation preset to the icon

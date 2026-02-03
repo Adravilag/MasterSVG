@@ -6,7 +6,7 @@ import {
   getIconNamesFromFile,
   generateWebComponent,
 } from '../../utils/iconsFileManager';
-import { SvgTransformer } from '../../services/SvgTransformer';
+import { SvgTransformer } from '../../services/svg/SvgTransformer';
 
 // Mock fs module (using node: prefix to match source)
 jest.mock('node:fs');

@@ -1,3 +1,8 @@
+import type { ColorExtractionResult } from './types/mastersvgTypes';
+
+// Types exported for consumers
+export type { ColorExtractionResult, ColorFormat, ColorInfo } from './types/mastersvgTypes';
+
 /**
  * Service for color manipulation and extraction from SVGs
  */
@@ -5,11 +10,7 @@ export class ColorService {
   /**
    * Extract colors from SVG, filtering out SMIL secondary colors for UI display
    */
-  extractColorsFromSvg(svg: string): {
-    colors: string[];
-    hasCurrentColor: boolean;
-    hasSmil: boolean;
-  } {
+  extractColorsFromSvg(svg: string): ColorExtractionResult {
     const { colors, hasCurrentColor, hasSmil } = this.extractAllColorsFromSvg(svg);
 
     let filteredColors = colors;
@@ -36,11 +37,7 @@ export class ColorService {
   /**
    * Extract ALL colors from SVG without filtering (for saving variants)
    */
-  extractAllColorsFromSvg(svg: string): {
-    colors: string[];
-    hasCurrentColor: boolean;
-    hasSmil: boolean;
-  } {
+  extractAllColorsFromSvg(svg: string): ColorExtractionResult {
     const colorRegex = /(fill|stroke|stop-color)=["']([^"']+)["']/gi;
     const styleColorRegex = /(fill|stroke|stop-color)\s*:\s*([^;"'\s]+)/gi;
     const colorsSet = new Set<string>();

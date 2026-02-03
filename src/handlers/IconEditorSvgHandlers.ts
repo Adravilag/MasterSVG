@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
-import { SvgOptimizer } from '../services/SvgOptimizer';
-import { SvgManipulationService } from '../services/SvgManipulationService';
-import { getSyntaxHighlighter } from '../services/SyntaxHighlighter';
-import { getIconEditorTemplateService } from '../services/IconEditorTemplateService';
+import {
+  SvgOptimizer,
+  SvgManipulationService,
+  getSyntaxHighlighter,
+  getIconEditorTemplateService,
+} from '../services';
 import { t } from '../i18n';
 
 const svgOptimizer = new SvgOptimizer();
@@ -130,7 +132,7 @@ export function handleCopyWithAnimation(
   const animatedSvg = SvgManipulationService.embedAnimationInSvg(
     ctx.iconData.svg,
     message.animation,
-    settings as unknown as import('../services/AnimationService').AnimationSettings
+    settings as unknown as import('../services').AnimationSettings
   );
   vscode.env.clipboard.writeText(animatedSvg);
   vscode.window.showInformationMessage(t('messages.animatedSvgCopied'));

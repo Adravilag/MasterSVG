@@ -65,6 +65,8 @@
     "frontendDetected": "已检测到前端",
     "svgoOptimize": "SVGO 优化",
     "scanOnStartup": "启动时扫描",
+    "separateOutputStructure": "分离输出结构",
+    "separateOutputHint": "components/ (Icon.tsx, types.d.ts) + assets/ (svg-data.ts)",
     "defaultIconSize": "默认图标大小",
     "previewBackground": "预览背景",
     "allSettings": "所有设置..."

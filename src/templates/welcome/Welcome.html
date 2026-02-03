@@ -46,60 +46,10 @@
         </div>
       </div>
 
-      <!-- Step 1: Source Directory -->
-      <div class="step ${step1SourceClass}">
-        <div class="step-header">
-          <div class="step-number ${step1SourceNumberClass}"><span>1</span></div>
-          <div class="step-title">${step1SourceTitle}</div>
-          ${step1SourceSummary}
-        </div>
-        <div class="step-content">
-          <p class="step-description">${step1SourceDesc}</p>
-
-          <div class="options-grid">
-            ${sourceDirectoryOptions}
-            <div class="option browse" onclick="chooseSourceFolder()">
-              <span class="option-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg></span>
-              <span class="option-label">${browse}</span>
-            </div>
-          </div>
-
-          <div class="input-group">
-            <input type="text" id="sourceDir" placeholder="${step1SourcePlaceholder}" value="${sourceDir}" onkeypress="handleSourcePathKeypress(event)" />
-            <button class="btn-secondary" onclick="applyCustomSourcePath()">${step1Apply}</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 2: Output Directory -->
-      <div class="step ${step2Class}">
-        <div class="step-header">
-          <div class="step-number ${step2NumberClass}"><span>2</span></div>
-          <div class="step-title">${step2Title}</div>
-          ${step2Summary}
-        </div>
-        <div class="step-content">
-          <p class="step-description">${step2Desc}</p>
-
-          <div class="options-grid">
-            ${outputDirectoryOptions}
-            <div class="option browse" onclick="chooseFolder()" ${step2Disabled}>
-              <span class="option-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg></span>
-              <span class="option-label">${browse}</span>
-            </div>
-          </div>
-
-          <div class="input-group">
-            <input type="text" id="outputDir" placeholder="${step2Placeholder}" value="${outputDir}" onkeypress="handlePathKeypress(event)" ${step2Disabled} />
-            <button class="btn-secondary" onclick="applyCustomPath()" ${step2Disabled}>${step1Apply}</button>
-          </div>
-        </div>
-      </div>
-
       <!-- Step 3: Build Format -->
       <div class="step ${step3Class}">
         <div class="step-header">
-          <div class="step-number ${step3NumberClass}"><span>3</span></div>
+          <div class="step-number ${step3NumberClass}"><span>1</span></div>
           <div class="step-title">${step3Title}</div>
           <span class="step-summary" style="color: var(--vscode-descriptionForeground);">${formatSummary}</span>
         </div>
@@ -174,11 +124,10 @@
                 <span class="tag-pro">${jsModulePro2}</span>
               </div>
             </div>
-            <div class="format-card disabled">
+            <div class="format-card ${spriteSvgSelected}" onclick="setBuildFormat('sprite.svg')">
               <h3>
                 <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
                 ${spriteTitle}
-                <span class="badge-soon">${comingSoon}</span>
               </h3>
               <p>${spriteDesc}</p>
               <div class="format-tags">
@@ -187,11 +136,73 @@
               </div>
             </div>
           </div>
+
+          <!-- Step 4: Web Component Name (only for JS Module) -->
+          ${step4Section}
         </div>
       </div>
 
-      <!-- Step 4: Web Component Name (only for JS Module) -->
-      ${step4Section}
+      <!-- Step 1: Source Directory -->
+      <div class="step ${step1SourceClass}">
+        <div class="step-header">
+          <div class="step-number ${step1SourceNumberClass}"><span>2</span></div>
+          <div class="step-title">${step1SourceTitle}</div>
+          ${step1SourceSummary}
+        </div>
+        <div class="step-content">
+          <p class="step-description">${step1SourceDesc}</p>
+
+          <div class="options-grid">
+            ${sourceDirectoryOptions}
+            <div class="option browse" onclick="chooseSourceFolder()">
+              <span class="option-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg></span>
+              <span class="option-label">${browse}</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <input type="text" id="sourceDir" placeholder="${step1SourcePlaceholder}" onkeypress="handleSourcePathKeypress(event)" />
+            <button class="btn-secondary" onclick="applyCustomSourcePath()">${step1Apply}</button>
+          </div>
+
+          <div class="msignore-option">
+            <label class="toggle-label">
+              <span>
+                <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 6px; fill: currentColor;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
+                ${msignoreLabel}
+              </span>
+              <input type="checkbox" id="createMsignore" ${msignoreChecked} onchange="setCreateMsignore(this.checked)">
+              <span class="toggle-switch"></span>
+            </label>
+            <p class="msignore-hint">${msignoreHint}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Output Directory -->
+      <div class="step ${step2Class}">
+        <div class="step-header">
+          <div class="step-number ${step2NumberClass}"><span>3</span></div>
+          <div class="step-title">${step2Title}</div>
+          ${step2Summary}
+        </div>
+        <div class="step-content">
+          <p class="step-description">${step2Desc}</p>
+
+          <div class="options-grid">
+            ${outputDirectoryOptions}
+            <div class="option browse" onclick="chooseFolder()" ${step2Disabled}>
+              <span class="option-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg></span>
+              <span class="option-label">${browse}</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <input type="text" id="outputDir" placeholder="${step2Placeholder}" value="${outputDir}" onkeypress="handlePathKeypress(event)" ${step2Disabled} />
+            <button class="btn-secondary" onclick="applyCustomPath()" ${step2Disabled}>${step1Apply}</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Right Column: Live Preview -->
@@ -271,6 +282,14 @@
                 <input type="checkbox" id="scanOnStartup" ${scanOnStartupChecked} onchange="setScanOnStartup(this.checked)">
                 <span class="toggle-switch"></span>
               </label>
+            </div>
+            <div class="advanced-item">
+              <label class="toggle-label">
+                <span>${separateOutputLabel}</span>
+                <input type="checkbox" id="separateOutputStructure" ${separateOutputChecked} onchange="setSeparateOutputStructure(this.checked)">
+                <span class="toggle-switch"></span>
+              </label>
+              <p class="option-hint">${separateOutputHint}</p>
             </div>
             <div class="advanced-item">
               <label class="select-label">

@@ -5,17 +5,14 @@ import {
   initIgnoreFileWatcher,
   BuiltIconsProvider,
   SvgFilesProvider,
-} from './providers/WorkspaceSvgProvider';
-import { SvgTransformer } from './services/SvgTransformer';
-import { IconCompletionProvider } from './providers/IconCompletionProvider';
-import { IconHoverProvider } from './providers/IconHoverProvider';
-import {
+  IconCompletionProvider,
+  IconHoverProvider,
   SvgToIconCodeActionProvider,
   MissingIconCodeActionProvider,
   SvgImgDiagnosticProvider,
-} from './providers/SvgToIconCodeActionProvider';
-import { IconPreviewProvider } from './providers/IconPreviewProvider';
-import { getVariantsService } from './services/VariantsService';
+  IconPreviewProvider,
+} from './providers';
+import { SvgTransformer, getVariantsService, getAnimationService } from './services';
 import { WelcomePanel } from './panels/WelcomePanel';
 import {
   updateIconsJsContext,
@@ -38,7 +35,6 @@ import { registerMiscCommands } from './commands/miscCommands';
 import { registerImportCommands } from './commands/importCommands';
 import { registerLicenseCommands } from './commands/licenseCommands';
 import { registerLibraryCommands } from './commands/libraryCommands';
-import { getAnimationService } from './services/AnimationAssignmentService';
 
 /**
  * Supported language selectors for code intelligence features
@@ -124,13 +120,13 @@ export function activate(context: vscode.ExtensionContext) {
       if (item.icon) {
         const svgData = workspaceSvgProvider.getSvgData(item);
         if (svgData) {
-          iconPreviewProvider.updatePreview(
-            svgData.name,
-            svgData.svg,
-            svgData.location,
-            false,
-            svgData.animation
-          );
+          iconPreviewProvider.updatePreview({
+            name: svgData.name,
+            svg: svgData.svg,
+            location: svgData.location,
+            isBuilt: false,
+            animation: svgData.animation,
+          });
         }
       }
     }
@@ -155,13 +151,13 @@ export function activate(context: vscode.ExtensionContext) {
       if (item.icon) {
         const svgData = workspaceSvgProvider.getSvgData(item);
         if (svgData) {
-          iconPreviewProvider.updatePreview(
-            svgData.name,
-            svgData.svg,
-            svgData.location,
-            true, // isBuilt
-            svgData.animation
-          );
+          iconPreviewProvider.updatePreview({
+            name: svgData.name,
+            svg: svgData.svg,
+            location: svgData.location,
+            isBuilt: true,
+            animation: svgData.animation,
+          });
         }
       }
     }
@@ -210,13 +206,13 @@ export function activate(context: vscode.ExtensionContext) {
       ) {
         const svgData = workspaceSvgProvider.getSvgData(item);
         if (svgData) {
-          iconPreviewProvider.updatePreview(
-            svgData.name,
-            svgData.svg,
-            svgData.location,
-            item.contextValue === 'builtIcon' || item.contextValue === 'iconUsage',
-            svgData.animation
-          );
+          iconPreviewProvider.updatePreview({
+            name: svgData.name,
+            svg: svgData.svg,
+            location: svgData.location,
+            isBuilt: item.contextValue === 'builtIcon' || item.contextValue === 'iconUsage',
+            animation: svgData.animation,
+          });
         }
       }
     }

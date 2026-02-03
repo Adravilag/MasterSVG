@@ -1,0 +1,104 @@
+import * as vscode from 'vscode';
+import * as path from 'path';
+import type { FolderTreeNode } from '../../services/types';
+
+// Re-export for backwards compatibility
+export type { FolderTreeNode };
+
+/**
+ * Utility class for building folder tree structures from file paths
+ */
+export class FolderTreeBuilder {
+  /**
+   * Get or create a node in the tree
+   */
+  private static getOrCreateNode(
+    tree: Map<string, FolderTreeNode>,
+    nodePath: string
+  ): FolderTreeNode {
+    let node = tree.get(nodePath);
+    if (!node) {
+      node = { subfolders: new Set(), files: [] };
+      tree.set(nodePath, node);
+    }
+    return node;
+  }
+
+  /**
+   * Build a tree structure from paths
+   */
+  static buildFolderTree(paths: string[]): Map<string, FolderTreeNode> {
+    const tree = new Map<string, FolderTreeNode>();
+
+    for (const filePath of paths) {
+      const parts = filePath.split('/');
+      let currentPath = '';
+
+      // Build folder hierarchy
+      for (let i = 0; i < parts.length - 1; i++) {
+        const parentPath = currentPath;
+        currentPath = currentPath ? `${currentPath}/${parts[i]}` : parts[i];
+
+        this.getOrCreateNode(tree, parentPath).subfolders.add(currentPath);
+        this.getOrCreateNode(tree, currentPath);
+      }
+
+      // Add file to its parent directory
+      const parentDir = parts.slice(0, -1).join('/');
+      this.getOrCreateNode(tree, parentDir).files.push(filePath);
+    }
+
+    return tree;
+  }
+
+  /**
+   * Get workspace root path
+   */
+  static getWorkspaceRoot(): string {
+    return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
+  }
+
+  /**
+   * Convert absolute paths to relative paths
+   */
+  static toRelativePaths(absolutePaths: string[], workspaceRoot?: string): string[] {
+    const root = workspaceRoot || this.getWorkspaceRoot();
+    return absolutePaths.map(p => path.relative(root, p).replace(/\\/g, '/'));
+  }
+
+  /**
+   * Convert relative path to absolute path
+   */
+  static toAbsolutePath(relativePath: string, workspaceRoot?: string): string {
+    const root = workspaceRoot || this.getWorkspaceRoot();
+    return path.join(root, relativePath);
+  }
+
+  /**
+   * Get sorted subfolders from a tree node
+   */
+  static getSortedSubfolders(node: FolderTreeNode): string[] {
+    return Array.from(node.subfolders).sort((a, b) => a.localeCompare(b));
+  }
+
+  /**
+   * Get sorted files from a tree node
+   */
+  static getSortedFiles(node: FolderTreeNode): string[] {
+    return [...node.files].sort((a, b) => a.localeCompare(b));
+  }
+
+  /**
+   * Count files in a subtree that match the given criteria
+   */
+  static countInSubtree(
+    subfolder: string,
+    allPaths: string[],
+    matcher?: (path: string) => boolean
+  ): number {
+    const prefix = subfolder + '/';
+    return allPaths.filter(p =>
+      p.startsWith(prefix) && (!matcher || matcher(p))
+    ).length;
+  }
+}

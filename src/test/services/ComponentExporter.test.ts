@@ -10,7 +10,7 @@ import {
   ComponentExporter,
   ComponentFormat,
   ExportOptions,
-} from '../../services/ComponentExporter';
+} from '../../services/framework/ComponentExporter';
 
 describe('ComponentExporter', () => {
   let exporter: ComponentExporter;

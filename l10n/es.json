@@ -65,6 +65,8 @@
     "frontendDetected": "Frontend detectado",
     "svgoOptimize": "Optimización SVGO",
     "scanOnStartup": "Escanear al Iniciar",
+    "separateOutputStructure": "Separar Estructura de Salida",
+    "separateOutputHint": "components/ (Icon.tsx, types.d.ts) + assets/ (svg-data.ts)",
     "defaultIconSize": "Tamaño por Defecto",
     "previewBackground": "Fondo de Vista Previa",
     "allSettings": "Todas las Configuraciones..."

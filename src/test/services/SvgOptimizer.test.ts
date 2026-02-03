@@ -6,7 +6,7 @@
  */
 
 // Mock de vscode antes de importar el módulo
-import { SvgOptimizer } from '../../services/SvgOptimizer';
+import { SvgOptimizer } from '../../services/svg/SvgOptimizer';
 
 describe('SvgOptimizer', () => {
   let optimizer: SvgOptimizer;

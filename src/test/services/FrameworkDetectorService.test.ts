@@ -1,4 +1,4 @@
-import { FrameworkDetectorService } from '../../services/FrameworkDetectorService';
+import { FrameworkDetectorService } from '../../services/framework/FrameworkDetectorService';
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -22,7 +22,7 @@ describe('FrameworkDetectorService', () => {
     (FrameworkDetectorService as any).instance = undefined;
     service = FrameworkDetectorService.getInstance();
     service.clearCache();
-    
+
     // Reset mocks
     jest.clearAllMocks();
     (vscode.workspace as any).workspaceFolders = [

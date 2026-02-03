@@ -3,8 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { IconEditorPanel } from '../../panels/IconEditorPanel';
 import { IconDetailsPanel } from '../../panels/IconDetailsPanel';
-import { BuiltIconsProvider } from '../../providers/WorkspaceSvgProvider';
-import { getComponentExporter } from '../../services/ComponentExporter';
+import { BuiltIconsProvider } from '../../providers';
+import { getComponentExporter } from '../../services';
 import { t } from '../../i18n';
 
 // Template cache for lazy loading

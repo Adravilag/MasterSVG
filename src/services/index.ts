@@ -4,42 +4,25 @@
  */
 
 // Animation services
-export { AnimationService, ANIMATION_KEYFRAMES } from './AnimationService';
-export type { AnimationSettings, DetectedAnimation } from './AnimationService';
-export { getAnimationService } from './AnimationAssignmentService';
-export type { IconAnimation, AnimationsData } from './AnimationAssignmentService';
-export { ANIMATION_KEYFRAMES as ANIMATION_KEYFRAMES_CSS, ANIMATION_CATEGORIES, ANIMATION_BUTTONS, getKeyframesForAnimation, getAllAnimationTypes } from './AnimationKeyframes';
-
-// Color service
-export { ColorService } from './ColorService';
+export * from './animation';
 
 // SVG manipulation services
-export { SvgTransformer } from './SvgTransformer';
-export { SvgOptimizer } from './SvgOptimizer';
-export { SvgManipulationService } from './SvgManipulationService';
-export { SpriteGenerator } from './SpriteGenerator';
+export * from './svg';
 
-// Component & Framework services
-export { ComponentExporter } from './ComponentExporter';
-export { FrameworkDetectorService } from './FrameworkDetectorService';
-export { FrameworkWrapperService } from './FrameworkWrapperService';
-
-// Code services
-export { CodeFormatterService } from './CodeFormatterService';
-export { SyntaxHighlighter } from './SyntaxHighlighter';
+// Framework services
+export * from './framework';
 
 // Icon services
-export { IconPersistenceService, getIconPersistenceService } from './IconPersistenceService';
-export { IconUsageSearchService } from './IconUsageSearchService';
-export { UsageFinderService, getUsageFinderService } from './UsageFinderService';
-
-// Variants service
-export { VariantsService } from './VariantsService';
-export type { Variant, ColorMapping, AnimationPreset, VariantsData } from './VariantsService';
+export * from './icon';
 
 // Template services
-export { IconEditorTemplateService } from './IconEditorTemplateService';
-export { PreviewTemplateService } from './PreviewTemplateService';
+export * from './template';
+
+// Astro services
+export * from './astro';
+
+// Color service
+export { ColorService, getColorService } from './ColorService';
 
 // License service
 export {
@@ -57,6 +40,21 @@ export {
 } from './LicenseService';
 export type { LicenseInfo, AuthorInfo, CollectionInfo, IconAttribution } from './LicenseService';
 
-// Astro services
-export { AstroLibraryService } from './AstroLibraryService';
-export { AstroLibraryPanel } from './AstroLibraryPanel';
+// Types - export specific non-duplicate types only
+export type { FrameworkType, IconStudioConfig } from './types';
+export type {
+  FolderTreeNode,
+  PreviewAnimation,
+  PreviewTemplateOptions,
+  CategoryInfo,
+  IconStorageMaps,
+  IconUsageInfo,
+  ColorVariant,
+  ColorMappingRecord,
+  AnimationPresetConfig,
+  VariantsDataFile,
+  SimpleAnimationSettings,
+  DetectedAnimationInfo,
+  IconAnimationAssignment,
+  AnimationsDataFile,
+} from './types';

@@ -1,9 +1,15 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ColorService } from '../services/ColorService';
-import { getVariantsService } from '../services/VariantsService';
-import { getUsageFinderService } from '../services/UsageFinderService';
+import {
+  ColorService,
+  getVariantsService,
+  getUsageFinderService,
+  getIconLicenseInfoSync,
+  parseIconifyName,
+  ensureCollectionsLoaded,
+  getKeyframesForAnimation,
+} from '../services';
 import {
   handleMessage,
   PanelContext,
@@ -11,8 +17,6 @@ import {
   IconAnimation,
 } from './handlers/iconDetailHandlers';
 import { t } from '../i18n';
-import { getIconLicenseInfoSync, parseIconifyName, ensureCollectionsLoaded } from '../services/LicenseService';
-import { getKeyframesForAnimation } from '../services/AnimationKeyframes';
 import { scopeSvgIds } from '../utils/svgIdScoper';
 
 export { IconDetails, IconAnimation };

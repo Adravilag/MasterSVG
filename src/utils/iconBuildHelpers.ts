@@ -6,32 +6,21 @@
  */
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { SvgTransformer } from '../services/SvgTransformer';
+import { SvgTransformer } from '../services/svg/SvgTransformer';
 import { addToIconsJs, addToSpriteSvg } from '../utils/iconsFileManager';
 import { getConfig, getOutputPathOrWarn, getFullOutputPath } from '../utils/configHelper';
-import { WorkspaceIcon } from '../providers/WorkspaceSvgProvider';
+import { WorkspaceIcon } from '../providers/tree/WorkspaceSvgProvider';
 import { t } from '../i18n';
+import {
+  BuildResult as CentralizedBuildResult,
+  BuildIconOptions as CentralizedBuildIconOptions,
+  DeletePromptOptions as CentralizedDeletePromptOptions,
+} from '../services/types/mastersvgTypes';
 
-/**
- * Result of a build operation
- */
-export interface BuildResult {
-  success: boolean;
-  iconName: string;
-  outputPath: string;
-  format: 'sprite' | 'icons';
-  error?: string;
-}
-
-/**
- * Options for building an icon
- */
-export interface BuildIconOptions {
-  iconName: string;
-  svgContent: string;
-  svgTransformer: SvgTransformer;
-  outputPath?: string; // If not provided, uses configured output path
-}
+// Re-export for backwards compatibility
+export type BuildResult = CentralizedBuildResult;
+export type BuildIconOptions = CentralizedBuildIconOptions<SvgTransformer>;
+export type DeletePromptOptions = CentralizedDeletePromptOptions;
 
 /**
  * Build an icon to the configured format (sprite.svg or icons.js).
@@ -82,16 +71,6 @@ export async function buildIcon(options: BuildIconOptions): Promise<BuildResult>
       error: errorMessage,
     };
   }
-}
-
-/**
- * Options for showing delete original prompt
- */
-export interface DeletePromptOptions {
-  /** Title shown in quick pick */
-  title?: string;
-  /** Default value if user cancels */
-  defaultValue?: boolean;
 }
 
 /**

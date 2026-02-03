@@ -180,3 +180,11 @@ function setDefaultIconSize(value) {
 function setPreviewBackground(value) {
   vscode.postMessage({ command: 'setPreviewBackground', value: value });
 }
+
+function setCreateMsignore(checked) {
+  vscode.postMessage({ command: 'setCreateMsignore', value: checked });
+}
+
+function setSeparateOutputStructure(checked) {
+  vscode.postMessage({ command: 'setSeparateOutputStructure', value: checked });
+}
