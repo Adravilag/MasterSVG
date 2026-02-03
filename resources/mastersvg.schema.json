@@ -1,0 +1,308 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mastersvg.dev/schema/v1.json",
+  "title": "MasterSVG Configuration",
+  "description": "Configuration schema for MasterSVG VS Code extension",
+  "type": "object",
+  "required": ["version", "source", "output", "framework"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema URL for validation and autocompletion"
+    },
+    "version": {
+      "type": "string",
+      "description": "Configuration version",
+      "default": "1.0",
+      "enum": ["1.0"]
+    },
+    "source": {
+      "type": "object",
+      "description": "Source directories configuration",
+      "required": ["directories"],
+      "properties": {
+        "directories": {
+          "type": "array",
+          "description": "Directories to scan for SVG files",
+          "items": { "type": "string" },
+          "default": ["src/assets/svg"],
+          "examples": [["src/assets/svg"], ["src/icons/raw", "public/icons"]]
+        },
+        "ignore": {
+          "type": "array",
+          "description": "Glob patterns to ignore",
+          "items": { "type": "string" },
+          "default": ["**/node_modules/**", "**/dist/**"],
+          "examples": [["**/backup/**", "**/*-old.svg"]]
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "description": "Output configuration",
+      "required": ["format", "structure"],
+      "properties": {
+        "format": {
+          "type": "string",
+          "description": "Output format",
+          "enum": ["icons.ts", "icons.js", "sprite.svg"],
+          "default": "icons.ts"
+        },
+        "structure": {
+          "type": "string",
+          "description": "Output structure type",
+          "enum": ["flat", "separated"],
+          "default": "flat"
+        },
+        "directory": {
+          "type": "string",
+          "description": "Output directory (for flat structure)",
+          "default": "src/icons"
+        },
+        "paths": {
+          "type": "object",
+          "description": "Output paths (for separated structure)",
+          "properties": {
+            "components": {
+              "type": "string",
+              "description": "Path for components (Icon.tsx, index.ts)",
+              "default": "src/components/icons"
+            },
+            "assets": {
+              "type": "string",
+              "description": "Path for assets (svg-data.ts)",
+              "default": "src/assets/icons"
+            },
+            "types": {
+              "type": "string",
+              "description": "Path for types (types.d.ts)",
+              "default": "src/types/icons"
+            }
+          }
+        }
+      },
+      "if": {
+        "properties": { "structure": { "const": "separated" } }
+      },
+      "then": {
+        "required": ["paths"]
+      },
+      "else": {
+        "required": ["directory"]
+      }
+    },
+    "framework": {
+      "type": "object",
+      "description": "Framework configuration",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Target framework",
+          "enum": ["html", "react", "vue", "angular", "svelte", "solid", "qwik", "astro"],
+          "default": "react"
+        },
+        "typescript": {
+          "type": "boolean",
+          "description": "Generate TypeScript files",
+          "default": true
+        },
+        "component": {
+          "type": "object",
+          "description": "Component configuration",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Component name",
+              "default": "Icon"
+            },
+            "webComponentTag": {
+              "type": "string",
+              "description": "Web component tag name (for HTML/Angular)",
+              "default": "svg-icon",
+              "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)+$"
+            }
+          }
+        }
+      }
+    },
+    "optimization": {
+      "type": "object",
+      "description": "Optimization configuration",
+      "properties": {
+        "svgo": {
+          "type": "object",
+          "description": "SVGO configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable SVGO optimization",
+              "default": true
+            },
+            "removeComments": {
+              "type": "boolean",
+              "description": "Remove XML comments",
+              "default": true
+            },
+            "removeMetadata": {
+              "type": "boolean",
+              "description": "Remove metadata elements",
+              "default": true
+            },
+            "removeTitle": {
+              "type": "boolean",
+              "description": "Remove title elements",
+              "default": false
+            },
+            "removeDimensions": {
+              "type": "boolean",
+              "description": "Remove width/height, keep viewBox",
+              "default": true
+            },
+            "convertColors": {
+              "type": "object",
+              "properties": {
+                "currentColor": {
+                  "type": "boolean",
+                  "description": "Convert fills to currentColor",
+                  "default": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "icons": {
+      "type": "object",
+      "description": "Icons configuration",
+      "properties": {
+        "defaultSize": {
+          "type": "number",
+          "description": "Default icon size in pixels",
+          "default": 24,
+          "minimum": 8,
+          "maximum": 512
+        },
+        "naming": {
+          "type": "string",
+          "description": "Naming convention for icon exports",
+          "enum": ["kebab-case", "camelCase", "PascalCase", "snake_case"],
+          "default": "kebab-case"
+        },
+        "prefix": {
+          "type": "string",
+          "description": "Icon name prefix",
+          "default": ""
+        },
+        "categories": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable categories",
+              "default": true
+            },
+            "source": {
+              "type": "string",
+              "description": "Category source type",
+              "enum": ["folders", "filename", "manual"],
+              "default": "folders"
+            }
+          }
+        }
+      }
+    },
+    "animations": {
+      "type": "object",
+      "description": "Animation configuration",
+      "properties": {
+        "presets": {
+          "type": "object",
+          "description": "Animation presets",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["duration", "timing", "iteration"],
+            "properties": {
+              "duration": {
+                "type": "number",
+                "description": "Animation duration in milliseconds",
+                "minimum": 0
+              },
+              "timing": {
+                "type": "string",
+                "description": "Timing function",
+                "enum": ["linear", "ease", "ease-in", "ease-out", "ease-in-out"]
+              },
+              "iteration": {
+                "oneOf": [
+                  { "type": "number", "minimum": 1 },
+                  { "type": "string", "const": "infinite" }
+                ],
+                "description": "Iteration count"
+              },
+              "delay": {
+                "type": "number",
+                "description": "Animation delay in milliseconds",
+                "minimum": 0
+              },
+              "direction": {
+                "type": "string",
+                "description": "Animation direction",
+                "enum": ["normal", "reverse", "alternate", "alternate-reverse"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "licenses": {
+      "type": "object",
+      "description": "Licenses configuration",
+      "properties": {
+        "autoGenerate": {
+          "type": "boolean",
+          "description": "Auto-generate license file",
+          "default": false
+        },
+        "outputFile": {
+          "type": "string",
+          "description": "License file name",
+          "default": "ICON_LICENSES.md"
+        },
+        "includeIconify": {
+          "type": "boolean",
+          "description": "Include Iconify icon licenses",
+          "default": true
+        }
+      }
+    },
+    "editor": {
+      "type": "object",
+      "description": "Editor behavior configuration",
+      "properties": {
+        "scanOnStartup": {
+          "type": "boolean",
+          "description": "Scan for SVGs on startup",
+          "default": true
+        },
+        "previewBackground": {
+          "type": "string",
+          "description": "Preview background style",
+          "enum": ["transparent", "light", "dark", "checkered"],
+          "default": "checkered"
+        },
+        "autoImport": {
+          "type": "boolean",
+          "description": "Auto-add import statements",
+          "default": true
+        },
+        "deleteAfterBuild": {
+          "type": "boolean",
+          "description": "Delete source SVG after build",
+          "default": false
+        }
+      }
+    }
+  }
+}

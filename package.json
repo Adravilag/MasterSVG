@@ -594,6 +594,12 @@
         }
       }
     },
+    "jsonValidation": [
+      {
+        "fileMatch": "mastersvg.config.json",
+        "url": "./resources/mastersvg.schema.json"
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
