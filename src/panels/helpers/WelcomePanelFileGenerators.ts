@@ -8,6 +8,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { FrameworkType } from '../../services/types';
 import { FrameworkWrapperService } from '../../services/framework';
+import {
+  MasterSvgConfig,
+  OutputStructure,
+  FrameworkType as ConfigFrameworkType,
+  DEFAULT_CONFIG,
+} from '../../config';
 
 /** Options for icons module generation */
 export interface IconsModuleOptions {
@@ -15,6 +21,81 @@ export interface IconsModuleOptions {
   webComponentName: string;
   framework: FrameworkType;
   separateStructure?: boolean;
+}
+
+/** Options for generating mastersvg.config.json */
+export interface ConfigFileOptions {
+  sourceDirectories: string[];
+  outputDirectory: string;
+  outputStructure: OutputStructure;
+  outputPaths?: {
+    components?: string;
+    assets?: string;
+    types?: string;
+  };
+  framework: ConfigFrameworkType;
+  typescript?: boolean;
+  webComponentName?: string;
+  buildFormat: 'icons.ts' | 'icons.js' | 'sprite.svg';
+  defaultIconSize?: number;
+  scanOnStartup?: boolean;
+  previewBackground?: 'transparent' | 'light' | 'dark' | 'checkered';
+}
+
+/**
+ * Generates mastersvg.config.json file in workspace root
+ */
+export function generateConfigFile(workspacePath: string, options: ConfigFileOptions): void {
+  const configPath = path.join(workspacePath, 'mastersvg.config.json');
+
+  // Build output config based on structure type
+  const outputConfig: MasterSvgConfig['output'] = options.outputStructure === 'flat'
+    ? {
+        format: options.buildFormat,
+        structure: 'flat',
+        directory: options.outputDirectory,
+      }
+    : {
+        format: options.buildFormat,
+        structure: 'separated',
+        paths: {
+          components: options.outputPaths?.components ?? 'src/components/icons',
+          assets: options.outputPaths?.assets ?? 'src/assets/icons',
+          types: options.outputPaths?.types,
+        },
+      };
+
+  const config: MasterSvgConfig = {
+    $schema: './node_modules/mastersvg/.vscode/mastersvg.schema.json',
+    version: '1.0',
+    source: {
+      directories: options.sourceDirectories,
+      ignore: DEFAULT_CONFIG.source.ignore,
+    },
+    output: outputConfig,
+    framework: {
+      type: options.framework,
+      typescript: options.typescript ?? true,
+      component: {
+        name: 'Icon',
+        webComponentTag: options.webComponentName || 'svg-icon',
+      },
+    },
+    optimization: DEFAULT_CONFIG.optimization,
+    icons: {
+      ...DEFAULT_CONFIG.icons,
+      defaultSize: options.defaultIconSize ?? 24,
+    },
+    animations: DEFAULT_CONFIG.animations,
+    licenses: DEFAULT_CONFIG.licenses,
+    editor: {
+      ...DEFAULT_CONFIG.editor,
+      scanOnStartup: options.scanOnStartup ?? true,
+      previewBackground: options.previewBackground ?? 'checkered',
+    },
+  };
+
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
 }
 
 /**

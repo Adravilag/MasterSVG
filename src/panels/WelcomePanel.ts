@@ -31,6 +31,8 @@ import {
   createMsignoreFile,
   ensureOutputDirectory,
   ensureVscodeDirectory,
+  generateConfigFile,
+  ConfigFileOptions,
 } from './helpers';
 
 /**
@@ -82,14 +84,25 @@ export class WelcomePanel {
   }
 
   /**
-   * Checks if extension is configured
+   * Checks if extension is configured (via VS Code settings or mastersvg.config.json)
    */
   public static isConfigured(): boolean {
     const config = vscode.workspace.getConfiguration('masterSVG');
-    return !!(
+    const hasVsCodeConfig = !!(
       config.get<string[]>('svgFolders')?.length ||
       config.get<string>('outputDirectory')
     );
+
+    // Also check for mastersvg.config.json
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (workspaceFolder) {
+      const configPath = path.join(workspaceFolder.uri.fsPath, 'mastersvg.config.json');
+      if (fs.existsSync(configPath)) {
+        return true;
+      }
+    }
+
+    return hasVsCodeConfig;
   }
 
   private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
@@ -368,6 +381,10 @@ export class WelcomePanel {
     ensureOutputDirectory(fullPath);
 
     try {
+      // Generate mastersvg.config.json first
+      this._generateMasterSvgConfig(workspaceFolder.uri.fsPath);
+
+      // Persist to VS Code settings (for backward compatibility)
       await this._persistSessionConfig();
       await this._generateOutputFiles(fullPath, buildFormat, webComponentName, outputDir);
 
@@ -384,6 +401,40 @@ export class WelcomePanel {
     }
 
     this._panel.dispose();
+  }
+
+  /**
+   * Generates mastersvg.config.json with wizard settings
+   */
+  private _generateMasterSvgConfig(workspacePath: string): void {
+    const outputDir = this._sessionConfig.outputDirectory;
+    const separateStructure = this._sessionConfig.separateOutputStructure;
+    const framework = this._sessionConfig.framework as ConfigFileOptions['framework'];
+    const buildFormat = this._sessionConfig.buildFormat as ConfigFileOptions['buildFormat'];
+
+    const configOptions: ConfigFileOptions = {
+      sourceDirectories: this._sessionConfig.svgFolders,
+      outputDirectory: outputDir,
+      outputStructure: separateStructure ? 'separated' : 'flat',
+      framework,
+      typescript: ['react', 'vue', 'angular', 'solid', 'qwik'].includes(framework),
+      webComponentName: this._sessionConfig.webComponentName || 'svg-icon',
+      buildFormat,
+      defaultIconSize: this._sessionConfig.defaultIconSize,
+      scanOnStartup: this._sessionConfig.scanOnStartup,
+      previewBackground: this._sessionConfig.previewBackground as ConfigFileOptions['previewBackground'],
+    };
+
+    // Add separated paths if using separated structure
+    if (separateStructure) {
+      configOptions.outputPaths = {
+        components: path.posix.join(outputDir, 'components', 'icons'),
+        assets: path.posix.join(outputDir, 'assets', 'icons'),
+        types: path.posix.join(outputDir, 'components', 'icons'),
+      };
+    }
+
+    generateConfigFile(workspacePath, configOptions);
   }
 
   private async _persistSessionConfig(): Promise<void> {

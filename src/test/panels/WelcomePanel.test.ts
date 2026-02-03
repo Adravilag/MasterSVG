@@ -68,7 +68,13 @@ jest.mock('vscode', () => ({
 }));
 
 jest.mock('fs', () => ({
-  existsSync: jest.fn().mockReturnValue(true),
+  existsSync: jest.fn().mockImplementation((filePath: string) => {
+    // Don't return true for mastersvg.config.json by default
+    if (filePath.includes('mastersvg.config.json')) {
+      return false;
+    }
+    return true;
+  }),
   mkdirSync: jest.fn(),
   readFileSync: jest.fn().mockImplementation((filePath: string) => {
     if (filePath.includes('Welcome.css')) {
