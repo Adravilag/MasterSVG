@@ -1,0 +1,77 @@
+<!-- Size Tab - Dimensions Control -->
+<div class="size-tab-content">
+  <!-- Current Dimensions Section -->
+  <div class="section">
+    <div class="section-title">
+      <span class="codicon codicon-screen-full"></span> ${i18n_currentDimensions}
+    </div>
+    <div class="size-current-info">
+      <div class="size-info-row">
+        <span class="size-info-label">${i18n_viewBox}</span>
+        <span class="size-info-value" id="sizeViewBox">${viewBox}</span>
+      </div>
+      <div class="size-info-row">
+        <span class="size-info-label">${i18n_currentWidth}</span>
+        <span class="size-info-value" id="sizeCurrentWidth">${currentWidth}</span>
+      </div>
+      <div class="size-info-row">
+        <span class="size-info-label">${i18n_currentHeight}</span>
+        <span class="size-info-value" id="sizeCurrentHeight">${currentHeight}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resize Section -->
+  <div class="section">
+    <div class="section-title">
+      <span class="codicon codicon-arrow-both"></span> ${i18n_resize}
+    </div>
+
+    <!-- Preset Sizes -->
+    <div class="size-presets">
+      <button class="size-preset-btn${activePreset16}" onclick="applySizePreset(16)" title="16×16">16</button>
+      <button class="size-preset-btn${activePreset20}" onclick="applySizePreset(20)" title="20×20">20</button>
+      <button class="size-preset-btn${activePreset24}" onclick="applySizePreset(24)" title="24×24">24</button>
+      <button class="size-preset-btn${activePreset32}" onclick="applySizePreset(32)" title="32×32">32</button>
+      <button class="size-preset-btn${activePreset48}" onclick="applySizePreset(48)" title="48×48">48</button>
+      <button class="size-preset-btn${activePreset64}" onclick="applySizePreset(64)" title="64×64">64</button>
+      <button class="size-preset-btn${activePreset128}" onclick="applySizePreset(128)" title="128×128">128</button>
+      <button class="size-preset-btn${activePreset256}" onclick="applySizePreset(256)" title="256×256">256</button>
+    </div>
+
+    <!-- Custom Size -->
+    <div class="size-custom-controls">
+      <div class="size-input-group">
+        <label for="sizeWidth">${i18n_width}</label>
+        <div class="size-input-wrapper">
+          <input type="number" id="sizeWidth" value="${widthValue}" min="1" max="2048" step="1"
+            onchange="onSizeInputChange()" />
+          <span class="size-unit">px</span>
+        </div>
+      </div>
+
+      <button class="size-lock-btn${lockActive}" id="sizeLockBtn" onclick="toggleSizeLock()" title="${i18n_lockAspectRatio}">
+        <span class="codicon codicon-${lockIcon}"></span>
+      </button>
+
+      <div class="size-input-group">
+        <label for="sizeHeight">${i18n_height}</label>
+        <div class="size-input-wrapper">
+          <input type="number" id="sizeHeight" value="${heightValue}" min="1" max="2048" step="1"
+            onchange="onSizeInputChange()" />
+          <span class="size-unit">px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Apply / Remove Buttons -->
+    <div class="size-actions">
+      <button class="btn btn-primary" onclick="applySize()" title="${i18n_applySize}">
+        <span class="codicon codicon-check"></span> ${i18n_applySize}
+      </button>
+      <button class="btn" onclick="removeSize()" title="${i18n_removeSize}">
+        <span class="codicon codicon-close"></span> ${i18n_removeSize}
+      </button>
+    </div>
+  </div>
+</div>

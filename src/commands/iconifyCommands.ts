@@ -9,6 +9,11 @@ import { searchIconify, fetchIconSvg, IconifySearchResult, searchInCollection } 
 import { addToIconsJs, addToSpriteSvg } from '../utils/iconsFileManager';
 import { getConfig, getOutputPathOrWarn } from '../utils/configHelper';
 import { getIconPickerHtml } from '../utils/iconPickerHtml';
+import { IconifySuggestionProvider } from '../utils/iconifySuggestionService';
+import { extractProjectPalette, extractProjectContext } from '../utils/projectPaletteExtractor';
+import { SvgOptimizer } from '../services/svg/SvgOptimizer';
+import type { IconSuggestion } from '../services/types/mastersvgTypes';
+import type { WorkspaceIcon } from '../types';
 import { t } from '../i18n';
 
 /**
@@ -115,7 +120,8 @@ export function showIconifyReplacementPicker(
   context: vscode.ExtensionContext,
   icons: IconifySearchResult[],
   query: string,
-  missingIconName: string
+  missingIconName: string,
+  builtIcons?: WorkspaceIcon[]
 ): Promise<{ prefix: string; name: string; svg: string } | undefined> {
   return new Promise(resolve => {
     const panel = vscode.window.createWebviewPanel(
@@ -130,7 +136,7 @@ export function showIconifyReplacementPicker(
 
     let resolved = false;
 
-    panel.webview.html = getIconifyReplacePickerHtml(icons, query, missingIconName);
+    panel.webview.html = getIconifyReplacePickerHtml(icons, query, missingIconName, builtIcons);
 
     panel.onDidDispose(() => {
       if (!resolved) {
@@ -157,6 +163,13 @@ export function showIconifyReplacementPicker(
           vscode.window.showErrorMessage(
             t('messages.failedToFetchIconError', { error: String(error) })
           );
+        }
+      } else if (message.command === 'selectBuiltIcon') {
+        const { name, svg } = message;
+        if (name && svg) {
+          resolved = true;
+          panel.dispose();
+          resolve({ prefix: 'built', name, svg });
         }
       } else if (message.command === 'cancel') {
         resolved = true;
@@ -261,15 +274,68 @@ export function showIconPickerPanel(
 function getIconifyReplacePickerHtml(
   icons: IconifySearchResult[],
   query: string,
-  missingIconName: string
+  missingIconName: string,
+  builtIcons?: WorkspaceIcon[]
 ): string {
   const escapedQuery = query.replace(/"/g, '&quot;');
   const escapedMissing = missingIconName.replace(/"/g, '&quot;');
 
-  const iconCards = icons
-    .map(
-      icon => `
-    <div class="icon-card" data-prefix="${icon.prefix}" data-name="${icon.name}">
+  // Built icons section (no Iconify sub-header here — that's handled below)
+  const builtIconsSection = builtIcons && builtIcons.length > 0 ? `
+    <div class="section-header">
+      <h2>📦 ${t('ui.labels.browseBuiltIcons') || 'Built Icons'}</h2>
+      <span class="section-count">${builtIcons.length}</span>
+    </div>
+    <div class="grid built-grid">
+      ${builtIcons.filter(icon => icon.svg).map(icon => {
+        const encodedSvg = encodeURIComponent(icon.svg!);
+        return `
+      <div class="icon-card built-card" data-built-name="${icon.name}" data-built-svg="${encodedSvg}">
+        <div class="icon-preview built-preview">${icon.svg}</div>
+        <div class="icon-info">
+          <span class="icon-name">${icon.name}</span>
+          <span class="icon-prefix built-label">${t('treeView.builtStatus') || 'Built'}</span>
+        </div>
+        <button class="select-btn built-btn">${t('ui.labels.use') || 'Use'}</button>
+      </div>`;
+      }).join('')}
+    </div>
+    <div class="section-divider"></div>
+  ` : '';
+
+  // Separate best matches from the rest with scoring
+  const normalizedMissing = missingIconName.toLowerCase().replace(/[-_\s]/g, '');
+  const minMatchLength = 3; // Avoid trivially short matches
+  const scored: { icon: IconifySearchResult; score: number }[] = [];
+  const otherIcons: IconifySearchResult[] = [];
+
+  for (const icon of icons) {
+    const normalizedName = icon.name.toLowerCase().replace(/[-_\s]/g, '');
+    let score = 0;
+
+    if (normalizedName === normalizedMissing) {
+      score = 100; // Exact match
+    } else if (normalizedName.startsWith(normalizedMissing) && normalizedMissing.length >= minMatchLength) {
+      score = 80; // Icon name starts with our search
+    } else if (normalizedMissing.startsWith(normalizedName) && normalizedName.length >= minMatchLength && normalizedName.length >= normalizedMissing.length * 0.5) {
+      score = 60; // Our search starts with icon name, but only if icon name is at least 50% of the length
+    } else if (normalizedName.includes(normalizedMissing) && normalizedMissing.length >= minMatchLength) {
+      score = 40; // Icon name contains our search term
+    }
+
+    if (score > 0) {
+      scored.push({ icon, score });
+    } else {
+      otherIcons.push(icon);
+    }
+  }
+
+  // Sort best matches by score (highest first), then alphabetically
+  scored.sort((a, b) => b.score - a.score || a.icon.name.localeCompare(b.icon.name));
+  const bestMatches = scored.map(s => s.icon);
+
+  const renderCard = (icon: IconifySearchResult, highlight = false) => `
+    <div class="icon-card${highlight ? ' best-match-card' : ''}" data-prefix="${icon.prefix}" data-name="${icon.name}">
       <div class="icon-preview">
         <img src="https://api.iconify.design/${icon.prefix}/${icon.name}.svg?color=%23ffffff" alt="${icon.name}" loading="lazy" />
       </div>
@@ -280,10 +346,32 @@ function getIconifyReplacePickerHtml(
       <button class="select-btn" onclick="selectIcon('${icon.prefix}', '${icon.name}')">
         Build
       </button>
+    </div>`;
+
+  // Show sections only when there's a split to show
+  const hasSplit = bestMatches.length > 0 && otherIcons.length > 0;
+
+  const bestMatchSection = bestMatches.length > 0 ? `
+    <div class="section-header">
+      <h2>🎯 Best match</h2>
+      <span class="section-count">${bestMatches.length}${hasSplit ? ` · ${Math.round((bestMatches.length / icons.length) * 100)}%` : ''}</span>
     </div>
-  `
-    )
-    .join('');
+    <div class="grid best-match-grid">
+      ${bestMatches.map(icon => renderCard(icon, true)).join('')}
+    </div>
+    ${hasSplit ? '<div class="section-divider"></div>' : ''}
+  ` : '';
+
+  const otherSection = otherIcons.length > 0 ? `
+    ${hasSplit ? `
+    <div class="section-header">
+      <h2>🌐 Iconify</h2>
+      <span class="section-count">${otherIcons.length} · ${Math.round((otherIcons.length / icons.length) * 100)}%</span>
+    </div>` : ''}
+    <div class="grid">
+      ${otherIcons.map(icon => renderCard(icon)).join('')}
+    </div>
+  ` : '';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -370,6 +458,66 @@ function getIconifyReplacePickerHtml(
     .subtitle {
       color: var(--vscode-descriptionForeground);
       margin-bottom: 20px;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .section-header h2 {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .section-count {
+      background: var(--vscode-badge-background);
+      color: var(--vscode-badge-foreground);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .section-divider {
+      border-top: 1px solid var(--vscode-input-border);
+      margin: 24px 0;
+    }
+    .built-grid {
+      margin-bottom: 8px;
+    }
+    .built-card {
+      border-color: rgba(0, 120, 212, 0.3);
+    }
+    .built-preview {
+      background: var(--vscode-editor-background);
+      border-radius: 6px;
+      padding: 4px;
+    }
+    .built-preview svg {
+      width: 100%;
+      height: 100%;
+    }
+    .built-label {
+      color: var(--vscode-charts-blue) !important;
+      font-weight: 500;
+    }
+    .built-btn {
+      background: rgba(0, 120, 212, 0.15) !important;
+      color: var(--vscode-foreground) !important;
+      border: 1px solid rgba(0, 120, 212, 0.3) !important;
+    }
+    .built-btn:hover {
+      background: rgba(0, 120, 212, 0.25) !important;
+    }
+    .best-match-card {
+      border-color: rgba(16, 185, 129, 0.4);
+      background: rgba(16, 185, 129, 0.06);
+    }
+    .best-match-card:hover {
+      border-color: rgba(16, 185, 129, 0.6);
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+    }
+    .best-match-grid {
+      margin-bottom: 8px;
     }
     .grid {
       display: grid;
@@ -463,9 +611,11 @@ function getIconifyReplacePickerHtml(
 
   <p class="subtitle">Results for "${escapedQuery}" — ${icons.length} icons found. Click to build.</p>
 
-  <div class="grid">
-    ${iconCards}
-  </div>
+  ${builtIconsSection}
+
+  ${bestMatchSection}
+
+  ${otherSection}
 
   <script>
     const vscode = acquireVsCodeApi();
@@ -498,6 +648,22 @@ function getIconifyReplacePickerHtml(
       vscode.postMessage({ command: 'selectIcon', prefix, name, color: currentColor });
     }
 
+    function selectBuiltIcon(name, svg) {
+      vscode.postMessage({ command: 'selectBuiltIcon', name, svg });
+    }
+
+    // Attach click handlers to built icon cards
+    document.querySelectorAll('.built-card').forEach(card => {
+      const btn = card.querySelector('.built-btn');
+      if (btn) {
+        btn.addEventListener('click', () => {
+          const name = card.dataset.builtName;
+          const svg = decodeURIComponent(card.dataset.builtSvg);
+          selectBuiltIcon(name, svg);
+        });
+      }
+    });
+
     function cancel() {
       vscode.postMessage({ command: 'cancel' });
     }
@@ -515,34 +681,14 @@ export function registerIconifyCommands(
 ): void {
   const { workspaceSvgProvider, builtIconsProvider, svgTransformer } = providers;
 
-  // Command: Search icons (Iconify)
-  const searchIconsCmd = vscode.commands.registerCommand('masterSVG.searchIcons', async () => {
-    const query = await vscode.window.showInputBox({
-      prompt: t('ui.prompts.searchIconifyFull'),
-      placeHolder: t('ui.placeholders.enterSearchTerm'),
-    });
-
-    if (!query) return;
-
-    const results = await searchIconify(query);
-
-    if (results.length === 0) {
-      vscode.window.showInformationMessage(t('messages.noIconsFoundForQuery', { query }));
-      return;
-    }
-
-    showIconPickerPanel(context, results, query, svgTransformer, workspaceSvgProvider);
-  });
-
-  // Command: Search Iconify with pre-filled query (for hover links)
-  const searchIconifyCmd = vscode.commands.registerCommand(
-    'masterSVG.searchIconify',
+  // Command: Search icons (Iconify) — accepts optional pre-filled query
+  const searchIconsCmd = vscode.commands.registerCommand(
+    'masterSVG.searchIcons',
     async (query?: string) => {
-      // If no query provided, show input box
       const searchTerm =
         query ||
         (await vscode.window.showInputBox({
-          prompt: t('ui.prompts.searchIconify'),
+          prompt: t('ui.prompts.searchIconifyFull'),
           placeHolder: t('ui.placeholders.enterSearchTerm'),
         }));
 
@@ -567,6 +713,14 @@ export function registerIconifyCommands(
           showIconPickerPanel(context, results, searchTerm, svgTransformer, workspaceSvgProvider);
         }
       );
+    }
+  );
+
+  // Command: searchIconify — alias for searchIcons (backward compatibility for hover links)
+  const searchIconifyCmd = vscode.commands.registerCommand(
+    'masterSVG.searchIconify',
+    async (query?: string) => {
+      await vscode.commands.executeCommand('masterSVG.searchIcons', query);
     }
   );
 
@@ -621,6 +775,35 @@ export function registerIconifyCommands(
 
         const selectedIcon = await showIconifyReplacementPicker(context, results, query, iconName);
         if (!selectedIcon) return;
+
+        if (selectedIcon.prefix === 'built') {
+          // Built icon selected - already exists, just update reference
+          finalIconName = selectedIcon.name;
+          svgContent = selectedIcon.svg;
+          // Skip build since icon already exists
+          if (sourceFile && line !== undefined && finalIconName !== iconName) {
+            try {
+              const document = await vscode.workspace.openTextDocument(sourceFile);
+              const lineText = document.lineAt(line).text;
+              const newText = lineText.replace(
+                new RegExp(`name=["']${iconName}["']`, 'g'),
+                `name="${finalIconName}"`
+              );
+              if (newText !== lineText) {
+                const edit = new vscode.WorkspaceEdit();
+                edit.replace(document.uri, new vscode.Range(line, 0, line, lineText.length), newText);
+                await vscode.workspace.applyEdit(edit);
+              }
+            } catch (updateError) {
+              console.error('Failed to update reference:', updateError);
+            }
+          }
+          vscode.window.showInformationMessage(
+            t('messages.iconTransformed', { name: finalIconName, component: config.webComponentName || 'svg-icon' })
+          );
+          workspaceSvgProvider.softRefresh();
+          return;
+        }
 
         svgContent = selectedIcon.svg;
         finalIconName = `${selectedIcon.prefix}-${selectedIcon.name}`;
@@ -738,10 +921,39 @@ export function registerIconifyCommands(
         context,
         results,
         query,
-        suggestedQuery || query
+        suggestedQuery || query,
+        builtIconsProvider.getBuiltIconsList()
       );
 
       if (!selectedIcon) return;
+
+      if (selectedIcon.prefix === 'built') {
+        // Built icon selected - already exists, just update reference
+        const finalIconName = selectedIcon.name;
+        if (sourceFile && line !== undefined) {
+          try {
+            const document = await vscode.workspace.openTextDocument(sourceFile);
+            const lineText = document.lineAt(line).text;
+            const newText = lineText.replace(
+              new RegExp(`name=["']${suggestedQuery || query}["']`, 'g'),
+              `name="${finalIconName}"`
+            );
+            if (newText !== lineText) {
+              const edit = new vscode.WorkspaceEdit();
+              edit.replace(document.uri, new vscode.Range(line, 0, line, lineText.length), newText);
+              await vscode.workspace.applyEdit(edit);
+            }
+          } catch (updateError) {
+            console.error('Failed to update reference:', updateError);
+          }
+        }
+        vscode.window.showInformationMessage(
+          t('messages.iconTransformed', { name: finalIconName, component: componentName })
+        );
+        workspaceSvgProvider.softRefresh();
+        builtIconsProvider.refresh();
+        return;
+      }
 
       let finalIconName = `${selectedIcon.prefix}-${selectedIcon.name}`;
 
@@ -924,12 +1136,205 @@ export function registerIconifyCommands(
     }
   );
 
+  // Command: Suggest icons based on context and colors
+  const suggestIconsCmd = vscode.commands.registerCommand(
+    'masterSVG.suggestIcons',
+    async () => {
+      // 1) Extract semantic context from project (auto-detect)
+      let autoKeywords: string[] = [];
+      const useAutoContext = await vscode.window.showQuickPick(
+        [
+          { label: '$(search) Auto-detect project context', value: 'auto' },
+          { label: '$(edit) Enter keywords manually only', value: 'manual' },
+        ],
+        { placeHolder: t('ui.placeholders.contextSource') || 'How do you want to provide context keywords?' }
+      );
+      if (!useAutoContext) return;
+
+      if (useAutoContext.value === 'auto') {
+        autoKeywords = await vscode.window.withProgress(
+          { location: vscode.ProgressLocation.Notification, title: t('messages.scanningContext') || 'Scanning project for context…' },
+          () => extractProjectContext(10)
+        );
+        if (autoKeywords.length > 0) {
+          // Let user confirm / edit detected context
+          const confirmed = await vscode.window.showInputBox({
+            prompt: t('ui.prompts.confirmContext') || 'Detected context keywords (edit if needed, comma-separated)',
+            value: autoKeywords.join(', '),
+          });
+          if (!confirmed) return;
+          autoKeywords = confirmed.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+        }
+      }
+
+      // 2) Ask for additional context tags
+      const tagsInput = await vscode.window.showInputBox({
+        prompt: autoKeywords.length > 0
+          ? (t('ui.prompts.additionalTags') || 'Additional keywords? (optional, comma-separated)')
+          : (t('ui.prompts.enterContextTags') || 'Enter context keywords (comma-separated, e.g. clinic, health, dashboard)'),
+        placeHolder: 'clinic, health, dashboard',
+      });
+      const manualTags = tagsInput
+        ? tagsInput.split(',').map(t => t.trim().toLowerCase()).filter(Boolean)
+        : [];
+
+      const contextTags = Array.from(new Set([...autoKeywords, ...manualTags]));
+
+      if (contextTags.length === 0) {
+        vscode.window.showWarningMessage(
+          t('messages.noContextTags') || 'No context keywords provided. At least one is required.'
+        );
+        return;
+      }
+
+      // 3) Optionally gather colors for preview tinting
+      let colors: string[] = [];
+      const wantColors = await vscode.window.showQuickPick(
+        [
+          { label: '$(color-mode) Auto-detect palette', value: 'auto' },
+          { label: '$(edit) Enter colors manually', value: 'manual' },
+          { label: '$(close) Skip colors', value: 'skip' },
+        ],
+        { placeHolder: t('ui.placeholders.colorSource') || 'Colors for preview? (optional)' }
+      );
+
+      if (wantColors?.value === 'auto') {
+        colors = await extractProjectPalette(30);
+      } else if (wantColors?.value === 'manual') {
+        const colorInput = await vscode.window.showInputBox({
+          prompt: t('ui.prompts.enterColors') || 'Enter colors (comma-separated hex, e.g. #0b66ff, #ffffff)',
+          placeHolder: '#0b66ff, #ffffff',
+        });
+        if (colorInput) {
+          colors = colorInput
+            .split(',')
+            .map(c => c.trim())
+            .filter(c => /^#?[0-9a-fA-F]{3,6}$/.test(c))
+            .map(c => (c.startsWith('#') ? c : `#${c}`));
+        }
+      }
+
+      // 4) Fetch suggestions with progress (API only, no UI)
+      const provider = new IconifySuggestionProvider();
+      const suggestions = await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: t('messages.suggestingIcons') || 'Suggesting icons…',
+          cancellable: false,
+        },
+        () => provider.suggest({ colors, contextTags, limit: 20 })
+      );
+
+      if (suggestions.length === 0) {
+        vscode.window.showInformationMessage(
+          t('messages.noSuggestionsFound') || 'No icon suggestions found for your criteria.'
+        );
+        return;
+      }
+
+      // 5) Show QuickPick with results (interactive, no progress overlay)
+      const items: (vscode.QuickPickItem & { suggestion: IconSuggestion })[] = suggestions.map(s => ({
+        label: `$(symbol-misc) ${s.prefix}:${s.name}`,
+        description: `Score: ${Math.round((s.score ?? 0) * 100)}%`,
+        detail: [
+          s.collection ? `Collection: ${s.collection}` : '',
+          s.license ? `License: ${s.license}` : '',
+          s.tags?.length ? `Tags: ${s.tags.join(', ')}` : '',
+          s.matchingColors?.length ? `Colors: ${s.matchingColors.slice(0, 5).join(', ')}` : '',
+          s.ariaLabel ? `Aria: ${s.ariaLabel}` : '',
+        ].filter(Boolean).join('  |  '),
+        suggestion: s,
+      }));
+
+      const picked = await vscode.window.showQuickPick(items, {
+        title: t('ui.titles.suggestedIcons') || 'Suggested Icons',
+        placeHolder: t('ui.placeholders.selectSuggestedIcon') || 'Select an icon to insert or copy',
+        matchOnDescription: true,
+        matchOnDetail: true,
+      });
+
+      if (!picked) return;
+
+      // 6) Action on selection
+      const action = await vscode.window.showQuickPick(
+        [
+          { label: '$(insert) Insert SVG inline', value: 'insert' },
+          { label: '$(clippy) Copy SVG to clipboard', value: 'copy' },
+          { label: '$(add) Add to project icons', value: 'add' },
+        ],
+        { placeHolder: t('ui.placeholders.chooseAction') || 'What do you want to do with this icon?' }
+      );
+
+      if (!action) return;
+
+      const svg = picked.suggestion.previewSvg || (await fetchIconSvg(picked.suggestion.prefix, picked.suggestion.name));
+
+      if (!svg) {
+        vscode.window.showErrorMessage(
+          t('messages.failedToFetchSvg') || 'Failed to fetch SVG content.'
+        );
+        return;
+      }
+
+      switch (action.value) {
+        case 'insert': {
+          const editor = vscode.window.activeTextEditor;
+          if (editor) {
+            await editor.edit(editBuilder => {
+              editBuilder.insert(editor.selection.active, svg);
+            });
+          }
+          break;
+        }
+        case 'copy': {
+          await vscode.env.clipboard.writeText(svg);
+          vscode.window.showInformationMessage(
+            t('messages.svgCopied') || 'SVG copied to clipboard.'
+          );
+          break;
+        }
+        case 'add': {
+          const iconName = picked.suggestion.name;
+          const config = getConfig();
+          const isSprite = config.buildFormat === 'sprite.svg';
+          const outputPath = getOutputPathOrWarn();
+          if (!outputPath) return;
+
+          // Optimize SVG using SvgOptimizer before adding
+          const optimizer = new SvgOptimizer();
+          const optimized = optimizer.optimize(svg);
+
+          if (isSprite) {
+            await addToSpriteSvg(outputPath, iconName, optimized.svg, svgTransformer);
+          } else {
+            await addToIconsJs({
+              outputPath,
+              iconName,
+              svgContent: optimized.svg,
+              transformer: svgTransformer,
+            });
+          }
+          workspaceSvgProvider.refresh();
+          builtIconsProvider.refresh();
+          const savedBytes = optimized.savings ?? 0;
+          const savedPct = typeof optimized.savingsPercent === 'number' ? optimized.savingsPercent.toFixed(1) : '0.0';
+          vscode.window.showInformationMessage(
+            t('messages.iconAdded', { name: iconName }) ||
+              `Icon "${iconName}" added to project — saved ${savedBytes} bytes (${savedPct}%).`
+          );
+          break;
+        }
+      }
+    }
+  );
+
   context.subscriptions.push(
     searchIconsCmd,
     searchIconifyCmd,
     importIconCmd,
     searchIconifyForComponentCmd,
     browseWorkspaceIconsCmd,
-    importMissingIconCmd
+    importMissingIconCmd,
+    suggestIconsCmd
   );
 }

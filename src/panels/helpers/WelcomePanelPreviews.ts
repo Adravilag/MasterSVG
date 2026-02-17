@@ -22,8 +22,58 @@ interface PreviewOptions {
   comp: string;
   dir: string;
   file: string;
-  tr?: Record<string, string>;
+  tr: Record<string, string>;
 }
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+
+/** Shortcut to build a single code-line with line number */
+function ln(n: number, content: string): string {
+  return `<div class="code-line"><span class="line-num">${n}</span><span class="code-content">${content}</span></div>`;
+}
+
+/** Builds a comment span — JS style */
+function cmt(text: string): string { return `<span class="comment">// ${text}</span>`; }
+
+/** Builds an HTML comment span */
+function htmlCmt(text: string): string { return `<span class="comment">&lt;!-- ${text} --&gt;</span>`; }
+
+/** Keyword span */
+function kw(text: string): string { return `<span class="keyword">${text}</span>`; }
+
+/** Tag span */
+function tag(text: string): string { return `<span class="tag">${text}</span>`; }
+
+/** Attribute span */
+function attr(text: string): string { return `<span class="attr">${text}</span>`; }
+
+/** Value/string span */
+function val(text: string): string { return `<span class="value">${text}</span>`; }
+
+/** Decorator span */
+function dec(text: string): string { return `<span class="decorator">${text}</span>`; }
+
+/** Builds a self-closing JSX/HTML component line */
+function jsxSelf(n: number, comp: string, attrs: string, indent = ''): string {
+  return ln(n, `${indent}${tag(`&lt;${comp}`)}${attrs}${tag(' /&gt;')}`);
+}
+
+/** Builds an open+close HTML component line */
+function htmlTag(n: number, sel: string, attrs: string, indent = ''): string {
+  return ln(n, `${indent}${tag(`&lt;${sel}`)}${attrs}${tag(`&gt;&lt;/${sel}&gt;`)}`);
+}
+
+/** Output files info section */
+function outputFilesInfo(files: string[], label: string): string {
+  const items = files.map(f => `<span class="output-file-item"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>${f}</span>`).join('');
+  return `<div class="output-files-info"><span class="output-files-label">${label}</span><div class="output-files-list">${items}</div></div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// MAIN ENTRY
+// ═══════════════════════════════════════════════════════════
 
 /**
  * Gets the appropriate framework preview based on build format and framework
@@ -39,12 +89,62 @@ export function getFrameworkPreview(options: FrameworkPreviewOptions): string {
     return getSpritePreview(outputDirDisplay, tr);
   }
 
+  if (buildFormat === 'css') {
+    return getCssPreview(outputDirDisplay, tr);
+  }
+
   return getIconsPreview(framework as FrameworkType, outputDirDisplay, webComponentDisplay, tr);
 }
 
 /**
- * Gets empty preview placeholder when no format is selected
+ * Gets the correct filename for the preview window title bar
  */
+export function getPreviewWindowTitle(options: FrameworkPreviewOptions): string {
+  const { buildFormat, framework, outputDirDisplay, webComponentDisplay } = options;
+
+  if (!buildFormat) return 'example.js';
+  if (buildFormat === 'sprite.svg') return 'index.html';
+  if (buildFormat === 'css') return 'index.html';
+
+  const wrapperService = FrameworkWrapperService.getInstance();
+  switch (framework) {
+    case 'react': return 'App.tsx';
+    case 'vue': return 'App.vue';
+    case 'svelte': return 'App.svelte';
+    case 'angular': return 'app.component.ts';
+    case 'astro': return 'index.astro';
+    case 'solid': return 'App.tsx';
+    case 'qwik': return 'App.tsx';
+    case 'lit': return 'app.ts';
+    default: {
+      const comp = webComponentDisplay || wrapperService.getDefaultComponentName(framework as FrameworkType);
+      return `${comp}.html`;
+    }
+  }
+}
+
+/**
+ * Gets the list of output files that will be generated
+ */
+export function getOutputFilesList(buildFormat: string, framework: string, separateStructure: boolean): string[] {
+  if (buildFormat === 'sprite.svg') {
+    return ['sprite.svg', 'sprite.types.ts'];
+  }
+  if (buildFormat === 'css') {
+    return ['icons.css', 'types.d.ts'];
+  }
+  // icons.js format
+  const files = ['svg-data.ts', 'index.ts', 'types.d.ts'];
+  const wrapperService = FrameworkWrapperService.getInstance();
+  const wrapperFile = wrapperService.getWrapperFilename(framework as FrameworkType, 'Icon');
+  files.push(wrapperFile);
+  return files;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PLACEHOLDER
+// ═══════════════════════════════════════════════════════════
+
 function getEmptyPreviewPlaceholder(tr: Record<string, string>): string {
   return `<div class="preview-placeholder">
       <div class="preview-placeholder-icon">
@@ -55,26 +155,64 @@ function getEmptyPreviewPlaceholder(tr: Record<string, string>): string {
       <p class="preview-placeholder-text">${tr.selectFormatFirst}</p>
       <p class="preview-placeholder-hint">
         <svg viewBox="0 0 24 24"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
-        Paso 1
+        ${tr.step3Title}
       </p>
     </div>`;
 }
 
-/**
- * Gets sprite preview HTML
- */
-function getSpritePreview(outputDirDisplay: string, tr: Record<string, string>): string {
-  return `<div class="code-block">
-<div class="code-line"><span class="line-num">1</span><span class="comment">&lt;!-- ${tr.previewRef} --&gt;</span></div>
-<div class="code-line"><span class="line-num">2</span><span class="tag">&lt;svg</span> <span class="attr">width</span>=<span class="value">"24"</span> <span class="attr">height</span>=<span class="value">"24"</span><span class="tag">&gt;</span></div>
-<div class="code-line"><span class="line-num">3</span>  <span class="tag">&lt;use</span> <span class="attr">href</span>=<span class="value">"${outputDirDisplay}/sprite.svg#home"</span> <span class="tag">/&gt;</span></div>
-<div class="code-line"><span class="line-num">4</span><span class="tag">&lt;/svg&gt;</span></div>
+// ═══════════════════════════════════════════════════════════
+// SPRITE PREVIEW
+// ═══════════════════════════════════════════════════════════
+
+function getSpritePreview(dir: string, tr: Record<string, string>): string {
+  const filesHtml = outputFilesInfo(['sprite.svg', 'sprite.types.ts'], tr.workflowOutput || 'Output');
+  return `${filesHtml}<div class="code-block">
+${ln(1, htmlCmt(tr.previewRef))}
+${ln(2, `${tag('&lt;svg')} ${attr('width')}=${val('"24"')} ${attr('height')}=${val('"24"')}${tag('&gt;')}`)}
+${ln(3, `  ${tag('&lt;use')} ${attr('href')}=${val(`"${dir}/sprite.svg#home"`)} ${tag('/&gt;')}`)}
+${ln(4, tag('&lt;/svg&gt;'))}
+${ln(5, '')}
+${ln(6, htmlCmt(`${tr.previewUse} — variant`))}
+${ln(7, `${tag('&lt;svg')} ${attr('width')}=${val('"24"')} ${attr('height')}=${val('"24"')} ${attr('class')}=${val('"icon-heart"')}${tag('&gt;')}`)}
+${ln(8, `  ${tag('&lt;use')} ${attr('href')}=${val(`"${dir}/sprite.svg#heart"`)} ${tag('/&gt;')}`)}
+${ln(9, tag('&lt;/svg&gt;'))}
+${ln(10, '')}
+${ln(11, htmlCmt(`${tr.previewUse} — color + size`))}
+${ln(12, `${tag('&lt;svg')} ${attr('width')}=${val('"32"')} ${attr('height')}=${val('"32"')} ${attr('fill')}=${val('"#e25555"')}${tag('&gt;')}`)}
+${ln(13, `  ${tag('&lt;use')} ${attr('href')}=${val(`"${dir}/sprite.svg#check"`)} ${tag('/&gt;')}`)}
+${ln(14, tag('&lt;/svg&gt;'))}
 </div>`;
 }
 
-/**
- * Gets icons preview for specific framework
- */
+// ═══════════════════════════════════════════════════════════
+// CSS ICONS PREVIEW
+// ═══════════════════════════════════════════════════════════
+
+function getCssPreview(dir: string, tr: Record<string, string>): string {
+  const filesHtml = outputFilesInfo(['icons.css', 'types.d.ts'], tr.workflowOutput || 'Output');
+  return `${filesHtml}<div class="code-block">
+${ln(1, htmlCmt(tr.previewImport))}
+${ln(2, `${tag('&lt;link')} ${attr('rel')}=${val('"stylesheet"')} ${attr('href')}=${val(`"${dir}/icons.css"`)}${tag(' /&gt;')}`)}
+${ln(3, '')}
+${ln(4, htmlCmt(tr.previewUse))}
+${ln(5, `${tag('&lt;span')} ${attr('class')}=${val('"icon icon-home"')}${tag('&gt;&lt;/span&gt;')}`)}
+${ln(6, `${tag('&lt;span')} ${attr('class')}=${val('"icon icon-heart"')}${tag('&gt;&lt;/span&gt;')}`)}
+${ln(7, '')}
+${ln(8, htmlCmt('currentColor — inherits parent color'))}
+${ln(9, `${tag('&lt;nav')} ${attr('style')}=${val('"color: #e25555"')}${tag('&gt;')}`)}
+${ln(10, `  ${tag('&lt;span')} ${attr('class')}=${val('"icon icon-settings"')}${tag('&gt;&lt;/span&gt;')} ${cmt('→ #e25555')}`)}
+${ln(11, tag('&lt;/nav&gt;'))}
+${ln(12, '')}
+${ln(13, htmlCmt('Custom size via CSS variable'))}
+${ln(14, `${tag('&lt;span')} ${attr('class')}=${val('"icon icon-check"')}`)}
+${ln(15, `  ${attr('style')}=${val('"--icon-size: 32px"')}${tag('&gt;&lt;/span&gt;')}`)}
+</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// JS MODULE PREVIEWS — BY FRAMEWORK
+// ═══════════════════════════════════════════════════════════
+
 function getIconsPreview(
   selectedFramework: FrameworkType,
   outputDirDisplay: string,
@@ -88,158 +226,197 @@ function getIconsPreview(
       : '';
   const wrapperFilename = wrapperService.getWrapperFilename(selectedFramework, webComponentDisplay);
   const componentImport = webComponentDisplay || wrapperService.getDefaultComponentName(selectedFramework);
+  const outputFiles = getOutputFilesList('icons.js', selectedFramework, false);
+  const filesHtml = outputFilesInfo(outputFiles, tr.workflowOutput || 'Output');
+
+  const opts: PreviewOptions = {
+    badge: frameworkBadge,
+    comp: componentImport,
+    dir: outputDirDisplay,
+    file: wrapperFilename,
+    tr,
+  };
 
   switch (selectedFramework) {
-    case 'react':
-      return getReactPreview({
-        badge: frameworkBadge,
-        comp: componentImport,
-        dir: outputDirDisplay,
-        file: wrapperFilename,
-        tr,
-      });
-    case 'vue':
-      return getVuePreview(frameworkBadge, componentImport, outputDirDisplay, wrapperFilename);
-    case 'svelte':
-      return getSveltePreview(frameworkBadge, componentImport, outputDirDisplay, wrapperFilename);
-    case 'angular':
-      return getAngularPreview(frameworkBadge, webComponentDisplay, outputDirDisplay, wrapperFilename);
-    case 'astro':
-      return getAstroPreview(frameworkBadge, componentImport, outputDirDisplay, wrapperFilename);
-    case 'solid':
-      return getSolidPreview({
-        badge: frameworkBadge,
-        comp: componentImport,
-        dir: outputDirDisplay,
-        file: wrapperFilename,
-        tr,
-      });
-    case 'qwik':
-      return getQwikPreview({
-        badge: frameworkBadge,
-        comp: componentImport,
-        dir: outputDirDisplay,
-        file: wrapperFilename,
-        tr,
-      });
-    default:
-      return getHtmlPreview(webComponentDisplay, outputDirDisplay, tr);
+    case 'react': return `${filesHtml}${getReactPreview(opts)}`;
+    case 'vue': return `${filesHtml}${getVuePreview(opts)}`;
+    case 'svelte': return `${filesHtml}${getSveltePreview(opts)}`;
+    case 'angular': return `${filesHtml}${getAngularPreview({ ...opts, comp: webComponentDisplay })}`;
+    case 'astro': return `${filesHtml}${getAstroPreview(opts)}`;
+    case 'solid': return `${filesHtml}${getSolidPreview(opts)}`;
+    case 'qwik': return `${filesHtml}${getQwikPreview(opts)}`;
+    case 'lit': return `${filesHtml}${getLitPreview({ ...opts, comp: webComponentDisplay })}`;
+    default: return `${filesHtml}${getHtmlPreview({ ...opts, comp: webComponentDisplay })}`;
   }
 }
 
+// ─── React ───────────────────────────────────────────────
+
 function getReactPreview(opts: PreviewOptions): string {
   const { badge, comp, dir, file, tr } = opts;
+  const importPath = file.replace('.tsx', '');
   return `${badge}<div class="code-block">
-<div class="code-line"><span class="line-num">1</span><span class="comment">// ${tr?.previewImport}</span></div>
-<div class="code-line"><span class="line-num">2</span><span class="keyword">import</span> { ${comp} } <span class="keyword">from</span> <span class="value">'${dir}/${file.replace('.tsx', '')}'</span>;</div>
-<div class="code-line"><span class="line-num">3</span></div>
-<div class="code-line"><span class="line-num">4</span><span class="comment">// ${tr?.previewUse}</span></div>
-<div class="code-line"><span class="line-num">5</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"home"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">6</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"heart"</span><span class="attr"> variant</span>=<span class="value">"custom"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">7</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"settings"</span><span class="attr"> animation</span>=<span class="value">"spin"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">8</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"check"</span><span class="attr"> size</span>=<span class="value">{32}</span><span class="attr"> color</span>=<span class="value">"#e25555"</span><span class="tag"> /&gt;</span></div>
+${ln(1, cmt(tr.previewImport))}
+${ln(2, `${kw('import')} { ${comp} } ${kw('from')} ${val(`'${dir}/${importPath}'`)};`)}
+${ln(3, '')}
+${ln(4, `${kw('export default')} ${kw('function')} ${tag('App')}() {`)}
+${ln(5, `  ${kw('return')} (`)}
+${jsxSelf(6, comp, ` ${attr('name')}=${val('"home"')}`, '    ')}
+${jsxSelf(7, comp, ` ${attr('name')}=${val('"heart"')} ${attr('variant')}=${val('"custom"')}`, '    ')}
+${jsxSelf(8, comp, ` ${attr('name')}=${val('"settings"')} ${attr('animation')}=${val('"spin"')}`, '    ')}
+${jsxSelf(9, comp, ` ${attr('name')}=${val('"check"')} ${attr('size')}=${val('{32}')} ${attr('color')}=${val('"#e25555"')}`, '    ')}
+${ln(10, '  );')}
+${ln(11, '}')}
 </div>`;
 }
 
-function getVuePreview(badge: string, comp: string, dir: string, file: string): string {
+// ─── Vue ─────────────────────────────────────────────────
+
+function getVuePreview(opts: PreviewOptions): string {
+  const { badge, comp, dir, file, tr } = opts;
   return `${badge}<div class="code-block">
-<div class="code-line"><span class="line-num">1</span><span class="tag">&lt;script</span><span class="attr"> setup</span><span class="tag">&gt;</span></div>
-<div class="code-line"><span class="line-num">2</span><span class="keyword">import</span> ${comp} <span class="keyword">from</span> <span class="value">'${dir}/${file}'</span>;</div>
-<div class="code-line"><span class="line-num">3</span><span class="tag">&lt;/script&gt;</span></div>
-<div class="code-line"><span class="line-num">4</span></div>
-<div class="code-line"><span class="line-num">5</span><span class="tag">&lt;template&gt;</span></div>
-<div class="code-line"><span class="line-num">6</span>  <span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"home"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">7</span>  <span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"heart"</span><span class="attr"> variant</span>=<span class="value">"custom"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">8</span>  <span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"settings"</span><span class="attr"> animation</span>=<span class="value">"spin"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">9</span>  <span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"check"</span><span class="attr"> :size</span>=<span class="value">"32"</span><span class="attr"> color</span>=<span class="value">"#e25555"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">10</span><span class="tag">&lt;/template&gt;</span></div>
+${ln(1, `${tag('&lt;script')} ${attr('setup')} ${attr('lang')}=${val('"ts"')}${tag('&gt;')}`)}
+${ln(2, `${kw('import')} ${comp} ${kw('from')} ${val(`'${dir}/${file}'`)};`)}
+${ln(3, tag('&lt;/script&gt;'))}
+${ln(4, '')}
+${ln(5, tag('&lt;template&gt;'))}
+${jsxSelf(6, comp, ` ${attr('name')}=${val('"home"')}`, '  ')}
+${jsxSelf(7, comp, ` ${attr('name')}=${val('"heart"')} ${attr('variant')}=${val('"custom"')}`, '  ')}
+${jsxSelf(8, comp, ` ${attr('name')}=${val('"settings"')} ${attr('animation')}=${val('"spin"')}`, '  ')}
+${jsxSelf(9, comp, ` ${attr(':size')}=${val('"32"')} ${attr('color')}=${val('"#e25555"')}`, '  ')}
+${ln(10, tag('&lt;/template&gt;'))}
 </div>`;
 }
 
-function getSveltePreview(badge: string, comp: string, dir: string, file: string): string {
+// ─── Svelte ──────────────────────────────────────────────
+
+function getSveltePreview(opts: PreviewOptions): string {
+  const { badge, comp, dir, file, tr } = opts;
   return `${badge}<div class="code-block">
-<div class="code-line"><span class="line-num">1</span><span class="tag">&lt;script&gt;</span></div>
-<div class="code-line"><span class="line-num">2</span>  <span class="keyword">import</span> ${comp} <span class="keyword">from</span> <span class="value">'${dir}/${file}'</span>;</div>
-<div class="code-line"><span class="line-num">3</span><span class="tag">&lt;/script&gt;</span></div>
-<div class="code-line"><span class="line-num">4</span></div>
-<div class="code-line"><span class="line-num">5</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"home"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">6</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"heart"</span><span class="attr"> variant</span>=<span class="value">"custom"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">7</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"settings"</span><span class="attr"> animation</span>=<span class="value">"spin"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">8</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"check"</span><span class="attr"> size</span>=<span class="value">{32}</span><span class="attr"> color</span>=<span class="value">"#e25555"</span><span class="tag"> /&gt;</span></div>
+${ln(1, `${tag('&lt;script')} ${attr('lang')}=${val('"ts"')}${tag('&gt;')}`)}
+${ln(2, `  ${kw('import')} ${comp} ${kw('from')} ${val(`'${dir}/${file}'`)};`)}
+${ln(3, tag('&lt;/script&gt;'))}
+${ln(4, '')}
+${jsxSelf(5, comp, ` ${attr('name')}=${val('"home"')}`)}
+${jsxSelf(6, comp, ` ${attr('name')}=${val('"heart"')} ${attr('variant')}=${val('"custom"')}`)}
+${jsxSelf(7, comp, ` ${attr('name')}=${val('"settings"')} ${attr('animation')}=${val('"spin"')}`)}
+${jsxSelf(8, comp, ` ${attr('name')}=${val('"check"')} ${attr('size')}=${val('{32}')} ${attr('color')}=${val('"#e25555"')}`)}
 </div>`;
 }
 
-function getAngularPreview(badge: string, webComp: string, dir: string, file: string): string {
-  const sel = webComp || 'app-icon';
+// ─── Angular ─────────────────────────────────────────────
+
+function getAngularPreview(opts: PreviewOptions): string {
+  const { badge, comp, dir, file, tr } = opts;
+  const sel = comp || 'app-icon';
   const cls = sel
     .split('-')
-    .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+    .map((s: string) => s.charAt(0).toUpperCase() + s.slice(1))
     .join('') + 'Component';
   return `${badge}<div class="code-block">
-<div class="code-line"><span class="line-num">1</span><span class="comment">// app.component.ts</span></div>
-<div class="code-line"><span class="line-num">2</span><span class="keyword">import</span> { ${cls} } <span class="keyword">from</span> <span class="value">'${dir}/${file.replace('.ts', '')}'</span>;</div>
-<div class="code-line"><span class="line-num">3</span></div>
-<div class="code-line"><span class="line-num">4</span><span class="decorator">@Component</span>({<span class="attr"> imports</span>: [${cls}] })</div>
-<div class="code-line"><span class="line-num">5</span></div>
-<div class="code-line"><span class="line-num">6</span><span class="comment">&lt;!-- template.html --&gt;</span></div>
-<div class="code-line"><span class="line-num">7</span><span class="tag">&lt;${sel}</span><span class="attr"> name</span>=<span class="value">"home"</span><span class="tag">&gt;&lt;/${sel}&gt;</span></div>
-<div class="code-line"><span class="line-num">8</span><span class="tag">&lt;${sel}</span><span class="attr"> name</span>=<span class="value">"heart"</span><span class="attr"> variant</span>=<span class="value">"custom"</span><span class="tag">&gt;&lt;/${sel}&gt;</span></div>
-<div class="code-line"><span class="line-num">9</span><span class="tag">&lt;${sel}</span><span class="attr"> name</span>=<span class="value">"settings"</span><span class="attr"> animation</span>=<span class="value">"spin"</span><span class="tag">&gt;&lt;/${sel}&gt;</span></div>
-<div class="code-line"><span class="line-num">10</span><span class="tag">&lt;${sel}</span><span class="attr"> [size]</span>=<span class="value">"32"</span><span class="attr"> color</span>=<span class="value">"#e25555"</span><span class="tag">&gt;&lt;/${sel}&gt;</span></div>
+${ln(1, cmt('app.component.ts'))}
+${ln(2, `${kw('import')} { ${cls} } ${kw('from')} ${val(`'${dir}/${file.replace('.ts', '')}'`)};`)}
+${ln(3, '')}
+${ln(4, `${dec('@Component')}({`)}
+${ln(5, `  ${attr('imports')}: [${cls}],`)}
+${ln(6, `  ${attr('template')}: \``)}
+${htmlTag(7, sel, ` ${attr('name')}=${val('"home"')}`, '    ')}
+${htmlTag(8, sel, ` ${attr('name')}=${val('"heart"')} ${attr('variant')}=${val('"custom"')}`, '    ')}
+${htmlTag(9, sel, ` ${attr('name')}=${val('"settings"')} ${attr('animation')}=${val('"spin"')}`, '    ')}
+${htmlTag(10, sel, ` ${attr('[size]')}=${val('"32"')} ${attr('color')}=${val('"#e25555"')}`, '    ')}
+${ln(11, '  `')}
+${ln(12, '})')}
 </div>`;
 }
 
-function getAstroPreview(badge: string, comp: string, dir: string, file: string): string {
+// ─── Astro ───────────────────────────────────────────────
+
+function getAstroPreview(opts: PreviewOptions): string {
+  const { badge, comp, dir, file, tr } = opts;
   return `${badge}<div class="code-block">
-<div class="code-line"><span class="line-num">1</span><span class="tag">---</span></div>
-<div class="code-line"><span class="line-num">2</span><span class="keyword">import</span> ${comp} <span class="keyword">from</span> <span class="value">'${dir}/${file}'</span>;</div>
-<div class="code-line"><span class="line-num">3</span><span class="tag">---</span></div>
-<div class="code-line"><span class="line-num">4</span></div>
-<div class="code-line"><span class="line-num">5</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"home"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">6</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"heart"</span><span class="attr"> variant</span>=<span class="value">"custom"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">7</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"settings"</span><span class="attr"> animation</span>=<span class="value">"spin"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">8</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"check"</span><span class="attr"> size</span>=<span class="value">{32}</span><span class="attr"> color</span>=<span class="value">"#e25555"</span><span class="tag"> /&gt;</span></div>
+${ln(1, tag('---'))}
+${ln(2, `${kw('import')} ${comp} ${kw('from')} ${val(`'${dir}/${file}'`)};`)}
+${ln(3, tag('---'))}
+${ln(4, '')}
+${jsxSelf(5, comp, ` ${attr('name')}=${val('"home"')}`)}
+${jsxSelf(6, comp, ` ${attr('name')}=${val('"heart"')} ${attr('variant')}=${val('"custom"')}`)}
+${jsxSelf(7, comp, ` ${attr('name')}=${val('"settings"')} ${attr('animation')}=${val('"spin"')}`)}
+${jsxSelf(8, comp, ` ${attr('name')}=${val('"check"')} ${attr('size')}=${val('{32}')} ${attr('color')}=${val('"#e25555"')}`)}
 </div>`;
 }
+
+// ─── Solid ───────────────────────────────────────────────
 
 function getSolidPreview(opts: PreviewOptions): string {
   const { badge, comp, dir, file, tr } = opts;
+  const importPath = file.replace('.tsx', '');
   return `${badge}<div class="code-block">
-<div class="code-line"><span class="line-num">1</span><span class="comment">// ${tr?.previewImport}</span></div>
-<div class="code-line"><span class="line-num">2</span><span class="keyword">import</span> { ${comp} } <span class="keyword">from</span> <span class="value">'${dir}/${file.replace('.tsx', '')}'</span>;</div>
-<div class="code-line"><span class="line-num">3</span></div>
-<div class="code-line"><span class="line-num">4</span><span class="comment">// ${tr?.previewUse}</span></div>
-<div class="code-line"><span class="line-num">5</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"home"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">6</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"heart"</span><span class="attr"> variant</span>=<span class="value">"custom"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">7</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"settings"</span><span class="attr"> animation</span>=<span class="value">"spin"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">8</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"check"</span><span class="attr"> size</span>=<span class="value">{32}</span><span class="attr"> color</span>=<span class="value">"#e25555"</span><span class="tag"> /&gt;</span></div>
+${ln(1, cmt(tr.previewImport))}
+${ln(2, `${kw('import')} { ${comp} } ${kw('from')} ${val(`'${dir}/${importPath}'`)};`)}
+${ln(3, '')}
+${ln(4, `${kw('export default')} ${kw('function')} ${tag('App')}() {`)}
+${ln(5, `  ${kw('return')} (`)}
+${jsxSelf(6, comp, ` ${attr('name')}=${val('"home"')}`, '    ')}
+${jsxSelf(7, comp, ` ${attr('name')}=${val('"heart"')} ${attr('variant')}=${val('"custom"')}`, '    ')}
+${jsxSelf(8, comp, ` ${attr('name')}=${val('"settings"')} ${attr('animation')}=${val('"spin"')}`, '    ')}
+${jsxSelf(9, comp, ` ${attr('name')}=${val('"check"')} ${attr('size')}=${val('{32}')} ${attr('color')}=${val('"#e25555"')}`, '    ')}
+${ln(10, '  );')}
+${ln(11, '}')}
 </div>`;
 }
+
+// ─── Qwik ────────────────────────────────────────────────
 
 function getQwikPreview(opts: PreviewOptions): string {
   const { badge, comp, dir, file, tr } = opts;
+  const importPath = file.replace('.tsx', '');
   return `${badge}<div class="code-block">
-<div class="code-line"><span class="line-num">1</span><span class="comment">// ${tr?.previewImport}</span></div>
-<div class="code-line"><span class="line-num">2</span><span class="keyword">import</span> { ${comp} } <span class="keyword">from</span> <span class="value">'${dir}/${file.replace('.tsx', '')}'</span>;</div>
-<div class="code-line"><span class="line-num">3</span></div>
-<div class="code-line"><span class="line-num">4</span><span class="comment">// ${tr?.previewUse}</span></div>
-<div class="code-line"><span class="line-num">5</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"home"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">6</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"heart"</span><span class="attr"> variant</span>=<span class="value">"custom"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">7</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"settings"</span><span class="attr"> animation</span>=<span class="value">"spin"</span><span class="tag"> /&gt;</span></div>
-<div class="code-line"><span class="line-num">8</span><span class="tag">&lt;${comp}</span><span class="attr"> name</span>=<span class="value">"check"</span><span class="attr"> size</span>=<span class="value">{32}</span><span class="attr"> color</span>=<span class="value">"#e25555"</span><span class="tag"> /&gt;</span></div>
+${ln(1, cmt(tr.previewImport))}
+${ln(2, `${kw('import')} { component$ } ${kw('from')} ${val("'@builder.io/qwik'")};`)}
+${ln(3, `${kw('import')} { ${comp} } ${kw('from')} ${val(`'${dir}/${importPath}'`)};`)}
+${ln(4, '')}
+${ln(5, `${kw('export default')} ${tag('component$')}(() =&gt; {`)}
+${ln(6, `  ${kw('return')} (`)}
+${jsxSelf(7, comp, ` ${attr('name')}=${val('"home"')}`, '    ')}
+${jsxSelf(8, comp, ` ${attr('name')}=${val('"heart"')} ${attr('variant')}=${val('"custom"')}`, '    ')}
+${jsxSelf(9, comp, ` ${attr('name')}=${val('"settings"')} ${attr('animation')}=${val('"spin"')}`, '    ')}
+${jsxSelf(10, comp, ` ${attr('name')}=${val('"check"')} ${attr('size')}=${val('{32}')} ${attr('color')}=${val('"#e25555"')}`, '    ')}
+${ln(11, '  );')}
+${ln(12, '});')}
 </div>`;
 }
 
-function getHtmlPreview(webComp: string, dir: string, tr: Record<string, string>): string {
+// ─── Lit ─────────────────────────────────────────────────
+
+function getLitPreview(opts: PreviewOptions): string {
+  const { badge, comp, dir, tr } = opts;
+  const webComp = comp || 'svg-icon';
+  return `${badge}<div class="code-block">
+${ln(1, cmt(tr.previewImport))}
+${ln(2, `${kw('import')} ${val(`'${dir}/Icon'`)};`)}
+${ln(3, '')}
+${ln(4, htmlCmt(tr.previewUse))}
+${htmlTag(5, webComp, ` ${attr('name')}=${val('"home"')}`)}
+${htmlTag(6, webComp, ` ${attr('name')}=${val('"heart"')} ${attr('variant')}=${val('"custom"')}`)}
+${htmlTag(7, webComp, ` ${attr('name')}=${val('"settings"')} ${attr('animation')}=${val('"spin"')}`)}
+${htmlTag(8, webComp, ` ${attr('name')}=${val('"check"')} ${attr('size')}=${val('"32"')} ${attr('color')}=${val('"#e25555"')}`)}
+</div>`;
+}
+
+// ─── HTML (Web Component) ────────────────────────────────
+
+function getHtmlPreview(opts: PreviewOptions): string {
+  const { comp, dir, tr } = opts;
+  const webComp = comp || 'svg-icon';
   return `<div class="code-block">
-<div class="code-line"><span class="line-num">1</span><span class="comment">&lt;!-- ${tr.previewImport} --&gt;</span></div>
-<div class="code-line"><span class="line-num">2</span><span class="tag">&lt;script</span><span class="attr"> src</span>=<span class="value">"${dir}/icons.js"</span><span class="tag">&gt;&lt;/script&gt;</span></div>
-<div class="code-line"><span class="line-num">3</span><span class="tag">&lt;script</span><span class="attr"> src</span>=<span class="value">"${dir}/web-component.js"</span><span class="tag">&gt;&lt;/script&gt;</span></div>
-<div class="code-line"><span class="line-num">4</span></div>
-<div class="code-line"><span class="line-num">5</span><span class="comment">&lt;!-- ${tr.previewUse} --&gt;</span></div>
-<div class="code-line"><span class="line-num">6</span><span class="tag">&lt;${webComp}</span><span class="attr"> name</span>=<span class="value">"home"</span><span class="tag">&gt;&lt;/${webComp}&gt;</span></div>
-<div class="code-line"><span class="line-num">7</span><span class="tag">&lt;${webComp}</span><span class="attr"> name</span>=<span class="value">"heart"</span><span class="attr"> variant</span>=<span class="value">"custom"</span><span class="tag">&gt;&lt;/${webComp}&gt;</span></div>
-<div class="code-line"><span class="line-num">8</span><span class="tag">&lt;${webComp}</span><span class="attr"> name</span>=<span class="value">"settings"</span><span class="attr"> animation</span>=<span class="value">"spin"</span><span class="tag">&gt;&lt;/${webComp}&gt;</span></div>
-<div class="code-line"><span class="line-num">9</span><span class="tag">&lt;${webComp}</span><span class="attr"> name</span>=<span class="value">"check"</span><span class="attr"> size</span>=<span class="value">"32"</span><span class="attr"> color</span>=<span class="value">"#e25555"</span><span class="tag">&gt;&lt;/${webComp}&gt;</span></div>
+${ln(1, htmlCmt(tr.previewImport))}
+${ln(2, `${tag('&lt;script')} ${attr('src')}=${val(`"${dir}/icons.js"`)}${tag('&gt;&lt;/script&gt;')}`)}
+${ln(3, `${tag('&lt;script')} ${attr('src')}=${val(`"${dir}/web-component.js"`)}${tag('&gt;&lt;/script&gt;')}`)}
+${ln(4, '')}
+${ln(5, htmlCmt(tr.previewUse))}
+${htmlTag(6, webComp, ` ${attr('name')}=${val('"home"')}`)}
+${htmlTag(7, webComp, ` ${attr('name')}=${val('"heart"')} ${attr('variant')}=${val('"custom"')}`)}
+${htmlTag(8, webComp, ` ${attr('name')}=${val('"settings"')} ${attr('animation')}=${val('"spin"')}`)}
+${htmlTag(9, webComp, ` ${attr('name')}=${val('"check"')} ${attr('size')}=${val('"32"')} ${attr('color')}=${val('"#e25555"')}`)}
 </div>`;
 }

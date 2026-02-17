@@ -53,8 +53,10 @@ export interface TemplateReplacementOptions {
   languageOptions: string;
   step4Section: string;
   previewCode: string;
+  previewWindowTitle: string;
   previewGallery: string;
   previewSummary: string;
+  setupGuide: string;
   finishButton: string;
 }
 
@@ -64,8 +66,10 @@ export interface PreviewReplacementOptions {
   ctx: WebviewContext;
   tr: Record<string, string>;
   previewCode: string;
+  previewWindowTitle: string;
   previewGallery: string;
   previewSummary: string;
+  setupGuide: string;
   finishButton: string;
 }
 
@@ -85,7 +89,7 @@ export function createDefaultSessionConfig(): SessionConfig {
   return {
     svgFolders: [],
     outputDirectory: '',
-    framework: 'html',
+    framework: '',
     buildFormat: '',
     webComponentName: '',
     scanOnStartup: true,

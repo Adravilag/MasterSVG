@@ -53,11 +53,6 @@ export function registerTreeViewCommands(
 ): vscode.Disposable[] {
   const disposables: vscode.Disposable[] = [];
 
-  // Set initial context - all collapsed
-  vscode.commands.executeCommand('setContext', 'masterSVG.workspaceExpanded', false);
-  vscode.commands.executeCommand('setContext', 'masterSVG.builtExpanded', false);
-  vscode.commands.executeCommand('setContext', 'masterSVG.svgFilesExpanded', false);
-
   // Expand All (workspace icons)
   disposables.push(
     vscode.commands.registerCommand('masterSVG.expandAll', async () => {
@@ -66,17 +61,6 @@ export function registerTreeViewCommands(
         providers.workspaceSvgProvider as { getChildren(element?: SvgItem): Thenable<SvgItem[]> },
         'masterSVG.workspaceIcons'
       );
-      vscode.commands.executeCommand('setContext', 'masterSVG.workspaceExpanded', true);
-    })
-  );
-
-  // Collapse All (workspace icons)
-  disposables.push(
-    vscode.commands.registerCommand('masterSVG.collapseAll', async () => {
-      await vscode.commands.executeCommand(
-        'workbench.actions.treeView.masterSVG.workspaceIcons.collapseAll'
-      );
-      vscode.commands.executeCommand('setContext', 'masterSVG.workspaceExpanded', false);
     })
   );
 
@@ -88,17 +72,6 @@ export function registerTreeViewCommands(
         providers.svgFilesProvider as { getChildren(element?: SvgItem): Thenable<SvgItem[]> },
         'masterSVG.svgFiles'
       );
-      vscode.commands.executeCommand('setContext', 'masterSVG.svgFilesExpanded', true);
-    })
-  );
-
-  // Collapse All SVG Files
-  disposables.push(
-    vscode.commands.registerCommand('masterSVG.collapseSvgFiles', async () => {
-      await vscode.commands.executeCommand(
-        'workbench.actions.treeView.masterSVG.svgFiles.collapseAll'
-      );
-      vscode.commands.executeCommand('setContext', 'masterSVG.svgFilesExpanded', false);
     })
   );
 
@@ -110,17 +83,6 @@ export function registerTreeViewCommands(
         providers.builtIconsProvider as { getChildren(element?: SvgItem): Thenable<SvgItem[]> },
         'masterSVG.builtIcons'
       );
-      vscode.commands.executeCommand('setContext', 'masterSVG.builtExpanded', true);
-    })
-  );
-
-  // Collapse All Built Icons
-  disposables.push(
-    vscode.commands.registerCommand('masterSVG.collapseBuiltIcons', async () => {
-      await vscode.commands.executeCommand(
-        'workbench.actions.treeView.masterSVG.builtIcons.collapseAll'
-      );
-      vscode.commands.executeCommand('setContext', 'masterSVG.builtExpanded', false);
     })
   );
 

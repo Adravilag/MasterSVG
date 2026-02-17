@@ -30,13 +30,11 @@ function getBasicLabels(): Record<string, string> {
     headerColors: t('editor.color') + ' ' + t('features.iconEditor').split(' ')[0],
     headerAnimations: t('animation.title'),
     headerSvgo: 'SVGO',
-    advancedTitle: t('welcome.advancedOptions'),
-    scanOnStartupLabel: t('welcome.scanOnStartup'),
+    buildOptionsTitle: t('welcome.buildOptions'),
     separateOutputLabel: t('welcome.separateOutputStructure'),
     separateOutputHint: t('welcome.separateOutputHint'),
     defaultIconSizeLabel: t('welcome.defaultIconSize'),
     previewBackgroundLabel: t('welcome.previewBackground'),
-    allSettings: t('welcome.allSettings'),
     settings: t('settings.title'),
     skip: t('messages.cancel'),
     getStarted: t('welcome.getStarted'),
@@ -75,6 +73,11 @@ function getStepLabels(frameworkAutoDetected: boolean): Record<string, string> {
     spriteDesc: t('features.buildSystemDescription'),
     spritePro1: t('welcome.noRuntime'),
     spritePro2: t('sprite.title'),
+    cssIconsTitle: t('welcome.cssIcons') || 'CSS Icons',
+    cssIconsDesc: t('welcome.cssIconsDesc') || 'Pure CSS classes using mask-image, zero JS runtime',
+    cssIconsPro1: t('welcome.cssIconsPro1') || 'Zero JS',
+    cssIconsPro2: t('welcome.cssIconsPro2') || 'currentColor',
+    helpCssIcons: t('welcome.helpCssIcons') || 'Pure CSS classes with mask-image',
     recommended: '⭐',
     comingSoon: t('welcome.comingSoon'),
     helpJsModule: t('features.codeIntegrationDescription'),
@@ -104,6 +107,21 @@ function getPreviewLabels(): Record<string, string> {
     workflowSource: t('welcome.workflowSource'),
     workflowBuild: t('welcome.workflowBuild'),
     workflowOutput: t('welcome.workflowOutput'),
+    setupGuideTitle: t('welcome.setupGuideTitle'),
+    setupBuildCmd: t('welcome.setupBuildCmd'),
+    setupStepBuild: t('welcome.setupStepBuild'),
+    setupStepImport: t('welcome.setupStepImport'),
+    setupStepUse: t('welcome.setupStepUse'),
+    setupStepStyle: t('welcome.setupStepStyle'),
+    setupStepSpriteRef: t('welcome.setupStepSpriteRef'),
+    setupStepCssLink: t('welcome.setupStepCssLink'),
+    setupStepCssUse: t('welcome.setupStepCssUse'),
+    setupStepBuildDesc: t('welcome.setupStepBuildDesc'),
+    setupStepSpriteRefDesc: t('welcome.setupStepSpriteRefDesc'),
+    setupStepStyleDesc: t('welcome.setupStepStyleDesc'),
+    setupStepCssLinkDesc: t('welcome.setupStepCssLinkDesc'),
+    setupStepCssUseDesc: t('welcome.setupStepCssUseDesc'),
+    setupGuideTip: t('welcome.setupGuideTip'),
   };
 }
 
@@ -133,6 +151,8 @@ export function getStep4Title(framework: string): string {
       return t('welcome.webComponentName');
     case 'angular':
       return t('welcome.angularSelector');
+    case 'lit':
+      return t('welcome.webComponentName');
     default:
       return t('welcome.componentName');
   }
@@ -147,6 +167,8 @@ export function getStep4Description(framework: string): string {
       return t('welcome.webComponentDesc');
     case 'angular':
       return t('welcome.angularSelectorDesc');
+    case 'lit':
+      return t('welcome.webComponentDesc');
     default:
       return t('welcome.componentNameDesc');
   }
@@ -161,6 +183,8 @@ export function getStep4Placeholder(framework: string): string {
       return 'svg-icon';
     case 'angular':
       return 'app-icon';
+    case 'lit':
+      return 'svg-icon';
     default:
       return 'Icon';
   }

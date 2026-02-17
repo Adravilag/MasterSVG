@@ -34,9 +34,8 @@ export function registerLibraryCommands(
   const commands = [
     createOpenLibraryCommand(context, onIconSelected),
     createSearchLibraryCommand(context, onIconSelected),
-    createBrowseIconifyCommand(context, onIconSelected),
+    createBrowseIconifyAlias(),
     createToggleServerCommand(),
-    createShowServerOutputCommand(),
     createConfigureLibraryPathCommand(),
   ];
 
@@ -75,20 +74,12 @@ function createSearchLibraryCommand(
   });
 }
 
-function createBrowseIconifyCommand(
-  context: vscode.ExtensionContext,
-  onIconSelected: IconSelectionHandler
-): vscode.Disposable {
+/**
+ * browseIconify is an alias for searchLibrary — kept for backward compatibility
+ */
+function createBrowseIconifyAlias(): vscode.Disposable {
   return vscode.commands.registerCommand('masterSVG.browseIconify', async (query?: string) => {
-    const searchQuery = query || await promptForSearchQuery('ui.prompts.searchIconify', 'Search Iconify icons');
-    if (!searchQuery) return;
-
-    try {
-      const panel = await AstroLibraryPanel.createOrShow(context.extensionUri, searchQuery, 'search');
-      panel.onIconSelected(onIconSelected);
-    } catch (error) {
-      vscode.window.showErrorMessage(`Failed to open Iconify browser: ${getErrorMessage(error)}`);
-    }
+    await vscode.commands.executeCommand('masterSVG.searchLibrary', query);
   });
 }
 
@@ -108,16 +99,11 @@ function createToggleServerCommand(): vscode.Disposable {
     );
 
     if (started) {
+      service.showOutput();
       vscode.window.showInformationMessage(`Icon library server started at http://localhost:${service.currentPort}`);
     } else {
       vscode.window.showErrorMessage('Failed to start icon library server');
     }
-  });
-}
-
-function createShowServerOutputCommand(): vscode.Disposable {
-  return vscode.commands.registerCommand('masterSVG.showLibraryServerOutput', () => {
-    getAstroLibraryService().showOutput();
   });
 }
 

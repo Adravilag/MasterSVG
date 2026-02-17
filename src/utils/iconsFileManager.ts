@@ -1,7 +1,7 @@
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { SvgTransformer } from '../services/svg/SvgTransformer';
-import { toVariableName, loadTemplate } from './extensionHelpers';
+import { toVariableName } from './extensionHelpers';
 import { getConfig } from './configHelper';
 import { ErrorHandler } from './errorHandler';
 import { validateSvgContent } from './svgValidation';
@@ -11,6 +11,9 @@ import {
   IconEntryOptions as CentralizedIconEntryOptions,
   AddToIconsJsOptions as CentralizedAddToIconsJsOptions,
 } from '../services/types/mastersvgTypes';
+
+// Template import – bundled as raw text by esbuild's templateTextPlugin
+import iconWebComponentTemplate from '../templates/shared/IconWebComponent';
 
 // Re-export for backwards compatibility
 export type AnimationConfig = IconAnimationConfig;
@@ -219,8 +222,7 @@ export async function generateWebComponent(
   const componentPath = path.join(outputPath, 'svg-element.js');
 
   // Load template and replace placeholders
-  const template = loadTemplate('IconWebComponent.js');
-  const content = template.replace(/\$\{TAG_NAME\}/g, tagName);
+  const content = iconWebComponentTemplate.replace(/\$\{TAG_NAME\}/g, tagName);
 
   return { path: componentPath, content };
 }

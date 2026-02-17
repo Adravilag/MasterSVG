@@ -38,20 +38,26 @@ describe('UsageFinderService', () => {
     test('debe generar patrones de búsqueda para un nombre de icono', () => {
       const patterns = (service as any).buildSearchPatterns('rocket');
 
-      expect(patterns).toContain('rocket');
+      expect(patterns).toContain('rocket.svg');
       expect(patterns).toContain('"rocket"');
       expect(patterns).toContain("'rocket'");
+      expect(patterns).toContain('`rocket`');
       expect(patterns).toContain('icon-rocket');
       expect(patterns).toContain('icon:rocket');
-      expect(patterns).toContain('Rocket');
+      expect(patterns).toContain('<Rocket');
+      // Should NOT contain bare name or bare PascalCase (too many false positives)
+      expect(patterns).not.toContain('rocket');
+      expect(patterns).not.toContain('Rocket');
     });
 
     test('debe generar patrones para nombres con guión', () => {
       const patterns = (service as any).buildSearchPatterns('arrow-left');
 
-      expect(patterns).toContain('arrow-left');
-      expect(patterns).toContain('ArrowLeft');
+      expect(patterns).toContain('arrow-left.svg');
+      expect(patterns).toContain('<ArrowLeft');
       expect(patterns).toContain('icon-arrow-left');
+      // Should NOT contain bare PascalCase
+      expect(patterns).not.toContain('ArrowLeft');
     });
   });
 
@@ -71,6 +77,58 @@ describe('UsageFinderService', () => {
       const matches = (service as any).findMatches(text, 'rocket');
 
       expect(matches).toHaveLength(0);
+    });
+  });
+
+  describe('extractFullElement', () => {
+    const extractor = (text: string, matchIndex: number) =>
+      (service as any).extractFullElement(text, matchIndex);
+
+    test('debe extraer elemento multi-línea con indentación corregida', () => {
+      const text = `before\n<img\n  src="/icons/rocket.svg"\n  alt="Rocket icon"\n  width="48"\n/>\nafter`;
+      const matchIdx = text.indexOf('rocket.svg');
+      const result = extractor(text, matchIdx);
+
+      expect(result).not.toBeNull();
+      expect(result!.text).toContain('<img');
+      expect(result!.text).toContain('src="/icons/rocket.svg"');
+      expect(result!.text).toContain('/>');
+      expect(result!.text).toContain('\n'); // Should preserve line breaks
+      expect(result!.startOffset).toBe(text.indexOf('<img'));
+    });
+
+    test('debe manejar atributos JSX con llaves', () => {
+      const text = `<img\n  src="/icons/rocket.svg"\n  style={{ filter: 'hue-rotate(90deg)' }}\n/>`;
+      const matchIdx = text.indexOf('rocket.svg');
+      const result = extractor(text, matchIdx);
+
+      expect(result).not.toBeNull();
+      expect(result!.text).toContain('style={{ filter:');
+      expect(result!.text).toContain('/>');
+    });
+
+    test('debe retornar null para elementos de una sola línea', () => {
+      const text = `<img src="/icons/rocket.svg" alt="Rocket" />`;
+      const matchIdx = text.indexOf('rocket.svg');
+      const result = extractor(text, matchIdx);
+
+      expect(result).toBeNull();
+    });
+
+    test('debe retornar null si no está dentro de un tag', () => {
+      const text = `just some text with rocket.svg reference`;
+      const matchIdx = text.indexOf('rocket.svg');
+      const result = extractor(text, matchIdx);
+
+      expect(result).toBeNull();
+    });
+
+    test('debe retornar null si está después del cierre de un tag', () => {
+      const text = `<div>text</div> rocket.svg outside`;
+      const matchIdx = text.indexOf('rocket.svg');
+      const result = extractor(text, matchIdx);
+
+      expect(result).toBeNull();
     });
   });
 

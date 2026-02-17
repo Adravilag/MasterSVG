@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { promises as fsPromises } from 'fs';
 import { WorkspaceIcon, IconAnimation } from '../../types/icons';
-import { getSvgConfig, isFullyConfigured } from '../../utils/config';
+import { isFullyConfigured } from '../../utils/config';
+import { ConfigService } from '../../config';
 import { SvgItem } from './SvgItem';
 import type { WorkspaceSvgProvider } from './WorkspaceSvgProvider';
 import { t } from '../../i18n';
@@ -106,15 +108,17 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
     this.jsIcons.add(iconName);
 
     // Clear item cache for this icon to force recreation with animation
+    this.itemCache.delete(`built:svg-data.js:${iconName}`);
+    this.itemCache.delete(`built:svg-data.ts:${iconName}`);
     this.itemCache.delete(`built:icons.js:${iconName}`);
 
-    // Get the icons.js container item from cache and refresh only that
-    const containerItem = this.itemCache.get('built:icons.js');
+    // Get the svg-data container item from cache and refresh only that
+    const containerItem = this.itemCache.get('built:svg-data.js') || this.itemCache.get('built:svg-data.ts') || this.itemCache.get('built:icons.js');
     if (containerItem) {
       // Update the counter in the cached container before firing
-      // Count icons that belong to icons.js (not sprite.svg)
+      // Count icons that belong to svg-data/icons.js (not sprite.svg)
       const jsIconCount = Array.from(this.builtIcons.values()).filter(
-        icon => icon.path.endsWith('icons.js') || icon.path.endsWith('icons.ts')
+        icon => icon.path.endsWith('svg-data.js') || icon.path.endsWith('svg-data.ts') || icon.path.endsWith('icons.js') || icon.path.endsWith('icons.ts')
       ).length;
       containerItem.description = `(${jsIconCount})`;
       this._onDidChangeTreeData.fire(containerItem);
@@ -133,12 +137,12 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
     this.builtIcons.delete(iconName);
     this.jsIcons.delete(iconName);
 
-    // Get the icons.js container item from cache and refresh only that
-    const containerItem = this.itemCache.get('built:icons.js');
+    // Get the svg-data container item from cache and refresh only that
+    const containerItem = this.itemCache.get('built:svg-data.js') || this.itemCache.get('built:svg-data.ts') || this.itemCache.get('built:icons.js');
     if (containerItem) {
       // Update the counter in the cached container before firing
       const jsIconCount = Array.from(this.builtIcons.values()).filter(
-        icon => icon.path.endsWith('icons.js') || icon.path.endsWith('icons.ts')
+        icon => icon.path.endsWith('svg-data.js') || icon.path.endsWith('svg-data.ts') || icon.path.endsWith('icons.js') || icon.path.endsWith('icons.ts')
       ).length;
       containerItem.description = jsIconCount > 0 ? `(${jsIconCount})` : '';
       this._onDidChangeTreeData.fire(containerItem);
@@ -175,9 +179,9 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
   getBuildStatusLabel(iconName: string): string {
     // With single build format, icon should only be in one place
     if (this.jsIcons.has(iconName)) {
-      return '(built)';
+      return t('treeView.statusBuilt');
     } else if (this.spriteIcons.has(iconName)) {
-      return '(sprite)';
+      return t('treeView.statusSprite');
     }
     return '';
   }
@@ -209,26 +213,37 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
 
     this.builtIcons.clear();
 
-    const outputDir = getSvgConfig<string>('outputDirectory', 'mastersvg-svg');
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (!workspaceFolders) return;
+    // Use ConfigService to get the correct output paths (handles both flat and separated structures)
+    const configService = ConfigService.getInstance();
+    const outputPaths = configService.getOutputPaths();
 
-    const workspaceRoot = workspaceFolders[0].uri.fsPath;
-    const fullOutputPath = path.join(workspaceRoot, outputDir);
+    // For svg-data files, look in the assets path
+    const assetsPath = outputPaths.assets;
+    // For sprite.svg, check both assets and components paths
+    const componentsPath = outputPaths.components;
 
-    // Try icons.js first, then legacy icons.ts/icons.js
-    for (const name of ['icons.js', 'icons.ts', 'icons.js']) {
-      const iconsFile = path.join(fullOutputPath, name);
-      if (fs.existsSync(iconsFile)) {
+    // Try svg-data.js first (new name), then legacy icons.js/icons.ts
+    for (const name of ['svg-data.js', 'svg-data.ts', 'icons.js', 'icons.ts']) {
+      const iconsFile = path.join(assetsPath, name);
+      try {
+        await fsPromises.access(iconsFile);
         await this.parseIconsFile(iconsFile);
         break;
+      } catch {
+        // File doesn't exist, try next
       }
     }
 
-    // Also load from sprite.svg
-    const spriteSvg = path.join(fullOutputPath, 'sprite.svg');
-    if (fs.existsSync(spriteSvg)) {
-      await this.parseSpriteFile(spriteSvg);
+    // Also load from sprite.svg (could be in assets or root output directory)
+    for (const basePath of [assetsPath, componentsPath]) {
+      const spriteSvg = path.join(basePath, 'sprite.svg');
+      try {
+        await fsPromises.access(spriteSvg);
+        await this.parseSpriteFile(spriteSvg);
+        break;
+      } catch {
+        // File doesn't exist, try next
+      }
     }
 
 
@@ -236,7 +251,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
 
   private async parseSpriteFile(filePath: string): Promise<void> {
     try {
-      const content = fs.readFileSync(filePath, 'utf-8');
+      const content = await fsPromises.readFile(filePath, 'utf-8');
 
 
       // Extract symbols with their content
@@ -302,21 +317,37 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
 
   private async parseIconsFile(filePath: string): Promise<void> {
     try {
-      const content = fs.readFileSync(filePath, 'utf-8');
+      const content = await fsPromises.readFile(filePath, 'utf-8');
 
-      // Pattern for: export const iconName = { name: '...', body: `...`, viewBox: '...', animation?: {...} }
+      // Pattern for: export const iconName = { name: '...', body: `...`, viewBox: '...', fill?: '...', stroke?: '...', animation?: {...} }
+      // More flexible pattern that captures the entire object content
       const iconPattern =
-        /export\s+const\s+(\w+)\s*=\s*\{\s*name:\s*['"]([^'"]+)['"]\s*,\s*body:\s*`([\s\S]*?)`\s*,\s*viewBox:\s*['"]([^'"]+)['"](?:\s*,\s*animation:\s*\{([^}]*)\})?\s*\}/g;
+        /export\s+const\s+(\w+)\s*=\s*\{\s*name:\s*['"]([^'"]+)['"]\s*,\s*body:\s*`([\s\S]*?)`\s*,\s*viewBox:\s*['"]([^'"]+)['"]([^}]*(?:\{[^}]*\}[^}]*)*)\s*\}/g;
       let match;
 
       while ((match = iconPattern.exec(content)) !== null) {
         const iconName = match[2];
         const body = match[3];
         const viewBox = match[4];
-        const animationStr = match[5];
+        const restContent = match[5] || '';
 
-        // Reconstruct full SVG
-        const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${body}</svg>`;
+        // Extract fill from rest content
+        const fillMatch = /fill:\s*['"]([^'"]+)['"]/.exec(restContent);
+        const fill = fillMatch ? fillMatch[1] : undefined;
+
+        // Extract stroke from rest content
+        const strokeMatch = /stroke:\s*['"]([^'"]+)['"]/.exec(restContent);
+        const stroke = strokeMatch ? strokeMatch[1] : undefined;
+
+        // Extract animation from rest content
+        const animationMatch = /animation:\s*\{([^}]*)\}/.exec(restContent);
+        const animationStr = animationMatch ? animationMatch[1] : undefined;
+
+        // Reconstruct full SVG with fill/stroke if present
+        let svgAttrs = `xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}"`;
+        if (fill) svgAttrs += ` fill="${fill}"`;
+        if (stroke) svgAttrs += ` stroke="${stroke}"`;
+        const svgContent = `<svg ${svgAttrs}>${body}</svg>`;
 
         // Parse animation if present
         const animation = animationStr ? this.parseAnimationString(animationStr) : undefined;
@@ -373,10 +404,11 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
    * Get empty state items when no icons are built
    */
   private getEmptyStateItems(): SvgItem[] {
-    const config = vscode.workspace.getConfiguration('masterSVG');
-    const outputDir = config.get<string>('outputDirectory', '');
+    const configService = ConfigService.getInstance();
+    const config = configService.getConfig();
+    const hasOutput = !!(config.output.directory || config.output.paths);
 
-    if (!outputDir) {
+    if (!hasOutput) {
       const setupItem = this.createSetupItem('masterSVG.openWelcome');
       setupItem.tooltip = t('messages.clickToConfigureOutput');
       return [setupItem];
@@ -427,7 +459,7 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
    */
   private getFileContextValue(fileName: string): string {
     if (fileName === 'sprite.svg') return 'builtSpriteFile';
-    if (fileName === 'icons.js' || fileName === 'icons.ts') return 'builtIconsFile';
+    if (fileName === 'svg-data.js' || fileName === 'svg-data.ts' || fileName === 'icons.js' || fileName === 'icons.ts') return 'builtIconsFile';
     return 'builtFile';
   }
 

@@ -55,7 +55,7 @@ export const DEFAULT_SOURCE_CONFIG: SourceConfig = {
 
 /** Default output configuration */
 export const DEFAULT_OUTPUT_CONFIG: OutputConfig = {
-  format: 'icons.ts',
+  format: 'icons.js',
   structure: 'flat',
   directory: 'src/icons',
 };
@@ -199,7 +199,7 @@ export function createMinimalConfig(framework: FrameworkConfig['type']): Partial
       directories: ['src/assets/svg'],
     },
     output: {
-      format: isTypescript ? 'icons.ts' : 'icons.js',
+      format: 'icons.js',
       structure: 'flat',
       directory: 'src/icons',
     },

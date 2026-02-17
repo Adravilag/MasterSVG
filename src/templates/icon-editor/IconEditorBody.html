@@ -75,6 +75,9 @@
             <button class="tab-btn" onclick="switchTab('code')">
               <span class="codicon codicon-code"></span> ${i18n_tabCode}
             </button>
+            <button class="tab-btn" onclick="switchTab('size')">
+              <span class="codicon codicon-screen-full"></span> ${i18n_tabSize}
+            </button>
           </div>
 
           <!-- Color Tab -->
@@ -90,6 +93,11 @@
           <!-- Code Tab -->
           <div class="tab-content" id="tab-code">
             ${codeTabContent}
+          </div>
+
+          <!-- Size Tab -->
+          <div class="tab-content" id="tab-size">
+            ${sizeTabContent}
           </div>
         </div>
       </div>

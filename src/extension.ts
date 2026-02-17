@@ -74,20 +74,12 @@ let svgWatcher: vscode.FileSystemWatcher | undefined;
  * Shows onboarding wizard for first-time users
  */
 async function showOnboardingWizard(context: vscode.ExtensionContext): Promise<void> {
-  const config = vscode.workspace.getConfiguration('masterSVG');
-  const outputDir = config.get<string>('outputDirectory', '');
-
-  // Skip if already configured
-  if (outputDir) {
-    return;
-  }
-
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   if (!workspaceFolder) {
     return;
   }
 
-  // Show Welcome Panel for first-time configuration
+  // Show Welcome Panel
   WelcomePanel.createOrShow(context.extensionUri);
 }
 
@@ -197,20 +189,14 @@ export function activate(context: vscode.ExtensionContext) {
   treeView.onDidChangeSelection(e => {
     if (e.selection.length > 0) {
       const item = e.selection[0] as SvgItem;
-      if (
-        item.contextValue === 'inlineSvg' ||
-        item.contextValue === 'builtIcon' ||
-        item.contextValue === 'svgIcon' ||
-        item.contextValue === 'iconUsage' ||
-        item.contextValue === 'iconUsageMissing'
-      ) {
+      if (item.icon) {
         const svgData = workspaceSvgProvider.getSvgData(item);
         if (svgData) {
           iconPreviewProvider.updatePreview({
             name: svgData.name,
             svg: svgData.svg,
             location: svgData.location,
-            isBuilt: item.contextValue === 'builtIcon' || item.contextValue === 'iconUsage',
+            isBuilt: item.icon.isBuilt === true,
             animation: svgData.animation,
           });
         }

@@ -34,6 +34,9 @@ export class SvgTransformer {
       case 'astro':
         component = this.generateAstroComponent(iconName, componentName, nameAttribute);
         break;
+      case 'lit':
+        component = this.generateHtmlComponent(iconName, componentName, nameAttribute);
+        break;
       case 'html':
         component = this.generateHtmlComponent(iconName, componentName, nameAttribute);
         break;
@@ -223,6 +226,17 @@ export class SvgTransformer {
     let tagName = componentName.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
 
     // Custom elements MUST have a hyphen
+    if (!tagName.includes('-')) {
+      tagName = `${tagName}-icon`;
+    }
+
+    return `<${tagName} ${nameAttr}="${iconName}"></${tagName}>`;
+  }
+
+  private generateLitComponent(iconName: string, componentName: string, nameAttr: string): string {
+    // Lit uses custom elements (same as HTML Web Components)
+    let tagName = componentName.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+
     if (!tagName.includes('-')) {
       tagName = `${tagName}-icon`;
     }

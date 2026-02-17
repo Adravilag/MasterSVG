@@ -18,7 +18,10 @@ module.exports = {
   transform: {
     '^.+\\.ts$': ['ts-jest', {
       tsconfig: 'tsconfig.test.json'
-    }]
+    }],
+    // Template files (.html, .css, and .js inside templates/) → raw text
+    'templates[/\\\\].*\\.(html|css|js)$': '<rootDir>/scripts/jest-text-transform.js',
+    '\\.(html|css)$': '<rootDir>/scripts/jest-text-transform.js'
   },
   testPathIgnorePatterns: [
     '/node_modules/',

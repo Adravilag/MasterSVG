@@ -399,6 +399,55 @@ export interface GeneratedFile {
  */
 export type IconRenderMethod = 'svg-inline' | 'svg-use' | 'img' | 'web-component' | 'svg-icon';
 
+// ============================================================================
+// Icon Suggestion Types (Iconify, extensible)
+// ============================================================================
+
+/**
+ * Icon suggestion result (for UI/insert)
+ */
+export interface IconSuggestion {
+  prefix: string;
+  name: string;
+  /** Score de relevancia (0-1) */
+  score: number;
+  /** Tags relevantes (ej: medical, health) */
+  tags?: string[];
+  /** Colores que hicieron match */
+  matchingColors?: string[];
+  /** Nombre de la colección */
+  collection?: string;
+  /** Licencia (ej: MIT) */
+  license?: string;
+  /** SVG para preview (opcional, lazy) */
+  previewSvg?: string;
+  /** Etiqueta accesible sugerida */
+  ariaLabel?: string;
+}
+
+/**
+ * Opciones para sugerir iconos
+ */
+export interface IconSuggestionOptions {
+  /** Paleta de colores (solo para preview, no para búsqueda) */
+  colors?: string[];
+  /** Tags/contexto semántico — driver principal de búsqueda */
+  contextTags?: string[];
+  /** Estilo preferido */
+  style?: 'outline' | 'solid' | 'duotone';
+  /** Limitar resultados */
+  limit?: number;
+  /** Usar LLM/Copilot para análisis avanzado */
+  useLLM?: boolean;
+}
+
+/**
+ * Proveedor de sugerencias de iconos (extensible)
+ */
+export interface IconSuggestionProvider {
+  suggest(options: IconSuggestionOptions): Promise<IconSuggestion[]>;
+}
+
 /**
  * Icon element configuration
  */
@@ -1136,6 +1185,7 @@ export type ComponentFormat =
   | 'solid'
   | 'qwik'
   | 'preact'
+  | 'lit'
   | 'web-component'
   | 'vanilla';
 
@@ -1928,7 +1978,8 @@ export type FrameworkType =
   | 'svelte'
   | 'solid'
   | 'qwik'
-  | 'astro';
+  | 'astro'
+  | 'lit';
 
 /**
  * Icon Studio configuration
@@ -1947,7 +1998,7 @@ export interface IconStudioConfig {
   /** Web component tag name */
   webComponentName: string;
   /** Build output format */
-  buildFormat: 'icons.ts' | 'sprite.svg';
+  buildFormat: 'icons.js' | 'sprite.svg' | 'css';
   /** Target framework */
   framework: FrameworkType;
 }

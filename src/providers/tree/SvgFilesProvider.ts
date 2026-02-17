@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
 import { WorkspaceIcon } from '../../types/icons';
-import { getSvgConfig, isFullyConfigured } from '../../utils/config';
+import { isFullyConfigured } from '../../utils/config';
 import { SvgItem } from './SvgItem';
-import { shouldIgnorePath } from '../../utils/IgnorePatterns';
 import { SvgContentCache } from '../../utils/SvgContentCache';
 import type { WorkspaceSvgProvider } from './WorkspaceSvgProvider';
 import type { BuiltIconsProvider } from './BuiltIconsProvider';
+import { FileSvgScanner } from '../scanner/FileSvgScanner';
+import { t } from '../../i18n';
 
 /**
  * TreeDataProvider for SVG Files - separate view showing only SVG files in workspace
@@ -81,8 +81,7 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
    * Remove a single item from the tree
    */
   removeItem(iconPath: string): void {
-    const iconName = path.basename(iconPath, '.svg');
-    this.svgFiles.delete(iconName);
+    this.svgFiles.delete(iconPath);
     this._onDidChangeTreeData.fire();
   }
 
@@ -91,12 +90,24 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
    * This triggers a partial refresh that preserves expanded state
    */
   refreshItemByName(iconName: string): void {
-    const icon = this.svgFiles.get(iconName);
+    const icon = this.findIconByName(iconName);
     if (icon) {
       // Create a SvgItem for this icon and fire partial refresh
       const item = SvgItem.create(icon.name, 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
       this._onDidChangeTreeData.fire(item);
     }
+  }
+
+  /**
+   * Find an icon by name (searches values since keys are file paths)
+   */
+  private findIconByName(iconName: string): WorkspaceIcon | undefined {
+    for (const icon of this.svgFiles.values()) {
+      if (icon.name === iconName) {
+        return icon;
+      }
+    }
+    return undefined;
   }
 
   /**
@@ -143,100 +154,7 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
     }
 
     for (const folder of workspaceFolders) {
-      await this.scanFolder(folder.uri.fsPath);
-    }
-  }
-
-  private async scanFolder(folderPath: string): Promise<void> {
-    const svgFolders = getSvgConfig<string[]>('svgFolders', []);
-    let foundAny = false;
-
-    // First try configured folders
-    for (const svgFolder of svgFolders) {
-      const fullPath = path.join(folderPath, svgFolder);
-      if (fs.existsSync(fullPath)) {
-        await this.scanDirectory(fullPath, svgFolder);
-        foundAny = true;
-      }
-    }
-
-    // If no configured folders found, scan ALL SVGs in workspace
-    if (!foundAny) {
-      await this.scanAllSvgs(folderPath);
-    }
-  }
-
-  private async scanDirectory(dirPath: string, category: string): Promise<void> {
-    if (!fs.existsSync(dirPath) || shouldIgnorePath(dirPath)) return;
-
-    try {
-      const entries = fs.readdirSync(dirPath, { withFileTypes: true });
-
-      for (const entry of entries) {
-        const fullPath = path.join(dirPath, entry.name);
-
-        if (entry.isDirectory()) {
-          await this.scanDirectory(fullPath, `${category}/${entry.name}`);
-        } else if (entry.isFile() && entry.name.endsWith('.svg')) {
-          if (shouldIgnorePath(fullPath)) continue;
-
-          const iconName = path.basename(entry.name, '.svg');
-          this.svgFiles.set(iconName, {
-            name: iconName,
-            path: fullPath,
-            source: 'workspace',
-            category: category,
-            svg: undefined,
-          });
-        }
-      }
-    } catch (error) {
-      console.error(`[MasterSVG] SvgFilesProvider: Error scanning ${dirPath}:`, error);
-    }
-  }
-
-  private async scanAllSvgs(folderPath: string, relativePath: string = ''): Promise<void> {
-    if (!fs.existsSync(folderPath) || shouldIgnorePath(folderPath)) return;
-
-    const skipDirs = [
-      'node_modules',
-      '.git',
-      'dist',
-      'build',
-      '.next',
-      '.nuxt',
-      'coverage',
-      '.svelte-kit',
-    ];
-
-    try {
-      const entries = fs.readdirSync(folderPath, { withFileTypes: true });
-
-      for (const entry of entries) {
-        const fullPath = path.join(folderPath, entry.name);
-        const relPath = relativePath ? `${relativePath}/${entry.name}` : entry.name;
-
-        if (entry.isDirectory()) {
-          if (!skipDirs.includes(entry.name)) {
-            await this.scanAllSvgs(fullPath, relPath);
-          }
-        } else if (entry.isFile() && entry.name.endsWith('.svg')) {
-          if (shouldIgnorePath(fullPath)) continue;
-
-          const iconName = path.basename(entry.name, '.svg');
-          const category = path.dirname(relPath) || 'root';
-
-          this.svgFiles.set(iconName, {
-            name: iconName,
-            path: fullPath,
-            source: 'workspace',
-            category: category === '.' ? 'root' : category,
-            svg: undefined,
-          });
-        }
-      }
-    } catch (error) {
-      console.error(`[MasterSVG] SvgFilesProvider: Error scanning ${folderPath}:`, error);
+      await FileSvgScanner.scanFolder(folder.uri.fsPath, this.svgFiles);
     }
   }
 
@@ -274,7 +192,7 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
     if (!isFullyConfigured()) {
       if (!element) {
         const configureItem = SvgItem.create(
-          'Configurar MasterSVG',
+          t('treeView.configureFirst'),
           0,
           vscode.TreeItemCollapsibleState.None,
           'action',
@@ -283,7 +201,7 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
         );
         configureItem.command = {
           command: 'masterSVG.showWelcome',
-          title: 'Configurar MasterSVG',
+          title: t('treeView.configureFirst'),
         };
         configureItem.iconPath = new vscode.ThemeIcon('gear');
         return [configureItem];
@@ -304,7 +222,7 @@ export class SvgFilesProvider implements vscode.TreeDataProvider<SvgItem> {
     if (this.svgFiles.size === 0) {
       return [
         SvgItem.create(
-          'No SVG files found',
+          t('treeView.noSvgFilesInView'),
           0,
           vscode.TreeItemCollapsibleState.None,
           'action',

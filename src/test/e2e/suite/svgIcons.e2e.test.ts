@@ -196,13 +196,13 @@ suite('SVG Icons E2E Tests', () => {
   suite('Build Format Configuration', () => {
     test('Should set build format to icons.ts', async () => {
       const config = vscode.workspace.getConfiguration('masterSVG');
-      await config.update('buildFormat', 'icons.ts', vscode.ConfigurationTarget.Global);
+      await config.update('buildFormat', 'icons.js', vscode.ConfigurationTarget.Global);
       await delay(200);
 
       const format = vscode.workspace
         .getConfiguration('masterSVG')
         .get<string>('buildFormat', '');
-      assert.strictEqual(format, 'icons.ts', 'Build format should be icons.ts');
+      assert.strictEqual(format, 'icons.js', 'Build format should be icons.ts');
     });
 
     test('Should set build format to icons.js', async () => {

@@ -6,6 +6,7 @@ import {
   IconifyIconSet as CentralizedIconifyIconSet,
   IconifyCollection as CentralizedIconifyCollection,
 } from '../services/types/mastersvgTypes';
+import { POPULAR_COLLECTIONS } from './iconPickerHtml';
 
 // Re-export for backwards compatibility
 export type IconifySearchResult = CentralizedIconifySearchResult;
@@ -23,22 +24,6 @@ const collectionsCache: { data: Record<string, IconifyCollection> | null; timest
   timestamp: 0,
 };
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-/**
- * Popular icon collections for quick access
- */
-export const POPULAR_COLLECTIONS = [
-  { prefix: 'mdi', name: 'Material Design Icons', total: 7000 },
-  { prefix: 'lucide', name: 'Lucide', total: 1500 },
-  { prefix: 'heroicons', name: 'Heroicons', total: 300 },
-  { prefix: 'tabler', name: 'Tabler Icons', total: 5000 },
-  { prefix: 'ph', name: 'Phosphor', total: 9000 },
-  { prefix: 'ri', name: 'Remix Icon', total: 2800 },
-  { prefix: 'carbon', name: 'Carbon', total: 2000 },
-  { prefix: 'fluent', name: 'Fluent UI', total: 4500 },
-  { prefix: 'ic', name: 'Google Material Icons', total: 2500 },
-  { prefix: 'bi', name: 'Bootstrap Icons', total: 2000 },
-];
 
 /**
  * Generate cache key for search
@@ -162,14 +147,14 @@ export async function searchInCollection(
 /**
  * Clear search cache
  */
-export function clearSearchCache(): void {
+function clearSearchCache(): void {
   searchCache.clear();
 }
 
 /**
  * Clear collections cache
  */
-export function clearCollectionsCache(): void {
+function clearCollectionsCache(): void {
   collectionsCache.data = null;
   collectionsCache.timestamp = 0;
 }
@@ -299,26 +284,4 @@ export async function getCollectionsByCategory(): Promise<
   }
 
   return grouped;
-}
-
-/**
- * Get popular collections with full info
- */
-export async function getPopularCollections(): Promise<
-  Array<{ prefix: string } & IconifyCollection>
-> {
-  const collections = await getCollections();
-  if (!collections) {
-    // Return default popular collections if API fails
-    return POPULAR_COLLECTIONS.map(c => ({
-      prefix: c.prefix,
-      name: c.name,
-      total: c.total,
-    }));
-  }
-
-  return POPULAR_COLLECTIONS.map(c => ({
-    prefix: c.prefix,
-    ...collections[c.prefix],
-  })).filter(c => c.name);
 }

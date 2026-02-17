@@ -198,7 +198,7 @@ export class FileSvgScanner {
       const iconName = path.basename(file.name, '.svg');
       const category = path.dirname(file.relPath) || 'root';
 
-      svgFiles.set(iconName, {
+      svgFiles.set(file.fullPath, {
         name: iconName,
         path: file.fullPath,
         source: 'workspace',
@@ -327,7 +327,7 @@ export class FileSvgScanner {
         if (this.isOutputSpriteSvg(fullPath)) continue;
 
         const iconName = path.basename(entry.name, '.svg');
-        svgFiles.set(iconName, {
+        svgFiles.set(fullPath, {
           name: iconName,
           path: fullPath,
           source: 'workspace',

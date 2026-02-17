@@ -190,7 +190,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: ['icons'],
         outputDirectory: 'dist',
         webComponentName: '',
-        buildFormat: 'icons.ts', // Selected
+        buildFormat: 'icons.js', // Selected
         hasBuiltIcons: false,
       });
 
@@ -383,7 +383,7 @@ suite('Welcome Panel Steps State Tests', () => {
       const config = vscode.workspace.getConfiguration('iconStudio');
       await config.update('svgFolders', ['svgs'], vscode.ConfigurationTarget.Global);
       await config.update('outputDirectory', 'output', vscode.ConfigurationTarget.Global);
-      await config.update('buildFormat', 'icons.ts', vscode.ConfigurationTarget.Global);
+      await config.update('buildFormat', 'icons.js', vscode.ConfigurationTarget.Global);
       await config.update('webComponentName', 'my-icon', vscode.ConfigurationTarget.Global);
       await delay(200);
 
@@ -434,12 +434,12 @@ suite('Welcome Panel Steps State Tests', () => {
       assert.strictEqual(step2Complete, true, 'Step 2 should be complete');
 
       // Step 3: Build format (no default - user must select)
-      await config.update('buildFormat', 'icons.ts', vscode.ConfigurationTarget.Global);
+      await config.update('buildFormat', 'icons.js', vscode.ConfigurationTarget.Global);
       await delay(200);
       let buildFormat = vscode.workspace
         .getConfiguration('iconStudio')
         .get<string>('buildFormat', '');
-      assert.strictEqual(buildFormat, 'icons.ts', 'Step 3 should have user-selected build format');
+      assert.strictEqual(buildFormat, 'icons.js', 'Step 3 should have user-selected build format');
 
       // Step 4: Web component name with hyphen
       await config.update('webComponentName', 'my-app-icon', vscode.ConfigurationTarget.Global);
@@ -481,7 +481,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: ['src/icons'],
         outputDirectory: '',
         webComponentName: '',
-        buildFormat: 'icons.ts',
+        buildFormat: 'icons.js',
         hasBuiltIcons: false,
       });
 
@@ -497,7 +497,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: [],
         outputDirectory: '',
         webComponentName: '',
-        buildFormat: 'icons.ts',
+        buildFormat: 'icons.js',
         hasBuiltIcons: false,
       });
 
@@ -513,7 +513,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: [],
         outputDirectory: '',
         webComponentName: '',
-        buildFormat: 'icons.ts',
+        buildFormat: 'icons.js',
         hasBuiltIcons: false,
       });
 
@@ -527,7 +527,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: ['icons'],
         outputDirectory: '',
         webComponentName: '',
-        buildFormat: 'icons.ts',
+        buildFormat: 'icons.js',
         hasBuiltIcons: false,
       });
 
@@ -543,7 +543,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: ['src/icons'],
         outputDirectory: 'public/icons',
         webComponentName: '',
-        buildFormat: 'icons.ts',
+        buildFormat: 'icons.js',
         hasBuiltIcons: false,
       });
 
@@ -559,7 +559,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: ['icons'],
         outputDirectory: '',
         webComponentName: '',
-        buildFormat: 'icons.ts',
+        buildFormat: 'icons.js',
         hasBuiltIcons: false,
       });
 
@@ -573,7 +573,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: ['icons'],
         outputDirectory: 'output',
         webComponentName: '',
-        buildFormat: 'icons.ts',
+        buildFormat: 'icons.js',
         hasBuiltIcons: false,
       });
 
@@ -589,7 +589,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: ['src/icons'],
         outputDirectory: 'public/icons',
         webComponentName: 'sg-icon',
-        buildFormat: 'icons.ts', // User selected this
+        buildFormat: 'icons.js', // User selected this
         hasBuiltIcons: false,
       });
 
@@ -635,7 +635,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: ['icons'],
         outputDirectory: 'dist',
         webComponentName: '',
-        buildFormat: 'icons.ts', // Selected - Step 3 complete
+        buildFormat: 'icons.js', // Selected - Step 3 complete
         hasBuiltIcons: false,
       });
 
@@ -651,7 +651,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: ['src/icons'],
         outputDirectory: 'public/icons',
         webComponentName: 'my-icon',
-        buildFormat: 'icons.ts',
+        buildFormat: 'icons.js',
         hasBuiltIcons: false,
       });
 
@@ -667,7 +667,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: ['src/icons'],
         outputDirectory: 'public/icons',
         webComponentName: 'myicon',
-        buildFormat: 'icons.ts',
+        buildFormat: 'icons.js',
         hasBuiltIcons: false,
       });
 
@@ -683,7 +683,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: ['src/icons'],
         outputDirectory: 'public/icons',
         webComponentName: '', // No default anymore
-        buildFormat: 'icons.ts',
+        buildFormat: 'icons.js',
         hasBuiltIcons: false,
       });
 
@@ -699,7 +699,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: ['src/icons'],
         outputDirectory: 'public/icons',
         webComponentName: 'sg-icon', // User explicitly sets this
-        buildFormat: 'icons.ts',
+        buildFormat: 'icons.js',
         hasBuiltIcons: false,
       });
 
@@ -715,7 +715,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: ['src/assets/svg'],
         outputDirectory: 'public/icons',
         webComponentName: 'app-icon',
-        buildFormat: 'icons.ts',
+        buildFormat: 'icons.js',
         hasBuiltIcons: false,
       });
 
@@ -732,7 +732,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: ['icons'],
         outputDirectory: '',
         webComponentName: '',
-        buildFormat: 'icons.ts',
+        buildFormat: 'icons.js',
         hasBuiltIcons: false,
       });
       assert.strictEqual(classes.isButtonEnabled, false, 'Button disabled with only Step 1');
@@ -742,7 +742,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: ['icons'],
         outputDirectory: 'dist',
         webComponentName: '',
-        buildFormat: 'icons.ts',
+        buildFormat: 'icons.js',
         hasBuiltIcons: false,
       });
       assert.strictEqual(classes.isButtonEnabled, false, 'Button disabled with Steps 1 and 2 only');
@@ -752,7 +752,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: ['icons'],
         outputDirectory: 'dist',
         webComponentName: 'noHyphen',
-        buildFormat: 'icons.ts',
+        buildFormat: 'icons.js',
         hasBuiltIcons: false,
       });
       assert.strictEqual(classes.isButtonEnabled, false, 'Button disabled when Step 4 invalid');
@@ -762,7 +762,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: ['icons'],
         outputDirectory: 'dist',
         webComponentName: 'my-icon',
-        buildFormat: 'icons.ts',
+        buildFormat: 'icons.js',
         hasBuiltIcons: false,
       });
       assert.strictEqual(classes.isButtonEnabled, true, 'Button ENABLED when all 4 steps complete');
@@ -830,7 +830,7 @@ suite('Welcome Panel Steps State Tests', () => {
       const config = vscode.workspace.getConfiguration('iconStudio');
       await config.update('svgFolders', ['my-svgs'], vscode.ConfigurationTarget.Global);
       await config.update('outputDirectory', 'output/icons', vscode.ConfigurationTarget.Global);
-      await config.update('buildFormat', 'icons.ts', vscode.ConfigurationTarget.Global);
+      await config.update('buildFormat', 'icons.js', vscode.ConfigurationTarget.Global);
       await config.update('webComponentName', 'my-icon', vscode.ConfigurationTarget.Global);
       await delay(300);
 
@@ -879,7 +879,7 @@ suite('Welcome Panel Steps State Tests', () => {
         svgFolders: ['svgs'],
         outputDirectory: 'icons',
         webComponentName,
-        buildFormat: 'icons.ts',
+        buildFormat: 'icons.js',
         hasBuiltIcons: false,
       });
 

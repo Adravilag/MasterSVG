@@ -16,7 +16,7 @@ describe('ConfigService', () => {
     it('debe tener valores por defecto válidos', () => {
       expect(DEFAULT_CONFIG.version).toBe('1.0');
       expect(DEFAULT_CONFIG.source.directories).toEqual(['src/assets/svg']);
-      expect(DEFAULT_CONFIG.output.format).toBe('icons.ts');
+      expect(DEFAULT_CONFIG.output.format).toBe('icons.js');
       expect(DEFAULT_CONFIG.output.structure).toBe('flat');
       expect(DEFAULT_CONFIG.framework.type).toBe('react');
       expect(DEFAULT_CONFIG.framework.typescript).toBe(true);
@@ -57,7 +57,7 @@ describe('ConfigService', () => {
       expect(result.source.directories).toEqual(['custom/path']);
       expect(result.framework.type).toBe('vue');
       // Otros valores deben ser defaults
-      expect(result.output.format).toBe('icons.ts');
+      expect(result.output.format).toBe('icons.js');
       expect(result.framework.typescript).toBe(true);
     });
 
@@ -80,7 +80,7 @@ describe('ConfigService', () => {
     it('debe manejar estructura separada correctamente', () => {
       const userConfig: PartialMasterSvgConfig = {
         output: {
-          format: 'icons.ts',
+          format: 'icons.js',
           structure: 'separated',
           paths: {
             components: 'src/components/icons',
@@ -168,7 +168,7 @@ describe('ConfigService', () => {
     it('flat debe usar directory', () => {
       const config: PartialMasterSvgConfig = {
         output: {
-          format: 'icons.ts',
+          format: 'icons.js',
           structure: 'flat',
           directory: 'src/icons',
         },
@@ -183,7 +183,7 @@ describe('ConfigService', () => {
     it('separated debe usar paths', () => {
       const config: PartialMasterSvgConfig = {
         output: {
-          format: 'icons.ts',
+          format: 'icons.js',
           structure: 'separated',
           paths: {
             components: 'src/components/icons',

@@ -14,7 +14,7 @@
         "${workspaceFolder}/out/**/*.js"
       ],
       "sourceMaps": true,
-      "preLaunchTask": "npm: watch"
+      "preLaunchTask": "npm: watch:esbuild"
     }
   ]
 }

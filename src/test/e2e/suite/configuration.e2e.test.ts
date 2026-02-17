@@ -141,7 +141,7 @@ suite('Configuration E2E Tests', () => {
       const config = vscode.workspace.getConfiguration('iconStudio');
       const buildFormat = config.get<string>('buildFormat', '');
 
-      const validFormats = ['', 'icons.ts', 'sprite.svg'];
+      const validFormats = ['', 'icons.js', 'sprite.svg'];
       assert.ok(
         validFormats.includes(buildFormat),
         `BuildFormat ${buildFormat} debe ser válido`

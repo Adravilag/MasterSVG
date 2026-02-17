@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
 import { WorkspaceIcon } from '../../types/icons';
 import { saveTempSvgIcon } from '../TempIconStudio';
 import { SvgContentCache } from '../../utils/SvgContentCache';
 import { t } from '../../i18n';
 import { getAnimationService } from '../../services/animation/AnimationAssignmentService';
+import { SvgAnimationDetector } from '../../services/svg/SvgAnimationDetector';
+import { SvgRasterDetector } from '../../services/svg/SvgRasterDetector';
 
 /**
  * Options for creating a SvgItem
@@ -207,7 +208,7 @@ export class SvgItem extends vscode.TreeItem {
   }
 
   private buildIconDescription(icon: WorkspaceIcon, isMissingRef: boolean, animationType: string | null): string {
-    if (isMissingRef) return '⚠ File not found';
+    if (isMissingRef) return `⚠ ${t('treeView.fileNotFoundLabel')}`;
 
     if (icon.isBuilt) {
       const parts: string[] = [];
@@ -216,7 +217,12 @@ export class SvgItem extends vscode.TreeItem {
         parts.push(`${isNative ? '🔄' : '⚡'} ${animationType}`);
       }
       if (icon.usageCount !== undefined) {
-        parts.push(icon.usageCount === 0 ? '⚠ unused' : `${icon.usageCount} use${icon.usageCount > 1 ? 's' : ''}`);
+        const usageText = icon.usageCount === 0
+          ? `⚠ ${t('treeView.unusedLabel')}`
+          : icon.usageCount === 1
+            ? t('treeView.usageCount', { count: icon.usageCount })
+            : t('treeView.usageCountPlural', { count: icon.usageCount });
+        parts.push(usageText);
       }
       return parts.join(' · ');
     }
@@ -238,21 +244,21 @@ export class SvgItem extends vscode.TreeItem {
   }
 
   private addMissingRefTooltip(lines: string[], icon: WorkspaceIcon): void {
-    lines.push('❌ SVG file not found');
-    lines.push(`Expected path: ${icon.path}`);
+    lines.push(`❌ ${t('treeView.svgFileNotFound')}`);
+    lines.push(t('treeView.expectedPath', { path: icon.path || '' }));
     if (icon.filePath) {
-      lines.push(`Referenced in: ${path.basename(icon.filePath)}:${(icon.line || 0) + 1}`);
+      lines.push(t('treeView.referencedIn', { file: path.basename(icon.filePath), line: (icon.line || 0) + 1 }));
     }
   }
 
   private addBuiltIconTooltip(lines: string[], icon: WorkspaceIcon, animationType: string | null): void {
-    lines.push('✓ Built');
+    lines.push(`✓ ${t('treeView.builtStatus')}`);
     if (animationType) {
-      lines.push(`⚡ Animation: ${animationType}`);
+      lines.push(`⚡ ${t('treeView.animationLabel', { type: animationType })}`);
       if (icon.animation) {
-        lines.push(`   Duration: ${icon.animation.duration}s`);
-        lines.push(`   Timing: ${icon.animation.timing}`);
-        lines.push(`   Iteration: ${icon.animation.iteration}`);
+        lines.push(`   ${t('treeView.durationLabel', { value: icon.animation.duration })}`);
+        lines.push(`   ${t('treeView.timingLabel', { value: icon.animation.timing })}`);
+        lines.push(`   ${t('treeView.iterationLabel', { value: icon.animation.iteration })}`);
       }
     }
   }
@@ -261,7 +267,9 @@ export class SvgItem extends vscode.TreeItem {
     if (!icon.usages || icon.usages.length === 0) return;
 
     lines.push('');
-    lines.push(`📍 ${icon.usages.length} usage${icon.usages.length > 1 ? 's' : ''}:`);
+    const count = icon.usages.length;
+    const headerKey = count === 1 ? 'treeView.usagesHeader' : 'treeView.usagesHeaderPlural';
+    lines.push(`📍 ${t(headerKey, { count })}`);
 
     for (const usage of icon.usages.slice(0, 5)) {
       const shortFile = usage.file.split(/[\\/]/).slice(-2).join('/');
@@ -269,7 +277,7 @@ export class SvgItem extends vscode.TreeItem {
     }
 
     if (icon.usages.length > 5) {
-      lines.push(`  + ${icon.usages.length - 5} more...`);
+      lines.push(`  ${t('treeView.moreUsages', { count: icon.usages.length - 5 })}`);
     }
   }
 
@@ -375,14 +383,8 @@ export class SvgItem extends vscode.TreeItem {
 
   private tryReadSvgFile(filePath: string | undefined): string | undefined {
     if (!filePath) return undefined;
-    try {
-      if (fs.existsSync(filePath)) {
-        return fs.readFileSync(filePath, 'utf-8');
-      }
-    } catch {
-      // Failed to read SVG file
-    }
-    return undefined;
+    // Delegate to SvgContentCache which handles caching, invalidation and lazy loading
+    return SvgItem.svgCache.getContent(filePath);
   }
 
   private createTempIconPath(name: string, svgContent: string, isBuilt?: boolean): vscode.Uri | vscode.ThemeIcon {
@@ -399,116 +401,36 @@ export class SvgItem extends vscode.TreeItem {
 
   /**
    * Detect animation type from icon data or SVG content
-   * Returns a human-readable animation type string
+   * Delegates to SvgAnimationDetector service
    */
   private detectAnimationType(icon: WorkspaceIcon): string | null {
-    // First check if animation is defined in icon data (from icons.js)
-    if (icon.animation?.type) {
-      return icon.animation.type;
-    }
-
-    // Then check SVG content for embedded animations
+    if (icon.animation?.type) return icon.animation.type;
     const svg = icon.svg;
     if (!svg) return null;
-
-    // Check for CSS animations (in <style> tags)
-    const hasStyleAnimation = /<style[^>]*>[\s\S]*@keyframes[\s\S]*<\/style>/i.test(svg);
-    const hasInlineAnimation = /animation\s*:/i.test(svg);
-
-    // Check for SMIL animations
-    const hasAnimate = /<animate\b/i.test(svg);
-    const hasAnimateTransform = /<animateTransform\b/i.test(svg);
-    const hasAnimateMotion = /<animateMotion\b/i.test(svg);
-    const hasSet = /<set\b/i.test(svg);
-
-    // Determine animation type
-    if (hasStyleAnimation || hasInlineAnimation) {
-      // Extract style content and animation names for more accurate detection
-      const styleMatch = svg.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
-      const styleContent = styleMatch ? styleMatch[1] : '';
-      const animationNameMatch = svg.match(/animation(?:-name)?\s*:\s*([^;}\s]+)/i);
-      const animationName = animationNameMatch ? animationNameMatch[1] : '';
-      const searchContext = styleContent + ' ' + animationName;
-
-      // Try to detect specific CSS animation type from keyframes and animation names
-      if (/spin|rotate/i.test(searchContext)) return 'spin (CSS)';
-      if (/pulse|scale/i.test(searchContext)) return 'pulse (CSS)';
-      if (/fade/i.test(searchContext)) return 'fade (CSS)';
-      if (/bounce/i.test(searchContext)) return 'bounce (CSS)';
-      if (/shake/i.test(searchContext)) return 'shake (CSS)';
-      if (/draw|stroke-dash/i.test(searchContext)) return 'draw (CSS)';
-      // Only check for opacity animation in keyframes, not as a static attribute
-      if (/@keyframes[\s\S]*opacity/i.test(styleContent)) return 'fade (CSS)';
-      return 'CSS';
-    }
-
-    if (hasAnimateTransform) {
-      return 'SMIL transform';
-    }
-    if (hasAnimateMotion) {
-      return 'SMIL motion';
-    }
-    if (hasAnimate || hasSet) {
-      return 'SMIL';
-    }
-
-    return null;
+    return SvgAnimationDetector.detectFromContent(svg);
   }
 
   /**
    * Detect native SMIL animation from SVG content
-   * Returns animation type string or null
+   * Delegates to SvgAnimationDetector service
    */
   private detectNativeAnimation(svg: string): string | null {
-    // Check for SMIL animation elements
-    const hasAnimateTransform = /<animateTransform\b/i.test(svg);
-    const hasAnimate = /<animate\b/i.test(svg);
-    const hasAnimateMotion = /<animateMotion\b/i.test(svg);
-    const hasSet = /<set\b/i.test(svg);
-
-    if (!hasAnimateTransform && !hasAnimate && !hasAnimateMotion && !hasSet) {
-      return null;
-    }
-
-    // Determine specific animation type
-    if (hasAnimateTransform) {
-      // Check the type of transform
-      const typeMatch = svg.match(/<animateTransform[^>]*type=["']([^"']+)["']/i);
-      if (typeMatch) {
-        const transformType = typeMatch[1].toLowerCase();
-        return `native-${transformType}`;
-      }
-      return 'native-transform';
-    }
-    if (hasAnimateMotion) {
-      return 'native-motion';
-    }
-    if (hasAnimate) {
-      return 'native-animate';
-    }
-    return 'native';
+    return SvgAnimationDetector.detectNativeAnimation(svg);
   }
 
   /**
-   * Count unique colors in SVG content to detect rasterized images
+   * Count unique colors in SVG content
+   * Delegates to SvgRasterDetector service
    */
   private countSvgColors(svg: string): number {
-    const colorRegex =
-      /#(?:[0-9a-fA-F]{3,4}){1,2}\b|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\)/gi;
-    const colors = new Set<string>();
-    let match;
-    while ((match = colorRegex.exec(svg)) !== null) {
-      colors.add(match[0].toLowerCase());
-    }
-    return colors.size;
+    return SvgRasterDetector.countColors(svg);
   }
 
   /**
    * Check if SVG is a rasterized image (too many colors for icon editing)
+   * Delegates to SvgRasterDetector service
    */
   private isRasterizedSvg(svg: string | undefined): boolean {
-    if (!svg) return false;
-    const MAX_COLORS_FOR_ICONS = 50;
-    return this.countSvgColors(svg) > MAX_COLORS_FOR_ICONS;
+    return SvgRasterDetector.isRasterized(svg);
   }
 }

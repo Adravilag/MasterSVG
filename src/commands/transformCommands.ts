@@ -149,7 +149,7 @@ export function registerTransformCommands(
         }
 
         const config = getConfig();
-        const buildFormat = config.buildFormat || 'icons.ts';
+        const buildFormat = config.buildFormat || 'icons.js';
         const isSprite = buildFormat === 'sprite.svg';
         const iconName = item.label as string;
         const fullOutputPath = getFullOutputPath();

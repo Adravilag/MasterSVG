@@ -11,7 +11,7 @@ import { WebviewContext, TemplateReplacementOptions, PreviewReplacementOptions }
  * Applies all template replacements to HTML content
  */
 export function applyTemplateReplacements(opts: TemplateReplacementOptions): string {
-  const { html, ctx, tr, languageOptions, step4Section, previewCode, previewGallery, previewSummary, finishButton } = opts;
+  const { html, ctx, tr, languageOptions, step4Section, previewCode, previewWindowTitle, previewGallery, previewSummary, setupGuide, finishButton } = opts;
 
   let result = applyHeaderReplacements(html, tr, languageOptions);
   result = applyStep0Replacements(result, ctx, tr);
@@ -25,8 +25,10 @@ export function applyTemplateReplacements(opts: TemplateReplacementOptions): str
     ctx,
     tr,
     previewCode,
+    previewWindowTitle,
     previewGallery,
     previewSummary,
+    setupGuide,
     finishButton,
   });
 
@@ -186,8 +188,9 @@ function buildOutputDirectoryOptions(ctx: WebviewContext): string {
  * Applies Step 3 (Build Format) replacements
  */
 function applyStep3Replacements(html: string, ctx: WebviewContext, tr: Record<string, string>): string {
-  const jsModuleSelectedValue = ctx.buildFormat === 'icons.ts' ? 'selected' : '';
+  const jsModuleSelectedValue = ctx.buildFormat === 'icons.js' ? 'selected' : '';
   const spriteSvgSelectedValue = ctx.buildFormat === 'sprite.svg' ? 'selected' : '';
+  const cssSelectedValue = ctx.buildFormat === 'css' ? 'selected' : '';
 
   return html
     .replace(/\$\{step3Class\}/g, `${ctx.isBuildFormatConfigured ? 'completed-step' : ''}`)
@@ -195,11 +198,13 @@ function applyStep3Replacements(html: string, ctx: WebviewContext, tr: Record<st
     .replace(/\$\{step3Title\}/g, tr.step3Title)
     .replace(
       /\$\{formatSummary\}/g,
-      ctx.buildFormat === 'icons.ts'
+      ctx.buildFormat === 'icons.js'
         ? tr.jsModuleTitle
         : ctx.buildFormat === 'sprite.svg'
           ? tr.spriteTitle
-          : tr.selectFormat || 'Seleccionar...'
+          : ctx.buildFormat === 'css'
+            ? (tr.cssIconsTitle || 'CSS Icons')
+            : tr.selectFormat || 'Seleccionar...'
     )
     .replace(/\$\{step3Desc\}/g, tr.step3Desc)
     .replace(/\$\{step3Help\}/g, tr.step3Help)
@@ -218,6 +223,12 @@ function applyStep3Replacements(html: string, ctx: WebviewContext, tr: Record<st
     .replace(/\$\{spriteDesc\}/g, tr.spriteDesc)
     .replace(/\$\{spritePro1\}/g, tr.spritePro1)
     .replace(/\$\{spritePro2\}/g, tr.spritePro2)
+    .replace(/\$\{cssSelected\}/g, cssSelectedValue)
+    .replace(/\$\{cssIconsTitle\}/g, tr.cssIconsTitle || 'CSS Icons')
+    .replace(/\$\{cssIconsDesc\}/g, tr.cssIconsDesc || '')
+    .replace(/\$\{cssIconsPro1\}/g, tr.cssIconsPro1 || 'Zero JS')
+    .replace(/\$\{cssIconsPro2\}/g, tr.cssIconsPro2 || 'currentColor')
+    .replace(/\$\{helpCssIcons\}/g, tr.helpCssIcons || '')
     .replace(/\$\{frameworkLabel\}/g, tr.frameworkLabel);
 }
 
@@ -231,11 +242,12 @@ function applyFrameworkReplacements(html: string, framework: string): string {
     .replace(/\$\{frameworkVueSelected\}/g, framework === 'vue' ? 'selected' : '')
     .replace(/\$\{frameworkAngularSelected\}/g, framework === 'angular' ? 'selected' : '')
     .replace(/\$\{frameworkSvelteSelected\}/g, framework === 'svelte' ? 'selected' : '')
-    .replace(/\$\{frameworkAstroSelected\}/g, framework === 'astro' ? 'selected' : '');
+    .replace(/\$\{frameworkAstroSelected\}/g, framework === 'astro' ? 'selected' : '')
+    .replace(/\$\{frameworkLitSelected\}/g, framework === 'lit' ? 'selected' : '');
 }
 
 /**
- * Applies advanced options replacements
+ * Applies build options replacements (moved from advanced panel into Step 1)
  */
 function applyAdvancedReplacements(
   html: string,
@@ -245,38 +257,38 @@ function applyAdvancedReplacements(
 ): string {
   return html
     .replace(/\$\{step4Section\}/g, step4Section)
-    .replace(/\$\{advancedTitle\}/g, tr.advancedTitle)
-    .replace(/\$\{scanOnStartupLabel\}/g, tr.scanOnStartupLabel)
+    .replace(/\$\{buildOptionsTitle\}/g, tr.buildOptionsTitle)
     .replace(/\$\{separateOutputLabel\}/g, tr.separateOutputLabel)
     .replace(/\$\{separateOutputHint\}/g, tr.separateOutputHint)
     .replace(/\$\{separateOutputChecked\}/g, ctx.separateOutputStructure ? 'checked' : '')
     .replace(/\$\{defaultIconSizeLabel\}/g, tr.defaultIconSizeLabel)
     .replace(/\$\{previewBackgroundLabel\}/g, tr.previewBackgroundLabel)
-    .replace(/\$\{scanOnStartupChecked\}/g, ctx.scanOnStartup ? 'checked' : '')
     .replace(/\$\{defaultIconSize\}/g, String(ctx.defaultIconSize))
     .replace(/\$\{bgTransparent\}/g, ctx.previewBackground === 'transparent' ? 'selected' : '')
     .replace(/\$\{bgLight\}/g, ctx.previewBackground === 'light' ? 'selected' : '')
     .replace(/\$\{bgDark\}/g, ctx.previewBackground === 'dark' ? 'selected' : '')
-    .replace(/\$\{bgCheckered\}/g, ctx.previewBackground === 'checkered' ? 'selected' : '')
-    .replace(/\$\{allSettings\}/g, tr.allSettings);
+    .replace(/\$\{bgCheckered\}/g, ctx.previewBackground === 'checkered' ? 'selected' : '');
 }
 
 /**
  * Applies preview section replacements
  */
 function applyPreviewReplacements(opts: PreviewReplacementOptions): string {
-  const { html, ctx, tr, previewCode, previewGallery, previewSummary, finishButton } = opts;
+  const { html, ctx, tr, previewCode, previewWindowTitle, previewGallery, previewSummary, setupGuide, finishButton } = opts;
 
   return html
     .replace(/\$\{previewTitle\}/g, tr.previewTitle)
     .replace(
       /\$\{previewFileName\}/g,
-      ctx.buildFormat === 'icons.ts'
+      ctx.buildFormat === 'icons.js'
         ? 'icons.js'
         : ctx.buildFormat === 'sprite.svg'
           ? 'sprite.svg'
-          : '...'
+          : ctx.buildFormat === 'css'
+            ? 'icons.css'
+            : '...'
     )
+    .replace(/\$\{previewWindowTitle\}/g, previewWindowTitle)
     .replace(/\$\{previewCode\}/g, previewCode)
     .replace(/\$\{previewSummary\}/g, previewSummary)
     .replace(/\$\{previewResultLabel\}/g, tr.previewResultLabel)
@@ -288,5 +300,6 @@ function applyPreviewReplacements(opts: PreviewReplacementOptions): string {
     .replace(/\$\{comingSoon\}/g, tr.comingSoon)
     .replace(/\$\{settings\}/g, tr.settings)
     .replace(/\$\{skip\}/g, tr.skip)
+    .replace(/\$\{setupGuide\}/g, setupGuide)
     .replace(/\$\{finishButton\}/g, finishButton);
 }

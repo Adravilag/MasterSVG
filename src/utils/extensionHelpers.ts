@@ -6,63 +6,40 @@
 import * as path from 'node:path';
 import { extractIconsObjectContent } from './outputFileManager';
 
-// Cache for loaded templates
-const templateCache: Map<string, string> = new Map();
-
 /**
- * Loads a template file from the templates directory.
- * Templates are cached for performance.
- * Uses require('fs') to avoid being mocked in tests - templates should always load from disk.
+ * @deprecated Templates are now bundled via static imports.
+ * Use `import content from '../templates/...'` instead.
+ *
+ * Loads a template file from the templates directory (kept for backwards compatibility).
  * @param templateName - The filename of the template (e.g., 'IconWebComponent.js')
  * @returns The template content as a string
  */
 export function loadTemplate(templateName: string): string {
-  // Check cache first
-  const cached = templateCache.get(templateName);
-  if (cached) {
-    return cached;
-  }
-
-  // Use require('fs') to get the real fs module, not a mocked version
-  // This ensures templates are always loaded from disk even in tests
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const realFs = require('fs');
 
-  // Try multiple locations to support different execution contexts:
-  // 1. Bundled mode: dist/templates/shared/
-  // 2. Dev mode (out): out/templates/shared/
-  // 3. Test mode: relative to project root
   const possibleDirs = [
-    path.join(__dirname, 'templates', 'shared'),           // dist/templates/shared
-    path.join(__dirname, 'templates'),                     // dist/templates
-    path.join(__dirname, '..', 'templates', 'shared'),     // out/templates/shared (from out/utils)
-    path.join(__dirname, '..', 'templates'),               // out/templates (from out/utils)
+    path.join(__dirname, 'templates', 'shared'),
+    path.join(__dirname, 'templates'),
+    path.join(__dirname, '..', 'templates', 'shared'),
+    path.join(__dirname, '..', 'templates'),
   ];
 
-  let templatePath: string | null = null;
   for (const dir of possibleDirs) {
     const candidate = path.join(dir, templateName);
     if (realFs.existsSync(candidate)) {
-      templatePath = candidate;
-      break;
+      return realFs.readFileSync(candidate, 'utf-8');
     }
   }
 
-  if (!templatePath) {
-    throw new Error(`Template not found: ${templateName}. Searched in: ${possibleDirs.join(', ')}`);
-  }
-
-  const content = realFs.readFileSync(templatePath, 'utf-8');
-  templateCache.set(templateName, content);
-
-  return content;
+  throw new Error(`Template not found: ${templateName}. Searched in: ${possibleDirs.join(', ')}`);
 }
 
 /**
- * Clears the template cache. Useful for testing or hot reloading.
+ * @deprecated Templates are now bundled via static imports. No cache to clear.
  */
 export function clearTemplateCache(): void {
-  templateCache.clear();
+  // No-op: templates are bundled at build time
 }
 
 /**
@@ -97,6 +74,8 @@ export function generateIconSnippet(
     case 'astro':
       return `<${componentName} ${nameAttr}="${iconName}" \${1:size={\${2:24}}} />`;
     case 'html':
+      return `<${componentName} ${nameAttr}="${iconName}"\${1: size="\${2:24}"}></${componentName}>`;
+    case 'lit':
       return `<${componentName} ${nameAttr}="${iconName}"\${1: size="\${2:24}"}></${componentName}>`;
     default: // jsx
       return `<${componentName} ${nameAttr}="${iconName}" \${1:size={\${2:24}}} />`;

@@ -51,7 +51,7 @@ export function isFullyConfigured(): boolean {
 
   const svgFolders = config.get<string[]>('svgFolders', []);
   const outputDirectory = config.get<string>('outputDirectory', '');
-  const buildFormat = config.get<string>('buildFormat', 'icons.ts');
+  const buildFormat = config.get<string>('buildFormat', 'icons.js');
   const webComponentName = config.get<string>('webComponentName', '');
   const framework = config.get<string>('framework', 'html');
 
@@ -59,8 +59,8 @@ export function isFullyConfigured(): boolean {
   const isStep2Complete = !!outputDirectory;
   const isStep3Complete = !!buildFormat;
   // HTML web components require hyphen, other frameworks just need a non-empty name
-  const isStep4Complete = framework === 'html' 
-    ? webComponentName.includes('-') 
+  const isStep4Complete = framework === 'html'
+    ? webComponentName.includes('-')
     : webComponentName.length > 0;
 
   return isStep1Complete && isStep2Complete && isStep3Complete && isStep4Complete;

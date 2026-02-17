@@ -34,6 +34,8 @@ export class ComponentExporter {
         return this.exportSolid(options);
       case 'qwik':
         return this.exportQwik(options);
+      case 'lit':
+        return this.exportLit(options);
       default:
         throw new Error(`Unsupported format: ${format}`);
     }
@@ -53,6 +55,7 @@ export class ComponentExporter {
       { id: 'solid', name: 'SolidJS', description: 'Solid component' },
       { id: 'qwik', name: 'Qwik', description: 'Qwik component' },
       { id: 'preact', name: 'Preact', description: 'Preact functional component' },
+      { id: 'lit', name: 'Lit', description: 'Lit web component' },
     ];
   }
 
@@ -455,6 +458,65 @@ ${
       code,
       filename: `${componentName}.${ext}`,
       language: typescript ? 'typescriptreact' : 'javascriptreact',
+    };
+  }
+
+  // ==================== Lit ====================
+
+  private exportLit(options: ExportOptions): ExportResult {
+    const { iconName, svg, typescript, defaultSize = 24, defaultColor = 'currentColor' } = options;
+    const componentName = this.toPascalCase(iconName);
+    const tagName = this.toKebabCase(iconName) + '-icon';
+    const ext = 'ts';
+
+    const { attributes, innerContent } = this.parseSvg(svg);
+
+    const code = `import { LitElement, html, css, svg } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import { unsafeSVG } from 'lit/directives/unsafe-svg.js';
+
+@customElement('${tagName}')
+export class ${componentName}Icon extends LitElement {
+  @property({ type: Number }) size${typescript ? ': number | string' : ''} = ${defaultSize};
+  @property({ type: String }) color${typescript ? ': string' : ''} = '${defaultColor}';
+
+  static styles = css\`
+    :host {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+  \`;
+
+  render() {
+    return html\`
+      <svg
+        width="\${this.size}"
+        height="\${this.size}"
+        viewBox="${attributes.viewBox || '0 0 24 24'}"
+        fill="${attributes.fill || 'none'}"
+        stroke="\${this.color}"
+        stroke-width="${attributes['stroke-width'] || '2'}"
+        stroke-linecap="${attributes['stroke-linecap'] || 'round'}"
+        stroke-linejoin="${attributes['stroke-linejoin'] || 'round'}"
+      >
+        \${svg\`${innerContent.trim()}\`}
+      </svg>
+    \`;
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    '${tagName}': ${componentName}Icon;
+  }
+}
+`;
+
+    return {
+      code,
+      filename: `${tagName}.${ext}`,
+      language: 'typescript',
     };
   }
 

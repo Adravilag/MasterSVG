@@ -87,7 +87,7 @@ export class ConfigService {
    */
   public loadConfig(): MasterSvgConfig {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    
+
     if (!workspaceFolder) {
       this.config = DEFAULT_CONFIG;
       return this.config;
@@ -121,14 +121,14 @@ export class ConfigService {
    */
   public async createConfigFile(initialConfig?: Partial<MasterSvgConfig>): Promise<string | null> {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    
+
     if (!workspaceFolder) {
       vscode.window.showErrorMessage('No workspace folder open');
       return null;
     }
 
     const configPath = path.join(workspaceFolder.uri.fsPath, CONFIG_FILE_NAME);
-    
+
     if (fs.existsSync(configPath)) {
       const overwrite = await vscode.window.showWarningMessage(
         `${CONFIG_FILE_NAME} already exists. Overwrite?`,
@@ -146,11 +146,11 @@ export class ConfigService {
       this.configPath = configPath;
       this.config = config;
       this.notifyListeners();
-      
+
       // Open the file in editor
       const doc = await vscode.workspace.openTextDocument(configPath);
       await vscode.window.showTextDocument(doc);
-      
+
       return configPath;
     } catch (error) {
       console.error('[MasterSVG] Error creating config file:', error);
@@ -264,15 +264,14 @@ export class ConfigService {
   public getDataFileName(): string {
     const format = this.config.output.format;
     if (format === 'sprite.svg') return 'sprite.svg';
-    return format === 'icons.ts' ? 'svg-data.ts' : 'svg-data.js';
+    return 'svg-data.js';
   }
 
   /**
    * Checks if TypeScript should be used
    */
   public useTypeScript(): boolean {
-    return this.config.framework.typescript ?? 
-           this.config.output.format === 'icons.ts';
+    return this.config.framework.typescript ?? false;
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -333,14 +332,14 @@ export class ConfigService {
         directories: vsConfig.get<string[]>('svgFolders', []),
       },
       output: {
-        format: buildFormat.includes('.ts') ? 'icons.ts' : 
-                buildFormat === 'sprite.svg' ? 'sprite.svg' : 'icons.js',
+        format: buildFormat === 'sprite.svg' ? 'sprite.svg' :
+                buildFormat === 'css' ? 'css' : 'icons.js',
         structure: 'flat' as OutputStructure,
         directory: vsConfig.get<string>('outputDirectory', 'src/icons'),
       },
       framework: {
         type: framework,
-        typescript: buildFormat.includes('.ts'),
+        typescript: false,
         component: {
           webComponentTag: vsConfig.get<string>('webComponentName', 'svg-icon'),
         },

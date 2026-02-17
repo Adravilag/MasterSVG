@@ -16,16 +16,17 @@ export type IconStudioConfig = CentralizedIconStudioConfig;
  */
 export function getConfig(): IconStudioConfig {
   const config = vscode.workspace.getConfiguration('masterSVG');
-  return {
-    outputDirectory: config.get<string>('outputDirectory', 'icons'),
-    componentName: config.get<string>('componentName', 'Icon'),
-    nameAttribute: config.get<string>('nameAttribute', 'name'),
-    defaultSize: config.get<number>('defaultSize', 24),
-    defaultColor: config.get<string>('defaultColor', 'currentColor'),
-    webComponentName: config.get<string>('webComponentName', 'icon-wrap'),
-    buildFormat: config.get<'icons.ts' | 'sprite.svg'>('buildFormat', 'icons.ts'),
-    framework: config.get<FrameworkType>('framework', 'html'),
-  };
+    const framework = config.get<FrameworkType>('framework', 'react');
+    return {
+      outputDirectory: config.get<string>('outputDirectory', 'icons'),
+      componentName: config.get<string>('componentName', 'Icon'),
+      nameAttribute: config.get<string>('iconNameAttribute', 'name'),
+      defaultSize: config.get<number>('defaultSize', 24),
+      defaultColor: config.get<string>('defaultColor', 'currentColor'),
+      webComponentName: config.get<string>('webComponentName', 'icon-wrap'),
+      buildFormat: config.get<'icons.js' | 'sprite.svg' | 'css'>('buildFormat', 'icons.js'),
+      framework
+    };
 }
 
 /**
@@ -195,6 +196,7 @@ export function getFrameworkIconUsage(iconName: string, isSprite: boolean): stri
       case 'solid':
       case 'qwik':
       case 'astro':
+      case 'lit':
         return `<svg class="icon" aria-hidden="true"><use href="${outputDir}/sprite.svg#${iconName}"></use></svg>`;
       case 'html':
       default:
@@ -218,6 +220,8 @@ export function getFrameworkIconUsage(iconName: string, isSprite: boolean): stri
       return `<${componentName} />`;
     case 'astro':
       return `<${componentName} />`;
+    case 'lit':
+      return `<${webComponentName} name="${iconName}"></${webComponentName}>`;
     case 'html':
     default:
       // Web Component format
@@ -250,6 +254,8 @@ export function getFrameworkImportStatement(iconName: string): string | null {
       return `import { ${componentName} } from '${outputDir}/icons';`;
     case 'astro':
       return `import ${componentName} from '${outputDir}/${componentName}.astro';`;
+    case 'lit':
+      return `import '${outputDir}/${config.webComponentName || componentName}';`;
     case 'html':
     default:
       return null; // Web Components don't need imports
@@ -270,6 +276,7 @@ export function getFrameworkDisplayName(framework?: FrameworkType): string {
     solid: 'SolidJS',
     qwik: 'Qwik',
     astro: 'Astro',
+    lit: 'Lit',
   };
   return names[fw] || fw;
 }

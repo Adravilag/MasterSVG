@@ -749,6 +749,59 @@
     window.saveAnimation = saveAnimation;
     window.updateAnimationSetting = updateAnimationSetting;
 
+    // ═══════════════════════════════════════════════════════════
+    // SIZE TAB FUNCTIONS
+    // ═══════════════════════════════════════════════════════════
+    let sizeLocked = true;
+
+    function applySizePreset(size) {
+      document.getElementById('sizeWidth').value = size;
+      document.getElementById('sizeHeight').value = size;
+      applySize();
+    }
+
+    function toggleSizeLock() {
+      sizeLocked = !sizeLocked;
+      const btn = document.getElementById('sizeLockBtn');
+      if (btn) {
+        btn.classList.toggle('active', sizeLocked);
+        const icon = btn.querySelector('.codicon');
+        if (icon) {
+          icon.className = sizeLocked ? 'codicon codicon-lock' : 'codicon codicon-unlock';
+        }
+      }
+    }
+
+    function onSizeInputChange() {
+      if (!sizeLocked) return;
+      // When locked, sync the other dimension proportionally
+      // For simplicity, set both equal (square)
+      const widthInput = document.getElementById('sizeWidth');
+      const heightInput = document.getElementById('sizeHeight');
+      if (document.activeElement === widthInput) {
+        heightInput.value = widthInput.value;
+      } else if (document.activeElement === heightInput) {
+        widthInput.value = heightInput.value;
+      }
+    }
+
+    function applySize() {
+      const width = parseInt(document.getElementById('sizeWidth').value, 10);
+      const height = parseInt(document.getElementById('sizeHeight').value, 10);
+      if (isNaN(width) || isNaN(height) || width < 1 || height < 1) return;
+      vscode.postMessage({ command: 'changeSize', width, height });
+    }
+
+    function removeSize() {
+      vscode.postMessage({ command: 'removeSize' });
+    }
+
+    window.applySizePreset = applySizePreset;
+    window.toggleSizeLock = toggleSizeLock;
+    window.onSizeInputChange = onSizeInputChange;
+    window.applySize = applySize;
+    window.removeSize = removeSize;
+
     // Custom Animation Presets
     window.saveAsPreset = function() {
       const input = document.getElementById('presetName');

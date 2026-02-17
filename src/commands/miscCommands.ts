@@ -120,13 +120,22 @@ export function registerMiscCommands(
 
       if (!sourceChoice) return;
 
-      // Handle file not found case - show helpful message
+      // Handle file not found case - show warning with action buttons
       if (sourceChoice.value === 'file_not_found') {
-        vscode.window.showWarningMessage(
+        const searchLabel = t('ui.labels.searchInIconify') || 'Search in Iconify';
+        const browseLabel = t('ui.labels.browseBuiltIcons') || 'Browse built icons';
+        const action = await vscode.window.showWarningMessage(
           t('messages.svgFileNotFoundSuggestion', { path: originalPath }) ||
-          `File "${originalPath}" not found. Try "Search in Iconify" or "Browse built icons" instead.`
+          `File "${originalPath}" not found. Try "Search in Iconify" or "Browse built icons" instead.`,
+          searchLabel,
+          browseLabel
         );
-        return;
+        if (!action) return;
+        if (action === searchLabel) {
+          sourceChoice.value = 'iconify';
+        } else {
+          sourceChoice.value = 'built';
+        }
       }
 
       let svgContent: string | undefined;
@@ -147,16 +156,25 @@ export function registerMiscCommands(
           return;
         }
 
-        const selectedIcon = await showIconifyReplacementPicker(context, results, query, iconName);
+        const selectedIcon = await showIconifyReplacementPicker(
+          context, results, query, iconName,
+          builtIconsProvider.getBuiltIconsList()
+        );
         if (!selectedIcon) return;
 
-        svgContent = selectedIcon.svg;
-        finalIconName = `${selectedIcon.prefix}-${selectedIcon.name}`;
+        if (selectedIcon.prefix === 'built') {
+          // Built icon selected - already exists, skip build
+          finalIconName = selectedIcon.name;
+          skipBuild = true;
+        } else {
+          svgContent = selectedIcon.svg;
+          finalIconName = `${selectedIcon.prefix}-${selectedIcon.name}`;
 
-        // Check for duplicate name
-        const resolvedName = await handleDuplicateIconName(finalIconName, workspaceSvgProvider);
-        if (!resolvedName) return;
-        finalIconName = resolvedName;
+          // Check for duplicate name
+          const resolvedName = await handleDuplicateIconName(finalIconName, workspaceSvgProvider);
+          if (!resolvedName) return;
+          finalIconName = resolvedName;
+        }
       } else if (sourceChoice.value === 'current') {
         if (isInlineSvg && inlineSvgContent) {
           // Use the inline SVG content directly

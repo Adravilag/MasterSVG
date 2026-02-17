@@ -1,54 +1,27 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
-import * as path from 'path';
 import type { PreviewAnimation, PreviewTemplateOptions } from '../types';
+
+// Template import – bundled as raw text by esbuild's templateTextPlugin
+import iconPreviewCss from '../../templates/shared/IconPreview.css';
 
 /**
  * Service for generating HTML templates for the icon preview webview
  */
 export class PreviewTemplateService {
-  private cssCache: string | null = null;
-  private cssCacheTime: number = 0;
-  private readonly CSS_CACHE_TTL = 5000; // 5 seconds cache in dev mode
-
   constructor(private readonly extensionUri: vscode.Uri) {}
 
   /**
-   * Load CSS from external file with cache busting for development
+   * Load CSS from bundled import (no runtime I/O)
    */
   loadCss(): string {
-    const now = Date.now();
-
-    // In development, invalidate cache after TTL
-    if (this.cssCache && (now - this.cssCacheTime) < this.CSS_CACHE_TTL) {
-      return this.cssCache;
-    }
-
-    // Try output folders first (for compiled extension), then src (for debugging)
-    const possiblePaths = [
-      path.join(this.extensionUri.fsPath, 'out', 'templates', 'shared', 'IconPreview.css'),
-      path.join(this.extensionUri.fsPath, 'dist', 'templates', 'shared', 'IconPreview.css'),
-      path.join(this.extensionUri.fsPath, 'src', 'templates', 'shared', 'IconPreview.css'),
-    ];
-
-    for (const cssPath of possiblePaths) {
-      if (fs.existsSync(cssPath)) {
-        this.cssCache = fs.readFileSync(cssPath, 'utf8');
-        this.cssCacheTime = now;
-        return this.cssCache;
-      }
-    }
-
-    console.error('[PreviewTemplateService] Could not find IconPreview.css');
-    return '/* CSS not found */';
+    return iconPreviewCss;
   }
 
   /**
-   * Clear CSS cache - call this when you want to force reload
+   * Clear CSS cache - kept for API compatibility (no-op with static imports)
    */
   clearCache(): void {
-    this.cssCache = null;
-    this.cssCacheTime = 0;
+    // No-op: CSS is bundled at build time
   }
 
   /**

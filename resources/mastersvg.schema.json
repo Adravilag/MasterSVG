@@ -45,7 +45,7 @@
         "format": {
           "type": "string",
           "description": "Output format",
-          "enum": ["icons.ts", "icons.js", "sprite.svg"],
+          "enum": ["icons.ts", "icons.js", "css", "sprite.svg"],
           "default": "icons.ts"
         },
         "structure": {

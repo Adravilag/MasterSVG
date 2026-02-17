@@ -361,7 +361,7 @@ describe('WelcomePanel', () => {
           if (key === 'svgFolders') return ['svgs'];
           if (key === 'outputDirectory') return 'public/icons';
           if (key === 'webComponentName') return 'custom-icon';
-          if (key === 'buildFormat') return 'icons.ts';
+          if (key === 'buildFormat') return 'icons.js';
           return defaultValue;
         }),
       };
@@ -435,19 +435,19 @@ describe('WelcomePanel', () => {
     it('should dispose panel after finishSetup completes', async () => {
       const extensionUri = { fsPath: '/test/extension' } as vscode.Uri;
       const mockConfig = {
-        get: jest.fn((key: string, defaultValue?: any) => {
-          if (key === 'svgFolders') return ['svgs'];
-          if (key === 'outputDirectory') return 'public/icons';
-          if (key === 'buildFormat') return 'icons.ts';
-          if (key === 'webComponentName') return 'svg-icon';
-          return defaultValue;
-        }),
+        get: jest.fn((_key: string, defaultValue?: any) => defaultValue),
         update: jest.fn().mockResolvedValue(undefined),
       };
 
       (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfig);
 
       WelcomePanel.createOrShow(extensionUri);
+
+      // Wizard starts clean — simulate user selections via messages
+      await messageHandler({ command: 'setSourceDirectory', directory: 'svgs' });
+      await messageHandler({ command: 'setOutputDirectory', directory: 'public/icons' });
+      await messageHandler({ command: 'setBuildFormat', format: 'icons.js' });
+      await messageHandler({ command: 'setWebComponentName', name: 'svg-icon' });
 
       // Simulate receiving finishSetup message
       await messageHandler({ command: 'finishSetup' });

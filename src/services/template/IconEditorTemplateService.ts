@@ -178,6 +178,7 @@ ${animationRule}`;
       colorTabContent: string;
       animationTabContent: string;
       codeTabContent: string;
+      sizeTabContent?: string;
       animationName?: string;
     }
   ): string {
@@ -201,6 +202,7 @@ ${animationRule}`;
         .replace(/\$\{colorTabContent\}/g, data.colorTabContent)
         .replace(/\$\{animationTabContent\}/g, data.animationTabContent)
         .replace(/\$\{codeTabContent\}/g, data.codeTabContent)
+        .replace(/\$\{sizeTabContent\}/g, data.sizeTabContent || '')
         // i18n translations for editor body
         .replace(/\$\{i18n_editorBadge\}/g, t('webview.editor.editorBadge'))
         .replace(/\$\{i18n_optimizedBadge\}/g, t('webview.editor.optimizedBadge'))
@@ -217,6 +219,7 @@ ${animationRule}`;
         .replace(/\$\{i18n_tabColor\}/g, t('webview.editor.tabColor'))
         .replace(/\$\{i18n_tabAnimation\}/g, t('webview.editor.tabAnimation'))
         .replace(/\$\{i18n_tabCode\}/g, t('webview.editor.tabCode'))
+        .replace(/\$\{i18n_tabSize\}/g, t('webview.editor.tabSize'))
     );
   }
 

@@ -141,29 +141,9 @@
         "icon": "$(refresh)"
       },
       {
-        "command": "masterSVG.refreshFiles",
-        "title": "%command.refreshFiles%",
-        "icon": "$(refresh)"
-      },
-      {
-        "command": "masterSVG.refreshCode",
-        "title": "%command.refreshCode%",
-        "icon": "$(refresh)"
-      },
-      {
         "command": "masterSVG.refreshBuilt",
         "title": "%command.refreshBuilt%",
         "icon": "$(refresh)"
-      },
-      {
-        "command": "masterSVG.forceRefreshPreview",
-        "title": "%command.forceRefreshPreview%",
-        "icon": "$(sync)"
-      },
-      {
-        "command": "masterSVG.devRefreshAll",
-        "title": "%command.devRefreshAll%",
-        "icon": "$(sync-ignored)"
       },
       {
         "command": "masterSVG.buildIcons",
@@ -174,6 +154,11 @@
         "command": "masterSVG.searchIcons",
         "title": "%command.searchIcons%",
         "icon": "$(search)"
+      },
+      {
+        "command": "masterSVG.suggestIcons",
+        "title": "%command.suggestIcons%",
+        "icon": "$(lightbulb)"
       },
       {
         "command": "masterSVG.deleteIcons",
@@ -221,29 +206,14 @@
         "icon": "$(expand-all)"
       },
       {
-        "command": "masterSVG.collapseAll",
-        "title": "%command.collapseAll%",
-        "icon": "$(collapse-all)"
+        "command": "masterSVG.expandSvgFiles",
+        "title": "Expand SVG Files",
+        "icon": "$(expand-all)"
       },
       {
         "command": "masterSVG.expandBuiltIcons",
-        "title": "%command.expandAll%",
+        "title": "Expand Built Icons",
         "icon": "$(expand-all)"
-      },
-      {
-        "command": "masterSVG.collapseBuiltIcons",
-        "title": "%command.collapseAll%",
-        "icon": "$(collapse-all)"
-      },
-      {
-        "command": "masterSVG.expandSvgFiles",
-        "title": "%command.expandAll%",
-        "icon": "$(expand-all)"
-      },
-      {
-        "command": "masterSVG.collapseSvgFiles",
-        "title": "%command.collapseAll%",
-        "icon": "$(collapse-all)"
       },
       {
         "command": "masterSVG.configureSvgFolder",
@@ -341,19 +311,9 @@
         "icon": "$(search)"
       },
       {
-        "command": "masterSVG.browseIconify",
-        "title": "Browse Iconify",
-        "icon": "$(globe)"
-      },
-      {
         "command": "masterSVG.toggleLibraryServer",
         "title": "Toggle Library Server",
         "icon": "$(server)"
-      },
-      {
-        "command": "masterSVG.showLibraryServerOutput",
-        "title": "Show Library Server Output",
-        "icon": "$(output)"
       },
       {
         "command": "masterSVG.configureLibraryPath",
@@ -398,23 +358,11 @@
           "default": [
             "src/assets/icons",
             "src/icons",
-            "src/assets/svg",
-            "public/icons",
-            "assets/icons",
-            "icons",
-            "svg",
-            "assets/svg"
-          ],
-          "description": "%config.svgFolders.description%"
-        },
-        "masterSVG.outputFormat": {
-          "type": "string",
-          "enum": [
-            "jsx",
             "vue",
             "svelte",
             "astro",
-            "html"
+            "html",
+            "lit"
           ],
           "default": "jsx",
           "description": "Default output format for icon components"
@@ -454,7 +402,8 @@
             "svelte",
             "solid",
             "qwik",
-            "astro"
+            "astro",
+            "lit"
           ],
           "default": "html",
           "markdownDescription": "Target framework for icon components. This affects how icons are transformed and imported in your code."
@@ -463,6 +412,7 @@
           "type": "string",
           "enum": [
             "icons.js",
+            "css",
             "sprite.svg"
           ],
           "default": "icons.js",
@@ -521,24 +471,6 @@
           "type": "boolean",
           "default": false,
           "description": "Remove fill/stroke colors during optimization (uses currentColor)"
-        },
-        "masterSVG.defaultAnimation": {
-          "type": "string",
-          "enum": [
-            "none",
-            "spin",
-            "pulse",
-            "bounce",
-            "shake",
-            "fade"
-          ],
-          "default": "none",
-          "description": "Default animation for new icons"
-        },
-        "masterSVG.showUsagesInTree": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show usage count next to icons in tree view"
         },
         "masterSVG.scanOnStartup": {
           "type": "boolean",
@@ -613,15 +545,18 @@
       "masterSVG": [
         {
           "id": "masterSVG.svgFiles",
-          "name": "%view.mastersvgFiles.title%"
+          "name": "%view.mastersvgFiles.title%",
+          "showCollapseAll": true
         },
         {
           "id": "masterSVG.workspaceIcons",
-          "name": "%view.mastersvgCode.title%"
+          "name": "%view.mastersvgCode.title%",
+          "showCollapseAll": true
         },
         {
           "id": "masterSVG.builtIcons",
-          "name": "%view.mastersvgBuilt.title%"
+          "name": "%view.mastersvgBuilt.title%",
+          "showCollapseAll": true
         },
         {
           "id": "masterSVG.preview",
@@ -639,12 +574,7 @@
         },
         {
           "command": "masterSVG.expandSvgFiles",
-          "when": "view == masterSVG.svgFiles && !masterSVG.svgFilesExpanded",
-          "group": "navigation@0"
-        },
-        {
-          "command": "masterSVG.collapseSvgFiles",
-          "when": "view == masterSVG.svgFiles && masterSVG.svgFilesExpanded",
+          "when": "view == masterSVG.svgFiles",
           "group": "navigation@0"
         },
         {
@@ -664,12 +594,7 @@
         },
         {
           "command": "masterSVG.expandAll",
-          "when": "view == masterSVG.workspaceIcons && !masterSVG.workspaceExpanded",
-          "group": "navigation@0"
-        },
-        {
-          "command": "masterSVG.collapseAll",
-          "when": "view == masterSVG.workspaceIcons && masterSVG.workspaceExpanded",
+          "when": "view == masterSVG.workspaceIcons",
           "group": "navigation@0"
         },
         {
@@ -684,12 +609,7 @@
         },
         {
           "command": "masterSVG.expandBuiltIcons",
-          "when": "view == masterSVG.builtIcons && !masterSVG.builtExpanded",
-          "group": "navigation@0"
-        },
-        {
-          "command": "masterSVG.collapseBuiltIcons",
-          "when": "view == masterSVG.builtIcons && masterSVG.builtExpanded",
+          "when": "view == masterSVG.builtIcons",
           "group": "navigation@0"
         },
         {
@@ -962,14 +882,15 @@
   },
   "scripts": {
     "vscode:prepublish": "node -e \"const fs=require('fs');const path=require('path');const dir='.vscode-test';if(fs.existsSync(dir))fs.rmSync(dir,{recursive:true,force:true})\" && npm run package:prod",
-    "compile": "tsc -p ./ && npm run copy-templates",
+    "compile": "node esbuild.js",
     "compile:e2e": "tsc -p ./src/test/e2e/tsconfig.json && npm run copy-e2e-workspace",
     "copy-e2e-workspace": "node -e \"const fs=require('fs');const path=require('path');function copyDir(s,d){if(!fs.existsSync(d))fs.mkdirSync(d,{recursive:true});fs.readdirSync(s).forEach(f=>{const sp=path.join(s,f),dp=path.join(d,f);fs.statSync(sp).isDirectory()?copyDir(sp,dp):fs.copyFileSync(sp,dp)})};copyDir('src/test/e2e/test-workspace','out/test/e2e/test-workspace')\"",
     "copy-templates": "node -e \"const fs=require('fs');const path=require('path');function copyDir(s,d){fs.mkdirSync(d,{recursive:true});fs.readdirSync(s).forEach(f=>{const sp=path.join(s,f),dp=path.join(d,f);fs.statSync(sp).isDirectory()?copyDir(sp,dp):fs.copyFileSync(sp,dp)})};copyDir('src/templates','out/templates');copyDir('src/templates','dist/templates')\"",
-    "watch": "tsc -watch -p ./",
+    "typecheck": "tsc --noEmit",
+    "watch": "node esbuild.js --watch",
     "watch:esbuild": "node esbuild.js --watch",
     "package:prod": "node esbuild.js --production",
-    "pretest": "npm run compile",
+    "pretest": "npm run typecheck",
     "test": "jest --config jest.config.js",
     "test:watch": "jest --config jest.config.js --watch",
     "test:coverage": "jest --config jest.config.js --coverage",

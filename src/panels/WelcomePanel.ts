@@ -8,6 +8,11 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { t, i18n, SupportedLocale } from '../i18n';
+
+// Template imports – bundled as raw text by esbuild's templateTextPlugin
+import welcomeHtml from '../templates/welcome/Welcome.html';
+import welcomeJs from '../templates/welcome/Welcome';
+import welcomeCss from '../templates/welcome/Welcome.css';
 import { FrameworkDetectorService } from '../services/framework';
 import { FrameworkType } from '../services/types';
 import {
@@ -21,13 +26,16 @@ import {
   getStep4Description,
   getStep4Placeholder,
   getFrameworkPreview,
+  getPreviewWindowTitle,
   applyTemplateReplacements,
   buildStep4Section,
   buildPreviewGallery,
   buildPreviewSummary,
   buildFinishButton,
+  buildSetupGuide,
   generateEmptySprite,
   generateEmptyIconsModule,
+  generateEmptyCssIcons,
   createMsignoreFile,
   ensureOutputDirectory,
   ensureVscodeDirectory,
@@ -110,7 +118,6 @@ export class WelcomePanel {
     this._extensionUri = extensionUri;
 
     this._sessionConfig = this._initializeSessionConfig();
-    this._initializeFrameworkDetection();
     this._update();
 
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
@@ -125,13 +132,15 @@ export class WelcomePanel {
     const config = vscode.workspace.getConfiguration('masterSVG');
     const defaultConfig = createDefaultSessionConfig();
 
+    // Wizard starts clean: user must actively choose all options.
+    // Only non-visual preferences are pre-loaded from workspace settings.
     return {
       ...defaultConfig,
-      svgFolders: config.get<string[]>('svgFolders', []),
-      outputDirectory: config.get<string>('outputDirectory', ''),
-      framework: config.get<string>('framework', 'html'),
-      buildFormat: config.get<string>('buildFormat', ''),
-      webComponentName: config.get<string>('webComponentName', ''),
+      svgFolders: [],
+      outputDirectory: '',
+      framework: '',
+      buildFormat: '',
+      webComponentName: '',
       scanOnStartup: config.get<boolean>('scanOnStartup', true),
       defaultIconSize: config.get<number>('defaultIconSize', 24),
       previewBackground: config.get<string>('previewBackground', 'transparent'),
@@ -275,9 +284,9 @@ export class WelcomePanel {
 
     // Auto-detect framework if not explicitly configured
     const configuredFramework = config.get<string>('framework');
-    if (!configuredFramework || configuredFramework === 'html') {
+    if (!configuredFramework) {
       const detectedFramework = await detector.detectFramework();
-      if (detectedFramework !== 'html') {
+      if (detectedFramework && detectedFramework !== 'html') {
         this._sessionConfig.framework = detectedFramework;
         this._frameworkAutoDetected = true;
       }
@@ -476,6 +485,11 @@ export class WelcomePanel {
       vscode.window.showInformationMessage(
         `${t('welcome.setupComplete')} ${t('welcome.spriteCreated', { path: outputDir })}`
       );
+    } else if (buildFormat === 'css') {
+      generateEmptyCssIcons(fullPath);
+      vscode.window.showInformationMessage(
+        `${t('welcome.setupComplete')} ${t('welcome.filesCreated', { path: outputDir })}`
+      );
     } else {
       const framework = this._sessionConfig.framework as FrameworkType;
       const separateStructure = this._sessionConfig.separateOutputStructure;
@@ -506,15 +520,18 @@ export class WelcomePanel {
     const templates = this._loadTemplates();
     const languageOptions = buildLanguageOptions();
     const step4Section = buildStep4Section(ctx, tr);
-    const previewCode = getFrameworkPreview({
+    const previewOptions = {
       buildFormat: ctx.buildFormat,
       framework: ctx.framework,
       outputDirDisplay: ctx.outputDirDisplay,
       webComponentDisplay: ctx.webComponentDisplay,
       tr,
-    });
+    };
+    const previewCode = getFrameworkPreview(previewOptions);
+    const previewWindowTitle = getPreviewWindowTitle(previewOptions);
     const previewGallery = buildPreviewGallery();
     const previewSummary = buildPreviewSummary(ctx, tr);
+    const setupGuide = buildSetupGuide(ctx, tr);
     const finishButton = buildFinishButton(ctx.isFullyConfigured, tr);
 
     const htmlContent = applyTemplateReplacements({
@@ -524,8 +541,10 @@ export class WelcomePanel {
       languageOptions,
       step4Section,
       previewCode,
+      previewWindowTitle,
       previewGallery,
       previewSummary,
+      setupGuide,
       finishButton,
     });
 
@@ -567,8 +586,10 @@ export class WelcomePanel {
     const isOutputConfigured = this._outputDirUserSelected && !!outputDir;
     const isBuildFormatConfigured = this._buildFormatUserSelected;
     const isWebComponentConfigured = this._validateComponentName(webComponentName, framework);
+    const needsWebComponent = buildFormat === 'icons.js';
     const isFullyConfigured =
-      isSourceConfigured && isOutputConfigured && isBuildFormatConfigured && isWebComponentConfigured;
+      isSourceConfigured && isOutputConfigured && isBuildFormatConfigured &&
+      (needsWebComponent ? isWebComponentConfigured : true);
 
     return {
       sourceDir,
@@ -596,33 +617,8 @@ export class WelcomePanel {
   }
 
   private _loadTemplates(): { html: string; js: string; css: string } {
-    const distPath = path.join(this._extensionUri.fsPath, 'dist', 'templates', 'welcome');
-    const srcPath = path.join(this._extensionUri.fsPath, 'src', 'templates', 'welcome');
-    let html = '';
-    let js = '';
-    let css = '';
-
-    try {
-      if (fs.existsSync(distPath)) {
-        html = fs.readFileSync(path.join(distPath, 'Welcome.html'), 'utf8');
-        js = fs.readFileSync(path.join(distPath, 'Welcome.js'), 'utf8');
-        css = fs.readFileSync(path.join(distPath, 'Welcome.css'), 'utf8');
-      } else if (fs.existsSync(srcPath)) {
-        html = fs.readFileSync(path.join(srcPath, 'Welcome.html'), 'utf8');
-        js = fs.readFileSync(path.join(srcPath, 'Welcome.js'), 'utf8');
-        css = fs.readFileSync(path.join(srcPath, 'Welcome.css'), 'utf8');
-      } else {
-        html = '<div>Welcome</div>';
-        js = '';
-        css = '';
-      }
-    } catch {
-      html = '<div>Welcome</div>';
-      js = '';
-      css = '';
-    }
-
-    return { html, js, css };
+    // Templates are bundled as static imports – no runtime I/O
+    return { html: welcomeHtml, js: welcomeJs, css: welcomeCss };
   }
 
   // #endregion

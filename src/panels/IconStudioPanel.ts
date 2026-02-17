@@ -5,6 +5,11 @@ import { getSvgConfig, getFullSvgConfig } from '../utils/config';
 import { ErrorHandler } from '../utils/errorHandler';
 import { t } from '../i18n';
 
+// Template imports – bundled as raw text by esbuild's templateTextPlugin
+import iconStudioCss from '../templates/icon-manager/IconStudio.css';
+import iconStudioJs from '../templates/icon-manager/IconStudio';
+import iconStudioHtml from '../templates/icon-manager/IconStudio.html';
+
 export class IconStudioPanel {
   public static currentPanel: IconStudioPanel | undefined;
   public static readonly viewType = 'masterSVG';
@@ -267,12 +272,10 @@ export class IconStudioPanel {
     const webview = this._panel.webview;
     const nonce = getNonce();
 
-    // Load templates from external files
-    // In bundled mode, templates are in dist/templates
-    const templatesPath = path.join(this._extensionUri.fsPath, 'dist', 'templates', 'icon-manager');
-    const css = fs.readFileSync(path.join(templatesPath, 'IconStudio.css'), 'utf8');
-    const jsTemplate = fs.readFileSync(path.join(templatesPath, 'IconStudio.js'), 'utf8');
-    let html = fs.readFileSync(path.join(templatesPath, 'IconStudio.html'), 'utf8');
+    // Templates are bundled as static imports – no runtime I/O
+    const css = iconStudioCss;
+    const jsTemplate = iconStudioJs;
+    let html = iconStudioHtml;
 
     // Inject i18n translations into JS
     const i18nObject = {

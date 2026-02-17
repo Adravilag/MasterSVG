@@ -587,7 +587,7 @@ describe('SvgItem class', () => {
       const item = SvgItem.create('arrow', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
 
       expect(item.contextValue).toBe('builtIcon');
-      expect(item.description).toBe('3 uses');
+      expect(item.description).toBe('3 usages');
     });
 
     test('debe mostrar "unused" para iconos built sin uso', () => {
@@ -621,7 +621,7 @@ describe('SvgItem class', () => {
 
       const item = SvgItem.create('single-use', 0, vscode.TreeItemCollapsibleState.None, 'icon', icon);
 
-      expect(item.description).toBe('1 use');
+      expect(item.description).toBe('1 usage');
     });
 
     test('debe crear item de icono inline con línea', () => {
@@ -1583,16 +1583,16 @@ describe('WorkspaceSvgProvider partial refresh', () => {
         svg: '<svg><circle/></svg>',
       };
 
-      (provider as any).svgFiles.set('old-file', icon);
+      (provider as any).svgFiles.set('/icons/old-file.svg', icon);
 
       provider.renameSvgFile('old-file', 'new-file', '/icons/new-file.svg');
 
-      // Verify old name removed
-      expect((provider as any).svgFiles.has('old-file')).toBe(false);
+      // Verify old path key removed
+      expect((provider as any).svgFiles.has('/icons/old-file.svg')).toBe(false);
 
-      // Verify new name added with updated properties
-      expect((provider as any).svgFiles.has('new-file')).toBe(true);
-      const renamedIcon = (provider as any).svgFiles.get('new-file');
+      // Verify new path key added with updated properties
+      expect((provider as any).svgFiles.has('/icons/new-file.svg')).toBe(true);
+      const renamedIcon = (provider as any).svgFiles.get('/icons/new-file.svg');
       expect(renamedIcon.name).toBe('new-file');
       expect(renamedIcon.path).toBe('/icons/new-file.svg');
 
@@ -1604,6 +1604,7 @@ describe('WorkspaceSvgProvider partial refresh', () => {
       provider.renameSvgFile('non-existent', 'new-name', '/new/path.svg');
 
       expect((provider as any).svgFiles.has('new-name')).toBe(false);
+      expect((provider as any).svgFiles.has('/new/path.svg')).toBe(false);
       expect(fireEventSpy).not.toHaveBeenCalled();
     });
   });
@@ -1611,7 +1612,7 @@ describe('WorkspaceSvgProvider partial refresh', () => {
   describe('refresh vs partial refresh', () => {
     test('refresh completo debe limpiar todos los caches', () => {
       // Add data to all caches
-      (provider as any).svgFiles.set('file1', { name: 'file1' });
+      (provider as any).svgFiles.set('/file1.svg', { name: 'file1' });
       (provider as any).libraryIcons.set('lib1', { name: 'lib1' });
       (provider as any).builtIcons.add('lib1');
       (provider as any).cacheService.cacheItem({ id: 'item1' } as SvgItem);
@@ -1628,7 +1629,7 @@ describe('WorkspaceSvgProvider partial refresh', () => {
       const icon: WorkspaceIcon = { name: 'built1', path: '/p', source: 'library' };
 
       // Add data to multiple caches
-      (provider as any).svgFiles.set('file1', { name: 'file1' });
+      (provider as any).svgFiles.set('/file1.svg', { name: 'file1' });
       (provider as any).libraryIcons.set('built1', icon);
       (provider as any).builtIcons.add('built1');
 
@@ -1636,7 +1637,7 @@ describe('WorkspaceSvgProvider partial refresh', () => {
 
       // svgFiles should not be affected
       expect((provider as any).svgFiles.size).toBe(1);
-      expect((provider as any).svgFiles.has('file1')).toBe(true);
+      expect((provider as any).svgFiles.has('/file1.svg')).toBe(true);
 
       // Only the renamed icon should change
       expect((provider as any).libraryIcons.size).toBe(1);

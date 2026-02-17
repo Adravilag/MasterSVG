@@ -6,36 +6,29 @@ const production = process.argv.includes('--production');
 const watch = process.argv.includes('--watch');
 
 /**
- * Copy templates directory to dist
+ * esbuild plugin that loads template files (.html, .css, and .js inside
+ * the templates/ directory) as raw text strings so they are bundled
+ * directly into extension.js — no runtime I/O needed.
+ *
+ * @type {import('esbuild').Plugin}
  */
-function copyTemplates() {
-  const srcDir = path.join(__dirname, 'src', 'templates');
-  const destDir = path.join(__dirname, 'dist', 'templates');
+const templateTextPlugin = {
+  name: 'template-text',
+  setup(build) {
+    // .html and .css files → always load as text
+    build.onLoad({ filter: /\.(html|css)$/ }, async (args) => {
+      const text = await fs.promises.readFile(args.path, 'utf8');
+      return { contents: text, loader: 'text' };
+    });
 
-  if (!fs.existsSync(srcDir)) {
-    console.log('No templates directory found, skipping...');
-    return;
-  }
-
-  function copyDir(src, dest) {
-    fs.mkdirSync(dest, { recursive: true });
-    const entries = fs.readdirSync(src, { withFileTypes: true });
-
-    for (const entry of entries) {
-      const srcPath = path.join(src, entry.name);
-      const destPath = path.join(dest, entry.name);
-
-      if (entry.isDirectory()) {
-        copyDir(srcPath, destPath);
-      } else {
-        fs.copyFileSync(srcPath, destPath);
-      }
-    }
-  }
-
-  copyDir(srcDir, destDir);
-  console.log('Templates copied to dist/templates');
-}
+    // .js files inside a templates/ directory → load as text (they are
+    // template strings, not executable JavaScript)
+    build.onLoad({ filter: /templates[/\\].*\.js$/ }, async (args) => {
+      const text = await fs.promises.readFile(args.path, 'utf8');
+      return { contents: text, loader: 'text' };
+    });
+  },
+};
 
 /**
  * @type {import('esbuild').Plugin}
@@ -53,7 +46,6 @@ const esbuildProblemMatcherPlugin = {
           console.error(`    ${location.file}:${location.line}:${location.column}:`);
         }
       });
-      copyTemplates();
       console.log('[watch] build finished');
     });
   },
@@ -71,14 +63,13 @@ async function main() {
     outfile: 'dist/extension.js',
     external: ['vscode'],
     logLevel: 'silent',
-    plugins: [esbuildProblemMatcherPlugin],
+    plugins: [templateTextPlugin, esbuildProblemMatcherPlugin],
   });
 
   if (watch) {
     await ctx.watch();
   } else {
     await ctx.rebuild();
-    copyTemplates();
     await ctx.dispose();
   }
 }

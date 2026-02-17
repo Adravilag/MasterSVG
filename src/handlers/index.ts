@@ -4,3 +4,4 @@ export * from './IconEditorVariantHandlers';
 export * from './IconEditorSvgHandlers';
 export * from './IconEditorIconHandlers';
 export * from './IconEditorAnimationHandlers';
+export * from './IconEditorSizeHandlers';

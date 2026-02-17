@@ -12,6 +12,19 @@ import {
   getIconPersistenceService,
   getIconEditorTemplateService,
 } from '../services';
+
+// Template imports – bundled as raw text by esbuild's templateTextPlugin
+import iconEditorBaseCss from '../templates/icon-editor/IconEditor.css';
+import iconEditorColorCss from '../templates/icon-editor/tabs/IconEditorColor.css';
+import iconEditorAnimationCss from '../templates/icon-editor/tabs/IconEditorAnimation.css';
+import iconEditorCodeCss from '../templates/icon-editor/tabs/IconEditorCode.css';
+import iconEditorSizeCss from '../templates/icon-editor/tabs/IconEditorSize.css';
+import iconEditorJs from '../templates/icon-editor/IconEditor';
+import iconEditorBodyHtml from '../templates/icon-editor/IconEditorBody.html';
+import iconEditorColorTabHtml from '../templates/icon-editor/tabs/IconEditorColorTab.html';
+import iconEditorAnimationTabHtml from '../templates/icon-editor/tabs/IconEditorAnimationTab.html';
+import iconEditorCodeTabHtml from '../templates/icon-editor/tabs/IconEditorCodeTab.html';
+import iconEditorSizeTabHtml from '../templates/icon-editor/tabs/IconEditorSizeTab.html';
 import type { AnimationSettings } from '../services';
 import { getSvgConfig } from '../utils/config';
 import {
@@ -68,6 +81,14 @@ import {
   handleDeleteAnimationPreset,
   handleGetAnimationPresets,
 } from '../handlers/IconEditorAnimationHandlers';
+import {
+  SizeHandlerContext,
+  handleChangeSize,
+  handleRemoveSize,
+  extractSvgDimensions,
+  getViewBoxDimensions,
+  parseDimensionValue,
+} from '../handlers/IconEditorSizeHandlers';
 import { getAnimationService } from '../services';
 
 interface IconAnimation {
@@ -382,6 +403,15 @@ export class IconEditorPanel {
           this._panel.webview,
           this._iconData?.name || ''
         );
+        break;
+      case 'changeSize':
+        await handleChangeSize(
+          this._createSizeHandlerContext(),
+          message as { width?: number; height?: number }
+        );
+        break;
+      case 'removeSize':
+        await handleRemoveSize(this._createSizeHandlerContext());
         break;
       case 'log':
         // Webview log - no-op in production
@@ -1010,35 +1040,17 @@ export class IconEditorPanel {
     const fileSize = new Blob([svg]).size;
     const fileSizeStr = fileSize < 1024 ? `${fileSize} B` : `${(fileSize / 1024).toFixed(1)} KB`;
 
-    // Load templates from external files
-    // In bundled mode, templates are in dist/templates
-    const templatesDir = path.join(this._extensionUri.fsPath, 'dist', 'templates', 'icon-editor');
-    const tabsDir = path.join(templatesDir, 'tabs');
+    // Templates are bundled as static imports – no runtime I/O
+    const cssContent =
+      iconEditorBaseCss + '\n' + iconEditorColorCss + '\n' +
+      iconEditorAnimationCss + '\n' + iconEditorCodeCss + '\n' + iconEditorSizeCss;
 
-    let cssContent: string, jsTemplate: string, bodyTemplate: string;
-    let colorTabTemplate: string, animationTabTemplate: string, codeTabTemplate: string;
-
-    try {
-      // Load and concatenate CSS files
-      const baseCss = fs.readFileSync(path.join(templatesDir, 'IconEditor.css'), 'utf-8');
-      const colorCss = fs.readFileSync(path.join(tabsDir, 'IconEditorColor.css'), 'utf-8');
-      const animationCss = fs.readFileSync(path.join(tabsDir, 'IconEditorAnimation.css'), 'utf-8');
-      const codeCss = fs.readFileSync(path.join(tabsDir, 'IconEditorCode.css'), 'utf-8');
-      cssContent =
-        baseCss + '\n' + colorCss + '\n' + animationCss + '\n' + codeCss;
-
-      jsTemplate = fs.readFileSync(path.join(templatesDir, 'IconEditor.js'), 'utf-8');
-      bodyTemplate = fs.readFileSync(path.join(templatesDir, 'IconEditorBody.html'), 'utf-8');
-      colorTabTemplate = fs.readFileSync(path.join(tabsDir, 'IconEditorColorTab.html'), 'utf-8');
-      animationTabTemplate = fs.readFileSync(
-        path.join(tabsDir, 'IconEditorAnimationTab.html'),
-        'utf-8'
-      );
-      codeTabTemplate = fs.readFileSync(path.join(tabsDir, 'IconEditorCodeTab.html'), 'utf-8');
-    } catch (err) {
-      console.error('[MasterSVG] IconEditorPanel template load error:', err);
-      return '<html><body><p>Error loading templates</p></body></html>';
-    }
+    const jsTemplate = iconEditorJs;
+    const bodyTemplate = iconEditorBodyHtml;
+    const colorTabTemplate = iconEditorColorTabHtml;
+    const animationTabTemplate = iconEditorAnimationTabHtml;
+    const codeTabTemplate = iconEditorCodeTabHtml;
+    const sizeTabTemplate = iconEditorSizeTabHtml;
 
     // Replace template variables in JS
     const i18nObject = {
@@ -1099,6 +1111,9 @@ export class IconEditorPanel {
       detectedAnimation
     );
 
+    // Generate size tab content
+    const sizeTabContent = this._generateSizeTabHtml(sizeTabTemplate);
+
     // Generate HTML body from template
     const htmlBody = templateService.generateHtmlBody(bodyTemplate, {
       name,
@@ -1108,6 +1123,7 @@ export class IconEditorPanel {
       colorTabContent,
       animationTabContent,
       codeTabContent,
+      sizeTabContent,
       animationName: detectedAnimation?.type,
     });
 
@@ -1215,5 +1231,71 @@ ${jsContent}
         .replace(/\$\{i18n_variants\}/g, t('webview.color.variants'))
         .replace(/\$\{i18n_saveVariant\}/g, t('webview.color.saveVariant'))
     );
+  }
+
+  /**
+   * Create context for size handlers
+   */
+  private _createSizeHandlerContext(): SizeHandlerContext {
+    return {
+      iconData: this._iconData,
+      postMessage: (msg: unknown) => {
+        this._panel.webview.postMessage(msg);
+      },
+      processAndSaveIcon: async (options) => {
+        await this._processAndSaveIcon(options);
+      },
+    };
+  }
+
+  /**
+   * Generate Size tab HTML from template
+   */
+  private _generateSizeTabHtml(template: string): string {
+    if (!this._iconData?.svg) return '';
+
+    const dims = extractSvgDimensions(this._iconData.svg);
+    const vbDims = getViewBoxDimensions(dims.viewBox);
+    const currentWidth = parseDimensionValue(dims.width);
+    const currentHeight = parseDimensionValue(dims.height);
+    const displayWidth = currentWidth ?? vbDims.width;
+    const displayHeight = currentHeight ?? vbDims.height;
+    const presetSizes = [16, 20, 24, 32, 48, 64, 128, 256];
+
+    let result = template;
+
+    // i18n replacements
+    result = result
+      .replace(/\$\{i18n_currentDimensions\}/g, t('webview.size.currentDimensions'))
+      .replace(/\$\{i18n_viewBox\}/g, t('webview.size.viewBox'))
+      .replace(/\$\{i18n_currentWidth\}/g, t('webview.size.width'))
+      .replace(/\$\{i18n_currentHeight\}/g, t('webview.size.height'))
+      .replace(/\$\{i18n_resize\}/g, t('webview.size.resize'))
+      .replace(/\$\{i18n_width\}/g, t('webview.size.width'))
+      .replace(/\$\{i18n_height\}/g, t('webview.size.height'))
+      .replace(/\$\{i18n_lockAspectRatio\}/g, t('webview.size.lockAspectRatio'))
+      .replace(/\$\{i18n_applySize\}/g, t('webview.size.applySize'))
+      .replace(/\$\{i18n_removeSize\}/g, t('webview.size.removeSize'));
+
+    // Data replacements
+    result = result
+      .replace(/\$\{viewBox\}/g, dims.viewBox || 'N/A')
+      .replace(/\$\{currentWidth\}/g, dims.width || t('webview.size.auto'))
+      .replace(/\$\{currentHeight\}/g, dims.height || t('webview.size.auto'))
+      .replace(/\$\{widthValue\}/g, String(displayWidth))
+      .replace(/\$\{heightValue\}/g, String(displayHeight))
+      .replace(/\$\{lockActive\}/g, ' active')
+      .replace(/\$\{lockIcon\}/g, 'lock');
+
+    // Active preset buttons
+    for (const size of presetSizes) {
+      const isActive = currentWidth === size && currentHeight === size;
+      result = result.replace(
+        new RegExp(`\\$\\{activePreset${size}\\}`, 'g'),
+        isActive ? ' active' : ''
+      );
+    }
+
+    return result;
   }
 }

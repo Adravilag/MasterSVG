@@ -7,6 +7,7 @@ export type {
   IconAnimation,
   IconData,
   IconDetails,
+  WorkspaceIcon,
   WorkspaceIconData,
   IconWithSvg,
   SpriteIconData,

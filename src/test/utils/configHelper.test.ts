@@ -166,7 +166,7 @@ describe('configHelper', () => {
     it('should use configured component name and attribute', () => {
       mockConfig.get.mockImplementation((key: string) => {
         if (key === 'componentName') return 'MyIcon';
-        if (key === 'nameAttribute') return 'icon';
+        if (key === 'iconNameAttribute') return 'icon';
         return '';
       });
 
@@ -242,7 +242,7 @@ describe('configHelper', () => {
         defaultSize: 24,
         defaultColor: 'currentColor',
         webComponentName: 'icon-wrap',
-        buildFormat: 'icons.ts',
+        buildFormat: 'icons.js',
         framework: 'html',
       };
 
@@ -251,7 +251,7 @@ describe('configHelper', () => {
       expect(config.nameAttribute).toBe('name');
       expect(config.defaultSize).toBe(24);
       expect(config.defaultColor).toBe('currentColor');
-      expect(config.buildFormat).toBe('icons.ts');
+      expect(config.buildFormat).toBe('icons.js');
       expect(config.framework).toBe('html');
     });
   });

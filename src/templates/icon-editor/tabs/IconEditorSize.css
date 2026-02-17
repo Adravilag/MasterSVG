@@ -1,0 +1,180 @@
+/* IconEditorSize.css - Styles for Size Tab */
+
+.size-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Current Dimensions Info */
+.size-current-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 6px;
+}
+
+.size-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.size-info-label {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  min-width: 70px;
+}
+
+.size-info-value {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--vscode-foreground);
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 3px;
+}
+
+/* Preset Sizes */
+.size-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.size-preset-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  height: 32px;
+  padding: 4px 10px;
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 6px;
+  color: var(--vscode-foreground);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.size-preset-btn:hover {
+  background: var(--vscode-list-hoverBackground);
+  border-color: var(--vscode-focusBorder);
+  transform: translateY(-1px);
+}
+
+.size-preset-btn.active {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border-color: var(--vscode-button-background);
+}
+
+/* Custom Size Controls */
+.size-custom-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.size-input-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.size-input-group label {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.size-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
+  border-radius: 6px;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.size-input-wrapper:focus-within {
+  border-color: var(--vscode-focusBorder);
+}
+
+.size-input-wrapper input[type="number"] {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--vscode-input-foreground, var(--vscode-foreground));
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 6px 8px;
+  outline: none;
+  width: 60px;
+  -moz-appearance: textfield;
+}
+
+.size-input-wrapper input[type="number"]::-webkit-outer-spin-button,
+.size-input-wrapper input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.size-unit {
+  font-size: 10px;
+  color: var(--vscode-descriptionForeground);
+  padding: 0 8px;
+  user-select: none;
+}
+
+/* Lock Aspect Ratio Button */
+.size-lock-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 6px;
+  color: var(--vscode-descriptionForeground);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  margin-bottom: 1px;
+}
+
+.size-lock-btn:hover {
+  background: var(--vscode-list-hoverBackground);
+  color: var(--vscode-foreground);
+}
+
+.size-lock-btn.active {
+  background: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+  border-color: var(--vscode-focusBorder);
+}
+
+/* Action Buttons */
+.size-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.size-actions .btn {
+  flex: 1;
+  justify-content: center;
+}

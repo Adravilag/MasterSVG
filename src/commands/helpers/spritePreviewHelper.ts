@@ -7,10 +7,10 @@ import { BuiltIconsProvider } from '../../providers';
 import { getComponentExporter } from '../../services';
 import { t } from '../../i18n';
 
-// Template cache for lazy loading
-let spritePreviewCss: string | null = null;
-let spritePreviewJs: string | null = null;
-let spritePreviewHtml: string | null = null;
+// Template imports – bundled as raw text by esbuild's templateTextPlugin
+import spritePreviewCssContent from '../../templates/sprite-preview/SpritePreview.css';
+import spritePreviewJsContent from '../../templates/sprite-preview/SpritePreview';
+import spritePreviewHtmlContent from '../../templates/sprite-preview/SpritePreview.html';
 
 /**
  * Icon preview data structure
@@ -35,16 +35,14 @@ export interface PreviewMessageHandlerConfig {
 }
 
 /**
- * Load sprite preview templates from disk
+ * Load sprite preview templates (bundled as static imports)
  */
 export function loadSpritePreviewTemplates(): { css: string; js: string; html: string } {
-  if (!spritePreviewCss || !spritePreviewJs || !spritePreviewHtml) {
-    const templatesDir = path.join(__dirname, '..', '..', 'templates', 'sprite-preview');
-    spritePreviewCss = fs.readFileSync(path.join(templatesDir, 'SpritePreview.css'), 'utf-8');
-    spritePreviewJs = fs.readFileSync(path.join(templatesDir, 'SpritePreview.js'), 'utf-8');
-    spritePreviewHtml = fs.readFileSync(path.join(templatesDir, 'SpritePreview.html'), 'utf-8');
-  }
-  return { css: spritePreviewCss, js: spritePreviewJs, html: spritePreviewHtml };
+  return {
+    css: spritePreviewCssContent,
+    js: spritePreviewJsContent,
+    html: spritePreviewHtmlContent,
+  };
 }
 
 /**

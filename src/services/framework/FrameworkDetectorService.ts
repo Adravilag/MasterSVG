@@ -51,6 +51,12 @@ const FRAMEWORK_SIGNATURES: FrameworkSignature[] = [
     priority: 50,
   },
   {
+    framework: 'lit',
+    configFiles: [],
+    dependencies: ['lit', '@lit/reactive-element'],
+    priority: 45,
+  },
+  {
     framework: 'react',
     configFiles: ['next.config.js', 'next.config.mjs', 'next.config.ts', 'gatsby-config.js'],
     dependencies: ['react', 'next', 'gatsby', 'react-dom'],
@@ -172,6 +178,7 @@ export class FrameworkDetectorService {
       solid: 'Solid',
       qwik: 'Qwik',
       astro: 'Astro',
+      lit: 'Lit',
     };
     return names[framework] || 'HTML';
   }

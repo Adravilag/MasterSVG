@@ -21,13 +21,15 @@ export { SvgContentCache } from '../../utils/SvgContentCache';
 import { SvgItem } from './SvgItem';
 import { clearTempIcons } from '../TempIconStudio';
 import { SvgScanner } from '../scanner/SvgScanner';
-import { TreeNavigationHelper } from '../../utils/TreeNavigationHelper';
+import { SectionChildrenBuilder } from './SectionChildrenBuilder';
+import { CategorySectionBuilder } from './CategorySectionBuilder';
 import { IconCacheService } from '../../services/icon/IconCacheService';
 import { IconLookupService, SvgDataResult, IconStorageMaps } from '../../services/icon/IconLookupService';
 import { IconCategoryService } from '../../services/icon/IconCategoryService';
 import { SvgContentCache } from '../../utils/SvgContentCache';
 import { TreeParentResolver } from '../../utils/TreeParentResolver';
 import { IconRemovalService, IconRemovalResult } from '../../services/icon/IconRemovalService';
+import { t } from '../../i18n';
 
 export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<SvgItem | undefined | null | void> =
@@ -86,8 +88,49 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
    * Call the specific provider's refresh method after this
    */
   removeSvgFile(iconName: string): void {
-    this.svgFiles.delete(iconName);
+    // Find by name since callers pass the icon name
+    for (const [key, icon] of this.svgFiles) {
+      if (icon.name === iconName) {
+        this.svgFiles.delete(key);
+        break;
+      }
+    }
     // Don't fire event - let caller handle partial refresh
+  }
+
+  /**
+   * Remove an inline SVG from the cache by its key
+   * The key is typically in format "filename:svg-N" or "filename:img-refname"
+   * Call softRefresh() after this to update the tree
+   */
+  removeInlineSvg(key: string): void {
+    this.inlineSvgs.delete(key);
+  }
+
+  /**
+   * Remove an IMG reference from the cache by file path and icon name
+   * @param filePath - The file containing the IMG reference (e.g., App.tsx)
+   * @param iconName - The icon name (e.g., "rocket")
+   * @param line - Optional line number for more precise matching
+   */
+  removeImgReference(filePath: string, iconName: string, line?: number): void {
+    const refs = this.svgReferences.get(filePath);
+    if (!refs) return;
+
+    // Filter out the matching reference
+    const filtered = refs.filter(ref => {
+      if (ref.name !== iconName) return true;
+      if (line !== undefined && ref.line !== line) return true;
+      return false;
+    });
+
+    if (filtered.length === 0) {
+      // No more references in this file
+      this.svgReferences.delete(filePath);
+    } else if (filtered.length !== refs.length) {
+      // Some references remain
+      this.svgReferences.set(filePath, filtered);
+    }
   }
 
   /**
@@ -95,8 +138,8 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
    * Used when a file is modified externally
    */
   updateSvgFileContent(filePath: string): void {
-    const iconName = path.basename(filePath, '.svg');
-    const existingIcon = this.svgFiles.get(iconName);
+    // Use file path directly as key (path-keyed map)
+    const existingIcon = this.svgFiles.get(filePath);
 
     // Invalidate SVG content cache for this file
     SvgContentCache.getInstance().invalidate(filePath);
@@ -164,15 +207,24 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
    * Rename an SVG file in the cache (partial refresh)
    */
   renameSvgFile(oldName: string, newName: string, newPath: string): void {
-    const icon = this.svgFiles.get(oldName);
-    if (icon) {
+    // Find by name since callers pass the icon name
+    let oldKey: string | undefined;
+    let icon: WorkspaceIcon | undefined;
+    for (const [key, value] of this.svgFiles) {
+      if (value.name === oldName) {
+        oldKey = key;
+        icon = value;
+        break;
+      }
+    }
+    if (icon && oldKey) {
       // Update icon properties
       icon.name = newName;
       icon.path = newPath;
 
-      // Move in svgFiles map
-      this.svgFiles.delete(oldName);
-      this.svgFiles.set(newName, icon);
+      // Move in svgFiles map (delete old path key, set new path key)
+      this.svgFiles.delete(oldKey);
+      this.svgFiles.set(newPath, icon);
 
       // Clear ALL cached items for files section
       this.cacheService.deleteMatching(
@@ -344,37 +396,37 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
 
   // Get children for SVG Files folder hierarchy
   private getFolderChildren(folderPath: string): SvgItem[] {
-    return TreeNavigationHelper.getFolderChildren(folderPath, this.svgFiles);
+    return SectionChildrenBuilder.getFolderChildren(folderPath, this.svgFiles);
   }
 
   // Get children for Inline SVGs folder hierarchy
   private getInlineDirChildren(dirPath: string): SvgItem[] {
-    return TreeNavigationHelper.getInlineDirChildren(dirPath, this.inlineSvgs);
+    return SectionChildrenBuilder.getInlineDirChildren(dirPath, this.inlineSvgs);
   }
 
   // Get children (inline SVGs) for a specific file
   private getInlineFileChildren(filePath: string): SvgItem[] {
-    return TreeNavigationHelper.getInlineFileChildren(filePath, this.inlineSvgs);
+    return SectionChildrenBuilder.getInlineFileChildren(filePath, this.inlineSvgs);
   }
 
   // Get children for IMG References folder hierarchy
   private getRefsDirChildren(dirPath: string): SvgItem[] {
-    return TreeNavigationHelper.getRefsDirChildren(dirPath, this.svgReferences);
+    return SectionChildrenBuilder.getRefsDirChildren(dirPath, this.svgReferences);
   }
 
   // Get children (SVG references) for a specific file
   private getRefsFileChildren(filePath: string): SvgItem[] {
-    return TreeNavigationHelper.getRefsFileChildren(filePath, this.svgReferences);
+    return SectionChildrenBuilder.getRefsFileChildren(filePath, this.svgReferences);
   }
 
   // Get children for Icon Component usages folder hierarchy
   private getUsagesDirChildren(dirPath: string): SvgItem[] {
-    return TreeNavigationHelper.getUsagesDirChildren(dirPath, this.iconUsages);
+    return SectionChildrenBuilder.getUsagesDirChildren(dirPath, this.iconUsages);
   }
 
   // Get children (icon usages) for a specific file
   private getUsagesFileChildren(filePath: string): SvgItem[] {
-    return TreeNavigationHelper.getUsagesFileChildren(filePath, this.iconUsages, this.libraryIcons);
+    return SectionChildrenBuilder.getUsagesFileChildren(filePath, this.iconUsages, this.libraryIcons);
   }
 
   // Get children for a directory category (legacy - kept for compatibility)
@@ -394,7 +446,7 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
     if (this.inlineSvgs.size > 0) {
       sections.push(
         SvgItem.create(
-          'Inline SVGs',
+          t('treeView.inlineSvgs'),
           this.inlineSvgs.size,
           vscode.TreeItemCollapsibleState.Collapsed,
           'section',
@@ -412,7 +464,7 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
       );
       sections.push(
         SvgItem.create(
-          'IMG References',
+          t('treeView.imgReferences'),
           totalRefs,
           vscode.TreeItemCollapsibleState.Collapsed,
           'section',
@@ -430,7 +482,7 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
         : undefined;
       sections.push(
         SvgItem.create(
-          'Icon Component',
+          t('treeView.iconComponent'),
           totalUsages ?? 0,
           vscode.TreeItemCollapsibleState.Collapsed,
           'section',
@@ -443,7 +495,7 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
     if (sections.length === 0) {
       return [
         SvgItem.create(
-          'No SVGs in code - Click to scan',
+          t('treeView.noSvgsInCode'),
           0,
           vscode.TreeItemCollapsibleState.None,
           'action',
@@ -484,13 +536,13 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
       }
 
       case 'files':
-        return TreeNavigationHelper.buildFilesSectionChildren(this.svgFiles);
+        return CategorySectionBuilder.buildFilesSectionChildren(this.svgFiles);
 
       case 'inline':
-        return TreeNavigationHelper.buildInlineSectionChildren(this.inlineSvgs);
+        return CategorySectionBuilder.buildInlineSectionChildren(this.inlineSvgs);
 
       case 'references':
-        return TreeNavigationHelper.buildReferencesSectionChildren(this.svgReferences);
+        return CategorySectionBuilder.buildReferencesSectionChildren(this.svgReferences);
 
       case 'icon_usages_section': {
         // Lazy scan usages when section is expanded
@@ -499,7 +551,7 @@ export class WorkspaceSvgProvider implements vscode.TreeDataProvider<SvgItem> {
           // Refresh tree to show updated count
           this._onDidChangeTreeData.fire();
         }
-        return TreeNavigationHelper.buildUsagesSectionChildren(this.iconUsages);
+        return CategorySectionBuilder.buildUsagesSectionChildren(this.iconUsages);
       }
 
       default:

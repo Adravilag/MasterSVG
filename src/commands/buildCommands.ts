@@ -451,7 +451,7 @@ export function registerBuildCommands(
           progress.report({ message: t('ui.progress.generatingOutput') });
           const config = getConfig();
           const webComponentName = config.webComponentName;
-          const buildFormat = config.buildFormat || 'icons.ts';
+          const buildFormat = config.buildFormat || 'icons.js';
 
           const MAX_COLORS_FOR_BUILD = 50;
 

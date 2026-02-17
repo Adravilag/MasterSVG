@@ -59,6 +59,10 @@
             <span class="help-link" onclick="toggleHelp()">${step3Help} ▾</span>
           </p>
 
+          <div class="format-layout">
+          <!-- Left: Framework + Options -->
+          <div class="format-left">
+
           <!-- Framework Selector -->
           <div class="framework-selector">
             <label class="framework-label">${frameworkLabel}</label>
@@ -87,6 +91,10 @@
                 <span class="framework-icon"><svg viewBox="0 0 128 128"><defs><linearGradient id="astroGrad1" x1="882.997" x2="638.955" y1="27.113" y2="866.902" gradientTransform="scale(.1)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#000014"/><stop offset="1" stop-color="#150426"/></linearGradient><linearGradient id="astroGrad2" x1="1001.68" x2="790.326" y1="652.45" y2="1094.91" gradientTransform="scale(.1)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ff1639"/><stop offset="1" stop-color="#ff1639" stop-opacity="0"/></linearGradient></defs><path fill="url(#astroGrad1)" d="M81.504 9.465c.973 1.207 1.469 2.836 2.457 6.09l21.656 71.136a90 90 0 0 0-25.89-8.765L65.629 30.28a1.833 1.833 0 0 0-3.52.004L48.18 77.902a90.1 90.1 0 0 0-26.003 8.778l21.758-71.14c.996-3.25 1.492-4.876 2.464-6.083a8 8 0 0 1 3.243-2.398c1.433-.575 3.136-.575 6.535-.575H71.72c3.402 0 5.105 0 6.543.579a8 8 0 0 1 3.242 2.402Zm0 0"/><path fill="#ff5d01" d="M84.094 90.074c-3.57 3.055-10.696 5.137-18.903 5.137c-10.07 0-18.515-3.137-20.754-7.356c-.8 2.418-.98 5.184-.98 6.954c0 0-.527 8.675 5.508 14.71a5.67 5.67 0 0 1 5.672-5.671c5.37 0 5.367 4.683 5.363 8.488v.336c0 5.773 3.527 10.719 8.543 12.805a11.6 11.6 0 0 1-1.172-5.098c0-5.508 3.23-7.555 6.988-9.938c2.989-1.894 6.309-4 8.594-8.222a15.5 15.5 0 0 0 1.875-7.41a15.6 15.6 0 0 0-.734-4.735m0 0"/><path fill="url(#astroGrad2)" d="M84.094 90.074c-3.57 3.055-10.696 5.137-18.903 5.137c-10.07 0-18.515-3.137-20.754-7.356c-.8 2.418-.98 5.184-.98 6.954c0 0-.527 8.675 5.508 14.71a5.67 5.67 0 0 1 5.672-5.671c5.37 0 5.367 4.683 5.363 8.488v.336c0 5.773 3.527 10.719 8.543 12.805a11.6 11.6 0 0 1-1.172-5.098c0-5.508 3.23-7.555 6.988-9.938c2.989-1.894 6.309-4 8.594-8.222a15.5 15.5 0 0 0 1.875-7.41a15.6 15.6 0 0 0-.734-4.735m0 0"/></svg></span>
                 <span class="framework-name">Astro</span>
               </div>
+              <div class="framework-option ${frameworkLitSelected}" onclick="setFramework('lit')" title="Lit">
+                <span class="framework-icon"><svg viewBox="0 0 128 128"><path fill="#324FFF" d="M32 8l24 16v40L32 80V40L8 56v40l48 32 24-16V72l24 16v-40L56 16 32 32z"/><path fill="#324FFF" opacity=".5" d="M32 40v40l24-16V24z"/><path fill="#00E8FF" d="M56 16l24 16v40L56 56z"/><path fill="#00E8FF" opacity=".7" d="M80 72v40l24-16V56z"/><path fill="#283198" d="M8 56v40l24 16V72z"/><path fill="#324FFF" d="M56 88v40l24-16V72z"/><path fill="#00E8FF" d="M32 80l24 8 24-16-24-8z"/></svg></span>
+                <span class="framework-name">Lit</span>
+              </div>
             </div>
           </div>
 
@@ -104,6 +112,12 @@
                   <strong>${spriteTitle}</strong> — ${helpSprite}
                 </div>
               </div>
+              <div class="help-row">
+                <span class="help-icon"><svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg></span>
+                <div>
+                  <strong>${cssIconsTitle}</strong> — ${helpCssIcons}
+                </div>
+              </div>
               <div class="help-tip">
                 <svg class="svg-icon svg-icon-sm" viewBox="0 0 24 24" style="color: #ffc107;"><path d="M9 21c0 .5.4 1 1 1h4c.6 0 1-.5 1-1v-1H9v1zm3-19C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V17c0 .5.4 1 1 1h6c.6 0 1-.5 1-1v-2.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z"/></svg>
                 <em>${helpTip}</em>
@@ -111,211 +125,235 @@
             </div>
           </div>
 
-          <div class="format-grid">
-            <div class="format-card ${jsModuleSelected}" onclick="setBuildFormat('icons.ts')">
-              <h3>
-                <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18-.21 0-.41-.06-.57-.18l-7.9-4.44A.991.991 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18.21 0 .41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9zM12 4.15L6.04 7.5 12 10.85l5.96-3.35L12 4.15zM5 15.91l6 3.38v-6.71L5 9.21v6.7zm14 0v-6.7l-6 3.37v6.71l6-3.38z"/></svg>
-                ${jsModuleTitle}
-                <span class="badge">${recommended}</span>
-              </h3>
-              <p>${jsModuleDesc}</p>
-              <div class="format-tags">
-                <span class="tag-pro">${jsModulePro1}</span>
-                <span class="tag-pro">${jsModulePro2}</span>
-              </div>
-            </div>
-            <div class="format-card ${spriteSvgSelected}" onclick="setBuildFormat('sprite.svg')">
-              <h3>
-                <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-                ${spriteTitle}
-              </h3>
-              <p>${spriteDesc}</p>
-              <div class="format-tags">
-                <span class="tag-neutral">${spritePro1}</span>
-                <span class="tag-neutral">${spritePro2}</span>
-              </div>
-            </div>
-          </div>
-
           <!-- Step 4: Web Component Name (only for JS Module) -->
           ${step4Section}
-        </div>
-      </div>
 
-      <!-- Step 1: Source Directory -->
-      <div class="step ${step1SourceClass}">
-        <div class="step-header">
-          <div class="step-number ${step1SourceNumberClass}"><span>2</span></div>
-          <div class="step-title">${step1SourceTitle}</div>
-          ${step1SourceSummary}
-        </div>
-        <div class="step-content">
-          <p class="step-description">${step1SourceDesc}</p>
-
-          <div class="options-grid">
-            ${sourceDirectoryOptions}
-            <div class="option browse" onclick="chooseSourceFolder()">
-              <span class="option-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg></span>
-              <span class="option-label">${browse}</span>
+          <!-- Build Options -->
+          <div class="build-options">
+            <div class="build-options-header">
+              <svg viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg>
+              <span>${buildOptionsTitle}</span>
+            </div>
+            <div class="build-options-grid">
+              <div class="build-option-item">
+                <div class="build-option-icon">
+                  <svg viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg>
+                </div>
+                <div class="build-option-body">
+                  <label class="toggle-label">
+                    <span>${separateOutputLabel}</span>
+                    <input type="checkbox" id="separateOutputStructure" ${separateOutputChecked} onchange="setSeparateOutputStructure(this.checked)">
+                    <span class="toggle-switch"></span>
+                  </label>
+                  <p class="build-option-hint">${separateOutputHint}</p>
+                </div>
+              </div>
+              <div class="build-option-item">
+                <div class="build-option-icon">
+                  <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM5 15h14v3H5z"/></svg>
+                </div>
+                <div class="build-option-body">
+                  <label class="select-label">
+                    <span>${previewBackgroundLabel}</span>
+                    <select id="previewBackground" onchange="setPreviewBackground(this.value)">
+                      <option value="transparent" ${bgTransparent}>Transparent</option>
+                      <option value="light" ${bgLight}>Light</option>
+                      <option value="dark" ${bgDark}>Dark</option>
+                      <option value="checkered" ${bgCheckered}>Checkered</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+              <div class="build-option-item">
+                <div class="build-option-icon">
+                  <svg viewBox="0 0 24 24"><path d="M7 24h2v-2H7v2zm4 0h2v-2h-2v2zm4 0h2v-2h-2v2zM3 0v18h18V0H3zm16 16H5V6h14v10z"/></svg>
+                </div>
+                <div class="build-option-body">
+                  <label class="select-label">
+                    <span>${defaultIconSizeLabel}</span>
+                    <input type="number" id="defaultIconSize" value="${defaultIconSize}" min="8" max="512" onchange="setDefaultIconSize(this.value)" class="size-input">
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="input-group">
-            <input type="text" id="sourceDir" placeholder="${step1SourcePlaceholder}" onkeypress="handleSourcePathKeypress(event)" />
-            <button class="btn-secondary" onclick="applyCustomSourcePath()">${step1Apply}</button>
-          </div>
+          </div><!-- /.format-left -->
 
-          <div class="msignore-option">
-            <label class="toggle-label">
-              <span>
-                <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 6px; fill: currentColor;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
-                ${msignoreLabel}
-              </span>
-              <input type="checkbox" id="createMsignore" ${msignoreChecked} onchange="setCreateMsignore(this.checked)">
-              <span class="toggle-switch"></span>
-            </label>
-            <p class="msignore-hint">${msignoreHint}</p>
-          </div>
+          <!-- Right: Format Cards -->
+          <div class="format-right">
+            <div class="format-grid">
+              <div class="format-card ${jsModuleSelected}" onclick="setBuildFormat('icons.js')">
+                <h3>
+                  <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18-.21 0-.41-.06-.57-.18l-7.9-4.44A.991.991 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18.21 0 .41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9zM12 4.15L6.04 7.5 12 10.85l5.96-3.35L12 4.15zM5 15.91l6 3.38v-6.71L5 9.21v6.7zm14 0v-6.7l-6 3.37v6.71l6-3.38z"/></svg>
+                  ${jsModuleTitle}
+                  <span class="badge">${recommended}</span>
+                </h3>
+                <p>${jsModuleDesc}</p>
+                <div class="format-tags">
+                  <span class="tag-pro">${jsModulePro1}</span>
+                  <span class="tag-pro">${jsModulePro2}</span>
+                </div>
+              </div>
+              <div class="format-card ${spriteSvgSelected}" onclick="setBuildFormat('sprite.svg')">
+                <h3>
+                  <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                  ${spriteTitle}
+                </h3>
+                <p>${spriteDesc}</p>
+                <div class="format-tags">
+                  <span class="tag-neutral">${spritePro1}</span>
+                  <span class="tag-neutral">${spritePro2}</span>
+                </div>
+              </div>
+              <div class="format-card ${cssSelected}" onclick="setBuildFormat('css')">
+                <h3>
+                  <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+                  ${cssIconsTitle}
+                </h3>
+                <p>${cssIconsDesc}</p>
+                <div class="format-tags">
+                  <span class="tag-neutral">${cssIconsPro1}</span>
+                  <span class="tag-neutral">${cssIconsPro2}</span>
+                </div>
+              </div>
+            </div>
+          </div><!-- /.format-right -->
+
+          </div><!-- /.format-layout -->
         </div>
       </div>
 
-      <!-- Step 2: Output Directory -->
-      <div class="step ${step2Class}">
-        <div class="step-header">
-          <div class="step-number ${step2NumberClass}"><span>3</span></div>
-          <div class="step-title">${step2Title}</div>
-          ${step2Summary}
-        </div>
-        <div class="step-content">
-          <p class="step-description">${step2Desc}</p>
+      <!-- Steps 2 & 3: Source & Output Directories (same row) -->
+      <div class="directories-row">
+        <!-- Source Directory -->
+        <div class="step ${step1SourceClass}">
+          <div class="step-header">
+            <div class="step-number ${step1SourceNumberClass}"><span>2</span></div>
+            <div class="step-title">${step1SourceTitle}</div>
+            ${step1SourceSummary}
+          </div>
+          <div class="step-content">
+            <p class="step-description">${step1SourceDesc}</p>
 
-          <div class="options-grid">
-            ${outputDirectoryOptions}
-            <div class="option browse" onclick="chooseFolder()" ${step2Disabled}>
-              <span class="option-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg></span>
-              <span class="option-label">${browse}</span>
+            <div class="options-grid">
+              ${sourceDirectoryOptions}
+              <div class="option browse" onclick="chooseSourceFolder()">
+                <span class="option-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg></span>
+                <span class="option-label">${browse}</span>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <input type="text" id="sourceDir" placeholder="${step1SourcePlaceholder}" onkeypress="handleSourcePathKeypress(event)" />
+              <button class="btn-secondary" onclick="applyCustomSourcePath()">${step1Apply}</button>
+            </div>
+
+            <div class="msignore-option">
+              <label class="toggle-label">
+                <span>
+                  <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 6px; fill: currentColor;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
+                  ${msignoreLabel}
+                </span>
+                <input type="checkbox" id="createMsignore" ${msignoreChecked} onchange="setCreateMsignore(this.checked)">
+                <span class="toggle-switch"></span>
+              </label>
+              <p class="msignore-hint">${msignoreHint}</p>
             </div>
           </div>
+        </div>
 
-          <div class="input-group">
-            <input type="text" id="outputDir" placeholder="${step2Placeholder}" value="${outputDir}" onkeypress="handlePathKeypress(event)" ${step2Disabled} />
-            <button class="btn-secondary" onclick="applyCustomPath()" ${step2Disabled}>${step1Apply}</button>
+        <!-- Output Directory -->
+        <div class="step ${step2Class}">
+          <div class="step-header">
+            <div class="step-number ${step2NumberClass}"><span>3</span></div>
+            <div class="step-title">${step2Title}</div>
+            ${step2Summary}
+          </div>
+          <div class="step-content">
+            <p class="step-description">${step2Desc}</p>
+
+            <div class="options-grid">
+              ${outputDirectoryOptions}
+              <div class="option browse" onclick="chooseFolder()" ${step2Disabled}>
+                <span class="option-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg></span>
+                <span class="option-label">${browse}</span>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <input type="text" id="outputDir" placeholder="${step2Placeholder}" value="${outputDir}" onkeypress="handlePathKeypress(event)" ${step2Disabled} />
+              <button class="btn-secondary" onclick="applyCustomPath()" ${step2Disabled}>${step1Apply}</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Right Column: Live Preview -->
-    <div class="preview-column">
+    <!-- Preview Section (below configuration) -->
+    <div class="preview-section">
       <div class="preview-title">
         <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
         ${previewTitle}
       </div>
 
-      <!-- Workflow Preview -->
-      <div class="workflow-preview">
-        <div class="workflow-step">
-          <div class="workflow-icon source">
-            <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+      <div class="preview-layout">
+        <!-- Workflow Preview -->
+        <div class="workflow-preview">
+          <div class="workflow-step">
+            <div class="workflow-icon source">
+              <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+            </div>
+            <span class="workflow-label">${workflowSource}</span>
+            <span class="workflow-path">${sourceDirDisplay}</span>
           </div>
-          <span class="workflow-label">${workflowSource}</span>
-          <span class="workflow-path">${sourceDirDisplay}</span>
-        </div>
-        <div class="workflow-arrow">
-          <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
-        </div>
-        <div class="workflow-step">
-          <div class="workflow-icon process">
-            <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58z"/></svg>
+          <div class="workflow-arrow">
+            <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
           </div>
-          <span class="workflow-label">${workflowBuild}</span>
-        </div>
-        <div class="workflow-arrow">
-          <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
-        </div>
-        <div class="workflow-step">
-          <div class="workflow-icon output">
-            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+          <div class="workflow-step">
+            <div class="workflow-icon process">
+              <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58z"/></svg>
+            </div>
+            <span class="workflow-label">${workflowBuild}</span>
           </div>
-          <span class="workflow-label">${workflowOutput}</span>
-          <span class="workflow-path">${previewFileName}</span>
+          <div class="workflow-arrow">
+            <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+          </div>
+          <div class="workflow-step">
+            <div class="workflow-icon output">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+            </div>
+            <span class="workflow-label">${workflowOutput}</span>
+            <span class="workflow-path">${previewFileName}</span>
+          </div>
         </div>
-      </div>
 
-      <div class="preview-window">
-        <div class="preview-window-header">
-          <div class="preview-dot red"></div>
-          <div class="preview-dot yellow"></div>
-          <div class="preview-dot green"></div>
-          <span class="preview-window-title">example.js</span>
-        </div>
-        <div class="preview-code">
-          ${previewCode}
-        </div>
-        <div class="preview-result">
-          <div class="preview-result-label">${previewResultLabel}</div>
-          ${previewGallery}
+        <!-- Code Preview Window -->
+        <div class="preview-window">
+          <div class="preview-window-header">
+            <div class="preview-dot red"></div>
+            <div class="preview-dot yellow"></div>
+            <div class="preview-dot green"></div>
+            <span class="preview-window-title">${previewWindowTitle}</span>
+          </div>
+          <div class="preview-code">
+            ${previewCode}
+          </div>
+          <div class="preview-result">
+            <div class="preview-result-label">${previewResultLabel}</div>
+            ${previewGallery}
+          </div>
         </div>
       </div>
 
       ${previewSummary}
 
-      <!-- Main Action Button - Always Visible -->
+      <!-- Setup Guide -->
+      ${setupGuide}
+
+      <!-- Main Action Button -->
       <div class="main-action-container">
         ${finishButton}
-      </div>
-
-      <!-- Advanced Options (collapsible) -->
-      <div class="advanced-options-panel">
-        <div class="advanced-header" onclick="toggleAdvanced()">
-          <div class="advanced-title">
-            <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-            <span>${advancedTitle}</span>
-          </div>
-          <svg class="toggle-chevron" id="advancedArrow" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
-        </div>
-        <div class="advanced-content" id="advancedContent">
-          <div class="advanced-grid">
-            <div class="advanced-item">
-              <label class="toggle-label">
-                <span>${scanOnStartupLabel}</span>
-                <input type="checkbox" id="scanOnStartup" ${scanOnStartupChecked} onchange="setScanOnStartup(this.checked)">
-                <span class="toggle-switch"></span>
-              </label>
-            </div>
-            <div class="advanced-item">
-              <label class="toggle-label">
-                <span>${separateOutputLabel}</span>
-                <input type="checkbox" id="separateOutputStructure" ${separateOutputChecked} onchange="setSeparateOutputStructure(this.checked)">
-                <span class="toggle-switch"></span>
-              </label>
-              <p class="option-hint">${separateOutputHint}</p>
-            </div>
-            <div class="advanced-item">
-              <label class="select-label">
-                <span>${defaultIconSizeLabel}</span>
-                <input type="number" id="defaultIconSize" value="${defaultIconSize}" min="8" max="512" onchange="setDefaultIconSize(this.value)" class="size-input">
-              </label>
-            </div>
-            <div class="advanced-item">
-              <label class="select-label">
-                <span>${previewBackgroundLabel}</span>
-                <select id="previewBackground" onchange="setPreviewBackground(this.value)">
-                  <option value="transparent" ${bgTransparent}>Transparent</option>
-                  <option value="light" ${bgLight}>Light</option>
-                  <option value="dark" ${bgDark}>Dark</option>
-                  <option value="checkered" ${bgCheckered}>Checkered</option>
-                </select>
-              </label>
-            </div>
-          </div>
-          <div class="advanced-actions">
-            <button class="btn-secondary-outline" onclick="openSettings()">
-              <svg viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg>
-              ${allSettings}
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   </div>

@@ -26,16 +26,16 @@ export const DEFAULT_COLOR_PRESETS: ColorPreset[] = [
 ];
 
 export const POPULAR_COLLECTIONS: PopularCollection[] = [
-  { prefix: 'mdi', name: 'Material Design Icons' },
-  { prefix: 'lucide', name: 'Lucide' },
-  { prefix: 'heroicons', name: 'Heroicons' },
-  { prefix: 'tabler', name: 'Tabler Icons' },
-  { prefix: 'ph', name: 'Phosphor' },
-  { prefix: 'ri', name: 'Remix Icon' },
-  { prefix: 'carbon', name: 'Carbon' },
-  { prefix: 'fluent', name: 'Fluent UI' },
-  { prefix: 'ic', name: 'Google Material' },
-  { prefix: 'bi', name: 'Bootstrap Icons' },
+  { prefix: 'mdi', name: 'Material Design Icons', total: 7000 },
+  { prefix: 'lucide', name: 'Lucide', total: 1500 },
+  { prefix: 'heroicons', name: 'Heroicons', total: 300 },
+  { prefix: 'tabler', name: 'Tabler Icons', total: 5000 },
+  { prefix: 'ph', name: 'Phosphor', total: 9000 },
+  { prefix: 'ri', name: 'Remix Icon', total: 2800 },
+  { prefix: 'carbon', name: 'Carbon', total: 2000 },
+  { prefix: 'fluent', name: 'Fluent UI', total: 4500 },
+  { prefix: 'ic', name: 'Google Material', total: 2500 },
+  { prefix: 'bi', name: 'Bootstrap Icons', total: 2000 },
 ];
 
 /**

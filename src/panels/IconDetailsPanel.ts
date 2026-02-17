@@ -19,6 +19,10 @@ import {
 import { t } from '../i18n';
 import { scopeSvgIds } from '../utils/svgIdScoper';
 
+// Template imports – bundled as raw text by esbuild's templateTextPlugin
+import iconDetailsCss from '../templates/icon-details/iconDetails.css';
+import iconDetailsJs from '../templates/icon-details/iconDetails';
+
 export { IconDetails, IconAnimation };
 
 const colorService = new ColorService();
@@ -182,7 +186,10 @@ export class IconDetailsPanel {
     const usageFinderService = getUsageFinderService();
 
     try {
-      const usages = await usageFinderService.findIconUsages(iconName);
+      const usages = await usageFinderService.findIconUsages(
+        iconName,
+        this._iconDetails?.location
+      );
 
       // Filter out usages from the icon output directory (avoid circular references)
       const { getFullOutputPath } = require('../utils/configHelper');
@@ -339,12 +346,9 @@ export class IconDetailsPanel {
     const svgColors = allColors.slice(0, MAX_COLORS_TO_SHOW);
     const hasMoreColors = totalColorCount > MAX_COLORS_TO_SHOW;
 
-    // Load templates
-    // In bundled mode, templates are in dist/templates
-    const templatesDir = path.join(this._extensionUri.fsPath, 'dist', 'templates', 'icon-details');
-
-    const cssContent = fs.readFileSync(path.join(templatesDir, 'iconDetails.css'), 'utf-8');
-    const jsTemplate = fs.readFileSync(path.join(templatesDir, 'iconDetails.js'), 'utf-8');
+    // Templates are bundled as static imports – no runtime I/O
+    const cssContent = iconDetailsCss;
+    const jsTemplate = iconDetailsJs;
 
     // Inject i18n translations into JS
     const i18nObject = {
@@ -383,7 +387,7 @@ export class IconDetailsPanel {
         ? `<div class="detail-card"><div class="detail-label"><span class="codicon codicon-extensions"></span> ${t('webview.details.features')}</div><div class="features">${features.map(f => `<span class="feature-tag" data-feature="${f}">${f}</span>`).join('')}</div></div>`
         : '';
 
-    const locationCardHtml = location
+    const locationCardHtml = location && isBuilt
       ? `<div class="detail-card clickable location-card" onclick="goToLocation()"><div class="detail-label"><span class="codicon codicon-go-to-file"></span> ${t('webview.details.sourceLocation')}</div><div class="detail-value">${fileName}:${location.line}</div><div class="detail-sub">${location.file}</div></div>`
       : '';
 
@@ -511,17 +515,17 @@ export class IconDetailsPanel {
             <span class="stat-label">Size</span>
           </div>
           <div class="stat-divider"></div>
-          <div class="stat-item">
+          <div class="stat-item" title="${elementsStr}">
             <span class="stat-value">${totalElements}</span>
             <span class="stat-label">Elements</span>
           </div>
         </div>
 
+        <div class="elements-breakdown">
+          <span class="codicon codicon-symbol-class"></span> ${elementsStr}
+        </div>
+
         <div class="details-grid">
-          <div class="detail-card">
-            <div class="detail-label"><span class="codicon codicon-symbol-class"></span> ${t('webview.details.elementsBreakdown') || 'Elements Breakdown'}</div>
-            <div class="detail-sub">${elementsStr}</div>
-          </div>
           ${featuresHtml}
           ${locationCardHtml}
           ${licenseCardHtml}

@@ -111,12 +111,12 @@ suite('WelcomePanel E2E Tests', () => {
     const config = vscode.workspace.getConfiguration('masterSVG');
 
     // Set build format to icons.ts
-    await config.update('buildFormat', 'icons.ts', vscode.ConfigurationTarget.Global);
+    await config.update('buildFormat', 'icons.js', vscode.ConfigurationTarget.Global);
     await new Promise(resolve => setTimeout(resolve, 200));
     let buildFormat = vscode.workspace
       .getConfiguration('masterSVG')
       .get<string>('buildFormat', '');
-    assert.strictEqual(buildFormat, 'icons.ts', 'Build format should be icons.ts');
+    assert.strictEqual(buildFormat, 'icons.js', 'Build format should be icons.ts');
 
     // Change to sprite.svg
     await config.update('buildFormat', 'sprite.svg', vscode.ConfigurationTarget.Global);

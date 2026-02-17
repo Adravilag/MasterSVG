@@ -14,10 +14,10 @@ export type AnimationIteration = number | 'infinite';
 export type AnimationDirection = 'normal' | 'reverse' | 'alternate' | 'alternate-reverse';
 
 /** Supported frameworks */
-export type FrameworkType = 'html' | 'react' | 'vue' | 'angular' | 'svelte' | 'solid' | 'qwik' | 'astro';
+export type FrameworkType = 'html' | 'react' | 'vue' | 'angular' | 'svelte' | 'solid' | 'qwik' | 'astro' | 'lit';
 
 /** Output format types */
-export type OutputFormat = 'icons.ts' | 'icons.js' | 'sprite.svg';
+export type OutputFormat = 'icons.js' | 'sprite.svg' | 'css';
 
 /** Output structure types */
 export type OutputStructure = 'flat' | 'separated';

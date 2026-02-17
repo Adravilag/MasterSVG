@@ -100,13 +100,13 @@ function handleTagKeypress(event) {
 function showApplySuccess(inputId) {
   const input = document.getElementById(inputId);
   const button = input.parentElement.querySelector('button');
-  
+
   // Add success class to input
   input.classList.add('input-success');
   if (button) {
     button.classList.add('btn-success');
   }
-  
+
   // Remove after animation
   setTimeout(() => {
     input.classList.remove('input-success');
@@ -119,13 +119,13 @@ function showApplySuccess(inputId) {
 function showApplyError(inputId) {
   const input = document.getElementById(inputId);
   const button = input.parentElement.querySelector('button');
-  
+
   // Add error class to input
   input.classList.add('input-error');
   if (button) {
     button.classList.add('btn-error');
   }
-  
+
   // Remove after animation
   setTimeout(() => {
     input.classList.remove('input-error');
@@ -158,18 +158,7 @@ function close() {
   vscode.postMessage({ command: 'close' });
 }
 
-// Advanced Options
-function toggleAdvanced() {
-  const content = document.getElementById('advancedContent');
-  const arrow = document.getElementById('advancedArrow');
-  content.classList.toggle('show');
-  arrow.classList.toggle('open');
-}
-
-function setScanOnStartup(checked) {
-  vscode.postMessage({ command: 'setScanOnStartup', value: checked });
-}
-
+// Build Options
 function setDefaultIconSize(value) {
   const size = parseInt(value, 10);
   if (size >= 8 && size <= 512) {

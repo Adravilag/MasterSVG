@@ -219,7 +219,14 @@ describe('TreeView Refresh Behavior', () => {
       });
 
       const iconName = 'arrow';
-      const icon = svgFiles.get(iconName);
+      // Find icon by name (keys are now file paths)
+      let icon;
+      for (const value of svgFiles.values()) {
+        if (value.name === iconName) {
+          icon = value;
+          break;
+        }
+      }
 
       expect(icon).toBeDefined();
 
@@ -240,7 +247,14 @@ describe('TreeView Refresh Behavior', () => {
     test('refreshItemByName debe no hacer nada si icono no existe', () => {
       const svgFiles = new Map();
       const iconName = 'nonexistent';
-      const icon = svgFiles.get(iconName);
+      // Find icon by name (keys are now file paths)
+      let icon;
+      for (const value of svgFiles.values()) {
+        if (value.name === iconName) {
+          icon = value;
+          break;
+        }
+      }
 
       expect(icon).toBeUndefined();
     });
@@ -372,7 +386,7 @@ describe('TreeView Refresh Behavior', () => {
       const svgFiles = new Map();
       const folderCache = new Map();
 
-      svgFiles.set('icon1', { name: 'icon1', path: '/icons/icon1.svg', source: 'workspace' });
+      svgFiles.set('/icons/icon1.svg', { name: 'icon1', path: '/icons/icon1.svg', source: 'workspace' });
       folderCache.set('folder:/icons', { label: 'icons' });
 
       // Simular refresh completo
@@ -384,8 +398,8 @@ describe('TreeView Refresh Behavior', () => {
 
     test('refreshFile debe preservar cache de archivos', () => {
       const svgFiles = new Map();
-      svgFiles.set('icon1', { name: 'icon1', path: '/icons/icon1.svg', source: 'workspace' });
-      svgFiles.set('icon2', { name: 'icon2', path: '/icons/icon2.svg', source: 'workspace' });
+      svgFiles.set('/icons/icon1.svg', { name: 'icon1', path: '/icons/icon1.svg', source: 'workspace' });
+      svgFiles.set('/icons/icon2.svg', { name: 'icon2', path: '/icons/icon2.svg', source: 'workspace' });
 
       // refreshFile no limpia svgFiles, solo dispara re-render
       expect(svgFiles.size).toBe(2);
@@ -393,14 +407,14 @@ describe('TreeView Refresh Behavior', () => {
 
     test('removeItem debe eliminar solo el icono especificado', () => {
       const svgFiles = new Map();
-      svgFiles.set('icon1', { name: 'icon1', path: '/icons/icon1.svg', source: 'workspace' });
-      svgFiles.set('icon2', { name: 'icon2', path: '/icons/icon2.svg', source: 'workspace' });
+      svgFiles.set('/icons/icon1.svg', { name: 'icon1', path: '/icons/icon1.svg', source: 'workspace' });
+      svgFiles.set('/icons/icon2.svg', { name: 'icon2', path: '/icons/icon2.svg', source: 'workspace' });
 
-      const iconToRemove = 'icon1';
+      const iconToRemove = '/icons/icon1.svg';
       svgFiles.delete(iconToRemove);
 
-      expect(svgFiles.has('icon1')).toBe(false);
-      expect(svgFiles.has('icon2')).toBe(true);
+      expect(svgFiles.has('/icons/icon1.svg')).toBe(false);
+      expect(svgFiles.has('/icons/icon2.svg')).toBe(true);
     });
   });
 });
@@ -457,7 +471,7 @@ describe('TreeView expansion state preservation', () => {
     test('softRefresh debe disparar evento sin limpiar cache', () => {
       const mockFire = jest.fn();
       const svgFiles = new Map();
-      svgFiles.set('icon1', { name: 'icon1', path: '/icons/icon1.svg', source: 'workspace' });
+      svgFiles.set('/icons/icon1.svg', { name: 'icon1', path: '/icons/icon1.svg', source: 'workspace' });
 
       // Simular softRefresh
       mockFire(); // fire() sin argumentos
@@ -469,7 +483,7 @@ describe('TreeView expansion state preservation', () => {
     test('refresh completo debe limpiar cache antes de fire', () => {
       const mockFire = jest.fn();
       const svgFiles = new Map();
-      svgFiles.set('icon1', { name: 'icon1', path: '/icons/icon1.svg', source: 'workspace' });
+      svgFiles.set('/icons/icon1.svg', { name: 'icon1', path: '/icons/icon1.svg', source: 'workspace' });
 
       // Simular refresh completo
       svgFiles.clear();

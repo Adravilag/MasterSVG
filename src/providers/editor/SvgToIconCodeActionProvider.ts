@@ -303,7 +303,7 @@ export class SvgToIconCodeActionProvider implements vscode.CodeActionProvider {
     endOffset: number
   ): vscode.CodeAction {
     const config = getConfig();
-    const buildFormat = config.buildFormat || 'icons.ts';
+    const buildFormat = config.buildFormat || 'icons.js';
     const isSprite = buildFormat === 'sprite.svg';
     const _formatLabel = isSprite ? t('ui.labels.svgSprite') : t('ui.labels.webComponentJs');
 
@@ -358,7 +358,7 @@ export class SvgToIconCodeActionProvider implements vscode.CodeActionProvider {
     line: number
   ): vscode.CodeAction {
     const config = getConfig();
-    const buildFormat = config.buildFormat || 'icons.ts';
+    const buildFormat = config.buildFormat || 'icons.js';
     const isSprite = buildFormat === 'sprite.svg';
     const formatLabel = isSprite ? t('ui.labels.svgSprite') : t('ui.labels.webComponentJs');
 

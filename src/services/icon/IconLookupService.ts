@@ -20,8 +20,18 @@ export class IconLookupService {
    * Priority: library (built) > svg files > inline SVGs
    */
   static getIcon(name: string, storage: IconStorageMaps): WorkspaceIcon | undefined {
-    // First check library (built icons), then svg files
-    const found = storage.libraryIcons.get(name) || storage.svgFiles.get(name);
+    // First check library (built icons) by name key
+    let found: WorkspaceIcon | undefined = storage.libraryIcons.get(name);
+
+    // Then search svg files by name (keys are file paths)
+    if (!found) {
+      for (const icon of storage.svgFiles.values()) {
+        if (icon.name === name) {
+          found = icon;
+          break;
+        }
+      }
+    }
 
     // If found but no SVG content, try to load it from file
     if (found && !found.svg && found.path && fs.existsSync(found.path)) {
@@ -48,10 +58,20 @@ export class IconLookupService {
    * Get icon by name from any source (library, SVG files, inline, or references)
    */
   static getIconByName(name: string, storage: IconStorageMaps): WorkspaceIcon | undefined {
-    // Check library icons, SVG files, and inline SVGs first
-    const found =
-      storage.libraryIcons.get(name) || storage.svgFiles.get(name) || storage.inlineSvgs.get(name);
-    if (found) return found;
+    // Check library icons by name key
+    const libraryIcon = storage.libraryIcons.get(name);
+    if (libraryIcon) return libraryIcon;
+
+    // Check SVG files by name (keys are file paths)
+    for (const icon of storage.svgFiles.values()) {
+      if (icon.name === name) return icon;
+    }
+
+    // Check inline SVGs by name (keys are composite identifiers)
+    for (const icon of storage.inlineSvgs.values()) {
+      if (icon.name === name) return icon;
+    }
+    if (storage.inlineSvgs.get(name)) return storage.inlineSvgs.get(name);
 
     // Also check IMG references (svgReferences)
     for (const icons of storage.svgReferences.values()) {
