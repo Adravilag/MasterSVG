@@ -25,6 +25,7 @@ export function getConfig(): IconStudioConfig {
       defaultColor: config.get<string>('defaultColor', 'currentColor'),
       webComponentName: config.get<string>('webComponentName', 'icon-wrap'),
       buildFormat: config.get<'icons.js' | 'sprite.svg' | 'css' | 'transform'>('buildFormat', 'icons.js'),
+      cssElementTag: config.get<string>('cssElementTag', 'span'),
       framework
     };
 }

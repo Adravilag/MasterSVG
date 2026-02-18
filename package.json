@@ -2,7 +2,7 @@
   "name": "mastersvg-icon-studio",
   "displayName": "Master SVG",
   "description": "Professional SVG icon management studio. Preview, edit, transform and build icon components for your design system.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "icon": "resources/icon.png",
   "publisher": "MasterSVG",
   "repository": {
@@ -392,6 +392,11 @@
           "default": false,
           "markdownDescription": "When enabled, separates generated files into `components/` (Icon.tsx, types.d.ts) and `assets/` (svg-data.ts) directories under the output directory. Recommended for larger projects."
         },
+        "masterSVG.codeIntegrationEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable editor integration: autocompletion, hovers and code actions for icons"
+        },
         "masterSVG.framework": {
           "type": "string",
           "enum": [
@@ -417,6 +422,11 @@
           ],
           "default": "icons.js",
           "description": "Output format for built icons"
+        },
+        "masterSVG.cssElementTag": {
+          "type": "string",
+          "default": "span",
+          "description": "HTML tag to use for CSS output icons (e.g. 'span', 'i', 'div')"
         },
         "masterSVG.webComponentName": {
           "type": "string",
@@ -445,6 +455,11 @@
           "minimum": 8,
           "maximum": 512,
           "description": "Default size (in pixels) for generated icons"
+        },
+        "masterSVG.defaultColor": {
+          "type": "string",
+          "default": "currentColor",
+          "description": "Default color used when inserting icons (CSS color or 'currentColor')"
         },
         "masterSVG.namingConvention": {
           "type": "string",

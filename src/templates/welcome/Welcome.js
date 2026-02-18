@@ -66,6 +66,28 @@ function handlePathKeypress(event) {
 function setBuildFormat(format) {
   vscode.postMessage({ command: 'setBuildFormat', format: format });
   // Visual feedback for format cards is handled by CSS :active and page refresh
+  // Immediate UI update: enable/disable cssElementTag input when selecting CSS
+  try {
+    const cssInput = document.getElementById('cssElementTag');
+    if (cssInput) {
+      if (format === 'css') {
+        cssInput.removeAttribute('disabled');
+        cssInput.removeAttribute('title');
+      } else {
+        cssInput.setAttribute('disabled', 'disabled');
+        cssInput.setAttribute('title', 'Applies only to CSS output');
+      }
+    }
+    // Update visual selection for format cards
+    document.querySelectorAll('.format-card').forEach(card => card.classList.remove('selected'));
+    const selector = format === 'icons.js' ? '.format-card[onclick="setBuildFormat(\'icons.js\')"]' : format === 'sprite.svg' ? '.format-card[onclick="setBuildFormat(\'sprite.svg\')"]' : format === 'css' ? '.format-card[onclick="setBuildFormat(\'css\')"]' : null;
+    if (selector) {
+      const el = document.querySelector(selector);
+      if (el) el.classList.add('selected');
+    }
+  } catch (e) {
+    // ignore
+  }
 }
 
 function setFramework(framework) {
@@ -180,4 +202,24 @@ function setSeparateOutputStructure(checked) {
 
 function setCodeIntegration(checked) {
   vscode.postMessage({ command: 'setCodeIntegration', value: checked });
+}
+
+function setCssElementTag(value) {
+  vscode.postMessage({ command: 'setCssElementTag', value: value });
+}
+
+function setDefaultSvgColor(value) {
+  vscode.postMessage({ command: 'setDefaultSvgColor', value: value });
+  try {
+    const el = document.getElementById('defaultSvgColorDisplay');
+    if (el) {
+      if (!value || value === 'currentColor') {
+        el.innerHTML = '<span class="tag-neutral small">currentColor</span>';
+      } else {
+        el.innerHTML = '<span class="color-hex-badge">' + value + '</span>';
+      }
+    }
+  } catch (e) {
+    // ignore DOM update errors in webview
+  }
 }

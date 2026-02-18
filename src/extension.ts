@@ -71,6 +71,16 @@ let workspaceTreeView: vscode.TreeView<SvgItem>;
 let svgFilesTreeView: vscode.TreeView<SvgItem>;
 let svgWatcher: vscode.FileSystemWatcher | undefined;
 
+// Code-integration disposables (managed dynamically)
+let completionDisposable: vscode.Disposable | undefined;
+let hoverDisposable: vscode.Disposable | undefined;
+let codeActionProvider: vscode.Disposable | undefined;
+let missingIconCodeActionProvider: vscode.Disposable | undefined;
+let iconImportCodeActionProvider: vscode.Disposable | undefined;
+let diagnosticProvider: SvgImgDiagnosticProvider | undefined;
+let diagOnChangeDisposable: vscode.Disposable | undefined;
+let diagOnOpenDisposable: vscode.Disposable | undefined;
+
 /**
  * Shows onboarding wizard for first-time users
  */
@@ -318,19 +328,7 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   // Register completion provider
-  const completionDisposable = vscode.languages.registerCompletionItemProvider(
-    SUPPORTED_LANGUAGES,
-    new IconCompletionProvider(workspaceSvgProvider),
-    '<',
-    '"',
-    "'"
-  );
-
-  // Register hover provider
-  const hoverDisposable = vscode.languages.registerHoverProvider(
-    SUPPORTED_LANGUAGES,
-    new IconHoverProvider(workspaceSvgProvider)
-  );
+  const codeIntegrationEnabled = vscode.workspace.getConfiguration('masterSVG').get<boolean>('codeIntegrationEnabled', false);
 
   // Watch for SVG file changes
   svgWatcher = vscode.workspace.createFileSystemWatcher('**/*.svg');
@@ -344,56 +342,114 @@ export function activate(context: vscode.ExtensionContext) {
   variantsWatcher.onDidChange(() => builtIconsProvider.refresh());
   variantsWatcher.onDidDelete(() => builtIconsProvider.refresh());
 
-  // Register code action provider for SVG img references
-  // Use '*' scheme to match all file types including untitled
-  const codeActionProvider = vscode.languages.registerCodeActionsProvider(
-    SUPPORTED_LANGUAGES_WITH_SCHEME,
-    new SvgToIconCodeActionProvider(),
-    {
-      providedCodeActionKinds: SvgToIconCodeActionProvider.providedCodeActionKinds,
+  // Manage code-integration providers at runtime
+  function setupCodeIntegration(enabled: boolean) {
+    // If enabling and not already registered
+    if (enabled) {
+      if (!completionDisposable) {
+        completionDisposable = vscode.languages.registerCompletionItemProvider(
+          SUPPORTED_LANGUAGES,
+          new IconCompletionProvider(workspaceSvgProvider),
+          '<',
+          '"',
+          "'"
+        );
+        context.subscriptions.push(completionDisposable);
+      }
+
+      if (!hoverDisposable) {
+        hoverDisposable = vscode.languages.registerHoverProvider(
+          SUPPORTED_LANGUAGES,
+          new IconHoverProvider(workspaceSvgProvider)
+        );
+        context.subscriptions.push(hoverDisposable);
+      }
+
+      if (!codeActionProvider) {
+        codeActionProvider = vscode.languages.registerCodeActionsProvider(
+          SUPPORTED_LANGUAGES_WITH_SCHEME,
+          new SvgToIconCodeActionProvider(),
+          {
+            providedCodeActionKinds: SvgToIconCodeActionProvider.providedCodeActionKinds,
+          }
+        );
+        context.subscriptions.push(codeActionProvider);
+      }
+
+      if (!missingIconCodeActionProvider) {
+        missingIconCodeActionProvider = vscode.languages.registerCodeActionsProvider(
+          SUPPORTED_LANGUAGES,
+          new MissingIconCodeActionProvider(workspaceSvgProvider),
+          { providedCodeActionKinds: MissingIconCodeActionProvider.providedCodeActionKinds }
+        );
+        context.subscriptions.push(missingIconCodeActionProvider);
+      }
+
+      if (!iconImportCodeActionProvider) {
+        iconImportCodeActionProvider = vscode.languages.registerCodeActionsProvider(
+          SUPPORTED_LANGUAGES_WITH_SCHEME,
+          new IconImportCodeActionProvider(),
+          { providedCodeActionKinds: IconImportCodeActionProvider.providedCodeActionKinds }
+        );
+        context.subscriptions.push(iconImportCodeActionProvider);
+      }
+
+      if (!diagnosticProvider) {
+        diagnosticProvider = new SvgImgDiagnosticProvider();
+        // attach listeners and keep disposables so we can remove on disable
+        diagOnChangeDisposable = vscode.workspace.onDidChangeTextDocument(e => {
+          diagnosticProvider && diagnosticProvider.updateDiagnostics(e.document);
+        });
+        diagOnOpenDisposable = vscode.workspace.onDidOpenTextDocument(doc => {
+          diagnosticProvider && diagnosticProvider.updateDiagnostics(doc);
+        });
+        context.subscriptions.push(diagOnChangeDisposable, diagOnOpenDisposable);
+        // Update diagnostics for currently open documents
+        vscode.window.visibleTextEditors.forEach(editor => {
+          diagnosticProvider && diagnosticProvider.updateDiagnostics(editor.document);
+        });
+      }
+      return;
     }
-  );
 
-  // Register code action provider for missing icons in web components
-  const missingIconCodeActionProvider = vscode.languages.registerCodeActionsProvider(
-    SUPPORTED_LANGUAGES,
-    new MissingIconCodeActionProvider(workspaceSvgProvider),
-    {
-      providedCodeActionKinds: MissingIconCodeActionProvider.providedCodeActionKinds,
+    // If disabling, dispose existing providers and listeners
+    try {
+      completionDisposable && completionDisposable.dispose();
+      completionDisposable = undefined;
+      hoverDisposable && hoverDisposable.dispose();
+      hoverDisposable = undefined;
+      codeActionProvider && codeActionProvider.dispose();
+      codeActionProvider = undefined;
+      missingIconCodeActionProvider && missingIconCodeActionProvider.dispose();
+      missingIconCodeActionProvider = undefined;
+      iconImportCodeActionProvider && iconImportCodeActionProvider.dispose();
+      iconImportCodeActionProvider = undefined;
+      // diagnostics
+      diagOnChangeDisposable && diagOnChangeDisposable.dispose();
+      diagOnChangeDisposable = undefined;
+      diagOnOpenDisposable && diagOnOpenDisposable.dispose();
+      diagOnOpenDisposable = undefined;
+      diagnosticProvider && diagnosticProvider.clearDiagnostics && diagnosticProvider.clearDiagnostics();
+      diagnosticProvider && diagnosticProvider.dispose && diagnosticProvider.dispose();
+      diagnosticProvider = undefined;
+    } catch (e) {
+      // ignore disposal errors
     }
-  );
+  }
 
-  // Register code action provider to import missing icon components
-  const iconImportCodeActionProvider = vscode.languages.registerCodeActionsProvider(
-    SUPPORTED_LANGUAGES_WITH_SCHEME,
-    new IconImportCodeActionProvider(),
-    { providedCodeActionKinds: IconImportCodeActionProvider.providedCodeActionKinds }
-  );
+  // Initialize based on current config
+  setupCodeIntegration(codeIntegrationEnabled);
 
-  // Enable diagnostic provider to show hints for SVG img references
-  // This creates the diagnostic hints that trigger the code action provider
-  const diagnosticProvider = new SvgImgDiagnosticProvider();
+  // React to runtime changes in the configuration
+  context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
+    if (e.affectsConfiguration('masterSVG.codeIntegrationEnabled')) {
+      const enabled = vscode.workspace.getConfiguration('masterSVG').get<boolean>('codeIntegrationEnabled', false);
+      setupCodeIntegration(enabled);
+    }
+  }));
 
-  // Update diagnostics when documents change
-  vscode.workspace.onDidChangeTextDocument(e => {
-    diagnosticProvider.updateDiagnostics(e.document);
-  });
-  vscode.workspace.onDidOpenTextDocument(doc => {
-    diagnosticProvider.updateDiagnostics(doc);
-  });
-  // Update diagnostics for currently open documents
-  vscode.window.visibleTextEditors.forEach(editor => {
-    diagnosticProvider.updateDiagnostics(editor.document);
-  });
-
-  context.subscriptions.push(
-    completionDisposable,
-    hoverDisposable,
-    svgWatcher,
-    variantsWatcher,
-    codeActionProvider,
-    missingIconCodeActionProvider
-  );
+  // Always subscribe watchers
+  context.subscriptions.push(svgWatcher, variantsWatcher);
 }
 
 export function deactivate() {

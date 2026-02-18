@@ -42,6 +42,10 @@ export async function buildIcon(options: BuildIconOptions): Promise<BuildResult>
 
   const config = getConfig();
   const isSprite = config.buildFormat === 'sprite.svg';
+  const defaultColor = (config as any).defaultColor || 'currentColor';
+  const needsColorStyle = defaultColor && defaultColor !== 'currentColor';
+  const colorStyleHtml = needsColorStyle ? ` style="color: ${defaultColor}"` : '';
+  const colorStyleJsx = needsColorStyle ? ` style={{color: '${defaultColor}'}}` : '';
 
   try {
     if (isSprite) {
@@ -225,7 +229,8 @@ function formatPreservedAttributes(preserved: Record<string, string>): string {
 export function generateReplacement(
   iconName: string,
   languageId: string,
-  preservedAttrs?: Record<string, string>
+  preservedAttrs?: Record<string, string>,
+  elementTag?: string
 ): string {
   const config = getConfig();
   const isSprite = config.buildFormat === 'sprite.svg';
@@ -233,7 +238,44 @@ export function generateReplacement(
   const attrsStr = preservedAttrs ? formatPreservedAttributes(preservedAttrs) : '';
 
   if (isSprite) {
-    return `<svg${attrsStr} aria-hidden="true"><use href="sprite.svg#${iconName}"></use></svg>`;
+    // Add color style so sprite <use> icons respect the configured default color
+    const style = (languageId === 'javascriptreact' || languageId === 'typescriptreact') ? colorStyleJsx : colorStyleHtml;
+    return `<svg${style}${attrsStr} aria-hidden="true"><use href="sprite.svg#${iconName}"></use></svg>`;
+  }
+
+  // CSS output: use an inline element (default `span`) with classes
+  if (config.buildFormat === 'css') {
+    const tag = elementTag || (config as any).cssElementTag || 'span';
+    // For JSX languages, convert `class` -> `className`
+    const isJsx = ['javascriptreact', 'typescriptreact'].includes(languageId);
+    const preserved = preservedAttrs ? { ...preservedAttrs } : {};
+    // Merge default class
+    const baseClass = 'icon';
+    const safeName = iconName.replace(/[^a-z0-9_-]/gi, '-').toLowerCase();
+    const specificClass = `ms-icon--${safeName}`;
+    const existingClass = preserved.class || preserved.className || '';
+    const combinedClass = [baseClass, specificClass, existingClass].filter(Boolean).join(' ');
+
+    if (isJsx) {
+      // Build JSX attributes string
+      const jsxAttrs = Object.entries(preserved)
+        .filter(([k]) => k !== 'class' && k !== 'className')
+        .map(([k, v]) => `${k}="${v}"`)
+        .join(' ');
+      const classAttr = `className=\"${combinedClass}\"`;
+      const space = jsxAttrs ? ' ' : '';
+      const style = needsColorStyle ? ` style={{color: '${defaultColor}'}}` : '';
+      return `<${tag} ${classAttr}${space}${jsxAttrs}${style} aria-hidden=\"true\"></${tag}>`;
+    }
+
+    // HTML output
+    const htmlAttrs = Object.entries(preserved)
+      .filter(([k]) => k !== 'class' && k !== 'className')
+      .map(([k, v]) => `${k}="${v}"`)
+      .join(' ');
+    const space = htmlAttrs ? ' ' : '';
+    const style = needsColorStyle ? ` style="color: ${defaultColor}"` : '';
+    return `<${tag} class="${combinedClass}"${style}${space}${htmlAttrs} aria-hidden="true"></${tag}>`;
   }
 
   // For web component, use self-closing in JSX-like languages

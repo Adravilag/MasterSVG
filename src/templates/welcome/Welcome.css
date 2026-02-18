@@ -1,7 +1,7 @@
 :root {
   --accent: #0078d4;
   --accent-hover: #106ebe;
-  --accent-glow: rgba(0, 120, 212, 0.25);
+  --accent-glow: rgba(0, 120, 212, 0.15);
   --success: #4caf50;
   --card-bg: rgba(255, 255, 255, 0.03);
   --card-border: rgba(255, 255, 255, 0.08);
@@ -10,8 +10,9 @@
   --radius-md: 10px;
   --radius-lg: 14px;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.15);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+  --transition-speed: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Utility classes */
@@ -1058,22 +1059,38 @@ body {
   position: relative;
 }
 
+.format-card {
+  transition:
+    background var(--transition-speed),
+    border-color var(--transition-speed),
+    transform var(--transition-speed),
+    box-shadow var(--transition-speed);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
 .format-card:hover {
-  background: rgba(0, 120, 212, 0.04);
-  border-color: rgba(0, 120, 212, 0.3);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
+  background: rgba(0, 120, 212, 0.06);
+  border-color: rgba(0, 120, 212, 0.4);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
 }
 
 .format-card.selected {
+  background: rgba(0, 120, 212, 0.12);
   border-color: var(--accent);
-  background: rgba(0, 120, 212, 0.1);
-  box-shadow: 0 0 0 1px var(--accent-glow), var(--shadow-md);
+  box-shadow: 0 0 0 3px var(--accent-glow), var(--shadow-md);
+  transform: translateY(0);
+}
+
+.format-card:active:not(.disabled) {
+  transform: scale(0.98);
 }
 
 .format-card.disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
+  filter: grayscale(0.8);
   pointer-events: none;
 }
 
@@ -1129,6 +1146,29 @@ body {
   background: rgba(255, 255, 255, 0.08);
   color: var(--vscode-descriptionForeground);
   border-radius: 4px;
+}
+
+/* Compact tag variations used in inline controls */
+.tag-neutral.small,
+.tag-pro.small {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+}
+
+/* Hex color badge next to color picker */
+.color-hex-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--vscode-foreground);
+  border-radius: 8px;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  margin-left: 8px;
 }
 
 /* Help Panel */
@@ -1308,8 +1348,11 @@ button {
 
 .build-options-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  /* Groups stacked vertically (one group per row); groups themselves
+     contain a 2-column grid for their items. This keeps a clear vertical
+     separation while allowing compact item layout inside each group. */
+  grid-template-columns: 1fr;
+  gap: 12px;
 }
 
 .build-option-item {
@@ -1324,7 +1367,34 @@ button {
 }
 
 .build-option-item:first-child {
+  grid-column: auto;
+}
+
+/* Group container: each group shows a title then items in a 2-column grid */
+.build-option-group {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 8px;
+}
+
+.build-option-group-title {
   grid-column: 1 / -1;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--vscode-descriptionForeground);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+@media (max-width: 1100px) {
+  .build-options-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 720px) {
+  .build-options-grid { grid-template-columns: 1fr; }
+  .build-option-group { grid-template-columns: 1fr; }
 }
 
 .build-option-item:hover {

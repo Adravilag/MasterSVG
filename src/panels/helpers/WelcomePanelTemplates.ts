@@ -230,7 +230,10 @@ function applyStep3Replacements(html: string, ctx: WebviewContext, tr: Record<st
       .replace(/\$\{codeIntegrationDisabled\}/g, '')
       .replace(/\$\{codeIntegrationLabel\}/g, tr.codeIntegrationLabel || '')
       .replace(/\$\{codeIntegrationHint\}/g, tr.codeIntegrationHint || '')
-      .replace(/\$\{codeIntegrationBadge\}/g, ctx.codeIntegrationEnabled && ctx.buildFormat === 'icons.js' ? '<span class="tag-pro">' + (tr.codeIntegrationBadge || '') + '</span>' : '')
+      .replace(/\$\{codeIntegrationBadge\}/g, '')
+      .replace(/\$\{codeIntegrationBadgeJs\}/g, ctx.codeIntegrationEnabled ? '<span class="tag-pro">' + (tr.codeIntegrationBadge || '') + '</span>' : '')
+      .replace(/\$\{codeIntegrationBadgeSprite\}/g, ctx.codeIntegrationEnabled ? '<span class="tag-pro">' + (tr.codeIntegrationBadge || '') + '</span>' : '')
+      .replace(/\$\{codeIntegrationBadgeCss\}/g, ctx.codeIntegrationEnabled ? '<span class="tag-pro">' + (tr.codeIntegrationBadge || '') + '</span>' : '')
       // Transform card removed from template; transform badge placeholder no longer used
     .replace(/\$\{transformPro1\}/g, tr.transformPro1 || tr.jsModulePro1)
     .replace(/\$\{separateOutputHidden\}/g, ctx.buildFormat === 'icons.js' ? '' : 'style="display:none"')
@@ -271,7 +274,7 @@ function applyAdvancedReplacements(
   tr: Record<string, string>,
   step4Section: string
 ): string {
-  return html
+  let result = html
     .replace(/\$\{step4Section\}/g, step4Section)
     .replace(/\$\{buildOptionsTitle\}/g, tr.buildOptionsTitle)
     .replace(/\$\{buildOptionsBeta\}/g, tr.buildOptionsBeta || 'Beta')
@@ -281,11 +284,39 @@ function applyAdvancedReplacements(
    .replace(/\$\{separateOutputDisabled\}/g, ctx.buildFormat === 'icons.js' ? '' : `disabled title="${tr.separateOutputDisabledHint || 'Applies only to JS/TS modules'}"`)
     .replace(/\$\{defaultIconSizeLabel\}/g, tr.defaultIconSizeLabel)
     .replace(/\$\{previewBackgroundLabel\}/g, tr.previewBackgroundLabel)
-    .replace(/\$\{defaultIconSize\}/g, String(ctx.defaultIconSize))
+      .replace(/\$\{defaultIconSize\}/g, String(ctx.defaultIconSize))
+      .replace(/\$\{cssElementTagValue\}/g, (ctx as any).cssElementTag || 'span')
+      .replace(/\$\{cssElementTagDisabled\}/g, ctx.buildFormat === 'css' ? '' : `disabled title="Applies only to CSS output"`)
+      .replace(/\$\{cssElementTagHidden\}/g, ctx.buildFormat === 'css' ? '' : 'style="display:none"')
+      .replace(/\$\{cssElementTagLabel\}/g, tr.cssElementTagLabel || 'CSS element tag')
+      .replace(/\$\{cssElementTagHint\}/g, tr.cssElementTagHint || 'Element used to render CSS icons (span, i, div)')
+      .replace(/\$\{defaultSvgColorValue\}/g, (() => {
+        const v = (ctx as any).defaultSvgColor || 'currentColor';
+        return v === 'currentColor' ? '#000000' : v;
+      })())
+      .replace(/\$\{defaultSvgColorLabel\}/g, tr.defaultSvgColorLabel || 'Default SVG color')
+      .replace(/\$\{defaultSvgColorHint\}/g, tr.defaultSvgColorHint || "Default color used when inserting icons (CSS color or 'currentColor')")
+      .replace(/\$\{defaultSvgColorBadge\}/g, (!((ctx as any).defaultSvgColor) || (ctx as any).defaultSvgColor === 'currentColor') ? ('<span class="tag-neutral small">' + (tr.defaultSvgColorBadge || 'currentColor') + '</span>') : '')
+      .replace(/\$\{defaultSvgColorHex\}/g, ((ctx as any).defaultSvgColor && (ctx as any).defaultSvgColor !== 'currentColor') ? ('<span class="badge color-hex-badge">' + (ctx as any).defaultSvgColor + '</span>') : '')
+        .replace(/\$\{bgTransparentLabel\}/g, tr.bgTransparentLabel || 'Transparent')
+        .replace(/\$\{bgLightLabel\}/g, tr.bgLightLabel || 'Light')
+        .replace(/\$\{bgDarkLabel\}/g, tr.bgDarkLabel || 'Dark')
+        .replace(/\$\{bgCheckeredLabel\}/g, tr.bgCheckeredLabel || 'Checkered')
     .replace(/\$\{bgTransparent\}/g, ctx.previewBackground === 'transparent' ? 'selected' : '')
     .replace(/\$\{bgLight\}/g, ctx.previewBackground === 'light' ? 'selected' : '')
     .replace(/\$\{bgDark\}/g, ctx.previewBackground === 'dark' ? 'selected' : '')
     .replace(/\$\{bgCheckered\}/g, ctx.previewBackground === 'checkered' ? 'selected' : '');
+
+  // Group titles (support both lower and UPPER token variants for backward compatibility)
+  result = result
+    .replace(/\$\{groupGeneral\}/g, tr.groupGeneral || 'General')
+    .replace(/\$\{GROUPGENERAL\}/g, tr.groupGeneral || 'General')
+    .replace(/\$\{groupPresentation\}/g, tr.groupPresentation || 'Presentation')
+    .replace(/\$\{GROUPPRESENTATION\}/g, tr.groupPresentation || 'Presentation')
+    .replace(/\$\{groupAppearance\}/g, tr.groupAppearance || 'Appearance')
+    .replace(/\$\{GROUPAPPEARANCE\}/g, tr.groupAppearance || 'Appearance');
+
+  return result;
 }
 
 /**

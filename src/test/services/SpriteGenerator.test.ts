@@ -374,7 +374,7 @@ describe('SpriteGenerator', () => {
       });
 
       expect(fs.writeFileSync).toHaveBeenCalledWith(
-        expect.stringContaining('sprite.types.ts'),
+        expect.stringContaining('types.d.ts'),
         expect.any(String),
         'utf-8'
       );

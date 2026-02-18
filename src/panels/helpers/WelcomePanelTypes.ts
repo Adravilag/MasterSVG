@@ -19,6 +19,8 @@ export interface SessionConfig {
   createMsignore: boolean;
   separateOutputStructure: boolean;
   codeIntegrationEnabled?: boolean;
+  cssElementTag?: string;
+  defaultSvgColor?: string;
 
 }
 
@@ -46,6 +48,8 @@ export interface WebviewContext {
   suggestedOutputDirs: string[];
   separateOutputStructure: boolean;
   codeIntegrationEnabled?: boolean;
+  cssElementTag?: string;
+  defaultSvgColor?: string;
 
 }
 
@@ -95,7 +99,7 @@ export function createDefaultSessionConfig(): SessionConfig {
     svgFolders: [],
     outputDirectory: '',
     framework: '',
-    buildFormat: '',
+    buildFormat: 'icons.js',
     webComponentName: '',
     scanOnStartup: true,
     defaultIconSize: 24,
@@ -105,5 +109,6 @@ export function createDefaultSessionConfig(): SessionConfig {
     createMsignore: true,
     separateOutputStructure: false,
       codeIntegrationEnabled: false,
+      cssElementTag: 'span',
   };
 }

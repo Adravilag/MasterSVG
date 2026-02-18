@@ -71,9 +71,9 @@ export class SpriteGenerator {
     const spritePath = path.join(outputDir, `${filename}.svg`);
     fs.writeFileSync(spritePath, result.sprite, 'utf-8');
 
-    // Save type definitions
+    // Save type definitions (use unified name `types.d.ts`)
     if (result.typeDefinitions) {
-      const typesPath = path.join(outputDir, `${filename}.types.ts`);
+      const typesPath = path.join(outputDir, `types.d.ts`);
       fs.writeFileSync(typesPath, result.typeDefinitions, 'utf-8');
     }
 

@@ -134,6 +134,8 @@
               <span class="tag-neutral small">${buildOptionsBeta}</span>
             </div>
             <div class="build-options-grid">
+              <div class="build-option-group">
+                <div class="build-option-group-title">${groupGeneral}</div>
               <div class="build-option-item" ${separateOutputHidden}>
                 <div class="build-option-icon">
                   <svg viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg>
@@ -146,7 +148,7 @@
                   </label>
                   <p class="build-option-hint">${separateOutputHint}</p>
                 </div>
-              </div>
+                </div>
                 <div class="build-option-item">
                   <div class="build-option-icon">
                     <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm0 7l-10 5 10 5 10-5-10-5z"/></svg>
@@ -160,6 +162,21 @@
                     <p class="build-option-hint">${codeIntegrationHint}</p>
                   </div>
                 </div>
+              </div>
+              <div class="build-option-group">
+                <div class="build-option-group-title">${groupPresentation}</div>
+                <div class="build-option-item" ${cssElementTagHidden}>
+                  <div class="build-option-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm0 7l-10 5 10 5 10-5-10-5z"/></svg>
+                  </div>
+                  <div class="build-option-body">
+                    <label class="select-label">
+                      <span>${cssElementTagLabel}</span>
+                      <input type="text" id="cssElementTag" value="${cssElementTagValue}" ${cssElementTagDisabled} onchange="setCssElementTag(this.value)" class="size-input">
+                    </label>
+                    <p class="build-option-hint">${cssElementTagHint}</p>
+                  </div>
+                </div>
               <div class="build-option-item">
                 <div class="build-option-icon">
                   <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM5 15h14v3H5z"/></svg>
@@ -168,10 +185,10 @@
                   <label class="select-label">
                     <span>${previewBackgroundLabel}</span>
                     <select id="previewBackground" onchange="setPreviewBackground(this.value)">
-                      <option value="transparent" ${bgTransparent}>Transparent</option>
-                      <option value="light" ${bgLight}>Light</option>
-                      <option value="dark" ${bgDark}>Dark</option>
-                      <option value="checkered" ${bgCheckered}>Checkered</option>
+                      <option value="transparent" ${bgTransparent}>${bgTransparentLabel}</option>
+                      <option value="light" ${bgLight}>${bgLightLabel}</option>
+                      <option value="dark" ${bgDark}>${bgDarkLabel}</option>
+                      <option value="checkered" ${bgCheckered}>${bgCheckeredLabel}</option>
                     </select>
                   </label>
                 </div>
@@ -185,6 +202,23 @@
                     <span>${defaultIconSizeLabel}</span>
                     <input type="number" id="defaultIconSize" value="${defaultIconSize}" min="8" max="512" onchange="setDefaultIconSize(this.value)" class="size-input">
                   </label>
+                </div>
+              </div>
+              </div>
+              <div class="build-option-group">
+                <div class="build-option-group-title">${groupAppearance}</div>
+              <div class="build-option-item">
+                <div class="build-option-icon">
+                  <svg viewBox="0 0 24 24"><path d="M12 2A10 10 0 1 0 22 12A10 10 0 0 0 12 2zM12 20a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/></svg>
+                </div>
+                <div class="build-option-body">
+                  <label class="select-label">
+                    <span>${defaultSvgColorLabel}</span>
+                    <input type="color" id="defaultSvgColor" value="${defaultSvgColorValue}" onchange="setDefaultSvgColor(this.value)" class="size-input">
+                    <span id="defaultSvgColorDisplay">${defaultSvgColorBadge} ${defaultSvgColorHex}</span>
+                  </label>
+                  <p class="build-option-hint">${defaultSvgColorHint}</p>
+                </div>
                 </div>
               </div>
             </div>
@@ -205,7 +239,7 @@
                 <div class="format-tags">
                   <span class="tag-pro">${jsModulePro1}</span>
                   <span class="tag-pro">${jsModulePro2}</span>
-                  ${codeIntegrationBadge}
+                  ${codeIntegrationBadgeJs}
                 </div>
               </div>
               <!-- Transform option removed -->
@@ -218,6 +252,7 @@
                 <div class="format-tags">
                   <span class="tag-neutral">${spritePro1}</span>
                   <span class="tag-neutral">${spritePro2}</span>
+                  ${codeIntegrationBadgeSprite}
                 </div>
               </div>
               <div class="format-card ${cssSelected}" onclick="setBuildFormat('css')">
@@ -229,7 +264,9 @@
                 <div class="format-tags">
                   <span class="tag-neutral">${cssIconsPro1}</span>
                   <span class="tag-neutral">${cssIconsPro2}</span>
+                  ${codeIntegrationBadgeCss}
                 </div>
+
               </div>
             </div>
           </div><!-- /.format-right -->

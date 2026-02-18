@@ -148,7 +148,7 @@ export class WelcomePanel {
       svgFolders: [],
       outputDirectory: '',
       framework: '',
-      buildFormat: '',
+      buildFormat: config.get<string>('buildFormat', 'icons.js'),
       webComponentName: '',
       scanOnStartup: config.get<boolean>('scanOnStartup', true),
       defaultIconSize: config.get<number>('defaultIconSize', 24),
@@ -156,6 +156,7 @@ export class WelcomePanel {
       autoGenerateLicenses: config.get<boolean>('autoGenerateLicenses', false),
       separateOutputStructure: config.get<boolean>('separateOutputStructure', false),
       codeIntegrationEnabled: config.get<boolean>('codeIntegrationEnabled', false),
+      cssElementTag: config.get<string>('cssElementTag', 'span'),
     };
   }
 
@@ -191,6 +192,8 @@ export class WelcomePanel {
       setCreateMsignore: async () => this._setCreateMsignore(message.value as boolean),
       setSeparateOutputStructure: async () => this._setSeparateOutputStructure(message.value as boolean),
       setCodeIntegration: async () => this._setCodeIntegration(message.value as boolean),
+      setCssElementTag: async () => { if (typeof message.value === 'string') await this._setCssElementTag(message.value as string); },
+      setDefaultSvgColor: async () => { if (typeof message.value === 'string') await this._setDefaultSvgColor(message.value as string); },
       openSettings: async () => { await vscode.commands.executeCommand('workbench.action.openSettings', 'masterSVG'); },
       searchIcons: async () => { await vscode.commands.executeCommand('masterSVG.searchIcons'); this._panel.dispose(); },
       close: async () => { this._panel.dispose(); },
@@ -369,6 +372,16 @@ export class WelcomePanel {
     await this._update();
   }
 
+  private async _setCssElementTag(value: string): Promise<void> {
+    this._sessionConfig.cssElementTag = value;
+    await this._update();
+  }
+
+  private async _setDefaultSvgColor(value: string): Promise<void> {
+    this._sessionConfig.defaultSvgColor = value;
+    await this._update();
+  }
+
   // #endregion
 
   // #region Validation helpers
@@ -475,6 +488,8 @@ export class WelcomePanel {
       ['previewBackground', this._sessionConfig.previewBackground],
       ['separateOutputStructure', this._sessionConfig.separateOutputStructure],
       ['codeIntegrationEnabled', this._sessionConfig.codeIntegrationEnabled],
+      ['defaultColor', this._sessionConfig.defaultSvgColor],
+      ['cssElementTag', this._sessionConfig.cssElementTag],
     ];
 
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -646,6 +661,8 @@ export class WelcomePanel {
       suggestedOutputDirs,
       separateOutputStructure: this._sessionConfig.separateOutputStructure,
       codeIntegrationEnabled: this._sessionConfig.codeIntegrationEnabled,
+      cssElementTag: this._sessionConfig.cssElementTag,
+      defaultSvgColor: this._sessionConfig.defaultSvgColor,
     };
   }
 

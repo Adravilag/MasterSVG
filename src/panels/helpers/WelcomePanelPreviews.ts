@@ -5,6 +5,7 @@
  */
 
 import { FrameworkType } from '../../services/types';
+import { getConfig } from '../../utils/configHelper';
 import { FrameworkWrapperService } from '../../services/framework';
 
 /** Options for generating framework previews */
@@ -15,6 +16,7 @@ export interface FrameworkPreviewOptions {
   webComponentDisplay: string;
   separateOutputStructure?: boolean;
   tr: Record<string, string>;
+  codeIntegrationEnabled?: boolean;
 }
 
 /** Internal preview options */
@@ -81,20 +83,28 @@ function outputFilesInfo(files: string[], label: string): string {
  */
 export function getFrameworkPreview(options: FrameworkPreviewOptions): string {
   const { buildFormat, framework, outputDirDisplay, webComponentDisplay, separateOutputStructure, tr } = options;
+  const codeIntegrationEnabled = options.codeIntegrationEnabled !== false;
 
   if (!buildFormat) {
     return getEmptyPreviewPlaceholder(tr);
   }
 
   if (buildFormat === 'sprite.svg') {
-    return getSpritePreview(outputDirDisplay, tr);
+    return getSpritePreview(outputDirDisplay, tr, codeIntegrationEnabled);
   }
 
   if (buildFormat === 'css') {
-    return getCssPreview(outputDirDisplay, tr);
+    return getCssPreview(outputDirDisplay, tr, codeIntegrationEnabled);
   }
 
-  return getIconsPreview(framework as FrameworkType, outputDirDisplay, webComponentDisplay, Boolean(separateOutputStructure), tr);
+  return getIconsPreview(
+    framework as FrameworkType,
+    outputDirDisplay,
+    webComponentDisplay,
+    Boolean(separateOutputStructure),
+    tr,
+    codeIntegrationEnabled
+  );
 }
 
 /**
@@ -129,7 +139,7 @@ export function getPreviewWindowTitle(options: FrameworkPreviewOptions): string 
  */
 export function getOutputFilesList(buildFormat: string, framework: string, separateStructure: boolean): string[] {
   if (buildFormat === 'sprite.svg') {
-    return ['sprite.svg', 'sprite.types.ts'];
+    return ['sprite.svg', 'types.d.ts'];
   }
   if (buildFormat === 'css') {
     return ['icons.css', 'types.d.ts'];
@@ -165,8 +175,9 @@ function getEmptyPreviewPlaceholder(tr: Record<string, string>): string {
 // SPRITE PREVIEW
 // ═══════════════════════════════════════════════════════════
 
-function getSpritePreview(dir: string, tr: Record<string, string>): string {
-  const filesHtml = outputFilesInfo(['sprite.svg', 'sprite.types.ts'], tr.workflowOutput || 'Output');
+function getSpritePreview(dir: string, tr: Record<string, string>, showTypes = true): string {
+  const files = showTypes ? ['sprite.svg', 'types.d.ts'] : ['sprite.svg'];
+  const filesHtml = outputFilesInfo(files, tr.workflowOutput || 'Output');
   return `${filesHtml}<div class="code-block">
 ${ln(1, htmlCmt(tr.previewRef))}
 ${ln(2, `${tag('&lt;svg')} ${attr('width')}=${val('"24"')} ${attr('height')}=${val('"24"')}${tag('&gt;')}`)}
@@ -189,24 +200,27 @@ ${ln(14, tag('&lt;/svg&gt;'))}
 // CSS ICONS PREVIEW
 // ═══════════════════════════════════════════════════════════
 
-function getCssPreview(dir: string, tr: Record<string, string>): string {
-  const filesHtml = outputFilesInfo(['icons.css', 'types.d.ts'], tr.workflowOutput || 'Output');
+function getCssPreview(dir: string, tr: Record<string, string>, showTypes = true): string {
+  const files = showTypes ? ['icons.css', 'types.d.ts'] : ['icons.css'];
+  const filesHtml = outputFilesInfo(files, tr.workflowOutput || 'Output');
+  const cfg = getConfig();
+  const element = (cfg as any).cssElementTag || 'span';
   return `${filesHtml}<div class="code-block">
 ${ln(1, htmlCmt(tr.previewImport))}
 ${ln(2, `${tag('&lt;link')} ${attr('rel')}=${val('"stylesheet"')} ${attr('href')}=${val(`"${dir}/icons.css"`)}${tag(' /&gt;')}`)}
 ${ln(3, '')}
 ${ln(4, htmlCmt(tr.previewUse))}
-${ln(5, `${tag('&lt;span')} ${attr('class')}=${val('"icon icon-home"')}${tag('&gt;&lt;/span&gt;')}`)}
-${ln(6, `${tag('&lt;span')} ${attr('class')}=${val('"icon icon-heart"')}${tag('&gt;&lt;/span&gt;')}`)}
+${ln(5, `${tag(`&lt;${element}`)} ${attr('class')}=${val('"icon icon-home"')}${tag(`&gt;&lt;/${element}&gt;`)}`)}
+${ln(6, `${tag(`&lt;${element}`)} ${attr('class')}=${val('"icon icon-heart"')}${tag(`&gt;&lt;/${element}&gt;`)}`)}
 ${ln(7, '')}
 ${ln(8, htmlCmt('currentColor — inherits parent color'))}
 ${ln(9, `${tag('&lt;nav')} ${attr('style')}=${val('"color: #e25555"')}${tag('&gt;')}`)}
-${ln(10, `  ${tag('&lt;span')} ${attr('class')}=${val('"icon icon-settings"')}${tag('&gt;&lt;/span&gt;')} ${cmt('→ #e25555')}`)}
+${ln(10, `  ${tag(`&lt;${element}`)} ${attr('class')}=${val('"icon icon-settings"')}${tag(`&gt;&lt;/${element}&gt;`)} ${cmt('→ #e25555')}`)}
 ${ln(11, tag('&lt;/nav&gt;'))}
 ${ln(12, '')}
 ${ln(13, htmlCmt('Custom size via CSS variable'))}
-${ln(14, `${tag('&lt;span')} ${attr('class')}=${val('"icon icon-check"')}`)}
-${ln(15, `  ${attr('style')}=${val('"--icon-size: 32px"')}${tag('&gt;&lt;/span&gt;')}`)}
+${ln(14, `${tag(`&lt;${element}`)} ${attr('class')}=${val('"icon icon-check"')}`)}
+${ln(15, `  ${attr('style')}=${val('"--icon-size: 32px"')}${tag(`&gt;&lt;/${element}&gt;`)}`)}
 </div>`;
 }
 
@@ -220,6 +234,7 @@ function getIconsPreview(
   webComponentDisplay: string,
   separateStructure: boolean,
   tr: Record<string, string>
+  , codeIntegrationEnabled = true
 ): string {
   const wrapperService = FrameworkWrapperService.getInstance();
   const frameworkBadge =
@@ -228,7 +243,10 @@ function getIconsPreview(
       : '';
   const wrapperFilename = wrapperService.getWrapperFilename(selectedFramework, webComponentDisplay);
   const componentImport = webComponentDisplay || wrapperService.getDefaultComponentName(selectedFramework);
-  const outputFiles = getOutputFilesList('icons.js', selectedFramework, separateStructure);
+  let outputFiles = getOutputFilesList('icons.js', selectedFramework, separateStructure);
+  if (!codeIntegrationEnabled) {
+    outputFiles = outputFiles.filter(f => f !== 'types.d.ts');
+  }
   const displayFiles = separateStructure
     ? outputFiles.map(f => {
         if (f === 'svg-data.ts' || f === 'svg-data.js') return `assets/icons/svg-data.ts`;
