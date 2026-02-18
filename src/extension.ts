@@ -80,8 +80,15 @@ async function showOnboardingWizard(context: vscode.ExtensionContext): Promise<v
     return;
   }
 
-  // Show Welcome Panel
-  WelcomePanel.createOrShow(context.extensionUri);
+  // Only show Welcome Panel for first-time users or when not configured
+  try {
+    if (!WelcomePanel.isConfigured()) {
+      WelcomePanel.createOrShow(context.extensionUri);
+    }
+  } catch (err) {
+    // If any error occurs while checking configuration, fall back to not showing
+    console.error('[MasterSVG] Failed to evaluate welcome state:', err);
+  }
 }
 
 export function activate(context: vscode.ExtensionContext) {

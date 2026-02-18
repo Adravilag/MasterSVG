@@ -96,9 +96,13 @@ export class WelcomePanel {
    */
   public static isConfigured(): boolean {
     const config = vscode.workspace.getConfiguration('masterSVG');
-    const hasVsCodeConfig = !!(
-      config.get<string[]>('svgFolders')?.length ||
-      config.get<string>('outputDirectory')
+    // Prefer workspace-scoped settings: consider configured only when values exist in workspace settings
+    const svgFoldersInspect = config.inspect<string[]>('svgFolders');
+    const outputInspect = config.inspect<string>('outputDirectory');
+
+    const hasWorkspaceConfig = !!(
+      (svgFoldersInspect && (svgFoldersInspect.workspaceValue?.length || svgFoldersInspect.workspaceFolderValue?.length)) ||
+      (outputInspect && (outputInspect.workspaceValue || outputInspect.workspaceFolderValue))
     );
 
     // Also check for mastersvg.config.json
@@ -108,9 +112,14 @@ export class WelcomePanel {
       if (fs.existsSync(configPath)) {
         return true;
       }
+      // If workspace contains a VS Code settings file, treat as configured
+      const vscodeSettingsPath = path.join(workspaceFolder.uri.fsPath, '.vscode', 'settings.json');
+      if (fs.existsSync(vscodeSettingsPath)) {
+        return true;
+      }
     }
 
-    return hasVsCodeConfig;
+    return hasWorkspaceConfig;
   }
 
   private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
