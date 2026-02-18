@@ -1199,6 +1199,8 @@ export interface ComponentExportOptions {
   typescript: boolean;
   /** Icon name */
   iconName: string;
+  /** Optional explicit component name (overrides derived name) */
+  componentName?: string;
   /** SVG content */
   svg: string;
   /** Default icon size */
@@ -1995,6 +1997,8 @@ export interface IconStudioConfig {
   defaultSize: number;
   /** Default icon color */
   defaultColor: string;
+  /** HTML tag to use for CSS output icons (e.g. 'span', 'i') */
+  cssElementTag?: string;
   /** Web component tag name */
   webComponentName: string;
   /** Build output format */

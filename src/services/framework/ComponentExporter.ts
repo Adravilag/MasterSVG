@@ -72,68 +72,64 @@ export class ComponentExporter {
       defaultSize = 24,
       defaultColor = 'currentColor',
     } = options;
-    const componentName = this.toPascalCase(iconName);
+    const componentName = (options as any).componentName || this.toPascalCase(iconName);
     const ext = typescript ? 'tsx' : 'jsx';
 
     // Parse SVG and extract attributes
     const { attributes, innerContent } = this.parseSvg(svg);
 
-    // Build props interface
-    const propsType = typescript
-      ? `interface ${componentName}Props extends React.SVGProps<SVGSVGElement> {
-  size?: number | string;
-  color?: string;
-}`
-      : '';
+    // Build a simple props interface name to match webview sample
+    const propsTypeName = 'IconProps';
 
-    // Build component
-    let code = '';
+    // Build strings following the same concatenation strategy used by the webview template
+    const importLine = `import React from 'react';`;
+    const interfaceLine = typescript ? `\ninterface ${propsTypeName} extends React.SVGProps<SVGSVGElement> {}` : '';
 
-    if (typescript) {
-      code += `import React from 'react';\n\n`;
-      code += propsType + '\n\n';
-    } else {
-      code += `import React from 'react';\n\n`;
-    }
+    // Normalize JSX inner content to include a space before self-closing slash (matches webview sample)
+    const rawJsx = this.convertToJSX(innerContent).trim();
+    const jsxContent = rawJsx.replace(/\/>/g, ' />');
 
-    const propsArg = typescript
-      ? `{ size = ${defaultSize}, color = '${defaultColor}', ...props }: ${componentName}Props`
-      : `{ size = ${defaultSize}, color = '${defaultColor}', ...props }`;
-
+    let componentDef = '';
     if (forwardRef) {
-      const refType = typescript ? `React.Ref<SVGSVGElement>` : '';
-      code += `const ${componentName} = React.forwardRef${typescript ? `<SVGSVGElement, ${componentName}Props>` : ''}((${propsArg}, ref${typescript ? `: ${refType}` : ''}) => (\n`;
+      if (typescript) {
+        componentDef += `\nconst ${componentName} = React.forwardRef<SVGSVGElement, ${propsTypeName}>(function ${componentName}(props, ref) {\n`;
+        componentDef += `  return (\n`;
+        componentDef += `    <svg width="24" height="24" viewBox="${attributes.viewBox || '0 0 24 24'}" ref={ref} {...props}>\n`;
+        componentDef += `      ${jsxContent}\n`;
+        componentDef += `    </svg>\n`;
+        componentDef += `  );\n`;
+        componentDef += `});\n`;
+      } else {
+        componentDef += `\nconst ${componentName} = React.forwardRef(function ${componentName}(props, ref) {\n`;
+        componentDef += `  return (\n`;
+        componentDef += `    <svg width="24" height="24" viewBox="${attributes.viewBox || '0 0 24 24'}" ref={ref} {...props}>\n`;
+        componentDef += `      ${jsxContent}\n`;
+        componentDef += `    </svg>\n`;
+        componentDef += `  );\n`;
+        componentDef += `});\n`;
+      }
     } else {
-      code += `const ${componentName} = (${propsArg}) => (\n`;
+      if (typescript) {
+        componentDef += `\nconst ${componentName}: React.FC<${propsTypeName}> = (props) => {\n`;
+        componentDef += `  return (\n`;
+        componentDef += `    <svg width="24" height="24" viewBox="${attributes.viewBox || '0 0 24 24'}" {...props}>\n`;
+        componentDef += `      ${jsxContent}\n`;
+        componentDef += `    </svg>\n`;
+        componentDef += `  );\n`;
+        componentDef += `};\n`;
+      } else {
+        componentDef += `\nfunction ${componentName}(props) {\n`;
+        componentDef += `  return (\n`;
+        componentDef += `    <svg width="24" height="24" viewBox="${attributes.viewBox || '0 0 24 24'}" {...props}>\n`;
+        componentDef += `      ${jsxContent}\n`;
+        componentDef += `    </svg>\n`;
+        componentDef += `  );\n`;
+        componentDef += `}\n`;
+      }
     }
 
-    code += `  <svg\n`;
-    code += `    ref={${forwardRef ? 'ref' : 'undefined'}}\n`;
-    code += `    width={size}\n`;
-    code += `    height={size}\n`;
-    code += `    viewBox="${attributes.viewBox || '0 0 24 24'}"\n`;
-    code += `    fill="${attributes.fill || 'none'}"\n`;
-    code += `    stroke={color}\n`;
-    code += `    strokeWidth="${attributes['stroke-width'] || attributes.strokeWidth || '2'}"\n`;
-    code += `    strokeLinecap="${attributes['stroke-linecap'] || attributes.strokeLinecap || 'round'}"\n`;
-    code += `    strokeLinejoin="${attributes['stroke-linejoin'] || attributes.strokeLinejoin || 'round'}"\n`;
-    code += `    {...props}\n`;
-    code += `  >\n`;
-    code += `    ${this.convertToJSX(innerContent)}\n`;
-    code += `  </svg>\n`;
-
-    if (forwardRef) {
-      code += `));\n\n`;
-      code += `${componentName}.displayName = '${componentName}';\n\n`;
-    } else {
-      code += `);\n\n`;
-    }
-
-    if (memo && !forwardRef) {
-      code += `export ${exportType === 'default' ? 'default' : `const ${componentName}Memo =`} React.memo(${componentName});\n`;
-    } else {
-      code += `export ${exportType === 'default' ? 'default' : ''} ${exportType === 'named' ? `{ ${componentName} }` : componentName};\n`;
-    }
+    const exportLines = exportType === 'default' ? `\nexport default ${componentName};` : `\nexport { ${componentName} };`;
+    const code = `${importLine}${interfaceLine}\n${componentDef}${exportLines}`.trim() + '\n';
 
     return {
       code,
@@ -146,7 +142,7 @@ export class ComponentExporter {
 
   private exportReactNative(options: ExportOptions): ExportResult {
     const { iconName, svg, typescript, defaultSize = 24, defaultColor = 'currentColor' } = options;
-    const componentName = this.toPascalCase(iconName);
+    const componentName = (options as any).componentName || this.toPascalCase(iconName);
     const ext = typescript ? 'tsx' : 'jsx';
 
     const { attributes, innerContent } = this.parseSvg(svg);
@@ -183,7 +179,7 @@ const ${componentName} = ({ size = ${defaultSize}, color = '${defaultColor}' }) 
 
   private exportVueComposition(options: ExportOptions): ExportResult {
     const { iconName, svg, typescript, defaultSize = 24, defaultColor = 'currentColor' } = options;
-    const componentName = this.toPascalCase(iconName);
+    const componentName = (options as any).componentName || this.toPascalCase(iconName);
 
     const { attributes, innerContent } = this.parseSvg(svg);
 
@@ -230,7 +226,7 @@ ${
 
   private exportVueSFC(options: ExportOptions): ExportResult {
     const { iconName, svg, typescript, defaultSize = 24, defaultColor = 'currentColor' } = options;
-    const componentName = this.toPascalCase(iconName);
+    const componentName = (options as any).componentName || this.toPascalCase(iconName);
 
     const { attributes, innerContent } = this.parseSvg(svg);
 
@@ -283,7 +279,7 @@ ${
 
   private exportSvelte(options: ExportOptions): ExportResult {
     const { iconName, svg, typescript, defaultSize = 24, defaultColor = 'currentColor' } = options;
-    const componentName = this.toPascalCase(iconName);
+    const componentName = (options as any).componentName || this.toPascalCase(iconName);
 
     const { attributes, innerContent } = this.parseSvg(svg);
 
@@ -318,7 +314,7 @@ ${
 
   private exportAngular(options: ExportOptions): ExportResult {
     const { iconName, svg, defaultSize = 24, defaultColor = 'currentColor' } = options;
-    const componentName = this.toPascalCase(iconName);
+    const componentName = (options as any).componentName || this.toPascalCase(iconName);
     const selector = this.toKebabCase(iconName);
 
     const { attributes, innerContent } = this.parseSvg(svg);
@@ -360,7 +356,7 @@ export class ${componentName}IconComponent {
 
   private exportSolid(options: ExportOptions): ExportResult {
     const { iconName, svg, typescript, defaultSize = 24, defaultColor = 'currentColor' } = options;
-    const componentName = this.toPascalCase(iconName);
+    const componentName = (options as any).componentName || this.toPascalCase(iconName);
     const ext = typescript ? 'tsx' : 'jsx';
 
     const { attributes, innerContent } = this.parseSvg(svg);
@@ -420,7 +416,7 @@ export default ${componentName};
 
   private exportQwik(options: ExportOptions): ExportResult {
     const { iconName, svg, typescript, defaultSize = 24, defaultColor = 'currentColor' } = options;
-    const componentName = this.toPascalCase(iconName);
+    const componentName = (options as any).componentName || this.toPascalCase(iconName);
     const ext = typescript ? 'tsx' : 'jsx';
 
     const { attributes, innerContent } = this.parseSvg(svg);

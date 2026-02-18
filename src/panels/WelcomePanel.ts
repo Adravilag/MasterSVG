@@ -578,7 +578,13 @@ export class WelcomePanel {
 
     // Obtener la URI segura del icono empaquetado (png declarado en package.json)
     const iconPath = vscode.Uri.joinPath(this._extensionUri, 'resources', 'icon.png');
-    const iconUri = this._panel.webview.asWebviewUri(iconPath).toString();
+    let iconUri: string;
+    if (this._panel && this._panel.webview && typeof (this._panel.webview as any).asWebviewUri === 'function') {
+      iconUri = this._panel.webview.asWebviewUri(iconPath).toString();
+    } else {
+      // Fallback for test environment where asWebviewUri may be missing
+      iconUri = iconPath.toString();
+    }
 
     const htmlContent = applyTemplateReplacements({
       html: templates.html,

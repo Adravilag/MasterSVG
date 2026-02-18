@@ -12,9 +12,13 @@ import {
   SvgImgDiagnosticProvider,
   IconPreviewProvider,
 } from './providers';
+import { getSvgConfig } from './utils/config';
+import { buildIcon } from './utils/iconBuildHelpers';
+import * as path from 'path';
 import IconImportCodeActionProvider from './providers/IconImportCodeActionProvider';
 import { SvgTransformer, getVariantsService, getAnimationService } from './services';
 import { WelcomePanel } from './panels/WelcomePanel';
+import { IconStudioPanel } from './panels/IconStudioPanel';
 import {
   updateIconsJsContext,
 } from './utils/configHelper';
@@ -70,6 +74,9 @@ let iconPreviewProvider: IconPreviewProvider;
 let workspaceTreeView: vscode.TreeView<SvgItem>;
 let svgFilesTreeView: vscode.TreeView<SvgItem>;
 let svgWatcher: vscode.FileSystemWatcher | undefined;
+let watchModePending = new Set<string>();
+let watchModeTimer: NodeJS.Timeout | undefined;
+let watchModeEnabled = false;
 
 // Code-integration disposables (managed dynamically)
 let completionDisposable: vscode.Disposable | undefined;
@@ -429,7 +436,6 @@ export function activate(context: vscode.ExtensionContext) {
       diagOnChangeDisposable = undefined;
       diagOnOpenDisposable && diagOnOpenDisposable.dispose();
       diagOnOpenDisposable = undefined;
-      diagnosticProvider && diagnosticProvider.clearDiagnostics && diagnosticProvider.clearDiagnostics();
       diagnosticProvider && diagnosticProvider.dispose && diagnosticProvider.dispose();
       diagnosticProvider = undefined;
     } catch (e) {
@@ -450,6 +456,110 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Always subscribe watchers
   context.subscriptions.push(svgWatcher, variantsWatcher);
+
+  // Setup Watch Mode if enabled in configuration
+  try {
+    watchModeEnabled = getSvgConfig<boolean>('watchMode', false);
+  } catch (e) {
+    watchModeEnabled = false;
+  }
+  // Watch Mode control helpers
+  let watchCreateDisp: vscode.Disposable | undefined;
+  let watchChangeDisp: vscode.Disposable | undefined;
+  let watchDeleteDisp: vscode.Disposable | undefined;
+
+  async function processWatchBatch() {
+    const panel = IconStudioPanel.currentPanel;
+    // notify webview processing started
+    try { if (panel) panel.postMessage({ type: 'watchProcessing', state: 'start' }); } catch (e) {}
+
+    const files = Array.from(watchModePending);
+    watchModePending.clear();
+    if (files.length === 0) {
+      try { if (panel) panel.postMessage({ type: 'watchProcessing', state: 'end' }); } catch (e) {}
+      return;
+    }
+
+    for (const filePath of files) {
+      try {
+        const uri = vscode.Uri.file(filePath);
+        const content = await vscode.workspace.fs.readFile(uri);
+        const svg = Buffer.from(content).toString('utf8');
+        const iconName = path.basename(filePath, path.extname(filePath));
+        await buildIcon({ iconName, svgContent: svg, svgTransformer });
+      } catch (err) {
+        // ignore individual failures
+      }
+    }
+
+    // Refresh all views and preview
+    try {
+      await vscode.commands.executeCommand('masterSVG.refreshIcons');
+      iconPreviewProvider && typeof iconPreviewProvider.forceRefresh === 'function' && iconPreviewProvider.forceRefresh();
+    } catch (e) { /* ignore */ }
+
+    try { if (panel) panel.postMessage({ type: 'watchProcessing', state: 'end' }); } catch (e) {}
+  }
+
+  function scheduleProcess() {
+    if (watchModeTimer) clearTimeout(watchModeTimer);
+    watchModeTimer = setTimeout(() => {
+      void processWatchBatch();
+    }, 800);
+  }
+
+  function handleSvgFsEvent(fsPath: string, _kind: 'create' | 'change' | 'delete') {
+    if (_kind === 'delete') {
+      vscode.commands.executeCommand('masterSVG.refreshIcons');
+      return;
+    }
+
+    const svgFolders = getSvgConfig<string[]>('svgFolders', []);
+    const inConfigured = svgFolders.length === 0 || svgFolders.some(folder => fsPath.includes(folder.replace(/\\/g, '/')));
+    if (!inConfigured) return;
+
+    watchModePending.add(fsPath);
+    scheduleProcess();
+  }
+
+  function startWatchMode() {
+    if (!svgWatcher) return;
+    // remove default quick refresh handlers
+    // register our handlers
+    watchCreateDisp = svgWatcher.onDidCreate(uri => handleSvgFsEvent(uri.fsPath, 'create'));
+    watchChangeDisp = svgWatcher.onDidChange(uri => handleSvgFsEvent(uri.fsPath, 'change'));
+    watchDeleteDisp = svgWatcher.onDidDelete(uri => handleSvgFsEvent(uri.fsPath, 'delete'));
+  }
+
+  function stopWatchMode() {
+    watchCreateDisp && watchCreateDisp.dispose();
+    watchChangeDisp && watchChangeDisp.dispose();
+    watchDeleteDisp && watchDeleteDisp.dispose();
+    watchCreateDisp = watchChangeDisp = watchDeleteDisp = undefined;
+  }
+
+  if (watchModeEnabled) {
+    startWatchMode();
+  }
+
+  // React to watchMode changes in configuration at runtime
+  context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
+    if (e.affectsConfiguration('masterSVG.watchMode')) {
+      const enabled = vscode.workspace.getConfiguration('masterSVG').get<boolean>('watchMode', false);
+      if (enabled && !watchModeEnabled) {
+        watchModeEnabled = true;
+        startWatchMode();
+      } else if (!enabled && watchModeEnabled) {
+        watchModeEnabled = false;
+        stopWatchMode();
+      }
+      // notify IconStudioPanel if open
+      try {
+        const panel = (global as any).IconStudioPanel ? (global as any).IconStudioPanel.currentPanel : undefined;
+        if (panel) panel.postMessage({ type: 'config', data: { watchMode: enabled } });
+      } catch (e) {}
+    }
+  }));
 }
 
 export function deactivate() {

@@ -159,11 +159,26 @@ export function createPreviewMessageHandler(config: PreviewMessageHandlerConfig)
       case 'exportComponent':
         try {
           const componentExporter = getComponentExporter();
+          // Honor workspace config for naming and TS/forwardRef
+          const vscodeCfg = vscode.workspace.getConfiguration('masterSVG');
+          const exportType = vscodeCfg.get('exportType', 'named');
+          const naming = vscodeCfg.get('naming', 'IconHome');
+          const typescript = vscodeCfg.get('typescript', true);
+          const forwardRef = vscodeCfg.get('forwardRef', true);
+          const toPascal = (s: string) => s.split(/[-_\s]+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+          const base = toPascal(message.iconId!);
+          let compName = base;
+          if (naming === 'IconHome') compName = `Icon${base}`;
+          else if (naming === 'HomeIcon') compName = `${base}Icon`;
+
           const result = componentExporter.export({
             format: 'react',
-            typescript: true,
+            typescript: typescript,
             iconName: message.iconId!,
+            componentName: compName,
             svg: buildFullSvg(iconData!),
+            forwardRef: forwardRef,
+            exportType: exportType,
           });
           const doc = await vscode.workspace.openTextDocument({
             content: result.code,

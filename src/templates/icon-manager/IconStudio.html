@@ -5,14 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; img-src ${cspSource} https: data:; font-src ${cspSource};">
   <title>${i18n_title}</title>
-  <style>
-    ${css}
-  </style>
+  <style>${css}</style>
 </head>
 <body>
   <div class="container">
     <div class="header">
       <input type="text" class="search-input" id="searchInput" placeholder="${i18n_searchPlaceholder}">
+      <button id="codePreviewBtn" class="icon-btn" title="Preview de código" onclick="openCodePreview()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
     </div>
 
     <div class="tabs">
@@ -26,16 +27,47 @@
         <div class="spinner"></div>
       </div>
     </div>
-    <div class="build-option-row">
-      <label class="build-option-label">
-        <input type="checkbox" id="splitTsCheckbox" />
-        Crear iconos TS divididos
+
+    <div class="build-advanced-options">
+      <div class="option-row">
+        <span class="option-label">Formato de salida</span>
+        <div class="format-select">
+          <button class="format-btn active" data-format="icons.js" onclick="setBuildFormat('icons.js')">JS/TS</button>
+          <button class="format-btn" data-format="transform" onclick="setBuildFormat('transform')">Transform</button>
+          <button class="format-btn" data-format="sprite.svg" onclick="setBuildFormat('sprite.svg')">Sprite</button>
+          <button class="format-btn" data-format="css" onclick="setBuildFormat('css')">CSS</button>
+        </div>
+      </div>
+
+      <div id="dynamicOptions"></div>
+    </div>
+
+    <div class="watch-row">
+      <label class="watch-toggle">
+        <input type="checkbox" id="watchModeToggle" />
+        <span>Watch Mode</span>
       </label>
-      <div class="format-select">
-        <button class="format-btn active" data-format="icons.js" onclick="setBuildFormat('icons.js')">Módulo JS</button>
-        <button class="format-btn" data-format="transform" onclick="setBuildFormat('transform')">${i18n_transform}</button>
-        <button class="format-btn" data-format="sprite.svg" onclick="setBuildFormat('sprite.svg')">Sprite SVG</button>
-        <button class="format-btn" data-format="css" onclick="setBuildFormat('css')">CSS Icons</button>
+      <div id="watchStatus" class="watch-status">
+        </div>
+      <button class="flush-btn" onclick="forceSync()">Sync Now</button>
+    </div>
+
+    <div id="codePreviewModal" class="modal">
+      <div class="modal-backdrop" onclick="closeCodePreview()"></div>
+      <div class="modal-panel">
+        <div class="modal-header">
+          <div class="modal-title">Code Studio Preview</div>
+          <button class="modal-close" onclick="closeCodePreview()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="code-preview-container">
+            <div class="code-preview-header">
+              <span id="codePreviewLang">TSX</span>
+              <span style="opacity:0.5">READ-ONLY</span>
+            </div>
+            <pre id="codePreviewBody" class="code-preview-body"></pre>
+          </div>
+        </div>
       </div>
     </div>
   </div>

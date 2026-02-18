@@ -492,7 +492,7 @@ export function getExpectedOutputFiles(
   } else {
     // icons.js / module output
     if (separateStructure) {
-      files.push(path.posix.join(base, 'components', 'icons', getWrapperFileName(framework || '')));
+      files.push(path.posix.join(base, 'components', 'icons', getWrapperFileName(framework || 'html')));
       files.push(path.posix.join(base, 'components', 'icons', 'types.d.ts'));
       files.push(path.posix.join(base, 'assets', 'icons', 'svg-data.js'));
       files.push(path.posix.join(base, 'components', 'icons', 'index.ts'));

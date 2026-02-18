@@ -180,3 +180,65 @@ body {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* Code preview modal styles */
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  margin-left: 8px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+}
+.icon-btn:hover { background: rgba(255,255,255,0.02); color: var(--text-primary); }
+
+.modal { display: none; position: fixed; inset: 0; z-index: 50; }
+.modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
+.modal-panel { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(900px, 95%); background: rgba(10,10,10,0.6); border-radius: 10px; padding: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.04); }
+.modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.modal-title { font-weight:600; color:var(--text-secondary); font-size:13px; }
+.modal-close { background:transparent; border:none; color:var(--text-secondary); cursor:pointer; font-size:14px; }
+.modal-body { max-height:60vh; overflow:auto; }
+
+/* Reuse glass code preview style */
+.code-preview-container { background: rgba(10, 10, 10, 0.4); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 8px; padding:12px; color:var(--text-primary); }
+.code-preview-header { font-size: 10px; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px; display:flex; justify-content:space-between; }
+.code-preview-body { margin:0; font-family: var(--vscode-editor-font-family, monospace); font-size:12px; white-space:pre-wrap; }
+
+/* Options layout */
+.build-advanced-options { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.option-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px; border-radius: 6px; }
+.option-label { color: var(--text-secondary); font-size: 12px; }
+.build-advanced-options input[type="text"], .build-advanced-options select {
+  padding: 6px 8px; border-radius: 6px; border: 1px solid transparent; background: var(--bg-secondary); color: var(--text-primary); min-width: 160px;
+}
+.build-advanced-options input[type="text"]:focus, .build-advanced-options select:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(14,99,156,0.06);
+}
+
+/* Small interactions */
+.build-advanced-options input[type="checkbox"] { transform: scale(1.1); }
+
+/* Accent for active selects and inputs */
+.build-advanced-options select:focus, .build-advanced-options input[type="text"]:focus { border-color: var(--accent); }
+.build-advanced-options input[type="checkbox"] { accent-color: var(--accent); }
+
+/* Help icon */
+.option-help { margin-left: 8px; background: transparent; border: none; color: var(--text-secondary); cursor: help; width: 20px; height: 20px; border-radius: 4px; }
+.option-help:hover { color: var(--text-primary); background: rgba(255,255,255,0.02); }
+
+
+/* Watch mode row and status */
+.watch-row { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-top: 1px solid var(--border); background: transparent; }
+.watch-toggle { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 12px; }
+.watch-status { color: var(--text-secondary); font-size: 12px; margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.watch-status.processing { color: var(--accent); }
+
+/* Small spinner for inline status */
+.watch-spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+
+/* Manual flush button */
+.flush-btn { padding: 6px 10px; background: transparent; border: 1px solid var(--border); color: var(--text-secondary); border-radius: 6px; cursor: pointer; font-size: 12px; }
+.flush-btn:hover { border-color: var(--accent); color: var(--text-primary); background: rgba(14,99,156,0.04); }
+

@@ -3,6 +3,7 @@ import * as fs from 'node:fs';
 import { SvgTransformer } from '../services/svg/SvgTransformer';
 import { toVariableName } from './extensionHelpers';
 import { getConfig } from './configHelper';
+import { getSvgConfig } from './config';
 import { ErrorHandler } from './errorHandler';
 import { validateSvgContent } from './svgValidation';
 import { extractIconsObjectContent } from './outputFileManager';
@@ -217,8 +218,7 @@ export async function updateIconAnimation(
 export async function generateWebComponent(
   outputPath: string
 ): Promise<{ path: string; content: string }> {
-  const config = getConfig();
-  const tagName = config.webComponentName;
+  const tagName = getSvgConfig<string>('webComponentName', 'svg-icon');
   const componentPath = path.join(outputPath, 'svg-element.js');
 
   // Load template and replace placeholders
@@ -242,11 +242,16 @@ export async function addToSpriteSvg(
     throw new Error(`Invalid SVG content for "${iconName}": ${validation.error}`);
   }
 
-  const spritePath = path.join(outputPath, 'sprite.svg');
+  const spriteFilename = getSvgConfig<string>('spriteFilename', 'sprite.svg');
+  const spritePrefix = getSvgConfig<string>('spritePrefix', 'icon');
+  const spritePath = path.join(outputPath, spriteFilename);
   const body = transformer.extractSvgBody(svgContent);
   const attrs = transformer.extractSvgAttributes(svgContent);
 
-  const symbolEntry = `  <symbol id="${iconName}" viewBox="${attrs.viewBox || '0 0 24 24'}">
+  const safeName = iconName.replace(/[^a-z0-9_-]/gi, '-').toLowerCase();
+  const symbolId = `${spritePrefix}-${safeName}`;
+
+  const symbolEntry = `  <symbol id="${symbolId}" viewBox="${attrs.viewBox || '0 0 24 24'}">
     ${body}
   </symbol>`;
 
@@ -257,7 +262,7 @@ export async function addToSpriteSvg(
   if (fs.existsSync(spritePath)) {
     let content = fs.readFileSync(spritePath, 'utf-8');
     const existingSymbol = new RegExp(
-      String.raw`<symbol[^>]*id=["']${iconName}["'][\s\S]*?<\/symbol>`,
+      String.raw`<symbol[^>]*id=["']${symbolId}["'][\s\S]*?<\/symbol>`,
       'g'
     );
     if (existingSymbol.test(content)) {
@@ -268,9 +273,9 @@ export async function addToSpriteSvg(
     fs.writeFileSync(spritePath, content);
   } else {
     const content = `<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
-${symbolEntry}
-</svg>
-`;
+  ${symbolEntry}
+  </svg>
+  `;
     fs.writeFileSync(spritePath, content);
   }
 }

@@ -1,0 +1,44 @@
+.code-preview-container {
+  background: rgba(10, 10, 10, 0.4);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+  font-family: 'Fira Code', 'JetBrains Mono', monospace;
+  position: relative;
+  overflow: hidden;
+  color: var(--vscode-foreground);
+}
+
+.code-preview-header {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--vscode-descriptionForeground);
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.code-preview-lang {
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.code-preview-body {
+  margin: 0;
+  max-height: 240px;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.code-keyword { color: #c678dd; }
+.code-function { color: #61afef; }
+.code-string { color: #98c379; }
+.code-comment { color: #5c6370; font-style: italic; }
+
+/* Scrollbar styling for webviews */
+.code-preview-body::-webkit-scrollbar { height: 8px; width: 8px; }
+.code-preview-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 8px; }

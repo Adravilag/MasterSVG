@@ -3,7 +3,7 @@ import * as path from 'path';
 import { getSvgConfig, getFullSvgConfig, updateSvgConfig } from '../utils/config';
 import { getFullOutputPath, getFrameworkIconUsage } from '../utils/configHelper';
 import { SvgTransformer } from '../services/svg/SvgTransformer';
-import { buildIcon } from '../utils/iconBuildHelpers';
+import { buildIcon, showBuildSuccess } from '../utils/iconBuildHelpers';
 import { getComponentExporter } from '../services';
 import { ErrorHandler } from '../utils/errorHandler';
 import { t } from '../i18n';
@@ -79,9 +79,51 @@ export class IconStudioPanel {
                 }
                 break;
 
+            case 'updateConfig': {
+                try {
+                    if (message.key) {
+                        await updateSvgConfig(message.key, message.value);
+                        // send back full config so webview can refresh
+                        const cfg = {
+                            componentName: getSvgConfig<string>('componentName', 'Icon'),
+                            componentImport: getSvgConfig<string>('componentImport', '@/components/ui/Icon'),
+                            outputFormat: getSvgConfig<string>('outputFormat', 'jsx'),
+                            iconNameAttribute: getSvgConfig<string>('iconNameAttribute', 'name'),
+                            autoImport: getSvgConfig<boolean>('autoImport', true),
+                            outputDirectory: getSvgConfig<string>('outputDirectory', ''),
+                            buildFormat: getSvgConfig<string>('buildFormat', 'icons.js'),
+                        };
+                        this.postMessage({ type: 'config', data: cfg });
+                    }
+                } catch (e) {
+                    vscode.window.showErrorMessage(t('messages.saveConfigError'));
+                }
+                break;
+            }
+
+            case 'toggleWatchMode': {
+                try {
+                    const val = !!message.value;
+                    await updateSvgConfig('watchMode', val);
+                    // notify webview of change
+                    this.postMessage({ type: 'watchMode', enabled: val });
+                } catch (e) {
+                    vscode.window.showErrorMessage(t('messages.saveConfigError'));
+                }
+                break;
+            }
+
             case 'getConfig': {
-                const config = getFullSvgConfig();
-                this.postMessage({ type: 'config', data: config });
+                const cfg = {
+                    componentName: getSvgConfig<string>('componentName', 'Icon'),
+                    componentImport: getSvgConfig<string>('componentImport', '@/components/ui/Icon'),
+                    outputFormat: getSvgConfig<string>('outputFormat', 'jsx'),
+                    iconNameAttribute: getSvgConfig<string>('iconNameAttribute', 'name'),
+                    autoImport: getSvgConfig<boolean>('autoImport', true),
+                    outputDirectory: getSvgConfig<string>('outputDirectory', ''),
+                    buildFormat: getSvgConfig<string>('buildFormat', 'icons.js'),
+                };
+                this.postMessage({ type: 'config', data: cfg });
                 break;
             }
 
@@ -94,8 +136,9 @@ export class IconStudioPanel {
                 break;
 
             case 'openFile': {
-                const uri = vscode.Uri.file(message.path);
-                const doc = await vscode.workspace.openTextDocument(uri);
+                // Accept either a string path or a URI-like object
+                const arg = message.path;
+                const doc = typeof arg === 'string' ? await vscode.workspace.openTextDocument(arg) : await vscode.workspace.openTextDocument(arg);
                 await vscode.window.showTextDocument(doc);
                 break;
             }
@@ -111,6 +154,9 @@ export class IconStudioPanel {
 
             case 'showError':
                 vscode.window.showErrorMessage(message.text);
+                break;
+            case 'showInfo':
+                vscode.window.showInformationMessage(message.text);
                 break;
         }
     }
@@ -171,11 +217,27 @@ export class IconStudioPanel {
         try {
             const outDir = vscode.Uri.joinPath(root.uri, 'icons');
             const exporter = getComponentExporter();
+            // Read user config to honor naming/export preferences
+            const exportType = getSvgConfig<'named' | 'default'>('exportType', 'named');
+            const naming = getSvgConfig<string>('naming', 'IconHome');
+            const typescript = getSvgConfig<boolean>('typescript', true);
+            const forwardRef = getSvgConfig<boolean>('forwardRef', true);
+
+            // Compute componentName according to naming convention
+            const toPascal = (s: string) => s.split(/[-_\s]+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+            const base = toPascal(iconName);
+            let componentNameOverride = base;
+            if (naming === 'IconHome') componentNameOverride = `Icon${base}`;
+            else if (naming === 'HomeIcon') componentNameOverride = `${base}Icon`;
+
             const result = exporter.export({
                 format: 'react',
                 iconName,
+                componentName: componentNameOverride,
                 svg: svg || `<svg viewBox="0 0 24 24"><rect width="24" height="24" fill="none"/></svg>`,
-                typescript: true
+                typescript: typescript,
+                forwardRef: forwardRef,
+                exportType: exportType,
             });
 
             await vscode.workspace.fs.createDirectory(outDir);
@@ -191,12 +253,26 @@ export class IconStudioPanel {
                 .map(([name]) => `export { default as ${name.replace('.tsx', '')} } from './${name.replace('.tsx', '')}';`)
                 .join('\n');
 
-            await vscode.workspace.fs.writeFile(
-                vscode.Uri.joinPath(outDir, 'index.ts'),
-                Buffer.from(indexContent, 'utf8')
-            );
+                        await vscode.workspace.fs.writeFile(
+                                vscode.Uri.joinPath(outDir, 'index.ts'),
+                                Buffer.from(indexContent, 'utf8')
+                        );
 
-            return `import { ${iconName} } from './icons';\n\n<${iconName} />`;
+                        // Notify user and offer to open output folder
+                        vscode.window
+                            .showInformationMessage(
+                                `Component files generated: ${outDir.fsPath}`,
+                                'Open Folder'
+                            )
+                            .then(sel => {
+                                if (sel === 'Open Folder') {
+                                    try {
+                                        vscode.commands.executeCommand('revealFileInOS', vscode.Uri.joinPath(outDir, result.filename));
+                                    } catch (e) { /* ignore */ }
+                                }
+                            });
+
+                        return `import { ${iconName} } from './icons';\n\n<${iconName} />`;
         } catch (e) {
             return `import ${iconName} from './icons/${iconName}';`;
         }
@@ -216,8 +292,12 @@ export class IconStudioPanel {
             outputPath
         });
 
-        await vscode.commands.executeCommand('masterSVG.refreshIcons');
-        return getFrameworkIconUsage(iconName, result.format === 'sprite');
+                await vscode.commands.executeCommand('masterSVG.refreshIcons');
+                if (result.success) {
+                    // Show centralized build success with open-folder action
+                    showBuildSuccess(result);
+                }
+                return getFrameworkIconUsage(iconName, result.format === 'sprite');
     }
 
     private async _sendWorkspaceIcons() {
@@ -294,12 +374,23 @@ export class IconStudioPanel {
             browseIconify: t('webview.js.browseIconify'),
             scanWorkspaceBtn: t('webview.js.scanWorkspaceBtn')
         });
+        // Compute webview URIs for external resources (if templates are copied to webview/icon-manager)
+        const baseUri = vscode.Uri.joinPath(this._context.extensionUri, 'webview', 'icon-manager');
+        const cssUri = webview.asWebviewUri(vscode.Uri.joinPath(baseUri, 'IconStudio.css'));
+        const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(baseUri, 'IconStudio.js'));
+
+        // Use @import inside the inline <style> as primary loader for the external CSS (works with CSP)
+        const cssReplacement = `@import url("${cssUri}");\n${iconStudioCss}`;
+
+        // Create a small loader for external JS and keep inline as fallback (inject i18n into inline script)
+        const externalLoader = `(function(){var s=document.createElement('script');s.src='${jsUri}';s.nonce='${nonce}';document.head.appendChild(s);})();\n`;
+        const jsReplacement = externalLoader + iconStudioJs.replace(/__I18N__/g, i18nJs);
 
         return iconStudioHtml
             .replace(/\${cspSource}/g, webview.cspSource)
             .replace(/\${nonce}/g, nonce)
-            .replace(/\${css}/g, iconStudioCss)
-            .replace(/\${js}/g, iconStudioJs.replace(/__I18N__/g, i18nJs))
+            .replace(/\${css}/g, cssReplacement)
+            .replace(/\${js}/g, jsReplacement)
             .replace(/\${i18n_title}/g, t('webview.tabs.title'))
             .replace(/\${i18n_searchPlaceholder}/g, t('webview.tabs.searchPlaceholder'))
             .replace(/\${i18n_workspace}/g, t('webview.tabs.workspace'))

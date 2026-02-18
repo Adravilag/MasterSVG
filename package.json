@@ -898,6 +898,8 @@
   "scripts": {
     "vscode:prepublish": "node -e \"const fs=require('fs');const path=require('path');const dir='.vscode-test';if(fs.existsSync(dir))fs.rmSync(dir,{recursive:true,force:true})\" && npm run package:prod",
     "compile": "node esbuild.js",
+    "clean": "node -e \"const fs=require('fs');['out','dist','webview'].forEach(p=>{try{fs.rmSync(p,{recursive:true,force:true})}catch(e){}})\"",
+    "compile:clean": "npm run clean && npm run compile",
     "compile:e2e": "tsc -p ./src/test/e2e/tsconfig.json && npm run copy-e2e-workspace",
     "copy-e2e-workspace": "node -e \"const fs=require('fs');const path=require('path');function copyDir(s,d){if(!fs.existsSync(d))fs.mkdirSync(d,{recursive:true});fs.readdirSync(s).forEach(f=>{const sp=path.join(s,f),dp=path.join(d,f);fs.statSync(sp).isDirectory()?copyDir(sp,dp):fs.copyFileSync(sp,dp)})};copyDir('src/test/e2e/test-workspace','out/test/e2e/test-workspace')\"",
     "copy-templates": "node -e \"const fs=require('fs');const path=require('path');function copyDir(s,d){fs.mkdirSync(d,{recursive:true});fs.readdirSync(s).forEach(f=>{const sp=path.join(s,f),dp=path.join(d,f);fs.statSync(sp).isDirectory()?copyDir(sp,dp):fs.copyFileSync(sp,dp)})};copyDir('src/templates','out/templates');copyDir('src/templates','dist/templates')\"",
@@ -924,6 +926,8 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "^20.10.0",
     "@types/vscode": "^1.85.0",
+    "@types/react": "^18.2.21",
+    "@types/react-dom": "^18.2.7",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^2.22.0",
     "esbuild": "^0.27.2",
@@ -940,6 +944,8 @@
     "typescript-eslint": "^8.51.0"
   },
   "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "@xmldom/xmldom": "^0.8.11",
     "svgo": "^3.2.0"
   }

@@ -247,12 +247,34 @@ export function registerEditorCommands(
 
       if (!format) return;
 
-      const iconName = typeof item.label === 'string' ? item.label : 'icon';
+      const svgName = (item && item.icon && item.icon.name) || (typeof item.label === 'string' ? item.label : 'icon');
+      const svgContent = item.icon.svg;
       const exporter = getComponentExporter();
-      const componentCode = exporter.export(iconName);
+
+      // Read user config to honor naming/export preferences
+      const exportType = vscode.workspace.getConfiguration('masterSVG').get('exportType', 'named');
+      const naming = vscode.workspace.getConfiguration('masterSVG').get('naming', 'IconHome');
+      const typescript = vscode.workspace.getConfiguration('masterSVG').get('typescript', true);
+      const forwardRef = vscode.workspace.getConfiguration('masterSVG').get('forwardRef', true);
+
+      const toPascal = (s: string) => s.split(/[-_\s]+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+      const base = toPascal(svgName);
+      let componentName = base;
+      if (naming === 'IconHome') componentName = `Icon${base}`;
+      else if (naming === 'HomeIcon') componentName = `${base}Icon`;
+
+      const result = exporter.export({
+        format: format.value as any,
+        iconName: svgName,
+        componentName: componentName,
+        svg: svgContent,
+        typescript: typescript,
+        forwardRef: forwardRef,
+        exportType: exportType,
+      });
 
       const doc = await vscode.workspace.openTextDocument({
-        content: componentCode.code,
+        content: result.code,
         language:
           format.value === 'vue'
             ? 'vue'
