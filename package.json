@@ -895,6 +895,7 @@
     "test:watch": "jest --config jest.config.js --watch",
     "test:coverage": "jest --config jest.config.js --coverage",
     "test:e2e": "npm run compile && npm run compile:e2e && node ./out/test/e2e/runTest.js",
+    "gen:icons:types": "node scripts/generate-icon-types.js",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write \"src/**/*.ts\"",

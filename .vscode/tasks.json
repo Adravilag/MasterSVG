@@ -6,22 +6,7 @@
       "script": "watch:esbuild",
       "label": "npm: watch:esbuild",
       "isBackground": true,
-      "problemMatcher": [
-        {
-          "owner": "typescript",
-          "pattern": {
-            "regexp": "^",
-            "file": 1,
-            "location": 2,
-            "message": 3
-          },
-          "background": {
-            "activeOnStart": true,
-            "beginsPattern": "^\\[watch\\] build started",
-            "endsPattern": "^\\[watch\\] build finished"
-          }
-        }
-      ]
+      "problemMatcher": []
     }
   ]
 }

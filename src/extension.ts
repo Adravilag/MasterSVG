@@ -12,6 +12,7 @@ import {
   SvgImgDiagnosticProvider,
   IconPreviewProvider,
 } from './providers';
+import IconImportCodeActionProvider from './providers/IconImportCodeActionProvider';
 import { SvgTransformer, getVariantsService, getAnimationService } from './services';
 import { WelcomePanel } from './panels/WelcomePanel';
 import {
@@ -353,6 +354,13 @@ export function activate(context: vscode.ExtensionContext) {
     {
       providedCodeActionKinds: MissingIconCodeActionProvider.providedCodeActionKinds,
     }
+  );
+
+  // Register code action provider to import missing icon components
+  const iconImportCodeActionProvider = vscode.languages.registerCodeActionsProvider(
+    SUPPORTED_LANGUAGES_WITH_SCHEME,
+    new IconImportCodeActionProvider(),
+    { providedCodeActionKinds: IconImportCodeActionProvider.providedCodeActionKinds }
   );
 
   // Enable diagnostic provider to show hints for SVG img references

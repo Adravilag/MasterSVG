@@ -490,6 +490,14 @@ export class WelcomePanel {
       vscode.window.showInformationMessage(
         `${t('welcome.setupComplete')} ${t('welcome.filesCreated', { path: outputDir })}`
       );
+    } else if (buildFormat === 'transform') {
+      // 'transform' uses the same module generation flow as icons.js
+      const framework = this._sessionConfig.framework as FrameworkType;
+      const separateStructure = this._sessionConfig.separateOutputStructure;
+      generateEmptyIconsModule(fullPath, webComponentName, framework, separateStructure);
+      vscode.window.showInformationMessage(
+        `${t('welcome.setupComplete')} ${t('welcome.filesCreated', { path: outputDir })}`
+      );
     } else {
       const framework = this._sessionConfig.framework as FrameworkType;
       const separateStructure = this._sessionConfig.separateOutputStructure;
@@ -534,6 +542,10 @@ export class WelcomePanel {
     const setupGuide = buildSetupGuide(ctx, tr);
     const finishButton = buildFinishButton(ctx.isFullyConfigured, tr);
 
+    // Obtener la URI segura del icono empaquetado (png declarado en package.json)
+    const iconPath = vscode.Uri.joinPath(this._extensionUri, 'resources', 'icon.png');
+    const iconUri = this._panel.webview.asWebviewUri(iconPath).toString();
+
     const htmlContent = applyTemplateReplacements({
       html: templates.html,
       ctx,
@@ -546,6 +558,7 @@ export class WelcomePanel {
       previewSummary,
       setupGuide,
       finishButton,
+      iconUri,
     });
 
     const jsContent = templates.js

@@ -14,7 +14,7 @@
     <div class="header">
       <input type="text" class="search-input" id="searchInput" placeholder="${i18n_searchPlaceholder}">
     </div>
-    
+
     <div class="tabs">
       <button class="tab active" data-tab="workspace">${i18n_workspace}</button>
       <button class="tab" data-tab="library">${i18n_library}</button>
@@ -24,6 +24,18 @@
     <div class="content" id="content">
       <div class="loading">
         <div class="spinner"></div>
+      </div>
+    </div>
+    <div class="build-option-row">
+      <label class="build-option-label">
+        <input type="checkbox" id="splitTsCheckbox" />
+        Crear iconos TS divididos
+      </label>
+      <div class="format-select">
+        <button class="format-btn active" data-format="icons.js" onclick="setBuildFormat('icons.js')">Módulo JS</button>
+        <button class="format-btn" data-format="transform" onclick="setBuildFormat('transform')">${i18n_transform}</button>
+        <button class="format-btn" data-format="sprite.svg" onclick="setBuildFormat('sprite.svg')">Sprite SVG</button>
+        <button class="format-btn" data-format="css" onclick="setBuildFormat('css')">CSS Icons</button>
       </div>
     </div>
   </div>

@@ -11,9 +11,9 @@ import { WebviewContext, TemplateReplacementOptions, PreviewReplacementOptions }
  * Applies all template replacements to HTML content
  */
 export function applyTemplateReplacements(opts: TemplateReplacementOptions): string {
-  const { html, ctx, tr, languageOptions, step4Section, previewCode, previewWindowTitle, previewGallery, previewSummary, setupGuide, finishButton } = opts;
+  const { html, ctx, tr, languageOptions, step4Section, previewCode, previewWindowTitle, previewGallery, previewSummary, setupGuide, finishButton, iconUri } = opts;
 
-  let result = applyHeaderReplacements(html, tr, languageOptions);
+  let result = applyHeaderReplacements(html, tr, languageOptions, iconUri);
   result = applyStep0Replacements(result, ctx, tr);
   result = applyStep1Replacements(result, ctx, tr);
   result = applyStep2Replacements(result, ctx, tr);
@@ -38,7 +38,7 @@ export function applyTemplateReplacements(opts: TemplateReplacementOptions): str
 /**
  * Applies header section replacements
  */
-function applyHeaderReplacements(html: string, tr: Record<string, string>, languageOptions: string): string {
+function applyHeaderReplacements(html: string, tr: Record<string, string>, languageOptions: string, iconUri?: string): string {
   return html
     .replace(/\$\{headerIcons\}/g, tr.headerIcons)
     .replace(/\$\{headerColors\}/g, tr.headerColors)
@@ -46,7 +46,8 @@ function applyHeaderReplacements(html: string, tr: Record<string, string>, langu
     .replace(/\$\{headerSvgo\}/g, tr.headerSvgo)
     .replace(/\$\{languageOptions\}/g, languageOptions)
     .replace(/\$\{languageLabel\}/g, tr.languageLabel)
-    .replace(/\$\{appTitle\}/g, tr.appTitle);
+    .replace(/\$\{appTitle\}/g, tr.appTitle)
+    .replace(/\$\{iconUri\}/g, iconUri || '');
 }
 
 /**
@@ -189,12 +190,16 @@ function buildOutputDirectoryOptions(ctx: WebviewContext): string {
  */
 function applyStep3Replacements(html: string, ctx: WebviewContext, tr: Record<string, string>): string {
   const jsModuleSelectedValue = ctx.buildFormat === 'icons.js' ? 'selected' : '';
+  const transformSelectedValue = ctx.buildFormat === 'transform' ? 'selected' : '';
   const spriteSvgSelectedValue = ctx.buildFormat === 'sprite.svg' ? 'selected' : '';
   const cssSelectedValue = ctx.buildFormat === 'css' ? 'selected' : '';
 
+  // Consider the step configured only when both a build format and a framework are selected
+  const isFormatAndFrameworkSelected = !!ctx.framework && !!ctx.buildFormat;
+
   return html
-    .replace(/\$\{step3Class\}/g, `${ctx.isBuildFormatConfigured ? 'completed-step' : ''}`)
-    .replace(/\$\{step3NumberClass\}/g, ctx.isBuildFormatConfigured ? 'completed' : '')
+    .replace(/\$\{step3Class\}/g, `${isFormatAndFrameworkSelected ? 'completed-step' : ''}`)
+    .replace(/\$\{step3NumberClass\}/g, isFormatAndFrameworkSelected ? 'completed' : '')
     .replace(/\$\{step3Title\}/g, tr.step3Title)
     .replace(
       /\$\{formatSummary\}/g,
@@ -214,10 +219,14 @@ function applyStep3Replacements(html: string, ctx: WebviewContext, tr: Record<st
     .replace(/\$\{helpSprite\}/g, tr.helpSprite)
     .replace(/\$\{helpTip\}/g, tr.helpTip)
     .replace(/\$\{jsModuleSelected\}/g, jsModuleSelectedValue)
+    .replace(/\$\{transformSelected\}/g, transformSelectedValue)
     .replace(/\$\{recommended\}/g, tr.recommended)
     .replace(/\$\{jsModuleDesc\}/g, tr.jsModuleDesc)
     .replace(/\$\{jsModulePro1\}/g, tr.jsModulePro1)
     .replace(/\$\{jsModulePro2\}/g, tr.jsModulePro2)
+    .replace(/\$\{transformTitle\}/g, tr.transformTitle || tr.jsModuleTitle)
+    .replace(/\$\{transformDesc\}/g, tr.transformDesc || tr.jsModuleDesc)
+    .replace(/\$\{transformPro1\}/g, tr.transformPro1 || tr.jsModulePro1)
     .replace(/\$\{spriteSvgSelected\}/g, spriteSvgSelectedValue)
     .replace(/\$\{spriteSelected\}/g, spriteSvgSelectedValue)
     .replace(/\$\{spriteDesc\}/g, tr.spriteDesc)

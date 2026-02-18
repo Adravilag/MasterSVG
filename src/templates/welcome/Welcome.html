@@ -3,9 +3,7 @@
   <div class="header">
     <div class="header-left">
       <div class="logo-mini">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-        </svg>
+        <img src="${iconUri}" alt="MasterSVG" class="logo-img" />
       </div>
       <span class="header-title">${appTitle}</span>
     </div>
@@ -193,6 +191,16 @@
                 <div class="format-tags">
                   <span class="tag-pro">${jsModulePro1}</span>
                   <span class="tag-pro">${jsModulePro2}</span>
+                </div>
+              </div>
+              <div class="format-card ${transformSelected}" onclick="setBuildFormat('transform')">
+                <h3>
+                  <svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 3h18v2H3zM3 7h12v2H3zM3 11h18v2H3zM3 15h12v2H3zM3 19h18v2H3z"/></svg>
+                  ${transformTitle}
+                </h3>
+                <p>${transformDesc}</p>
+                <div class="format-tags">
+                  <span class="tag-pro">${transformPro1}</span>
                 </div>
               </div>
               <div class="format-card ${spriteSvgSelected}" onclick="setBuildFormat('sprite.svg')">

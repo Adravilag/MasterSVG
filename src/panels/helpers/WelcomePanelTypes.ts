@@ -58,6 +58,7 @@ export interface TemplateReplacementOptions {
   previewSummary: string;
   setupGuide: string;
   finishButton: string;
+  iconUri?: string;
 }
 
 /** Options for preview replacement functions */

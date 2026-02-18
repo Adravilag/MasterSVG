@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { SvgTransformer } from '../services';
 import { getConfig, getFullOutputPath, getFrameworkIconUsage, getFrameworkDisplayName } from '../utils/configHelper';
 import { addToIconsJs, addToSpriteSvg } from '../utils/iconsFileManager';
+import { buildIcon } from '../utils/iconBuildHelpers';
 import { t } from '../i18n';
 
 /**
@@ -157,21 +158,8 @@ export function registerTransformCommands(
         // Generate replacement based on framework configuration
         const replacement = getFrameworkIconUsage(iconName, isSprite);
 
-        if (isSprite) {
-          // Add to sprite file
-          if (fullOutputPath) {
-            await addToSpriteSvg(fullOutputPath, iconName, item.icon.svg, svgTransformer);
-          }
-        } else {
-          // Add to icons.js
-          if (fullOutputPath) {
-            await addToIconsJs({
-              outputPath: fullOutputPath,
-              iconName,
-              svgContent: item.icon.svg,
-              transformer: svgTransformer,
-            });
-          }
+        if (fullOutputPath) {
+          await buildIcon({ iconName, svgContent: item.icon.svg, svgTransformer, outputPath: fullOutputPath });
         }
 
         await editor.edit(editBuilder => {

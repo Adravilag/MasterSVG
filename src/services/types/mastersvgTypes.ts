@@ -1998,7 +1998,7 @@ export interface IconStudioConfig {
   /** Web component tag name */
   webComponentName: string;
   /** Build output format */
-  buildFormat: 'icons.js' | 'sprite.svg' | 'css';
+  buildFormat: 'icons.js' | 'sprite.svg' | 'css' | 'transform';
   /** Target framework */
   framework: FrameworkType;
 }

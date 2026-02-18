@@ -29,22 +29,41 @@ searchInput.addEventListener('input', (e) => {
 // Message handling
 window.addEventListener('message', event => {
   const message = event.data;
-  
+
   switch (message.type) {
     case 'workspaceIcons':
       workspaceIcons = message.icons || [];
       if (currentTab === 'workspace') renderContent();
       break;
-      
+
     case 'libraryIcons':
       libraryIcons = message.icons || [];
       if (currentTab === 'library') renderContent();
       break;
-      
+
     case 'search':
       searchInput.value = message.query;
       searchQuery = message.query.toLowerCase();
       renderContent();
+      break;
+    case 'config':
+      try {
+        const cfg = message.data || {};
+        // Mark active build format button
+        const formatBtns = document.querySelectorAll('.format-btn');
+        formatBtns.forEach(b => b.classList.remove('active'));
+        if (cfg.buildFormat) {
+          const btn = Array.from(formatBtns).find(x => x.getAttribute('data-format') === cfg.buildFormat);
+          if (btn) btn.classList.add('active');
+        }
+        // Set splitTs checkbox if provided
+        if (typeof cfg.splitTs === 'boolean') {
+          const cb = document.getElementById('splitTsCheckbox');
+          if (cb) cb.checked = cfg.splitTs;
+        }
+      } catch (e) {
+        console.error('Failed handling config message', e);
+      }
       break;
   }
 });
@@ -64,7 +83,7 @@ function renderContent() {
 }
 
 function renderIcons(icons) {
-  const filtered = icons.filter(icon => 
+  const filtered = icons.filter(icon =>
     icon.name.toLowerCase().includes(searchQuery)
   );
 
@@ -111,7 +130,17 @@ function renderOnline() {
 }
 
 function insertIcon(name) {
-  vscode.postMessage({ type: 'insertIcon', iconName: name });
+  const splitTs = document.getElementById('splitTsCheckbox') && document.getElementById('splitTsCheckbox').checked;
+  vscode.postMessage({ type: 'insertIcon', iconName: name, splitTs });
+}
+
+function setBuildFormat(format) {
+  // Optimistically update UI
+  const formatBtns = document.querySelectorAll('.format-btn');
+  formatBtns.forEach(b => b.classList.remove('active'));
+  const clicked = Array.from(formatBtns).find(x => x.getAttribute('data-format') === format);
+  if (clicked) clicked.classList.add('active');
+  vscode.postMessage({ type: 'setBuildFormat', format });
 }
 
 function scanWorkspace() {
@@ -121,3 +150,5 @@ function scanWorkspace() {
 // Initial load
 vscode.postMessage({ type: 'getWorkspaceIcons' });
 vscode.postMessage({ type: 'getLibraryIcons' });
+// Request current config (to mark active format)
+vscode.postMessage({ type: 'getConfig' });

@@ -1,0 +1,17 @@
+.icon-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-item svg {
+  width: var(--icon-size, 24px);
+  height: var(--icon-size, 24px);
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.icon-item span {
+  font-size: 0.9rem;
+  color: var(--vscode-foreground, #ddd);
+}

@@ -24,7 +24,7 @@ export function getConfig(): IconStudioConfig {
       defaultSize: config.get<number>('defaultSize', 24),
       defaultColor: config.get<string>('defaultColor', 'currentColor'),
       webComponentName: config.get<string>('webComponentName', 'icon-wrap'),
-      buildFormat: config.get<'icons.js' | 'sprite.svg' | 'css'>('buildFormat', 'icons.js'),
+      buildFormat: config.get<'icons.js' | 'sprite.svg' | 'css' | 'transform'>('buildFormat', 'icons.js'),
       framework
     };
 }

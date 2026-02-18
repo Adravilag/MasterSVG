@@ -60,20 +60,29 @@ body {
 }
 
 .logo-mini {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(135deg, var(--accent), #00bcf2);
+  width: 48px;
+  height: 48px;
+  background: transparent;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px var(--accent-glow);
+  box-shadow: none;
 }
 
 .logo-mini svg {
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
   fill: white;
+}
+
+/* Ensure the packaged icon displays correctly */
+.logo-mini img.logo-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  object-fit: contain;
+  display: block;
 }
 
 .header-title {
