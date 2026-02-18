@@ -155,6 +155,7 @@ export class WelcomePanel {
       previewBackground: config.get<string>('previewBackground', 'transparent'),
       autoGenerateLicenses: config.get<boolean>('autoGenerateLicenses', false),
       separateOutputStructure: config.get<boolean>('separateOutputStructure', false),
+      codeIntegrationEnabled: config.get<boolean>('codeIntegrationEnabled', false),
     };
   }
 
@@ -189,6 +190,7 @@ export class WelcomePanel {
       setPreviewBackground: async () => this._setPreviewBackground(message.value as string),
       setCreateMsignore: async () => this._setCreateMsignore(message.value as boolean),
       setSeparateOutputStructure: async () => this._setSeparateOutputStructure(message.value as boolean),
+      setCodeIntegration: async () => this._setCodeIntegration(message.value as boolean),
       openSettings: async () => { await vscode.commands.executeCommand('workbench.action.openSettings', 'masterSVG'); },
       searchIcons: async () => { await vscode.commands.executeCommand('masterSVG.searchIcons'); this._panel.dispose(); },
       close: async () => { this._panel.dispose(); },
@@ -362,6 +364,11 @@ export class WelcomePanel {
     await this._update();
   }
 
+  private async _setCodeIntegration(value: boolean): Promise<void> {
+    this._sessionConfig.codeIntegrationEnabled = value;
+    await this._update();
+  }
+
   // #endregion
 
   // #region Validation helpers
@@ -467,6 +474,7 @@ export class WelcomePanel {
       ['defaultIconSize', this._sessionConfig.defaultIconSize],
       ['previewBackground', this._sessionConfig.previewBackground],
       ['separateOutputStructure', this._sessionConfig.separateOutputStructure],
+      ['codeIntegrationEnabled', this._sessionConfig.codeIntegrationEnabled],
     ];
 
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -542,6 +550,8 @@ export class WelcomePanel {
       framework: ctx.framework,
       outputDirDisplay: ctx.outputDirDisplay,
       webComponentDisplay: ctx.webComponentDisplay,
+      separateOutputStructure: ctx.separateOutputStructure,
+      codeIntegrationEnabled: ctx.codeIntegrationEnabled,
       tr,
     };
     const previewCode = getFrameworkPreview(previewOptions);
@@ -635,6 +645,7 @@ export class WelcomePanel {
       suggestedSourceDirs,
       suggestedOutputDirs,
       separateOutputStructure: this._sessionConfig.separateOutputStructure,
+      codeIntegrationEnabled: this._sessionConfig.codeIntegrationEnabled,
     };
   }
 

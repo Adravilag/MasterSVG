@@ -439,3 +439,42 @@ export function ensureVscodeDirectory(workspacePath: string): void {
     fs.mkdirSync(vscodeDir, { recursive: true });
   }
 }
+
+/**
+ * Returns a list of expected output files for the selected build format.
+ * The list is intentionally high-level (main files and patterns) to keep the preview concise.
+ */
+export function getExpectedOutputFiles(
+  buildFormat: 'icons.js' | 'sprite.svg' | 'css' | string,
+  outputDirectory: string,
+  webComponentName?: string,
+  framework?: FrameworkType,
+  separateStructure = false
+): string[] {
+  const files: string[] = [];
+  const base = outputDirectory || 'public/icons';
+
+  if (buildFormat === 'sprite.svg') {
+    files.push(path.posix.join(base, 'sprite.svg'));
+    files.push(path.posix.join(base, 'icons.css'));
+  } else if (buildFormat === 'css') {
+    files.push(path.posix.join(base, 'icons.css'));
+    files.push(path.posix.join(base, '*.svg'));
+  } else {
+    // icons.js / module output
+    if (separateStructure) {
+      files.push(path.posix.join(base, 'components', 'icons', getWrapperFileName(framework || '')));
+      files.push(path.posix.join(base, 'components', 'icons', 'types.d.ts'));
+      files.push(path.posix.join(base, 'assets', 'icons', 'svg-data.js'));
+      files.push(path.posix.join(base, 'components', 'icons', 'index.ts'));
+    } else {
+      files.push(path.posix.join(base, 'svg-data.js'));
+      files.push(path.posix.join(base, 'index.js'));
+      files.push(path.posix.join(base, 'types.d.ts'));
+    }
+    // web component runtime
+    files.push(path.posix.join(base, 'svg-element.js'));
+  }
+
+  return files;
+}

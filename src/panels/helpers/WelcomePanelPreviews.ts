@@ -13,6 +13,7 @@ export interface FrameworkPreviewOptions {
   framework: string;
   outputDirDisplay: string;
   webComponentDisplay: string;
+  separateOutputStructure?: boolean;
   tr: Record<string, string>;
 }
 
@@ -79,7 +80,7 @@ function outputFilesInfo(files: string[], label: string): string {
  * Gets the appropriate framework preview based on build format and framework
  */
 export function getFrameworkPreview(options: FrameworkPreviewOptions): string {
-  const { buildFormat, framework, outputDirDisplay, webComponentDisplay, tr } = options;
+  const { buildFormat, framework, outputDirDisplay, webComponentDisplay, separateOutputStructure, tr } = options;
 
   if (!buildFormat) {
     return getEmptyPreviewPlaceholder(tr);
@@ -93,7 +94,7 @@ export function getFrameworkPreview(options: FrameworkPreviewOptions): string {
     return getCssPreview(outputDirDisplay, tr);
   }
 
-  return getIconsPreview(framework as FrameworkType, outputDirDisplay, webComponentDisplay, tr);
+  return getIconsPreview(framework as FrameworkType, outputDirDisplay, webComponentDisplay, Boolean(separateOutputStructure), tr);
 }
 
 /**
@@ -217,6 +218,7 @@ function getIconsPreview(
   selectedFramework: FrameworkType,
   outputDirDisplay: string,
   webComponentDisplay: string,
+  separateStructure: boolean,
   tr: Record<string, string>
 ): string {
   const wrapperService = FrameworkWrapperService.getInstance();
@@ -226,8 +228,16 @@ function getIconsPreview(
       : '';
   const wrapperFilename = wrapperService.getWrapperFilename(selectedFramework, webComponentDisplay);
   const componentImport = webComponentDisplay || wrapperService.getDefaultComponentName(selectedFramework);
-  const outputFiles = getOutputFilesList('icons.js', selectedFramework, false);
-  const filesHtml = outputFilesInfo(outputFiles, tr.workflowOutput || 'Output');
+  const outputFiles = getOutputFilesList('icons.js', selectedFramework, separateStructure);
+  const displayFiles = separateStructure
+    ? outputFiles.map(f => {
+        if (f === 'svg-data.ts' || f === 'svg-data.js') return `assets/icons/svg-data.ts`;
+        if (f === 'index.ts' || f === 'index.js') return `components/icons/index.ts`;
+        if (f === 'types.d.ts' || f === 'types.ts') return `components/icons/types.d.ts`;
+        return `components/icons/${f}`;
+      })
+    : outputFiles.map(f => `${outputDirDisplay}/${f}`);
+  const filesHtml = outputFilesInfo(displayFiles, tr.workflowOutput || 'Output');
 
   const opts: PreviewOptions = {
     badge: frameworkBadge,
@@ -238,26 +248,27 @@ function getIconsPreview(
   };
 
   switch (selectedFramework) {
-    case 'react': return `${filesHtml}${getReactPreview(opts)}`;
-    case 'vue': return `${filesHtml}${getVuePreview(opts)}`;
-    case 'svelte': return `${filesHtml}${getSveltePreview(opts)}`;
-    case 'angular': return `${filesHtml}${getAngularPreview({ ...opts, comp: webComponentDisplay })}`;
-    case 'astro': return `${filesHtml}${getAstroPreview(opts)}`;
-    case 'solid': return `${filesHtml}${getSolidPreview(opts)}`;
-    case 'qwik': return `${filesHtml}${getQwikPreview(opts)}`;
-    case 'lit': return `${filesHtml}${getLitPreview({ ...opts, comp: webComponentDisplay })}`;
-    default: return `${filesHtml}${getHtmlPreview({ ...opts, comp: webComponentDisplay })}`;
+    case 'react': return `${filesHtml}${getReactPreview(opts, separateStructure)}`;
+    case 'vue': return `${filesHtml}${getVuePreview(opts, separateStructure)}`;
+    case 'svelte': return `${filesHtml}${getSveltePreview(opts, separateStructure)}`;
+    case 'angular': return `${filesHtml}${getAngularPreview({ ...opts, comp: webComponentDisplay }, separateStructure)}`;
+    case 'astro': return `${filesHtml}${getAstroPreview(opts, separateStructure)}`;
+    case 'solid': return `${filesHtml}${getSolidPreview(opts, separateStructure)}`;
+    case 'qwik': return `${filesHtml}${getQwikPreview(opts, separateStructure)}`;
+    case 'lit': return `${filesHtml}${getLitPreview({ ...opts, comp: webComponentDisplay }, separateStructure)}`;
+    default: return `${filesHtml}${getHtmlPreview({ ...opts, comp: webComponentDisplay }, separateStructure)}`;
   }
 }
 
 // ─── React ───────────────────────────────────────────────
 
-function getReactPreview(opts: PreviewOptions): string {
+function getReactPreview(opts: PreviewOptions, separateStructure: boolean): string {
   const { badge, comp, dir, file, tr } = opts;
-  const importPath = file.replace('.tsx', '');
+  const importBase = file.replace(/\.(tsx|vue|svelte|ts|js)$/, '');
+  const wrapperImport = separateStructure ? `${dir}/components/icons/${importBase}` : `${dir}/${importBase}`;
   return `${badge}<div class="code-block">
 ${ln(1, cmt(tr.previewImport))}
-${ln(2, `${kw('import')} { ${comp} } ${kw('from')} ${val(`'${dir}/${importPath}'`)};`)}
+${ln(2, `${kw('import')} { ${comp} } ${kw('from')} ${val(`'${wrapperImport}'`)};`)}
 ${ln(3, '')}
 ${ln(4, `${kw('export default')} ${kw('function')} ${tag('App')}() {`)}
 ${ln(5, `  ${kw('return')} (`)}
@@ -272,11 +283,13 @@ ${ln(11, '}')}
 
 // ─── Vue ─────────────────────────────────────────────────
 
-function getVuePreview(opts: PreviewOptions): string {
+function getVuePreview(opts: PreviewOptions, separateStructure: boolean): string {
   const { badge, comp, dir, file, tr } = opts;
+  const importBase = file.replace(/\.(tsx|vue|svelte|ts|js)$/, '');
+  const wrapperImport = separateStructure ? `${dir}/components/icons/${importBase}` : `${dir}/${importBase}`;
   return `${badge}<div class="code-block">
 ${ln(1, `${tag('&lt;script')} ${attr('setup')} ${attr('lang')}=${val('"ts"')}${tag('&gt;')}`)}
-${ln(2, `${kw('import')} ${comp} ${kw('from')} ${val(`'${dir}/${file}'`)};`)}
+${ln(2, `${kw('import')} ${comp} ${kw('from')} ${val(`'${wrapperImport}'`)};`)}
 ${ln(3, tag('&lt;/script&gt;'))}
 ${ln(4, '')}
 ${ln(5, tag('&lt;template&gt;'))}
@@ -290,11 +303,13 @@ ${ln(10, tag('&lt;/template&gt;'))}
 
 // ─── Svelte ──────────────────────────────────────────────
 
-function getSveltePreview(opts: PreviewOptions): string {
+function getSveltePreview(opts: PreviewOptions, separateStructure: boolean): string {
   const { badge, comp, dir, file, tr } = opts;
+  const importBase = file.replace(/\.(tsx|vue|svelte|ts|js)$/, '');
+  const wrapperImport = separateStructure ? `${dir}/components/icons/${importBase}` : `${dir}/${importBase}`;
   return `${badge}<div class="code-block">
 ${ln(1, `${tag('&lt;script')} ${attr('lang')}=${val('"ts"')}${tag('&gt;')}`)}
-${ln(2, `  ${kw('import')} ${comp} ${kw('from')} ${val(`'${dir}/${file}'`)};`)}
+${ln(2, `  ${kw('import')} ${comp} ${kw('from')} ${val(`'${wrapperImport}'`)};`)}
 ${ln(3, tag('&lt;/script&gt;'))}
 ${ln(4, '')}
 ${jsxSelf(5, comp, ` ${attr('name')}=${val('"home"')}`)}
@@ -306,8 +321,10 @@ ${jsxSelf(8, comp, ` ${attr('name')}=${val('"check"')} ${attr('size')}=${val('{3
 
 // ─── Angular ─────────────────────────────────────────────
 
-function getAngularPreview(opts: PreviewOptions): string {
+function getAngularPreview(opts: PreviewOptions, separateStructure: boolean): string {
   const { badge, comp, dir, file, tr } = opts;
+  const importBase = file.replace(/\.(tsx|vue|svelte|ts|js)$/, '');
+  const wrapperImport = separateStructure ? `${dir}/components/icons/${importBase}` : `${dir}/${importBase}`;
   const sel = comp || 'app-icon';
   const cls = sel
     .split('-')
@@ -315,11 +332,11 @@ function getAngularPreview(opts: PreviewOptions): string {
     .join('') + 'Component';
   return `${badge}<div class="code-block">
 ${ln(1, cmt('app.component.ts'))}
-${ln(2, `${kw('import')} { ${cls} } ${kw('from')} ${val(`'${dir}/${file.replace('.ts', '')}'`)};`)}
+${ln(2, `${kw('import')} { ${cls} } ${kw('from')} ${val(`'${wrapperImport}'`)};`)}
 ${ln(3, '')}
 ${ln(4, `${dec('@Component')}({`)}
 ${ln(5, `  ${attr('imports')}: [${cls}],`)}
-${ln(6, `  ${attr('template')}: \``)}
+${ln(6, '  ' + attr('template') + ': `')}
 ${htmlTag(7, sel, ` ${attr('name')}=${val('"home"')}`, '    ')}
 ${htmlTag(8, sel, ` ${attr('name')}=${val('"heart"')} ${attr('variant')}=${val('"custom"')}`, '    ')}
 ${htmlTag(9, sel, ` ${attr('name')}=${val('"settings"')} ${attr('animation')}=${val('"spin"')}`, '    ')}
@@ -331,11 +348,13 @@ ${ln(12, '})')}
 
 // ─── Astro ───────────────────────────────────────────────
 
-function getAstroPreview(opts: PreviewOptions): string {
+function getAstroPreview(opts: PreviewOptions, separateStructure: boolean): string {
   const { badge, comp, dir, file, tr } = opts;
+  const importBase = file.replace(/\.(tsx|vue|svelte|ts|js)$/, '');
+  const wrapperImport = separateStructure ? `${dir}/components/icons/${importBase}` : `${dir}/${importBase}`;
   return `${badge}<div class="code-block">
 ${ln(1, tag('---'))}
-${ln(2, `${kw('import')} ${comp} ${kw('from')} ${val(`'${dir}/${file}'`)};`)}
+${ln(2, `${kw('import')} ${comp} ${kw('from')} ${val(`'${wrapperImport}'`)};`)}
 ${ln(3, tag('---'))}
 ${ln(4, '')}
 ${jsxSelf(5, comp, ` ${attr('name')}=${val('"home"')}`)}
@@ -347,12 +366,13 @@ ${jsxSelf(8, comp, ` ${attr('name')}=${val('"check"')} ${attr('size')}=${val('{3
 
 // ─── Solid ───────────────────────────────────────────────
 
-function getSolidPreview(opts: PreviewOptions): string {
+function getSolidPreview(opts: PreviewOptions, separateStructure: boolean): string {
   const { badge, comp, dir, file, tr } = opts;
-  const importPath = file.replace('.tsx', '');
+  const importBase = file.replace(/\.(tsx|vue|svelte|ts|js)$/, '');
+  const wrapperImport = separateStructure ? `${dir}/components/icons/${importBase}` : `${dir}/${importBase}`;
   return `${badge}<div class="code-block">
 ${ln(1, cmt(tr.previewImport))}
-${ln(2, `${kw('import')} { ${comp} } ${kw('from')} ${val(`'${dir}/${importPath}'`)};`)}
+${ln(2, `${kw('import')} { ${comp} } ${kw('from')} ${val(`'${wrapperImport}'`)};`)}
 ${ln(3, '')}
 ${ln(4, `${kw('export default')} ${kw('function')} ${tag('App')}() {`)}
 ${ln(5, `  ${kw('return')} (`)}
@@ -367,13 +387,14 @@ ${ln(11, '}')}
 
 // ─── Qwik ────────────────────────────────────────────────
 
-function getQwikPreview(opts: PreviewOptions): string {
+function getQwikPreview(opts: PreviewOptions, separateStructure: boolean): string {
   const { badge, comp, dir, file, tr } = opts;
-  const importPath = file.replace('.tsx', '');
+  const importBase = file.replace(/\.(tsx|vue|svelte|ts|js)$/, '');
+  const wrapperImport = separateStructure ? `${dir}/components/icons/${importBase}` : `${dir}/${importBase}`;
   return `${badge}<div class="code-block">
 ${ln(1, cmt(tr.previewImport))}
 ${ln(2, `${kw('import')} { component$ } ${kw('from')} ${val("'@builder.io/qwik'")};`)}
-${ln(3, `${kw('import')} { ${comp} } ${kw('from')} ${val(`'${dir}/${importPath}'`)};`)}
+${ln(3, `${kw('import')} { ${comp} } ${kw('from')} ${val(`'${wrapperImport}'`)};`)}
 ${ln(4, '')}
 ${ln(5, `${kw('export default')} ${tag('component$')}(() =&gt; {`)}
 ${ln(6, `  ${kw('return')} (`)}
@@ -388,12 +409,13 @@ ${ln(12, '});')}
 
 // ─── Lit ─────────────────────────────────────────────────
 
-function getLitPreview(opts: PreviewOptions): string {
+function getLitPreview(opts: PreviewOptions, separateStructure: boolean): string {
   const { badge, comp, dir, tr } = opts;
   const webComp = comp || 'svg-icon';
+  const wrapperImport = separateStructure ? `${dir}/components/icons/Icon` : `${dir}/Icon`;
   return `${badge}<div class="code-block">
 ${ln(1, cmt(tr.previewImport))}
-${ln(2, `${kw('import')} ${val(`'${dir}/Icon'`)};`)}
+${ln(2, `${kw('import')} ${val(`'${wrapperImport}'`)};`)}
 ${ln(3, '')}
 ${ln(4, htmlCmt(tr.previewUse))}
 ${htmlTag(5, webComp, ` ${attr('name')}=${val('"home"')}`)}
@@ -405,7 +427,7 @@ ${htmlTag(8, webComp, ` ${attr('name')}=${val('"check"')} ${attr('size')}=${val(
 
 // ─── HTML (Web Component) ────────────────────────────────
 
-function getHtmlPreview(opts: PreviewOptions): string {
+function getHtmlPreview(opts: PreviewOptions, _separateStructure: boolean): string {
   const { comp, dir, tr } = opts;
   const webComp = comp || 'svg-icon';
   return `<div class="code-block">

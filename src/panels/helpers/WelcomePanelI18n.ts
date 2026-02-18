@@ -7,6 +7,14 @@
 import { t, SUPPORTED_LOCALES } from '../../i18n';
 import { i18n } from '../../i18n';
 
+function tOrFallback(key: string, fallbackKey: string): string {
+  const v = t(key);
+  if (!v || v === key) {
+    return t(fallbackKey);
+  }
+  return v;
+}
+
 /**
  * Gets all i18n labels needed for the WelcomePanel
  */
@@ -35,6 +43,9 @@ function getBasicLabels(): Record<string, string> {
     separateOutputHint: t('welcome.separateOutputHint'),
     defaultIconSizeLabel: t('welcome.defaultIconSize'),
     previewBackgroundLabel: t('welcome.previewBackground'),
+    codeIntegrationLabel: t('features.codeIntegration'),
+    codeIntegrationHint: t('welcome.codeIntegrationHint'),
+    codeIntegrationBadge: t('welcome.codeIntegrationBadge') || t('features.codeIntegrationDescription'),
     settings: t('settings.title'),
     skip: t('messages.cancel'),
     getStarted: t('welcome.getStarted'),
@@ -84,7 +95,7 @@ function getStepLabels(frameworkAutoDetected: boolean): Record<string, string> {
     helpSprite: t('features.buildSystemDescription'),
     transformTitle: t('commands.transform') || 'Transformar',
     transformDesc: t('features.buildSystemDescription'),
-    transformPro1: t('welcome.transformPro1') || t('features.codeIntegrationDescription'),
+    transformPro1: tOrFallback('welcome.transformPro1', 'features.codeIntegrationDescription'),
     helpTip: t('welcome.quickStartDescription'),
     step4Title: '',
     step4Desc: '',

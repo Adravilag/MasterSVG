@@ -177,3 +177,7 @@ function setCreateMsignore(checked) {
 function setSeparateOutputStructure(checked) {
   vscode.postMessage({ command: 'setSeparateOutputStructure', value: checked });
 }
+
+function setCodeIntegration(checked) {
+  vscode.postMessage({ command: 'setCodeIntegration', value: checked });
+}

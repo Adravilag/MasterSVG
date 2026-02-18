@@ -225,8 +225,15 @@ function applyStep3Replacements(html: string, ctx: WebviewContext, tr: Record<st
     .replace(/\$\{jsModulePro1\}/g, tr.jsModulePro1)
     .replace(/\$\{jsModulePro2\}/g, tr.jsModulePro2)
     .replace(/\$\{transformTitle\}/g, tr.transformTitle || tr.jsModuleTitle)
-    .replace(/\$\{transformDesc\}/g, tr.transformDesc || tr.jsModuleDesc)
+      .replace(/\$\{separateOutputHidden\}/g, ctx.buildFormat === 'icons.js' ? '' : 'style="display:none"')
+      .replace(/\$\{codeIntegrationChecked\}/g, ctx.codeIntegrationEnabled ? 'checked' : '')
+      .replace(/\$\{codeIntegrationDisabled\}/g, '')
+      .replace(/\$\{codeIntegrationLabel\}/g, tr.codeIntegrationLabel || '')
+      .replace(/\$\{codeIntegrationHint\}/g, tr.codeIntegrationHint || '')
+      .replace(/\$\{codeIntegrationBadge\}/g, ctx.codeIntegrationEnabled && ctx.buildFormat === 'icons.js' ? '<span class="tag-pro">' + (tr.codeIntegrationBadge || '') + '</span>' : '')
+      // Transform card removed from template; transform badge placeholder no longer used
     .replace(/\$\{transformPro1\}/g, tr.transformPro1 || tr.jsModulePro1)
+    .replace(/\$\{separateOutputHidden\}/g, ctx.buildFormat === 'icons.js' ? '' : 'style="display:none"')
     .replace(/\$\{spriteSvgSelected\}/g, spriteSvgSelectedValue)
     .replace(/\$\{spriteSelected\}/g, spriteSvgSelectedValue)
     .replace(/\$\{spriteDesc\}/g, tr.spriteDesc)
@@ -267,9 +274,11 @@ function applyAdvancedReplacements(
   return html
     .replace(/\$\{step4Section\}/g, step4Section)
     .replace(/\$\{buildOptionsTitle\}/g, tr.buildOptionsTitle)
+    .replace(/\$\{buildOptionsBeta\}/g, tr.buildOptionsBeta || 'Beta')
     .replace(/\$\{separateOutputLabel\}/g, tr.separateOutputLabel)
     .replace(/\$\{separateOutputHint\}/g, tr.separateOutputHint)
-    .replace(/\$\{separateOutputChecked\}/g, ctx.separateOutputStructure ? 'checked' : '')
+   .replace(/\$\{separateOutputChecked\}/g, ctx.separateOutputStructure ? 'checked' : '')
+   .replace(/\$\{separateOutputDisabled\}/g, ctx.buildFormat === 'icons.js' ? '' : `disabled title="${tr.separateOutputDisabledHint || 'Applies only to JS/TS modules'}"`)
     .replace(/\$\{defaultIconSizeLabel\}/g, tr.defaultIconSizeLabel)
     .replace(/\$\{previewBackgroundLabel\}/g, tr.previewBackgroundLabel)
     .replace(/\$\{defaultIconSize\}/g, String(ctx.defaultIconSize))
@@ -309,6 +318,8 @@ function applyPreviewReplacements(opts: PreviewReplacementOptions): string {
     .replace(/\$\{comingSoon\}/g, tr.comingSoon)
     .replace(/\$\{settings\}/g, tr.settings)
     .replace(/\$\{skip\}/g, tr.skip)
+
     .replace(/\$\{setupGuide\}/g, setupGuide)
     .replace(/\$\{finishButton\}/g, finishButton);
 }
+

@@ -63,10 +63,22 @@ export function buildPreviewGallery(): string {
  */
 export function buildPreviewSummary(ctx: WebviewContext, tr: Record<string, string>): string {
   if (!ctx.isFullyConfigured) return '';
+  const formatLabel = ctx.buildFormat === 'icons.js' ? tr.jsModuleTitle : ctx.buildFormat === 'css' ? (tr.cssIconsTitle || 'CSS Icons') : tr.spriteTitle;
+
+    if (ctx.separateOutputStructure) {
+    const compPath = `${ctx.outputDir}/components/icons`;
+    const assetsPath = `${ctx.outputDir}/assets/icons`;
+    return `<div class="preview-summary">
+      <div class="preview-summary-item"><span class="preview-summary-label">${tr.previewOutput}</span><span class="preview-summary-value">${compPath}</span></div>
+      <div class="preview-summary-item"><span class="preview-summary-label">${tr.previewAssets || 'Assets'}</span><span class="preview-summary-value">${assetsPath}</span></div>
+      <div class="preview-summary-item"><span class="preview-summary-label">${tr.previewFormat}</span><span class="preview-summary-value">${formatLabel}</span></div>
+      <div class="preview-summary-item" style="${ctx.buildFormat === 'icons.js' ? '' : 'display:none'}"><span class="preview-summary-label">${tr.previewTag}</span><span class="preview-summary-value">&lt;${ctx.webComponentName}&gt;</span></div>
+    </div>`;
+  }
 
   return `<div class="preview-summary">
       <div class="preview-summary-item"><span class="preview-summary-label">${tr.previewOutput}</span><span class="preview-summary-value">${ctx.outputDir}</span></div>
-      <div class="preview-summary-item"><span class="preview-summary-label">${tr.previewFormat}</span><span class="preview-summary-value">${ctx.buildFormat === 'icons.js' ? tr.jsModuleTitle : ctx.buildFormat === 'css' ? (tr.cssIconsTitle || 'CSS Icons') : tr.spriteTitle}</span></div>
+      <div class="preview-summary-item"><span class="preview-summary-label">${tr.previewFormat}</span><span class="preview-summary-value">${formatLabel}</span></div>
       <div class="preview-summary-item" style="${ctx.buildFormat === 'icons.js' ? '' : 'display:none'}"><span class="preview-summary-label">${tr.previewTag}</span><span class="preview-summary-value">&lt;${ctx.webComponentName}&gt;</span></div>
     </div>`;
 }

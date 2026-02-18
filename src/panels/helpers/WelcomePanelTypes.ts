@@ -18,6 +18,8 @@ export interface SessionConfig {
   frontendRoot: string;
   createMsignore: boolean;
   separateOutputStructure: boolean;
+  codeIntegrationEnabled?: boolean;
+
 }
 
 /** Webview context with computed state values */
@@ -43,6 +45,8 @@ export interface WebviewContext {
   suggestedSourceDirs: string[];
   suggestedOutputDirs: string[];
   separateOutputStructure: boolean;
+  codeIntegrationEnabled?: boolean;
+
 }
 
 /** Options for template replacement functions */
@@ -100,5 +104,6 @@ export function createDefaultSessionConfig(): SessionConfig {
     frontendRoot: '',
     createMsignore: true,
     separateOutputStructure: false,
+      codeIntegrationEnabled: false,
   };
 }

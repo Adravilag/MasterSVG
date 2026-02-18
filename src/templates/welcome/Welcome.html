@@ -131,21 +131,35 @@
             <div class="build-options-header">
               <svg viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg>
               <span>${buildOptionsTitle}</span>
+              <span class="tag-neutral small">${buildOptionsBeta}</span>
             </div>
             <div class="build-options-grid">
-              <div class="build-option-item">
+              <div class="build-option-item" ${separateOutputHidden}>
                 <div class="build-option-icon">
                   <svg viewBox="0 0 24 24"><path d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z"/></svg>
                 </div>
                 <div class="build-option-body">
                   <label class="toggle-label">
                     <span>${separateOutputLabel}</span>
-                    <input type="checkbox" id="separateOutputStructure" ${separateOutputChecked} onchange="setSeparateOutputStructure(this.checked)">
+                    <input type="checkbox" id="separateOutputStructure" ${separateOutputChecked} ${separateOutputDisabled} onchange="setSeparateOutputStructure(this.checked)">
                     <span class="toggle-switch"></span>
                   </label>
                   <p class="build-option-hint">${separateOutputHint}</p>
                 </div>
               </div>
+                <div class="build-option-item">
+                  <div class="build-option-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm0 7l-10 5 10 5 10-5-10-5z"/></svg>
+                  </div>
+                  <div class="build-option-body">
+                    <label class="toggle-label">
+                      <span>${codeIntegrationLabel}</span>
+                      <input type="checkbox" id="codeIntegrationEnabled" ${codeIntegrationChecked} ${codeIntegrationDisabled} onchange="setCodeIntegration(this.checked)">
+                      <span class="toggle-switch"></span>
+                    </label>
+                    <p class="build-option-hint">${codeIntegrationHint}</p>
+                  </div>
+                </div>
               <div class="build-option-item">
                 <div class="build-option-icon">
                   <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM5 15h14v3H5z"/></svg>
@@ -191,18 +205,10 @@
                 <div class="format-tags">
                   <span class="tag-pro">${jsModulePro1}</span>
                   <span class="tag-pro">${jsModulePro2}</span>
+                  ${codeIntegrationBadge}
                 </div>
               </div>
-              <div class="format-card ${transformSelected}" onclick="setBuildFormat('transform')">
-                <h3>
-                  <svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 3h18v2H3zM3 7h12v2H3zM3 11h18v2H3zM3 15h12v2H3zM3 19h18v2H3z"/></svg>
-                  ${transformTitle}
-                </h3>
-                <p>${transformDesc}</p>
-                <div class="format-tags">
-                  <span class="tag-pro">${transformPro1}</span>
-                </div>
-              </div>
+              <!-- Transform option removed -->
               <div class="format-card ${spriteSvgSelected}" onclick="setBuildFormat('sprite.svg')">
                 <h3>
                   <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
@@ -343,6 +349,7 @@
             <div class="preview-dot yellow"></div>
             <div class="preview-dot green"></div>
             <span class="preview-window-title">${previewWindowTitle}</span>
+
           </div>
           <div class="preview-code">
             ${previewCode}
