@@ -57,9 +57,30 @@ export class IconStudioPanel {
         this._context = context;
         this._update();
 
+        // Force a refresh of all icon views so built icons are loaded when the panel opens
+        try {
+            // Trigger refresh now and schedule retries in case outputs are not yet available
+            (vscode.commands.executeCommand('masterSVG.refreshIcons') as Promise<any>)
+                .then(() => { try { this.postMessage({ type: 'refreshComplete' }); } catch (e) {} })
+                .catch(() => {});
+            setTimeout(() => { try { vscode.commands.executeCommand('masterSVG.refreshIcons'); } catch (e) {} }, 700);
+            setTimeout(() => { try { vscode.commands.executeCommand('masterSVG.refreshIcons'); } catch (e) {} }, 2000);
+        } catch (e) { /* ignore */ }
+
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
         this._panel.webview.onDidReceiveMessage(m => this._handleMessage(m), null, this._disposables);
-        this._panel.onDidChangeViewState(() => { if (this._panel.visible) this._update(); }, null, this._disposables);
+        this._panel.onDidChangeViewState(() => {
+            if (this._panel.visible) {
+                this._update();
+                try {
+                    (vscode.commands.executeCommand('masterSVG.refreshIcons') as Promise<any>)
+                        .then(() => { try { this.postMessage({ type: 'refreshComplete' }); } catch (e) {} })
+                        .catch(() => {});
+                    setTimeout(() => { try { vscode.commands.executeCommand('masterSVG.refreshIcons'); } catch (e) {} }, 700);
+                    setTimeout(() => { try { vscode.commands.executeCommand('masterSVG.refreshIcons'); } catch (e) {} }, 2000);
+                } catch (e) { /* ignore */ }
+            }
+        }, null, this._disposables);
     }
 
     public postMessage(message: any) {
@@ -133,6 +154,13 @@ export class IconStudioPanel {
 
             case 'getLibraryIcons':
                 await this._sendLibraryIcons();
+                break;
+
+            case 'requestRefreshBuilt':
+                try {
+                    await vscode.commands.executeCommand('masterSVG.refreshIcons');
+                    this.postMessage({ type: 'refreshComplete' });
+                } catch (e) { /* ignore */ }
                 break;
 
             case 'openFile': {

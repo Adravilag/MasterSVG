@@ -1215,6 +1215,12 @@ export interface ComponentExportOptions {
   exportType?: 'named' | 'default';
   /** Include prop types */
   includePropTypes?: boolean;
+  /** * Path to the sprite file.
+   * Example: '/assets/sprite.svg' or 'icons.svg'
+   */
+  spritePath?: string;
+  /** Attribute name for referencing the icon in the sprite */
+  nameAttribute?: string;
 }
 
 /**

@@ -84,8 +84,21 @@ window.addEventListener('message', event => {
         } catch (e) { /* ignore */ }
       } catch (e) { console.error('Failed handling config message', e); }
       break;
+      case 'refreshComplete':
+        try { showToast('Recarga completada'); } catch (e) { /* ignore */ }
+        break;
   }
 });
+
+function showToast(text) {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = text;
+  el.style.display = 'block';
+  el.setAttribute('aria-hidden', 'false');
+  clearTimeout(el._hideTimer);
+  el._hideTimer = setTimeout(() => { el.style.display = 'none'; el.setAttribute('aria-hidden', 'true'); }, 2600);
+}
 
 // Code preview handlers
 function openCodePreview() {
@@ -167,7 +180,7 @@ function generateSampleCode(format, cfg) {
   const componentName = naming === 'Home' ? 'Home' : naming;
   const importLine = `import React from 'react';`;
   const propsType = typescript ? 'IconProps' : null;
-  const interfaceLine = typescript ? `\ninterface ${propsType} extends React.SVGProps<SVGSVGElement> {}` : '';
+  const interfaceLine = typescript ? `\ninterface ${propsType} extends React.SVGProps<SVGSVGElement> {\n  size?: number | string;\n  color?: string;\n}` : '';
 
   let componentDef = '';
   if (forwardRef) {
@@ -340,3 +353,7 @@ vscode.postMessage({ type: 'getWorkspaceIcons' });
 vscode.postMessage({ type: 'getLibraryIcons' });
 vscode.postMessage({ type: 'getConfig' });
 setTimeout(() => renderBuildOptions(), 150);
+// Ask host to refresh built icons once webview has initialized
+setTimeout(() => { try { vscode.postMessage({ type: 'requestRefreshBuilt' }); } catch (e) {} }, 800);
+// Retry request in case build finishes shortly after webview init
+setTimeout(() => { try { vscode.postMessage({ type: 'requestRefreshBuilt' }); } catch (e) {} }, 2200);

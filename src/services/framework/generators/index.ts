@@ -1,0 +1,9 @@
+export { generateWebComponent as html } from './web';
+export { generateReactComponent as react } from './react';
+export { generateVueComponent as vue } from './vue';
+export { generateAngularComponent as angular } from './angular';
+export { generateSvelteComponent as svelte } from './svelte';
+export { generateAstroComponent as astro } from './astro';
+export { generateSolidComponent as solid } from './solid';
+export { generateQwikComponent as qwik } from './qwik';
+export { generateLitComponent as lit } from './lit';

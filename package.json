@@ -355,15 +355,6 @@
         },
         "masterSVG.svgFolders": {
           "type": "array",
-          "default": [
-            "src/assets/icons",
-            "src/icons",
-            "vue",
-            "svelte",
-            "astro",
-            "html",
-            "lit"
-          ],
           "default": "jsx",
           "description": "Default output format for icon components"
         },
@@ -922,12 +913,12 @@
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@types/glob": "^8.1.0",
-    "@types/jest": "^29.5.11",
+    "@types/jest": "^29.5.14",
     "@types/mocha": "^10.0.10",
     "@types/node": "^20.10.0",
-    "@types/vscode": "^1.85.0",
     "@types/react": "^18.2.21",
     "@types/react-dom": "^18.2.7",
+    "@types/vscode": "^1.85.0",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^2.22.0",
     "esbuild": "^0.27.2",
@@ -944,9 +935,9 @@
     "typescript-eslint": "^8.51.0"
   },
   "dependencies": {
+    "@xmldom/xmldom": "^0.8.11",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "@xmldom/xmldom": "^0.8.11",
     "svgo": "^3.2.0"
   }
 }

@@ -11,6 +11,7 @@ export interface RefreshableProviders {
     refresh(): void;
     refreshItemByName?(name: string): void;
     addIconAndRefresh?(name: string, svg: string, iconsFilePath: string, animation?: IconAnimation): void;
+    ensureReady?(): Promise<void>;
   };
   svgFilesProvider: {
     refresh(): void;
@@ -30,11 +31,17 @@ export function registerRefreshCommands(providers: RefreshableProviders): vscode
 
   // Command: Refresh all views
   disposables.push(
-    vscode.commands.registerCommand('masterSVG.refreshIcons', () => {
+    vscode.commands.registerCommand('masterSVG.refreshIcons', async () => {
       // Refresh builtIconsProvider first so svgFilesProvider can get build status
       providers.builtIconsProvider.refresh();
       providers.svgFilesProvider.refresh();
       providers.workspaceSvgProvider.refresh();
+      // Wait until built icons provider finished scanning/loading so callers can rely on ready state
+      try {
+        await providers.builtIconsProvider.ensureReady?.();
+      } catch (e) {
+        // ignore errors during ensure
+      }
     })
   );
 

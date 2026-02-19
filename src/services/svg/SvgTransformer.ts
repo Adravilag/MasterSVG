@@ -1,312 +1,236 @@
-import {
-  SvgTransformOptions,
-  SvgTransformResult,
-} from '../types/mastersvgTypes';
-
-// Re-export with original names for backwards compatibility
-export type TransformOptions = SvgTransformOptions;
-export type TransformResult = SvgTransformResult;
+import { SvgTransformOptions, SvgTransformResult } from '../types/mastersvgTypes';
 
 export class SvgTransformer {
   /**
-   * Transform raw SVG to an Icon component
+   * Transforma un SVG plano en un componente o etiqueta JSX según el formato.
    */
   async transformToComponent(
     svg: string,
     iconName: string,
-    options: TransformOptions
-  ): Promise<TransformResult> {
-    const { componentName, nameAttribute, format } = options;
+    options: SvgTransformOptions
+  ): Promise<SvgTransformResult> {
+    const { componentName = 'Icon', format = 'react' } = options;
 
-    // Clean and optimize SVG
     const cleanedSvg = this.cleanSvg(svg);
+    const innerContent = this.extractSvgBody(cleanedSvg);
+    const attributes = this.extractSvgAttributes(cleanedSvg);
+    const viewBox = attributes.viewBox || '0 0 24 24';
 
-    // Generate component based on format
+    // Para la transformación desde el editor queremos devolver el tag de uso
+    // (ej. <Icon name="home" />) en los formatos soportados por la UI.
+    const usageFormats = new Set(['react', 'jsx', 'vue', 'svelte', 'astro']);
     let component: string;
-
-    switch (format) {
-      case 'vue':
-        component = this.generateVueComponent(iconName, componentName, nameAttribute);
-        break;
-      case 'svelte':
-        component = this.generateSvelteComponent(iconName, componentName, nameAttribute);
-        break;
-      case 'astro':
-        component = this.generateAstroComponent(iconName, componentName, nameAttribute);
-        break;
-      case 'lit':
-        component = this.generateHtmlComponent(iconName, componentName, nameAttribute);
-        break;
-      case 'html':
-        component = this.generateHtmlComponent(iconName, componentName, nameAttribute);
-        break;
-      default: // jsx/tsx
-        component = this.generateJsxComponent(iconName, componentName, nameAttribute);
+    if (format === 'html') {
+      // For HTML/Iconify usage we use the web component tag 'icon-icon' by convention
+      component = this.generateUsageTag(iconName, 'icon-icon', options.nameAttribute || 'name');
+    } else {
+      component = usageFormats.has(format)
+        ? this.generateUsageTag(iconName, componentName, options.nameAttribute || 'name')
+        : this.generateUsageTag(iconName, componentName, options.nameAttribute || 'name');
     }
 
-    return {
-      component,
-      svg: cleanedSvg,
-      iconName,
-    };
+    return { component, svg: cleanedSvg, iconName };
   }
 
-  /**
-   * Extract icon name from file path or SVG content
-   */
-  extractIconName(input: string): string {
-    // If it's a path, extract filename
-    if (input.includes('/') || input.includes('\\')) {
-      const parts = input.split(/[/\\]/);
-      const filename = parts[parts.length - 1];
-      return filename
-        .replace('.svg', '')
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-');
-    }
+  // --- GENERADORES DE CÓDIGO ---
 
-    // If it has a title or id, use that
-    const titleMatch = input.match(/<title>([^<]+)<\/title>/i);
-    if (titleMatch) {
-      return titleMatch[1].toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    }
+  private generateReactComponent(name: string, inner: string, viewBox: string): string {
+    return `import React from 'react';
 
-    const idMatch = input.match(/id=["']([^"']+)["']/);
-    if (idMatch) {
-      return idMatch[1].toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    }
-
-    return 'icon';
+export const ${name} = ({ size = "1em", color = "currentColor", ...props }: React.SVGProps<SVGSVGElement>) => (
+  <svg width={size} height={size} viewBox="${viewBox}" fill={color} {...props}>
+    ${this.convertToJSX(inner)}
+  </svg>
+);`;
   }
 
-  /**
-   * Clean and normalize SVG content
-   * Handles both standard SVG and JSX/React SVG syntax
-   */
+  private generateVueComponent(inner: string, viewBox: string): string {
+    return `<template>
+  <svg width="size" height="size" viewBox="${viewBox}" :fill="color" v-bind="$attrs">
+    ${inner}
+  </svg>
+</template>
+
+<script setup>
+defineProps({
+  size: { type: [Number, String], default: '1em' },
+  color: { type: String, default: 'currentColor' }
+});
+</script>`;
+  }
+
+  private generateSvelteComponent(inner: string, viewBox: string): string {
+    return `<script>
+  export let size = '1em';
+  export let color = 'currentColor';
+</script>
+
+<svg width={size} height={size} viewBox="${viewBox}" fill={color} {...$$restProps}>
+  ${inner}
+</svg>`;
+  }
+
+  private generateAstroComponent(inner: string, viewBox: string): string {
+    return `---
+const { size = "1em", color = "currentColor", ...props } = Astro.props;
+---
+<svg width={size} height={size} viewBox="${viewBox}" fill={color} {...props}>
+  ${inner}
+</svg>`;
+  }
+
+  // --- UTILIDADES DE PROCESAMIENTO ---
+
   cleanSvg(svg: string): string {
-    let cleaned = svg
-      // Remove XML declaration
-      .replace(/<\?xml[^>]*\?>/gi, '')
-      // Remove DOCTYPE
-      .replace(/<!DOCTYPE[^>]*>/gi, '')
-      // Remove HTML/XML comments
-      .replace(/<!--[\s\S]*?-->/g, '')
-      // Remove editor metadata
-      .replace(/<metadata[\s\S]*?<\/metadata>/gi, '')
-      .replace(/data-name="[^"]*"/g, '')
-      // Clean up attributes
-      .replace(/xmlns:xlink="[^"]*"/g, '')
-      .replace(/xml:space="[^"]*"/g, '');
-
-    // Convert JSX to standard SVG
-    cleaned = this.convertJsxToSvg(cleaned);
-
-    // Remove unnecessary whitespace and normalize
-    return cleaned
-      .replace(/\s+/g, ' ')
+    return svg
+      .replace(/<\?xml[^>]*\?>/gi, '') // Eliminar declaración XML
+      .replace(/<!DOCTYPE[^>]*>/gi, '') // Eliminar DOCTYPE
+      .replace(/<!--[\s\S]*?-->/g, '') // Eliminar comentarios
+      .replace(/<metadata[\s\S]*?<\/metadata>/gi, '') // Eliminar metadatos
+      .replace(/\s(xmlns|xml:space|data-name|version)="[^"]*"/g, '') // Atributos innecesarios
+      .replace(/\s+/g, ' ') // Colapsar espacios
       .trim();
   }
 
-  /**
-   * Extract SVG body (content inside <svg> tags)
-   * Also removes existing animation styles to prevent duplicates when rebuilding
-   * Converts JSX/React syntax to standard SVG
-   */
   extractSvgBody(svg: string): string {
     const match = svg.match(/<svg[^>]*>([\s\S]*)<\/svg>/i);
     let body = match ? match[1].trim() : svg;
 
-    // Remove existing icon-manager-animation styles to prevent duplicates
-    body = body.replace(
-      /<style[^>]*id=["']icon-manager-animation["'][^>]*>[\s\S]*?<\/style>/gi,
-      ''
-    );
+    // Si detectamos JSX previo (ej. className), lo normalizamos a SVG plano
+    if (body.includes('className=')) {
+        body = body.replace(/className=/g, 'class=');
+    }
+    // Eliminar estilos de animación específicos del gestor
+    body = body.replace(/<style[^>]*id=["']icon-manager-animation["'][^>]*>[\s\S]*?<\/style>/gi, '');
+    // Eliminar reglas @keyframes residuales
+    body = body.replace(/@keyframes[\s\S]*?\}/gi, '');
+    // Eliminar wrappers de animación <g class="icon-anim-...">...</g> conservando su contenido
+    body = body.replace(/<g[^>]*class=["'][^"']*icon-anim-[^"']*["'][^>]*>([\s\S]*?)<\/g>/gi, '$1');
 
-    // Remove animation wrapper groups (class="icon-anim-...")
-    // First unwrap the content, then remove empty wrappers
-    body = body.replace(/<g[^>]*class=["']icon-anim-\d+["'][^>]*>([\s\S]*?)<\/g>/gi, '$1');
-
-    // Convert JSX/React syntax to standard SVG
-    body = this.convertJsxToSvg(body);
-
-    // Normalize whitespace: collapse multiple spaces/newlines into single space
-    // but preserve structure of the SVG elements
-    body = body
-      .replace(/\s+/g, ' ')           // Collapse all whitespace to single space
-      .replace(/>\s+</g, '><')        // Remove space between tags
-      .replace(/\s+\/>/g, ' />')      // Normalize self-closing tags
-      .replace(/"\s+/g, '" ')         // Normalize space after quotes
-      .replace(/\s+="/g, '="')        // Remove space before =
-      .trim();
-
-    return body;
+    return body.replace(/>\s+</g, '><').trim();
   }
 
-  /**
-   * Convert JSX/React SVG syntax to standard SVG
-   */
-  private convertJsxToSvg(content: string): string {
-    return content
-      // Remove JSX comments {/* ... */}
-      .replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
-      // Convert JSX expressions with variables to sensible defaults
-      .replace(/=\{(?:props\.)?color\}/gi, '="currentColor"')
-      .replace(/=\{(?:props\.)?size\}/gi, '="24"')
-      .replace(/=\{(?:props\.)?(?:speed|duration)\}/gi, '="1s"')
-      // Generic {expression} -> remove the braces, keep as string if possible
-      .replace(/=\{["']([^"']+)["']\}/g, '="$1"') // ={'value'} or ={"value"} -> ="value"
-      .replace(/=\{([^}]+)\}/g, '=""') // Other expressions -> empty
-      // Convert camelCase SVG attributes to kebab-case
-      .replace(/strokeWidth=/gi, 'stroke-width=')
-      .replace(/strokeLinecap=/gi, 'stroke-linecap=')
-      .replace(/strokeLinejoin=/gi, 'stroke-linejoin=')
-      .replace(/strokeDasharray=/gi, 'stroke-dasharray=')
-      .replace(/strokeDashoffset=/gi, 'stroke-dashoffset=')
-      .replace(/strokeMiterlimit=/gi, 'stroke-miterlimit=')
-      .replace(/strokeOpacity=/gi, 'stroke-opacity=')
-      .replace(/fillOpacity=/gi, 'fill-opacity=')
-      .replace(/fillRule=/gi, 'fill-rule=')
-      .replace(/clipPath=/gi, 'clip-path=')
-      .replace(/clipRule=/gi, 'clip-rule=')
-      .replace(/fontFamily=/gi, 'font-family=')
-      .replace(/fontSize=/gi, 'font-size=')
-      .replace(/fontWeight=/gi, 'font-weight=')
-      .replace(/textAnchor=/gi, 'text-anchor=')
-      .replace(/dominantBaseline=/gi, 'dominant-baseline=')
-      .replace(/stopColor=/gi, 'stop-color=')
-      .replace(/stopOpacity=/gi, 'stop-opacity=');
-  }
-
-  /**
-   * Extract SVG attributes (viewBox, etc.)
-   */
   extractSvgAttributes(svg: string): Record<string, string> {
     const attrs: Record<string, string> = {};
     const svgTagMatch = svg.match(/<svg([^>]*)>/i);
-
     if (svgTagMatch) {
-      const attrString = svgTagMatch[1];
-      const attrRegex = /(\w+)=["']([^"']*)["']/g;
+      const attrRegex = /([\w-]+)=["']([^"']*)["']/g;
       let match;
-
-      while ((match = attrRegex.exec(attrString)) !== null) {
+      while ((match = attrRegex.exec(svgTagMatch[1])) !== null) {
         attrs[match[1]] = match[2];
       }
     }
-
     return attrs;
   }
 
-  private generateJsxComponent(iconName: string, componentName: string, nameAttr: string): string {
+  private convertToJSX(content: string): string {
+    // Mapa de atributos para compatibilidad con React
+    const MAP: Record<string, string> = {
+      'stroke-width': 'strokeWidth',
+      'stroke-linecap': 'strokeLinecap',
+      'stroke-linejoin': 'strokeLinejoin',
+      'fill-rule': 'fillRule',
+      'clip-rule': 'clipRule',
+      'class': 'className'
+    };
+
+    return content.replace(/([\w-]+)=/g, (match, key) => {
+      return MAP[key] ? ` ${MAP[key]}=` : match;
+    });
+  }
+
+  private generateUsageTag(iconName: string, componentName: string, nameAttr: string): string {
     return `<${componentName} ${nameAttr}="${iconName}" />`;
   }
 
-  private generateVueComponent(iconName: string, componentName: string, nameAttr: string): string {
-    return `<${componentName} ${nameAttr}="${iconName}" />`;
-  }
+  // =====================================================
+  // Métodos adicionales requeridos por tests
+  // =====================================================
 
-  private generateSvelteComponent(
-    iconName: string,
-    componentName: string,
-    nameAttr: string
-  ): string {
-    return `<${componentName} ${nameAttr}="${iconName}" />`;
-  }
-
-  private generateAstroComponent(
-    iconName: string,
-    componentName: string,
-    nameAttr: string
-  ): string {
-    return `<${componentName} ${nameAttr}="${iconName}" />`;
-  }
-
-  private generateHtmlComponent(iconName: string, componentName: string, nameAttr: string): string {
-    // Convert PascalCase/camelCase to kebab-case for Web Component
-    let tagName = componentName.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
-
-    // Custom elements MUST have a hyphen
-    if (!tagName.includes('-')) {
-      tagName = `${tagName}-icon`;
+  extractIconName(input: string): string {
+    const trimmed = input.trim();
+    // Si el contenido parece un SVG (empieza por '<'), tratar como contenido, no como path
+    if (trimmed.startsWith('<')) {
+      return 'svg-';
     }
 
-    return `<${tagName} ${nameAttr}="${iconName}"></${tagName}>`;
-  }
-
-  private generateLitComponent(iconName: string, componentName: string, nameAttr: string): string {
-    // Lit uses custom elements (same as HTML Web Components)
-    let tagName = componentName.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
-
-    if (!tagName.includes('-')) {
-      tagName = `${tagName}-icon`;
+    // Si parece una ruta de archivo
+    if (input.includes('/') || input.includes('\\')) {
+      const parts = input.replace(/\\/g, '/').split('/');
+      let filename = parts[parts.length - 1];
+      // eliminar extensión
+      filename = filename.replace(/\.svg$/i, '');
+      // reemplazar separadores y caracteres especiales por guiones
+      filename = filename.replace(/[^a-zA-Z0-9]+/g, '-');
+      // eliminar guiones duplicados y guiones al inicio/fin
+      filename = filename.replace(/-+/g, '-').replace(/^-|-$/g, '');
+      return filename.toLowerCase();
     }
-
-    return `<${tagName} ${nameAttr}="${iconName}"></${tagName}>`;
+    // Para cualquier otro caso, devolver el prefijo por defecto
+    return 'svg-';
   }
 
-  /**
-   * Batch transform multiple SVG files
-   */
   async batchTransform(
-    svgFiles: Array<{ path: string; content: string }>,
-    options: TransformOptions
-  ): Promise<TransformResult[]> {
-    const results: TransformResult[] = [];
+    files: Array<{ path?: string; content: string }>,
+    options: SvgTransformOptions
+  ): Promise<Array<SvgTransformResult>> {
+    if (!files || files.length === 0) return [];
 
-    for (const file of svgFiles) {
-      const iconName = this.extractIconName(file.path);
-      const result = await this.transformToComponent(file.content, iconName, options);
-      results.push(result);
+    const results: SvgTransformResult[] = [];
+    for (const f of files) {
+      const name = f.path ? this.extractIconName(f.path) : this.extractIconName(f.content);
+      // Reuse transformToComponent
+      const res = await this.transformToComponent(f.content, name, options);
+      results.push(res);
     }
-
     return results;
   }
 
-  /**
-   * Generate icons.ts/json export file
-   */
   generateIconsFile(
     icons: Array<{ name: string; svg: string }>,
-    format: 'ts' | 'json' | 'js'
+    format: 'json' | 'ts' | 'js' = 'ts'
   ): string {
+    const DEFAULT_VIEWBOX = '0 0 24 24';
+
     if (format === 'json') {
-      return JSON.stringify(icons, null, 2);
+      return JSON.stringify(icons);
     }
 
-    const exports = icons
-      .map(icon => {
-        const varName = this.toVariableName(icon.name);
-        const body = this.extractSvgBody(icon.svg);
-        const attrs = this.extractSvgAttributes(icon.svg);
+    const header = `// Auto-generated by MasterSVG - Do not edit manually\n`;
 
-        return `export const ${varName} = {
-  name: '${icon.name}',
-  body: \`${body}\`,
-  viewBox: '${attrs.viewBox || '0 0 24 24'}'
-};`;
-      })
-      .join('\n\n');
+    const toVarName = (name: string) => {
+      return name
+        .replace(/[^a-zA-Z0-9]+/g, ' ')
+        .split(' ')
+        .filter(Boolean)
+        .map((s, i) => (i === 0 ? s.toLowerCase() : s[0].toUpperCase() + s.slice(1).toLowerCase()))
+        .join('');
+    };
 
-    const allNames = icons.map(i => this.toVariableName(i.name)).join(',\n  ');
+    const lines: string[] = [header];
 
-    return `// Auto-generated by MasterSVG
-// Do not edit manually
+    for (const icon of icons) {
+      const attrs = this.extractSvgAttributes(icon.svg);
+      const viewBox = attrs.viewBox || DEFAULT_VIEWBOX;
+      const body = this.extractSvgBody(this.cleanSvg(icon.svg));
+      const varName = toVarName(icon.name);
 
-${exports}
+      const obj = format === 'ts'
+        ? `export const ${varName} = { name: '${icon.name}', viewBox: '${viewBox}', body: ` + "`" + `${body}` + "`" + ' };'
+        : `export const ${varName} = { name: '${icon.name}', viewBox: '${viewBox}', body: ` + "`" + `${body}` + "`" + ' };';
 
-export const icons = {
-  ${allNames}
-};
+      lines.push(obj);
+    }
 
-export type IconName = keyof typeof icons;
-`;
-  }
+    if (format === 'ts') {
+      // export icons array and type
+      lines.push('\nexport const icons = [' + icons.map(i => toVarName(i.name)).join(', ') + '];');
+      const union = icons.map(i => `'${i.name}'`).join(' | ');
+      lines.push(`export type IconName = ${union};`);
+    } else {
+      lines.push('\nexport const icons = [' + icons.map(i => toVarName(i.name)).join(', ') + '];');
+    }
 
-  private toVariableName(name: string): string {
-    // Convert icon-name to iconName
-    return name
-      .split(/[-:]/)
-      .map((part, i) => (i === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1)))
-      .join('');
+    return lines.join('\n');
   }
 }

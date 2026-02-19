@@ -243,13 +243,13 @@ export async function addToSpriteSvg(
   }
 
   const spriteFilename = getSvgConfig<string>('spriteFilename', 'sprite.svg');
-  const spritePrefix = getSvgConfig<string>('spritePrefix', 'icon');
+  const spritePrefix = getSvgConfig<string>('spritePrefix', '');
   const spritePath = path.join(outputPath, spriteFilename);
   const body = transformer.extractSvgBody(svgContent);
   const attrs = transformer.extractSvgAttributes(svgContent);
 
   const safeName = iconName.replace(/[^a-z0-9_-]/gi, '-').toLowerCase();
-  const symbolId = `${spritePrefix}-${safeName}`;
+  const symbolId = spritePrefix ? `${spritePrefix}-${safeName}` : safeName;
 
   const symbolEntry = `  <symbol id="${symbolId}" viewBox="${attrs.viewBox || '0 0 24 24'}">
     ${body}

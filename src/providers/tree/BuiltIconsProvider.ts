@@ -246,6 +246,32 @@ export class BuiltIconsProvider implements vscode.TreeDataProvider<SvgItem> {
       }
     }
 
+    // Fallback: if no built icons found, try searching workspace for common build files
+    if (this.builtIcons.size === 0) {
+      try {
+        const workspace = vscode.workspace.workspaceFolders?.[0];
+        if (workspace) {
+          // search for sprite.svg anywhere in workspace (skip node_modules)
+          const spriteMatches = await vscode.workspace.findFiles('**/sprite.svg', '**/node_modules/**', 5);
+          for (const uri of spriteMatches) {
+            try { await this.parseSpriteFile(uri.fsPath); } catch { /* ignore */ }
+            if (this.builtIcons.size > 0) break;
+          }
+
+          // search for icons data files (svg-data.js, icons.js, svg-data.ts)
+          if (this.builtIcons.size === 0) {
+            const dataMatches = await vscode.workspace.findFiles('**/{svg-data.js,svg-data.ts,icons.js,icons.ts}', '**/node_modules/**', 5);
+            for (const uri of dataMatches) {
+              try { await this.parseIconsFile(uri.fsPath); } catch { /* ignore */ }
+              if (this.builtIcons.size > 0) break;
+            }
+          }
+        }
+      } catch (e) {
+        // ignore search errors
+      }
+    }
+
 
   }
 

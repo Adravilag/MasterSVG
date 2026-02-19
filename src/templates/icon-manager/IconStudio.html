@@ -16,6 +16,8 @@
       </button>
     </div>
 
+    <div id="toast" class="toast" aria-hidden="true" style="display:none; position:fixed; right:16px; bottom:16px; background:rgba(0,0,0,0.75); color:#fff; padding:8px 12px; border-radius:6px; font-size:12px; z-index:9999;"></div>
+
     <div class="tabs">
       <button class="tab active" data-tab="workspace">${i18n_workspace}</button>
       <button class="tab" data-tab="library">${i18n_library}</button>
@@ -28,7 +30,7 @@
       </div>
     </div>
 
-    <div class="build-advanced-options">
+    <div class="build-advanced-options" id="buildAdvancedOptions">
       <div class="option-row">
         <span class="option-label">Formato de salida</span>
         <div class="format-select">

@@ -2,618 +2,154 @@ import {
   ComponentFormat as CentralizedComponentFormat,
   ComponentExportOptions,
   ComponentExportResult,
+  CodeLanguage
 } from '../types/mastersvgTypes';
 
-// Re-export centralized types with local aliases for backwards compatibility
+// Templates
+import * as T from './templates';
+
+// Aliases para compatibilidad
 export type ComponentFormat = CentralizedComponentFormat;
 export type ExportOptions = ComponentExportOptions;
-export type ExportResult = ComponentExportResult
+export type ExportResult = ComponentExportResult;
+
+// Firma de función para el mapa de estrategias
+type IconTemplateFn = (
+  name: string,
+  viewBox: string,
+  id: string,
+  opts: ComponentExportOptions,
+  innerContent?: string
+) => string;
 
 export class ComponentExporter {
   /**
-   * Export SVG to component in specified format
+   * Mapa de despacho de estrategias.
+   * Evita el uso de Switch y reduce la complejidad ciclomática.
+   */
+  private readonly templateMap: Record<string, IconTemplateFn> = {
+    react: T.reactTemplate,
+    preact: T.preactTemplate,
+    vue: T.vueTemplate,
+    'vue-sfc': T.vueSfcTemplate,
+    svelte: T.svelteTemplate,
+    angular: T.angularTemplate,
+    solid: T.solidTemplate,
+    qwik: T.qwikTemplate,
+    lit: T.litTemplate,
+  };
+
+  /**
+   * Exporta el SVG al formato de componente especificado.
    */
   export(options: ExportOptions): ExportResult {
-    const { format, typescript: _typescript } = options;
+    const { format, iconName, svg, typescript: ts = false } = options;
+    const componentName = options.componentName || this.toPascalCase(iconName);
 
-    switch (format) {
-      case 'react':
-      case 'preact':
-        return this.exportReact(options);
-      case 'react-native':
-        return this.exportReactNative(options);
-      case 'vue':
-        return this.exportVueComposition(options);
-      case 'vue-sfc':
-        return this.exportVueSFC(options);
-      case 'svelte':
-        return this.exportSvelte(options);
-      case 'angular':
-        return this.exportAngular(options);
-      case 'solid':
-        return this.exportSolid(options);
-      case 'qwik':
-        return this.exportQwik(options);
-      case 'lit':
-        return this.exportLit(options);
-      default:
-        throw new Error(`Unsupported format: ${format}`);
+    // Parsing inicial común
+    const { attributes, innerContent } = this.parseSvg(svg);
+    const viewBox = attributes.viewBox || '0 0 24 24';
+
+    // Caso especial: React Native (Inyecta paths directamente en lugar de Sprite)
+    if (format === 'react-native') {
+      const rnBody = this.convertToReactNative(innerContent, 'color');
+      const code = T.reactNativeTemplate(componentName, viewBox, iconName, rnBody, options);
+      return {
+        code,
+        filename: `${componentName}.${ts ? 'tsx' : 'jsx'}`,
+        language: (ts ? 'typescriptreact' : 'javascriptreact') as CodeLanguage,
+      };
     }
+
+    // Caso general: Uso de estrategias de Sprite
+    const templateFn = this.templateMap[format];
+    if (!templateFn) {
+      throw new Error(`Unsupported format: ${format}`);
+    }
+
+    return {
+      code: templateFn(componentName, viewBox, iconName, options, innerContent),
+      filename: this.resolveFilename(componentName, format, ts),
+      language: this.resolveLanguage(format, ts),
+    };
   }
 
   /**
-   * Get all available formats
+   * Helpers de Resolución con Tipado Estricto
    */
-  getFormats(): { id: ComponentFormat; name: string; description: string }[] {
-    return [
-      { id: 'react', name: 'React', description: 'React functional component with props spread' },
-      { id: 'react-native', name: 'React Native', description: 'React Native SVG component' },
-      { id: 'vue', name: 'Vue 3 (Composition)', description: 'Vue 3 with script setup' },
-      { id: 'vue-sfc', name: 'Vue SFC', description: 'Vue Single File Component' },
-      { id: 'svelte', name: 'Svelte', description: 'Svelte component' },
-      { id: 'angular', name: 'Angular', description: 'Angular component with @Input' },
-      { id: 'solid', name: 'SolidJS', description: 'Solid component' },
-      { id: 'qwik', name: 'Qwik', description: 'Qwik component' },
-      { id: 'preact', name: 'Preact', description: 'Preact functional component' },
-      { id: 'lit', name: 'Lit', description: 'Lit web component' },
-    ];
+  private resolveFilename(name: string, format: string, ts: boolean): string {
+    if (format === 'vue' || format === 'vue-sfc') return `${name}.vue`;
+    if (format === 'svelte') return `${name}.svelte`;
+    if (format === 'angular') return `${this.toKebabCase(name)}.component.ts`;
+    if (format === 'lit') return `${this.toKebabCase(name)}.ts`;
+    return `${name}.${ts ? 'tsx' : 'jsx'}`;
   }
 
-  // ==================== React ====================
+  private resolveLanguage(format: string, ts: boolean): CodeLanguage {
+    if (format.includes('vue')) return 'vue' as CodeLanguage;
+    if (format === 'svelte') return 'svelte' as CodeLanguage;
+    if (format === 'angular' || format === 'lit') return 'typescript' as CodeLanguage;
 
-  private exportReact(options: ExportOptions): ExportResult {
-    const {
-      iconName,
-      svg,
-      typescript,
-      memo,
-      forwardRef,
-      exportType,
-      defaultSize = 24,
-      defaultColor = 'currentColor',
-    } = options;
-    const componentName = (options as any).componentName || this.toPascalCase(iconName);
-    const ext = typescript ? 'tsx' : 'jsx';
-
-    // Parse SVG and extract attributes
-    const { attributes, innerContent } = this.parseSvg(svg);
-
-    // Build a simple props interface name to match webview sample
-    const propsTypeName = 'IconProps';
-
-    // Build strings following the same concatenation strategy used by the webview template
-    const importLine = `import React from 'react';`;
-    const interfaceLine = typescript ? `\ninterface ${propsTypeName} extends React.SVGProps<SVGSVGElement> {}` : '';
-
-    // Normalize JSX inner content to include a space before self-closing slash (matches webview sample)
-    const rawJsx = this.convertToJSX(innerContent).trim();
-    const jsxContent = rawJsx.replace(/\/>/g, ' />');
-
-    let componentDef = '';
-    if (forwardRef) {
-      if (typescript) {
-        componentDef += `\nconst ${componentName} = React.forwardRef<SVGSVGElement, ${propsTypeName}>(function ${componentName}(props, ref) {\n`;
-        componentDef += `  return (\n`;
-        componentDef += `    <svg width="24" height="24" viewBox="${attributes.viewBox || '0 0 24 24'}" ref={ref} {...props}>\n`;
-        componentDef += `      ${jsxContent}\n`;
-        componentDef += `    </svg>\n`;
-        componentDef += `  );\n`;
-        componentDef += `});\n`;
-      } else {
-        componentDef += `\nconst ${componentName} = React.forwardRef(function ${componentName}(props, ref) {\n`;
-        componentDef += `  return (\n`;
-        componentDef += `    <svg width="24" height="24" viewBox="${attributes.viewBox || '0 0 24 24'}" ref={ref} {...props}>\n`;
-        componentDef += `      ${jsxContent}\n`;
-        componentDef += `    </svg>\n`;
-        componentDef += `  );\n`;
-        componentDef += `});\n`;
-      }
-    } else {
-      if (typescript) {
-        componentDef += `\nconst ${componentName}: React.FC<${propsTypeName}> = (props) => {\n`;
-        componentDef += `  return (\n`;
-        componentDef += `    <svg width="24" height="24" viewBox="${attributes.viewBox || '0 0 24 24'}" {...props}>\n`;
-        componentDef += `      ${jsxContent}\n`;
-        componentDef += `    </svg>\n`;
-        componentDef += `  );\n`;
-        componentDef += `};\n`;
-      } else {
-        componentDef += `\nfunction ${componentName}(props) {\n`;
-        componentDef += `  return (\n`;
-        componentDef += `    <svg width="24" height="24" viewBox="${attributes.viewBox || '0 0 24 24'}" {...props}>\n`;
-        componentDef += `      ${jsxContent}\n`;
-        componentDef += `    </svg>\n`;
-        componentDef += `  );\n`;
-        componentDef += `}\n`;
-      }
-    }
-
-    const exportLines = exportType === 'default' ? `\nexport default ${componentName};` : `\nexport { ${componentName} };`;
-    const code = `${importLine}${interfaceLine}\n${componentDef}${exportLines}`.trim() + '\n';
-
-    return {
-      code,
-      filename: `${componentName}.${ext}`,
-      language: typescript ? 'typescriptreact' : 'javascriptreact',
-    };
+    const lang = ts ? 'typescriptreact' : 'javascriptreact';
+    return lang as CodeLanguage;
   }
 
-  // ==================== React Native ====================
-
-  private exportReactNative(options: ExportOptions): ExportResult {
-    const { iconName, svg, typescript, defaultSize = 24, defaultColor = 'currentColor' } = options;
-    const componentName = (options as any).componentName || this.toPascalCase(iconName);
-    const ext = typescript ? 'tsx' : 'jsx';
-
-    const { attributes, innerContent } = this.parseSvg(svg);
-
-    let code = typescript
-      ? `import React from 'react';
-import Svg, { Path, Circle, Rect, Line, Polyline, Polygon, G } from 'react-native-svg';
-
-interface ${componentName}Props {
-  size?: number;
-  color?: string;
-}
-
-const ${componentName}: React.FC<${componentName}Props> = ({ size = ${defaultSize}, color = '${defaultColor}' }) => (\n`
-      : `import React from 'react';
-import Svg, { Path, Circle, Rect, Line, Polyline, Polygon, G } from 'react-native-svg';
-
-const ${componentName} = ({ size = ${defaultSize}, color = '${defaultColor}' }) => (\n`;
-
-    code += `  <Svg width={size} height={size} viewBox="${attributes.viewBox || '0 0 24 24'}" fill="none">\n`;
-    code += `    ${this.convertToReactNative(innerContent, 'color')}\n`;
-    code += `  </Svg>\n`;
-    code += `);\n\n`;
-    code += `export default ${componentName};\n`;
-
-    return {
-      code,
-      filename: `${componentName}.${ext}`,
-      language: typescript ? 'typescriptreact' : 'javascriptreact',
-    };
-  }
-
-  // ==================== Vue 3 Composition ====================
-
-  private exportVueComposition(options: ExportOptions): ExportResult {
-    const { iconName, svg, typescript, defaultSize = 24, defaultColor = 'currentColor' } = options;
-    const componentName = (options as any).componentName || this.toPascalCase(iconName);
-
-    const { attributes, innerContent } = this.parseSvg(svg);
-
-    const code = `<script setup${typescript ? ' lang="ts"' : ''}>
-${
-  typescript
-    ? `interface Props {
-  size?: number | string;
-  color?: string;
-}
-
-`
-    : ''
-}defineProps${typescript ? '<Props>' : ''}({
-  size: { type: [Number, String], default: ${defaultSize} },
-  color: { type: String, default: '${defaultColor}' }
-});
-</script>
-
-<template>
-  <svg
-    :width="size"
-    :height="size"
-    viewBox="${attributes.viewBox || '0 0 24 24'}"
-    fill="${attributes.fill || 'none'}"
-    :stroke="color"
-    stroke-width="${attributes['stroke-width'] || '2'}"
-    stroke-linecap="${attributes['stroke-linecap'] || 'round'}"
-    stroke-linejoin="${attributes['stroke-linejoin'] || 'round'}"
-  >
-    ${innerContent.trim()}
-  </svg>
-</template>
-`;
-
-    return {
-      code,
-      filename: `${componentName}.vue`,
-      language: 'vue',
-    };
-  }
-
-  // ==================== Vue SFC (Options API) ====================
-
-  private exportVueSFC(options: ExportOptions): ExportResult {
-    const { iconName, svg, typescript, defaultSize = 24, defaultColor = 'currentColor' } = options;
-    const componentName = (options as any).componentName || this.toPascalCase(iconName);
-
-    const { attributes, innerContent } = this.parseSvg(svg);
-
-    const code = `<template>
-  <svg
-    :width="size"
-    :height="size"
-    viewBox="${attributes.viewBox || '0 0 24 24'}"
-    fill="${attributes.fill || 'none'}"
-    :stroke="color"
-    stroke-width="${attributes['stroke-width'] || '2'}"
-    stroke-linecap="${attributes['stroke-linecap'] || 'round'}"
-    stroke-linejoin="${attributes['stroke-linejoin'] || 'round'}"
-  >
-    ${innerContent.trim()}
-  </svg>
-</template>
-
-<script${typescript ? ' lang="ts"' : ''}>
-${
-  typescript
-    ? `import { defineComponent, PropType } from 'vue';
-
-`
-    : ''
-}export default ${typescript ? 'defineComponent(' : ''}{
-  name: '${componentName}',
-  props: {
-    size: {
-      type: ${typescript ? '[Number, String] as PropType<number | string>' : '[Number, String]'},
-      default: ${defaultSize}
-    },
-    color: {
-      type: String,
-      default: '${defaultColor}'
-    }
-  }
-}${typescript ? ')' : ''};
-</script>
-`;
-
-    return {
-      code,
-      filename: `${componentName}.vue`,
-      language: 'vue',
-    };
-  }
-
-  // ==================== Svelte ====================
-
-  private exportSvelte(options: ExportOptions): ExportResult {
-    const { iconName, svg, typescript, defaultSize = 24, defaultColor = 'currentColor' } = options;
-    const componentName = (options as any).componentName || this.toPascalCase(iconName);
-
-    const { attributes, innerContent } = this.parseSvg(svg);
-
-    const code = `<script${typescript ? ' lang="ts"' : ''}>
-  export let size${typescript ? ': number | string' : ''} = ${defaultSize};
-  export let color${typescript ? ': string' : ''} = '${defaultColor}';
-</script>
-
-<svg
-  width={size}
-  height={size}
-  viewBox="${attributes.viewBox || '0 0 24 24'}"
-  fill="${attributes.fill || 'none'}"
-  stroke={color}
-  stroke-width="${attributes['stroke-width'] || '2'}"
-  stroke-linecap="${attributes['stroke-linecap'] || 'round'}"
-  stroke-linejoin="${attributes['stroke-linejoin'] || 'round'}"
-  {...$$restProps}
->
-  ${innerContent.trim()}
-</svg>
-`;
-
-    return {
-      code,
-      filename: `${componentName}.svelte`,
-      language: 'svelte',
-    };
-  }
-
-  // ==================== Angular ====================
-
-  private exportAngular(options: ExportOptions): ExportResult {
-    const { iconName, svg, defaultSize = 24, defaultColor = 'currentColor' } = options;
-    const componentName = (options as any).componentName || this.toPascalCase(iconName);
-    const selector = this.toKebabCase(iconName);
-
-    const { attributes, innerContent } = this.parseSvg(svg);
-
-    const code = `import { Component, Input } from '@angular/core';
-
-@Component({
-  selector: '${selector}-icon',
-  standalone: true,
-  template: \`
-    <svg
-      [attr.width]="size"
-      [attr.height]="size"
-      viewBox="${attributes.viewBox || '0 0 24 24'}"
-      fill="${attributes.fill || 'none'}"
-      [attr.stroke]="color"
-      stroke-width="${attributes['stroke-width'] || '2'}"
-      stroke-linecap="${attributes['stroke-linecap'] || 'round'}"
-      stroke-linejoin="${attributes['stroke-linejoin'] || 'round'}"
-    >
-      ${innerContent.trim()}
-    </svg>
-  \`
-})
-export class ${componentName}IconComponent {
-  @Input() size: number | string = ${defaultSize};
-  @Input() color: string = '${defaultColor}';
-}
-`;
-
-    return {
-      code,
-      filename: `${selector}-icon.component.ts`,
-      language: 'typescript',
-    };
-  }
-
-  // ==================== SolidJS ====================
-
-  private exportSolid(options: ExportOptions): ExportResult {
-    const { iconName, svg, typescript, defaultSize = 24, defaultColor = 'currentColor' } = options;
-    const componentName = (options as any).componentName || this.toPascalCase(iconName);
-    const ext = typescript ? 'tsx' : 'jsx';
-
-    const { attributes, innerContent } = this.parseSvg(svg);
-
-    let code = '';
-
-    if (typescript) {
-      code += `import { Component, JSX, splitProps, mergeProps } from 'solid-js';
-
-interface ${componentName}Props extends JSX.SvgSVGAttributes<SVGSVGElement> {
-  size?: number | string;
-  color?: string;
-}
-
-const ${componentName}: Component<${componentName}Props> = (props) => {
-  const merged = mergeProps({ size: ${defaultSize}, color: '${defaultColor}' }, props);
-  const [local, others] = splitProps(merged, ['size', 'color']);
-
-  return (\n`;
-    } else {
-      code += `import { splitProps, mergeProps } from 'solid-js';
-
-const ${componentName} = (props) => {
-  const merged = mergeProps({ size: ${defaultSize}, color: '${defaultColor}' }, props);
-  const [local, others] = splitProps(merged, ['size', 'color']);
-
-  return (\n`;
-    }
-
-    code += `    <svg
-      width={local.size}
-      height={local.size}
-      viewBox="${attributes.viewBox || '0 0 24 24'}"
-      fill="${attributes.fill || 'none'}"
-      stroke={local.color}
-      stroke-width="${attributes['stroke-width'] || '2'}"
-      stroke-linecap="${attributes['stroke-linecap'] || 'round'}"
-      stroke-linejoin="${attributes['stroke-linejoin'] || 'round'}"
-      {...others}
-    >
-      ${this.convertToJSX(innerContent)}
-    </svg>
-  );
-};
-
-export default ${componentName};
-`;
-
-    return {
-      code,
-      filename: `${componentName}.${ext}`,
-      language: typescript ? 'typescriptreact' : 'javascriptreact',
-    };
-  }
-
-  // ==================== Qwik ====================
-
-  private exportQwik(options: ExportOptions): ExportResult {
-    const { iconName, svg, typescript, defaultSize = 24, defaultColor = 'currentColor' } = options;
-    const componentName = (options as any).componentName || this.toPascalCase(iconName);
-    const ext = typescript ? 'tsx' : 'jsx';
-
-    const { attributes, innerContent } = this.parseSvg(svg);
-
-    const code = `import { component$${typescript ? ', QwikIntrinsicElements' : ''} } from '@builder.io/qwik';
-
-${
-  typescript
-    ? `interface ${componentName}Props {
-  size?: number | string;
-  color?: string;
-}
-
-`
-    : ''
-}export const ${componentName} = component$${typescript ? `<${componentName}Props>` : ''}(({ size = ${defaultSize}, color = '${defaultColor}' }) => {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="${attributes.viewBox || '0 0 24 24'}"
-      fill="${attributes.fill || 'none'}"
-      stroke={color}
-      stroke-width="${attributes['stroke-width'] || '2'}"
-      stroke-linecap="${attributes['stroke-linecap'] || 'round'}"
-      stroke-linejoin="${attributes['stroke-linejoin'] || 'round'}"
-    >
-      ${this.convertToJSX(innerContent)}
-    </svg>
-  );
-});
-`;
-
-    return {
-      code,
-      filename: `${componentName}.${ext}`,
-      language: typescript ? 'typescriptreact' : 'javascriptreact',
-    };
-  }
-
-  // ==================== Lit ====================
-
-  private exportLit(options: ExportOptions): ExportResult {
-    const { iconName, svg, typescript, defaultSize = 24, defaultColor = 'currentColor' } = options;
-    const componentName = this.toPascalCase(iconName);
-    const tagName = this.toKebabCase(iconName) + '-icon';
-    const ext = 'ts';
-
-    const { attributes, innerContent } = this.parseSvg(svg);
-
-    const code = `import { LitElement, html, css, svg } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
-import { unsafeSVG } from 'lit/directives/unsafe-svg.js';
-
-@customElement('${tagName}')
-export class ${componentName}Icon extends LitElement {
-  @property({ type: Number }) size${typescript ? ': number | string' : ''} = ${defaultSize};
-  @property({ type: String }) color${typescript ? ': string' : ''} = '${defaultColor}';
-
-  static styles = css\`
-    :host {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-  \`;
-
-  render() {
-    return html\`
-      <svg
-        width="\${this.size}"
-        height="\${this.size}"
-        viewBox="${attributes.viewBox || '0 0 24 24'}"
-        fill="${attributes.fill || 'none'}"
-        stroke="\${this.color}"
-        stroke-width="${attributes['stroke-width'] || '2'}"
-        stroke-linecap="${attributes['stroke-linecap'] || 'round'}"
-        stroke-linejoin="${attributes['stroke-linejoin'] || 'round'}"
-      >
-        \${svg\`${innerContent.trim()}\`}
-      </svg>
-    \`;
-  }
-}
-
-declare global {
-  interface HTMLElementTagNameMap {
-    '${tagName}': ${componentName}Icon;
-  }
-}
-`;
-
-    return {
-      code,
-      filename: `${tagName}.${ext}`,
-      language: 'typescript',
-    };
-  }
-
-  // ==================== Helpers ====================
-
+  /**
+   * Parsing & Transformación
+   */
   private parseSvg(svg: string): { attributes: Record<string, string>; innerContent: string } {
     const attributes: Record<string, string> = {};
-
-    // Extract SVG tag attributes
     const svgTagMatch = svg.match(/<svg([^>]*)>/i);
+
     if (svgTagMatch) {
-      const attrStr = svgTagMatch[1];
       const attrRegex = /(\w+[-\w]*)=["']([^"']*)["']/g;
       let match;
-      while ((match = attrRegex.exec(attrStr)) !== null) {
+      while ((match = attrRegex.exec(svgTagMatch[1])) !== null) {
         attributes[match[1]] = match[2];
       }
     }
 
-    // Extract inner content
     const innerMatch = svg.match(/<svg[^>]*>([\s\S]*)<\/svg>/i);
-    const innerContent = innerMatch ? innerMatch[1].trim() : '';
-
-    return { attributes, innerContent };
-  }
-
-  private convertToJSX(content: string): string {
-    return (
-      content
-        // Convert attributes to camelCase
-        .replace(/stroke-width=/g, 'strokeWidth=')
-        .replace(/stroke-linecap=/g, 'strokeLinecap=')
-        .replace(/stroke-linejoin=/g, 'strokeLinejoin=')
-        .replace(/stroke-dasharray=/g, 'strokeDasharray=')
-        .replace(/stroke-dashoffset=/g, 'strokeDashoffset=')
-        .replace(/stroke-miterlimit=/g, 'strokeMiterlimit=')
-        .replace(/stroke-opacity=/g, 'strokeOpacity=')
-        .replace(/fill-opacity=/g, 'fillOpacity=')
-        .replace(/fill-rule=/g, 'fillRule=')
-        .replace(/clip-path=/g, 'clipPath=')
-        .replace(/clip-rule=/g, 'clipRule=')
-        .replace(/font-family=/g, 'fontFamily=')
-        .replace(/font-size=/g, 'fontSize=')
-        .replace(/text-anchor=/g, 'textAnchor=')
-        .replace(/stop-color=/g, 'stopColor=')
-        .replace(/stop-opacity=/g, 'stopOpacity=')
-        // Handle class -> className
-        .replace(/\sclass=/g, ' className=')
-    );
+    return { attributes, innerContent: innerMatch ? innerMatch[1].trim() : '' };
   }
 
   private convertToReactNative(content: string, colorVar: string): string {
-    return (
-      content
-        // Convert element names to PascalCase
-        .replace(/<path/g, '<Path')
-        .replace(/<\/path>/g, '</Path>')
-        .replace(/<circle/g, '<Circle')
-        .replace(/<\/circle>/g, '</Circle>')
-        .replace(/<rect/g, '<Rect')
-        .replace(/<\/rect>/g, '</Rect>')
-        .replace(/<line/g, '<Line')
-        .replace(/<\/line>/g, '</Line>')
-        .replace(/<polyline/g, '<Polyline')
-        .replace(/<\/polyline>/g, '</Polyline>')
-        .replace(/<polygon/g, '<Polygon')
-        .replace(/<\/polygon>/g, '</Polygon>')
-        .replace(/<g/g, '<G')
-        .replace(/<\/g>/g, '</G>')
-        // Convert stroke="currentColor" to use prop
-        .replace(/stroke="currentColor"/g, `stroke={${colorVar}}`)
-        .replace(/stroke="[^"]+"/g, `stroke={${colorVar}}`)
-        // Convert attributes
-        .replace(/stroke-width=/g, 'strokeWidth=')
-        .replace(/stroke-linecap=/g, 'strokeLinecap=')
-        .replace(/stroke-linejoin=/g, 'strokeLinejoin=')
-        .replace(/fill-rule=/g, 'fillRule=')
-    );
+    return content
+      .replace(/<(path|circle|rect|line|polyline|polygon|g)/gi, (m) => m.charAt(0) + m.charAt(1).toUpperCase() + m.slice(2))
+      .replace(/<\/(path|circle|rect|line|polyline|polygon|g)>/gi, (m) => m.slice(0, 2) + m.charAt(2).toUpperCase() + m.slice(3))
+      .replace(/stroke="currentColor"/g, `stroke={${colorVar}}`)
+      .replace(/stroke="[^"]+"/g, `stroke={${colorVar}}`)
+      .replace(/(stroke-width|stroke-linecap|stroke-linejoin|fill-rule)=/g, (m) => {
+        return m.replace(/-([a-z])/g, (g) => g[1].toUpperCase()).replace('=', '=');
+      });
   }
 
   private toPascalCase(str: string): string {
-    return str
-      .split(/[-_\s]+/)
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join('');
+    return str.split(/[-_\s]+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
   }
 
   private toKebabCase(str: string): string {
-    return str
-      .replace(/([a-z])([A-Z])/g, '$1-$2')
-      .replace(/[\s_]+/g, '-')
-      .toLowerCase();
+    return str.replace(/([a-z])([A-Z])/g, '$1-$2').replace(/[\s_]+/g, '-').toLowerCase();
+  }
+
+  getFormats(): { id: ComponentFormat; name: string; description: string }[] {
+    return [
+      { id: 'react', name: 'React', description: 'Functional component (SVG Sprite)' },
+      { id: 'react-native', name: 'React Native', description: 'Native SVG component (Direct Paths)' },
+      { id: 'vue', name: 'Vue 3 (Composition)', description: 'Script setup with Sprite' },
+      { id: 'vue-sfc', name: 'Vue SFC', description: 'Options API with Sprite' },
+      { id: 'svelte', name: 'Svelte', description: 'Svelte component (Sprite)' },
+      { id: 'angular', name: 'Angular', description: 'Standalone component (Sprite)' },
+      { id: 'solid', name: 'SolidJS', description: 'Solid component (Sprite)' },
+      { id: 'qwik', name: 'Qwik', description: 'Qwik component (Sprite)' },
+      { id: 'preact', name: 'Preact', description: 'Preact component (Sprite)' },
+      { id: 'lit', name: 'Lit', description: 'Web Component (Sprite)' },
+    ];
   }
 }
 
-// Singleton instance
 let exporterInstance: ComponentExporter | undefined;
-
 export function getComponentExporter(): ComponentExporter {
-  if (!exporterInstance) {
-    exporterInstance = new ComponentExporter();
-  }
+  if (!exporterInstance) exporterInstance = new ComponentExporter();
   return exporterInstance;
 }
